@@ -19,21 +19,28 @@ The package is in the planning stage. This means that there is no working code a
 pip install tea-tasting
 ```
 
-## Test and metrics definition
-
-First, define the test and its metrics:
+## Basic usage
 
 ```python
 import tea_tasting as tt
 
-test = tt.Test()
+
+data = tt.sample_users_data(size=1000, seed=42)
+
+test = tt.Test({
+    "revenue_per_user": tt.SimpleMean(col="revenue"),
+    "orders_per_user": tt.SimpleMean(col="orders"),
+})
+
+test_results = test.analyze(data)
+test_results.to_polars()
 ```
 
 ## Input data
 
 ## Package name
 
-## Decisions
+## Design choices
 
 ### Naming
 
@@ -45,8 +52,8 @@ Test class:
 
 Test calculation method:
 
-- `analyse`
 - `analyze`
+- `analyse`
 - `compute`
 - `fit`
 - `calc`
@@ -66,3 +73,7 @@ Out of the box metrics:
 - `tt.Test(tt.MetricType(metric_name, **metric_kwargs), **test_kwargs)`
 
 ### Immutable objects
+
+### Dataframes
+
+## Roadmap
