@@ -25,30 +25,62 @@ pip install tea-tasting
 import tea_tasting as tt
 
 
-data = tt.sample_users_data(size=1000, seed=42)
+users_data = tt.sample_users_data(size=1000, seed=42)
 
-test = tt.Test({
-    "revenue_per_user": tt.SimpleMean(col="revenue"),
-    "orders_per_user": tt.SimpleMean(col="orders"),
+experiment = tt.Experiment({
+    "visits_per_user": tt.SimpleMean(metric="visits"),
+    "cr_visit_to_order": tt.RatioOfMeans(numer="orders", denom="visits"),
+    "orders_per_user": tt.SimpleMean(metric="orders"),
+    "revenue_per_user": tt.SimpleMean(metric="revenue"),
 })
 
-test_results = test.analyze(data)
-test_results.to_polars()
+experiment_results = experiment.analyze(users_data)
+experiment_results.to_polars()
 ```
 
-## Input data
+### Input data
+
+### Simple metrics
+
+### Ratio metrics
+
+### Results
+
+## Advanced usage
+
+### Group by units
+
+### CUPED / CUPAC
+
+### Three or more variants
+
+### Sample ratio mismatch
+
+## Power analysis and A/A tests
+
+### Power analysis
+
+### A/A tests
+
+## Other features
+
+### Bootstrap
+
+### Custom metrics
 
 ## Package name
 
-## Design choices
+## Roadmap
+
+## Appendix. Design choices
 
 ### Naming
 
 Test class:
 
-- `Test`
-- `ABTest`
 - `Experiment`
+- `ABTest`
+- `Test`
 
 Test calculation method:
 
@@ -68,12 +100,10 @@ Out of the box metrics:
 
 ### Metric definition
 
-- `tt.Test({"metric_name": tt.MetricType(**metric_kwargs)}, **test_kwargs)`
-- `tt.Test(metric_name=tt.MetricType(**metric_kwargs), **test_kwargs)`
-- `tt.Test(tt.MetricType(metric_name, **metric_kwargs), **test_kwargs)`
+- `tt.Experiment({"metric_name": tt.MetricType(**metric_kwargs)}, **test_kwargs)`
+- `tt.Experiment(metric_name=tt.MetricType(**metric_kwargs), **test_kwargs)`
+- `tt.Experiment(tt.MetricType(metric_name, **metric_kwargs), **test_kwargs)`
 
-### Immutable objects
+### Separate results class
 
 ### Dataframes
-
-## Roadmap
