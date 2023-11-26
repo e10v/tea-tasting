@@ -2,14 +2,14 @@
 
 Tea-tasting is a Python package for statistical analysis of A/B tests that features:
 
-- T-test, Z-test, and bootstrap out of the box
-- Extensible API: You can define and use statistical tests of your choice
-- Delta method for ratio metrics
-- Variance reduction with CUPED/CUPAC (also in combination with delta method for ratio metrics)
-- Fieller's confidence interval for percent change
-- Sample ratio mismatch check
-- Power analysis
-- A/A tests
+- T-test, Z-test, and bootstrap out of the box.
+- Extensible API: You can define and use statistical tests of your choice.
+- Delta method for ratio metrics.
+- Variance reduction with CUPED/CUPAC (also in combination with delta method for ratio metrics).
+- Fieller's confidence interval for percent change.
+- Sample ratio mismatch check.
+- Power analysis.
+- A/A tests.
 
 The package is in the planning stage. This means that there is no working code at this time. This readme describes the future API of the package. See more details in Tom Preston-Werner's blog post on [Readme Driven Development](https://tom.preston-werner.com/2010/08/23/readme-driven-development).
 
@@ -46,24 +46,24 @@ I'll discuss each step below.
 
 The `tt.sample_users_data` function samples data which can be used as an example. Data contains information about an A/B test in an online store. The randomization unit is user. It's a Polars dataframe with rows representing users and the following columns:
 
-- `user_id` -- user ID (`int`)
-- `variant` -- variant of the A/B test (`int`, `0` or `1`)
-- `visits` -- number of users's visits (`int`, `>= 1`)
-- `orders` -- number of users's purchases (`int`, `>= 0`, `<= visits`)
-- `revenue` -- total amount of user's purchases (`float`, `>= 0`, `0` if `orders == 0`)
+- `user_id` -- user ID (`int`),
+- `variant` -- variant of the A/B test (`int`, `0` or `1`),
+- `visits` -- number of users's visits (`int`, `>= 1`),
+- `orders` -- number of users's purchases (`int`, `>= 0`, `<= visits`),
+- `revenue` -- total amount of user's purchases (`float`, `>= 0`, `0` if `orders == 0`).
 
 Tea-tasting accepts dataframes of the following types:
 
-- Polars dataframes
-- Pandas dataframes
-- Object supporting the [Python dataframe interchange protocol](https://data-apis.org/dataframe-protocol/latest/index.html)
+- Polars dataframes,
+- Pandas dataframes,
+- Object supporting the [Python dataframe interchange protocol](https://data-apis.org/dataframe-protocol/latest/index.html).
 
 By default, tea-tasting assumes that:
 
-- Data are grouped by randomization units (e.g. users)
-- There is a column that represent a variant (e.g. A, B)
+- Data are grouped by randomization units (e.g. users).
+- There is a column that represent a variant (e.g. A, B).
 - There is a column for each value needed for metric calculation (e.g. number of orders,
-revenue etc.)
+revenue etc.).
 
 ### A/B test definition
 
@@ -84,6 +84,13 @@ experiment = tt.Experiment(
 ```
 
 ### Simple metrics
+
+The `tt.SimpleMean` class defines average metric values per randomization units. The first argument, `value`, is a name of a column that contains the metric values.
+
+It applies the Welch's t-test, Student's t-test, or Z-test, depending on parameters:
+
+- `use_t: bool` -- Indicates to use the Student’s t-distribution (`True`) or the Normal distribution (`False`) when computing p-value and confidence interval. Default is `True`.
+- `equal_var: bool` -- Not used if `use_t is False`. If `True`, perform a standard independent Student's t-test that assumes equal population variances. If `False`, perform Welch’s t-test, which does not assume equal population variance. Default is `False`.
 
 ### Ratio metrics
 
