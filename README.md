@@ -44,7 +44,7 @@ I'll discuss each step below.
 
 ### Input data
 
-The `tt.sample_users_data` function samples data which can be used as an example. Data contains information about an A/B test in an online store. The randomization unit is user. It's a Polars dataframe with rows representing users and the following columns:
+The `sample_users_data` function samples data which can be used as an example. Data contains information about an A/B test in an online store. The randomization unit is user. It's a Polars dataframe with rows representing users and the following columns:
 
 - `user_id` -- user ID (`int`).
 - `variant` -- variant of the A/B test (`int`, `0` or `1`).
@@ -67,9 +67,11 @@ revenue etc.).
 
 ### A/B test definition
 
-The `tt.Experiment` class defines the A/B test. The first parameter, `metrics`, is a dictionary of metric names as keys and metric definitions as values.
+The `Experiment` class defines the A/B test. The first parameter, `metrics`, is a dictionary of metric names as keys and metric definitions as values.
 
-Also you can specify a custom variant column name using the `variant` parameter (default is `"variant"`):
+You can specify a custom variant column name using the `variant` parameter. Default is `"variant"`.
+
+Also you can specify a control variant. Default is `None`, which means that variant with minimal ID is used.
 
 ```python
 experiment = tt.Experiment(
@@ -80,31 +82,49 @@ experiment = tt.Experiment(
         "Revenue per user": tt.SimpleMean("revenue"),
     },
     variant="variant_id",
+    control="A",
 )
 ```
 
 ### Simple metrics
 
-The `tt.SimpleMean` class is useful if you want to compare simple metric averages. The first parameter, `value`, is a name of a column that contains the metric values.
+The `SimpleMean` class is useful if you want to compare simple metric averages. The first parameter, `value`, is a name of a column that contains the metric values.
 
 It applies the Welch's t-test, Student's t-test, or Z-test, depending on parameters:
 
 - `use_t: bool` -- Indicates to use the Student’s t-distribution (`True`) or the Normal distribution (`False`) when computing p-value and confidence interval. Default is `True`.
 - `equal_var: bool` -- Not used if `use_t is False`. If `True`, perform a standard independent Student's t-test that assumes equal population variances. If `False`, perform Welch’s t-test, which does not assume equal population variance. Default is `False`.
 
+The `confidence_level` parameter defines a confidence level for the computed confidence interval.
+
 ### Ratio metrics
 
 Ratio metrics are useful when an analysis unit differs from a randomization units. For example, you might want to compare orders per visit (the analysis unit). And there can be several visits per user (the randomization unit). It's not correct to use the `tt.SimpleMean` class in this case.
 
-The `tt.RatioOfMeans` class defines a ratio metric that compares ratios of averages. For example, average number of orders per average number of visits. The `numer` parameter defines a numerator column name. The `denom` parameter defines a denominator column name.
+The `RatioOfMeans` class defines a ratio metric that compares ratios of averages. For example, average number of orders per average number of visits. The `numer` parameter defines a numerator column name. The `denom` parameter defines a denominator column name.
 
-Similar to `tt.SimpleMean`,  `tt.RatioOfMeans` applies the Welch's t-test, Student's t-test, or Z-test, depending on parameters `use_t` and `equal_var`.
+Similar to `SimpleMean`,  `RatioOfMeans` applies the Welch's t-test, Student's t-test, or Z-test, depending on parameters `use_t` and `equal_var`. The `confidence_level` parameter defines a confidence level for the computed confidence interval.
 
 ### Result
 
-Once you defined an experiment, you can calculate the result by calling `experiment.analyze`. It accepts the experiment data as the first parameter, `data`, and returns an instance of the `ExperimentResult` class.
+Once you've defined an experiment, you can calculate the result by calling `experiment.analyze`. It accepts the experiment data as the first parameter, `data`, and returns an instance of the `ExperimentResult` class.
 
-The `ExperimentResult` class
+The `ExperimentResult` object contains the experiment result for each metrics. The list of fields depends on the metric. For `SimpleMean` an `RatioOfMeans` the fields are:
+
+- Control mean,
+- Treatment mean,
+- Difference of means,
+- Confidence interval of the difference of means,
+- Relative difference of means,
+- Confidence interval of the relative difference of means,
+- P-value.
+
+You can serialize the `ExperimentResult` object to different formats:
+
+- `to_polars` -- Polars dataframe, with a row for each metric.
+- `to_pandas` -- Pandas dataframe, with a row for each metric.
+- `to_dicts` -- sequence of dictionaries, with a dictionary for each metric.
+- `to_html` -- HTML table.
 
 ## More features
 
