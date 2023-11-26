@@ -44,7 +44,7 @@ I'll discuss each step below.
 
 ### Input data
 
-Function `tt.sample_users_data` samples data which can be used as an example. Data contains information about an A/B test in an online store. The randomization unit is user. It's a Polars dataframe with rows representing users and the following columns:
+The `tt.sample_users_data` function samples data which can be used as an example. Data contains information about an A/B test in an online store. The randomization unit is user. It's a Polars dataframe with rows representing users and the following columns:
 
 - `user_id` -- user ID (`int`)
 - `variant` -- variant of the A/B test (`int`, `0` or `1`)
@@ -60,24 +60,24 @@ Tea-tasting accepts dataframes of the following types:
 
 By default, tea-tasting assumes that:
 
-- Data are grouped by randomizaion units (e.g. users)
-- There is a column that represnet a variant (e.g. A, B)
+- Data are grouped by randomization units (e.g. users)
+- There is a column that represent a variant (e.g. A, B)
 - There is a column for each value needed for metric calculation (e.g. number of orders,
 revenue etc.)
 
 ### A/B test definition
 
-Class `tt.Experiment` defines the A/B test. The first argument, `metrics`, is a dictionary of metric names as keys and metric definitions as values.
+The `tt.Experiment` class defines the A/B test. The first argument, `metrics`, is a dictionary of metric names as keys and metric definitions as values.
 
-Also you can specify a custom variant column name using `variant` parameter (the default value is `"variant"`):
+Also you can specify a custom variant column name using the `variant` parameter (the default value is `"variant"`):
 
 ```python
 experiment = tt.Experiment(
     {
-        "visits_per_user": tt.SimpleMean("visits"),
-        "cr_visits_to_orders": tt.RatioOfMeans(numer="orders", denom="visits"),
-        "orders_per_user": tt.SimpleMean("orders"),
-        "revenue_per_user": tt.SimpleMean("revenue"),
+        "Visits per user": tt.SimpleMean("visits"),
+        "CR visits to orders": tt.RatioOfMeans(numer="orders", denom="visits"),
+        "Orders per user": tt.SimpleMean("orders"),
+        "Revenue per user": tt.SimpleMean("revenue"),
     },
     variant="variant_id",
 )
@@ -91,7 +91,7 @@ experiment = tt.Experiment(
 
 ## More features
 
-### Variance reduction with CUPED / CUPAC
+### Variance reduction with CUPED/CUPAC
 
 ### Sample ratio mismatch
 
