@@ -46,11 +46,11 @@ I'll discuss each step below.
 
 The `sample_users_data` function samples data which can be used as an example. Data contains information about an A/B test in an online store. The randomization unit is user. It's a Polars dataframe with rows representing users and the following columns:
 
-- `user_id` -- user ID (`int`).
-- `variant` -- variant of the A/B test (`int`, `0` or `1`).
-- `visits` -- number of users's visits (`int`, `>= 1`).
-- `orders` -- number of users's purchases (`int`, `>= 0`, `<= visits`).
-- `revenue` -- total amount of user's purchases (`float`, `>= 0`, `0` if `orders == 0`).
+- `user_id` -- User ID (`int`).
+- `variant` -- Variant of the A/B test (`int`, `0` or `1`).
+- `visits` -- Number of users's visits (`int`, `>= 1`).
+- `orders` -- Number of users's purchases (`int`, `>= 0`, `<= visits`).
+- `revenue` -- Total amount of user's purchases (`float`, `>= 0`, `0` if `orders == 0`).
 
 Tea-tasting accepts dataframes of the following types:
 
@@ -111,19 +111,19 @@ Once you've defined an experiment, you can calculate the result by calling `expe
 
 The `ExperimentResult` object contains the experiment result for each metrics. The list of fields depends on the metric. For `SimpleMean` an `RatioOfMeans` the fields are:
 
-- Control mean,
-- Treatment mean,
-- Difference of means,
-- Confidence interval of the difference of means,
-- Relative difference of means,
-- Confidence interval of the relative difference of means,
-- P-value.
+- `variant_{control_variant_id}` -- Control mean.
+- `variant_{treatment_variant_id}` -- Treatment mean.
+- `diff` -- Difference of means.
+- `diff_conf_int_lower`, `diff_conf_int_upper` -- The lower and the upper bounds of the confidence interval of the difference of means.
+- `rel_diff` -- Relative difference of means.
+- `rel_diff_conf_int_lower`, `rel_diff_conf_int_upper` -- The lower and the upper bounds of the confidence interval of the relative difference of means.
+- `pvalue` -- P-value.
 
-You can serialize the `ExperimentResult` object to different formats:
+Serialization methods of the `ExperimentResult` object:
 
 - `to_polars` -- Polars dataframe, with a row for each metric.
 - `to_pandas` -- Pandas dataframe, with a row for each metric.
-- `to_dicts` -- sequence of dictionaries, with a dictionary for each metric.
+- `to_dicts` -- Sequence of dictionaries, with a dictionary for each metric.
 - `to_html` -- HTML table.
 
 ## More features
@@ -175,6 +175,11 @@ Out of the box metrics:
 - `RatioOfMeans`
 - `Bootstrap`
 - `SampleRatio`
+
+Confidence interval:
+
+- `conf_int`
+- `ci`
 
 ### Metric definition
 
