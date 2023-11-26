@@ -28,10 +28,10 @@ import tea_tasting as tt
 users_data = tt.sample_users_data(size=1000, seed=42)
 
 experiment = tt.Experiment({
-    "visits_per_user": tt.SimpleMean(metric="visits"),
-    "cr_visit_to_order": tt.RatioOfMeans(numer="orders", denom="visits"),
-    "orders_per_user": tt.SimpleMean(metric="orders"),
-    "revenue_per_user": tt.SimpleMean(metric="revenue"),
+    "visits_per_user": tt.SimpleMean("visits"),
+    "cr_visits_to_orders": tt.RatioOfMeans(numer="orders", denom="visits"),
+    "orders_per_user": tt.SimpleMean("orders"),
+    "revenue_per_user": tt.SimpleMean("revenue"),
 })
 
 experiment_results = experiment.analyze(users_data)
@@ -46,21 +46,15 @@ experiment_results.to_polars()
 
 ### Results
 
-## Advanced usage
+## More features
 
-### Group by units
-
-### CUPED / CUPAC
-
-### Three or more variants
+### Variance reduction with CUPED / CUPAC
 
 ### Sample ratio mismatch
 
-## Power analysis and A/A tests
-
 ### Power analysis
 
-### A/A tests
+### Simulations and A/A tests
 
 ## Other features
 
@@ -68,9 +62,13 @@ experiment_results.to_polars()
 
 ### Custom metrics
 
-## Package name
+### Analysis from stats
 
-## Roadmap
+### More than two variants
+
+### Group by units
+
+## Package name
 
 ## Appendix. Design choices
 
