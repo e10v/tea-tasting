@@ -30,14 +30,14 @@ import tea_tasting as tt
 users_data = tt.sample_users_data(size=1000, seed=42)
 
 experiment = tt.Experiment({
-    "visits_per_user": tt.SimpleMean("visits"),
-    "cr_visits_to_orders": tt.RatioOfMeans(numer="orders", denom="visits"),
-    "orders_per_user": tt.SimpleMean("orders"),
-    "revenue_per_user": tt.SimpleMean("revenue"),
+    "Visits per user": tt.SimpleMean("visits"),
+    "CR visits to orders": tt.RatioOfMeans(numer="orders", denom="visits"),
+    "Orders per user": tt.SimpleMean("orders"),
+    "Revenue per user": tt.SimpleMean("revenue"),
 })
 
-experiment_results = experiment.analyze(users_data)
-experiment_results.to_polars()
+experiment_result = experiment.analyze(users_data)
+experiment_result.to_polars()
 ```
 
 I'll discuss each step below.
@@ -69,7 +69,7 @@ revenue etc.).
 
 The `tt.Experiment` class defines the A/B test. The first parameter, `metrics`, is a dictionary of metric names as keys and metric definitions as values.
 
-Also you can specify a custom variant column name using the `variant` parameter (the default value is `"variant"`):
+Also you can specify a custom variant column name using the `variant` parameter (default is `"variant"`):
 
 ```python
 experiment = tt.Experiment(
@@ -100,7 +100,11 @@ The `tt.RatioOfMeans` class defines a ratio metric that compares ratios of avera
 
 Similar to `tt.SimpleMean`,  `tt.RatioOfMeans` applies the Welch's t-test, Student's t-test, or Z-test, depending on parameters `use_t` and `equal_var`.
 
-### Results
+### Result
+
+Once you defined an experiment, you can calculate the result by calling `experiment.analyze`. It accepts the experiment data as the first parameter, `data`, and returns an instance of the `ExperimentResult` class.
+
+The `ExperimentResult` class
 
 ## More features
 
