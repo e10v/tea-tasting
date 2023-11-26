@@ -46,16 +46,16 @@ I'll discuss each step below.
 
 The `tt.sample_users_data` function samples data which can be used as an example. Data contains information about an A/B test in an online store. The randomization unit is user. It's a Polars dataframe with rows representing users and the following columns:
 
-- `user_id` -- user ID (`int`),
-- `variant` -- variant of the A/B test (`int`, `0` or `1`),
-- `visits` -- number of users's visits (`int`, `>= 1`),
-- `orders` -- number of users's purchases (`int`, `>= 0`, `<= visits`),
+- `user_id` -- user ID (`int`).
+- `variant` -- variant of the A/B test (`int`, `0` or `1`).
+- `visits` -- number of users's visits (`int`, `>= 1`).
+- `orders` -- number of users's purchases (`int`, `>= 0`, `<= visits`).
 - `revenue` -- total amount of user's purchases (`float`, `>= 0`, `0` if `orders == 0`).
 
 Tea-tasting accepts dataframes of the following types:
 
-- Polars dataframes,
-- Pandas dataframes,
+- Polars dataframes.
+- Pandas dataframes.
 - Object supporting the [Python dataframe interchange protocol](https://data-apis.org/dataframe-protocol/latest/index.html).
 
 By default, tea-tasting assumes that:
@@ -67,7 +67,7 @@ revenue etc.).
 
 ### A/B test definition
 
-The `tt.Experiment` class defines the A/B test. The first argument, `metrics`, is a dictionary of metric names as keys and metric definitions as values.
+The `tt.Experiment` class defines the A/B test. The first parameter, `metrics`, is a dictionary of metric names as keys and metric definitions as values.
 
 Also you can specify a custom variant column name using the `variant` parameter (the default value is `"variant"`):
 
@@ -85,7 +85,7 @@ experiment = tt.Experiment(
 
 ### Simple metrics
 
-The `tt.SimpleMean` class defines average metric values per randomization units. The first argument, `value`, is a name of a column that contains the metric values.
+The `tt.SimpleMean` class is useful if you want to compare simple metric averages. The first parameter, `value`, is a name of a column that contains the metric values.
 
 It applies the Welch's t-test, Student's t-test, or Z-test, depending on parameters:
 
@@ -93,6 +93,12 @@ It applies the Welch's t-test, Student's t-test, or Z-test, depending on paramet
 - `equal_var: bool` -- Not used if `use_t is False`. If `True`, perform a standard independent Student's t-test that assumes equal population variances. If `False`, perform Welch’s t-test, which does not assume equal population variance. Default is `False`.
 
 ### Ratio metrics
+
+Ratio metrics are useful when an analysis unit differs from a randomization units. For example, you might want to compare orders per visit (the analysis unit). And there can be several visits per user (the randomization unit). It's not correct to use the `tt.SimpleMean` class in this case.
+
+The `tt.RatioOfMeans` class defines a ratio metric that compares ratios of averages. For example, average number of orders per average number of visits. The `numer` parameter defines a numerator column name. The `denom` parameter defines a denominator column name.
+
+Similar to `tt.SimpleMean`,  `tt.RatioOfMeans` applies the Welch's t-test, Student's t-test, or Z-test, depending on parameters `use_t` and `equal_var`.
 
 ### Results
 
