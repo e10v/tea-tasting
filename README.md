@@ -103,13 +103,20 @@ Ratio metrics are useful when an analysis unit differs from a randomization unit
 
 The `RatioOfMeans` class defines a ratio metric that compares ratios of averages. For example, average number of orders per average number of visits. The `numer` parameter defines a numerator column name. The `denom` parameter defines a denominator column name.
 
-Similar to `SimpleMean`,  `RatioOfMeans` applies the Welch's t-test, Student's t-test, or Z-test, depending on parameters `use_t` and `equal_var`. The `confidence_level` parameter defines a confidence level for the computed confidence interval.
+Similar to `SimpleMean`,  `RatioOfMeans` applies the Welch's t-test, Student's t-test, or Z-test, depending on parameters `use_t` and `equal_var`. It applies the delta method to calculate p-value and confidence intervals. The `confidence_level` parameter defines a confidence level for the computed confidence interval.
 
 ### Result
 
 Once you've defined an experiment, you can calculate the result by calling `experiment.analyze`. It accepts the experiment data as the first parameter, `data`, and returns an instance of the `ExperimentResult` class.
 
-The `ExperimentResult` object contains the experiment result for each metrics. The list of fields depends on the metric. For `SimpleMean` an `RatioOfMeans` the fields are:
+The `ExperimentResult` object contains the experiment result for each metrics. You can serialize results using one of these methods:
+
+- `to_polars` -- Polars dataframe, with a row for each metric.
+- `to_pandas` -- Pandas dataframe, with a row for each metric.
+- `to_dicts` -- Sequence of dictionaries, with a dictionary for each metric.
+- `to_html` -- HTML table.
+
+The list of columns depends on the metric. For `SimpleMean` and `RatioOfMeans` the columns are:
 
 - `variant_{control_variant_id}` -- Control mean.
 - `variant_{treatment_variant_id}` -- Treatment mean.
@@ -119,16 +126,11 @@ The `ExperimentResult` object contains the experiment result for each metrics. T
 - `rel_diff_conf_int_lower`, `rel_diff_conf_int_upper` -- The lower and the upper bounds of the confidence interval of the relative difference of means.
 - `pvalue` -- P-value.
 
-Serialization methods of the `ExperimentResult` object:
-
-- `to_polars` -- Polars dataframe, with a row for each metric.
-- `to_pandas` -- Pandas dataframe, with a row for each metric.
-- `to_dicts` -- Sequence of dictionaries, with a dictionary for each metric.
-- `to_html` -- HTML table.
-
 ## More features
 
 ### Variance reduction with CUPED/CUPAC
+
+Both `SimpleMean` and `RatioOfMeans` classes support variance reduction with CUPED/CUPAC.
 
 ### Sample ratio mismatch
 
