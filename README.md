@@ -228,8 +228,6 @@ The `confidence_level` parameter defines a confidence level for the computed con
 
 ### Power analysis
 
-You 
-
 ### Simulations and A/A tests
 
 ## Other features
