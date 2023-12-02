@@ -46,11 +46,11 @@ I'll discuss each step below.
 
 The `sample_users_data` function generates synthetic data which can be used as an example. Data contains information about an A/B test in an online store. The randomization unit is user. It's a Polars dataframe with rows representing users and the following columns:
 
-- `user_id` -- User ID (`int`).
-- `variant` -- Variant of the A/B test (`int`, `0` or `1`).
-- `visits` -- Number of user's visits (`int`, `>= 1`).
-- `orders` -- Number of user's purchases (`int`, `>= 0`, `<= visits`).
-- `revenue` -- Total amount of user's purchases (`float`, `>= 0`, `0` if `orders == 0`).
+- `user_id`: User ID (`int`).
+- `variant`: Variant of the A/B test (`int`, `0` or `1`).
+- `visits`: Number of user's visits (`int`, `>= 1`).
+- `orders`: Number of user's purchases (`int`, `>= 0`, `<= visits`).
+- `revenue`: Total amount of user's purchases (`float`, `>= 0`, `0` if `orders == 0`).
 
 Tea-tasting accepts dataframes of the following types:
 
@@ -92,8 +92,8 @@ The `SimpleMean` class is useful if you want to compare simple metric averages. 
 
 It applies the Welch's t-test, Student's t-test, or Z-test, depending on parameters:
 
-- `use_t: bool` -- Indicates to use the Student’s t-distribution (`True`) or the Normal distribution (`False`) when computing p-value and confidence interval. Default is `True`.
-- `equal_var: bool` -- Not used if `use_t is False`. If `True`, perform a standard independent Student's t-test that assumes equal population variances. If `False`, perform Welch’s t-test, which does not assume equal population variance. Default is `False`.
+- `use_t`: Indicates to use the Student’s t-distribution (`True`) or the Normal distribution (`False`) when computing p-value and confidence interval. Default is `True`.
+- `equal_var`: Not used if `use_t` is `False`. If `True`, perform a standard independent Student's t-test that assumes equal population variances. If `False`, perform Welch’s t-test, which does not assume equal population variance. Default is `False`.
 
 The `confidence_level` parameter defines a confidence level for the computed confidence interval.
 
@@ -111,20 +111,20 @@ Once you've defined an experiment, you can calculate the result by calling `expe
 
 The `ExperimentResult` object contains the experiment result for each metrics. You can serialize results using one of these methods:
 
-- `to_polars` -- Polars dataframe, with a row for each metric.
-- `to_pandas` -- Pandas dataframe, with a row for each metric.
-- `to_dicts` -- Sequence of dictionaries, with a dictionary for each metric.
-- `to_html` -- HTML table.
+- `to_polars`: Polars dataframe, with a row for each metric.
+- `to_pandas`: Pandas dataframe, with a row for each metric.
+- `to_dicts`: Sequence of dictionaries, with a dictionary for each metric.
+- `to_html`: HTML table.
 
-The list of columns depends on the metric. For `SimpleMean` and `RatioOfMeans` the columns are:
+The list of fields depends on the metric. For `SimpleMean` and `RatioOfMeans` the fields are:
 
-- `variant_{control_variant_id}` -- Control mean.
-- `variant_{treatment_variant_id}` -- Treatment mean.
-- `diff` -- Difference of means.
-- `diff_conf_int_lower`, `diff_conf_int_upper` -- The lower and the upper bounds of the confidence interval of the difference of means.
-- `rel_diff` -- Relative difference of means.
-- `rel_diff_conf_int_lower`, `rel_diff_conf_int_upper` -- The lower and the upper bounds of the confidence interval of the relative difference of means.
-- `pvalue` -- P-value.
+- `variant_{control_variant_id}`: Control mean.
+- `variant_{treatment_variant_id}`: Treatment mean.
+- `diff`: Difference of means.
+- `diff_conf_int_lower`, `diff_conf_int_upper`: The lower and the upper bounds of the confidence interval of the difference of means.
+- `rel_diff`: Relative difference of means.
+- `rel_diff_conf_int_lower`, `rel_diff_conf_int_upper`: The lower and the upper bounds of the confidence interval of the relative difference of means.
+- `pvalue`: P-value.
 
 ## More features
 
@@ -152,9 +152,9 @@ experiment = tt.Experiment(
 
 The parameter `pre` of the function `sample_users_data` indicates whether to generate synthetic pre-experimental data in the example dataset. They will be included as additional columns:
 
-- `pre_visits` -- Number of user's visits in some period before the experiment.
-- `pre_orders` -- Number of user's purchases in some period before the experiment.
-- `pre_revenue` -- Total amount of user's purchases in some period before the experiment.
+- `pre_visits`: Number of user's visits in some period before the experiment.
+- `pre_orders`: Number of user's purchases in some period before the experiment.
+- `pre_revenue`: Total amount of user's purchases in some period before the experiment.
 
 You can define the covariates:
 
@@ -183,6 +183,39 @@ Actually, under the hood, `SimpleMean` utilizes the `RatioOfMeans` class:
 - `SimpleMean("orders", covariate="pre_orders")` is similar to `tt.RatioOfMeans(numer="orders", numer_covariate="pre_orders")`.
 
 ### Sample ratio mismatch
+
+To perform a sample ratio mismatch, use the `SampleRatio` class:
+
+```python
+experiment = tt.Experiment({
+    "Visits per user": tt.SimpleMean("visits"),
+    "Orders per visits": tt.RatioOfMeans(numer="orders", denom="visits"),
+    "Orders per user": tt.SimpleMean("orders"),
+    "Revenue per user": tt.SimpleMean("revenue"),
+    "Sample ratio": tt.SampleRatio(),
+})
+```
+
+By default, it expects the equal number of observations per variant. To set a different ratio use the `ratio` parameter. It accept the values of two types:
+
+- A ratio of number of treatment observations per number of control observations, as a number. For, example `SampleRatio(0.5)` -- ratio of treatment observations per number of control observations is 1:2.
+- A dictionary with variants as keys and expected ratios. For example, `SampleRatio({"A": 2, "B": 1})`.
+
+The statistical criteria depends on the `test` parameter:
+
+- `"auto"` (default): Perform the binomial test if the number of observations is less than 1000. Otherwise perform the G-test.
+- `"binomial"`: Binomial test.
+- `"g-test"`: G-test.
+- `"chi-squared"`: Pearson’s chi-squared test.
+
+The results contains the following fields:
+
+- `variant_{control_variant_id}`: Proportion of control observations.
+- `variant_{treatment_variant_id}`: Proportion of treatment observations.
+- `ratio`: Ratio of number of treatment observations and control observations.
+- `ratio_conf_int_lower`, `ratio_conf_int_upper`: The lower and the upper bounds of the confidence interval of the ratio. Only for binomial test.
+- `rel_diff`: Relative difference of proportions.
+- `pvalue`: P-value. The nul hypothesis is that actual proportion of number of observations is equal to expected.
 
 ### Power analysis
 
