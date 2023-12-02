@@ -218,11 +218,11 @@ The statistical criteria depends on the `test` parameter:
 
 The results contains the following fields:
 
-- `variant_{control_variant_id}`: Proportion of control observations.
-- `variant_{treatment_variant_id}`: Proportion of treatment observations.
-- `ratio`: Ratio of number of treatment observations and control observations.
+- `variant_{control_variant_id}`: Number of observations in control.
+- `variant_{treatment_variant_id}`: Number of observations in treatment.
+- `ratio`: Ratio of the number of observations in treatment relative to control.
 - `ratio_conf_int_lower`, `ratio_conf_int_upper`: The lower and the upper bounds of the confidence interval of the ratio. Only for binomial test.
-- `pvalue`: P-value. The nul hypothesis is that actual proportion of number of observations is equal to the expected.
+- `pvalue`: P-value. The nul hypothesis is that the actual ratio of the number of observations is equal to the expected.
 
 The `confidence_level` parameter defines a confidence level for the computed confidence interval. The default is `0.95`.
 
@@ -250,7 +250,7 @@ The `power` accepts the following parameters:
 - `use_t`: Indicates to use the Student’s t-distribution (`True`) or the Normal distribution (`False`) when computing power. Default is `True`.
 - `equal_var`: Not used if `use_t` is `False`. If `True`, calculate the power of a standard independent Student's t-test that assumes equal population variances. If `False`, calculate the power of a Welch’s t-test, which does not assume equal population variance. Default is `False`.
 
-The `solve_power` accepts the same parameters as the `power`. Also it accepts an additional parameter `power`, the power of a test. One parameters of `rel_diff`, `nobs`, `alpha`, `power`, `ratio` should be `None` -- the parameter to be solved.
+The `solve_power` accepts the same parameters as the `power`. Also it accepts an additional parameter `power`, the power of a test. One parameters of `rel_diff`, `nobs`, `alpha`, `power`, `ratio` should be `None`. This is the parameter to be solved.
 
 ### Simulations and A/A tests
 
