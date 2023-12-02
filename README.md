@@ -11,7 +11,7 @@ Tea-tasting is a Python package for statistical analysis of A/B tests that featu
 - Power analysis.
 - A/A tests.
 
-The package is in the planning stage. This means that there is no working code at this time. This readme describes the future API of the package. See more details in Tom Preston-Werner's blog post on [Readme Driven Development](https://tom.preston-werner.com/2010/08/23/readme-driven-development).
+The package is in the planning stage. This means that there is no working code at the time. This readme describes the future API of the package. See more details in Tom Preston-Werner's blog post on [Readme Driven Development](https://tom.preston-werner.com/2010/08/23/readme-driven-development).
 
 ## Installation
 
@@ -227,6 +227,30 @@ The results contains the following fields:
 The `confidence_level` parameter defines a confidence level for the computed confidence interval. The default is `0.95`.
 
 ### Power analysis
+
+Both classes, `SimpleMean` and `RatioOfMeans`, provide two methods for power analysis:
+
+- `power`: Calculate the power of a test.
+- `solve_power`: Solve for any one parameter of the power.
+
+The `power` accepts the following parameters:
+
+- `data`: A sample of data in the same format as the data required for the analysis of A/B test, with the exception that a column with variant of test is not required.
+- `rel_diff`: Relative difference of means.
+- `nobs`: Number of observations in control and a treatment in total. If `None` (default) then it will be computed from the sample.
+- `alpha`: Significance level. Default is `0.05`.
+- `ratio`: Ratio of the number of observations in treatment relative to control.
+- `alternative`: Alternative hypothesis. Default is `"two-sided"`.
+- `use_t`: Indicates to use the Student’s t-distribution (`True`) or the Normal distribution (`False`) when computing power. Default is `True`.
+- `equal_var`: Not used if `use_t` is `False`. If `True`, calculate the power of a standard independent Student's t-test that assumes equal population variances. If `False`, calculate the power of a Welch’s t-test, which does not assume equal population variance. Default is `False`.
+
+The `solve_power` accepts the same parameters as the `power`. Also it accepts an additional parameter `power`, the power of a test. One parameters of `rel_diff`, `nobs`, `alpha`, `power`, `ratio` should be `None` -- the parameter to be solved.
+
+Example usage:
+
+```python
+orders_power = SimpleMean("orders").power(users_data, rel_diff=0.05)
+```
 
 ### Simulations and A/A tests
 
