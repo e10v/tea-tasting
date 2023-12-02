@@ -95,6 +95,12 @@ It applies the Welch's t-test, Student's t-test, or Z-test, depending on paramet
 - `use_t`: Indicates to use the Student’s t-distribution (`True`) or the Normal distribution (`False`) when computing p-value and confidence interval. Default is `True`.
 - `equal_var`: Not used if `use_t` is `False`. If `True`, perform a standard independent Student's t-test that assumes equal population variances. If `False`, perform Welch’s t-test, which does not assume equal population variance. Default is `False`.
 
+The `alternative` parameter defines the alternative hypothesis. The following options are available:
+
+- `"two-sided"` (default): The means of the distributions underlying the samples are unequal.
+- `"less"`: The mean of the distribution underlying the first sample is less than the mean of the distribution underlying the second sample.
+- `"greater"`: The mean of the distribution underlying the first sample is greater than the mean of the distribution underlying the second sample.
+
 The `confidence_level` parameter defines a confidence level for the computed confidence interval.
 
 ### Ratio metrics
@@ -103,7 +109,9 @@ Ratio metrics are useful when an analysis unit differs from a randomization unit
 
 The `RatioOfMeans` class defines a ratio metric that compares ratios of averages. For example, average number of orders per average number of visits. The `numer` parameter defines a numerator column name. The `denom` parameter defines a denominator column name.
 
-Similar to `SimpleMean`,  `RatioOfMeans` applies the Welch's t-test, Student's t-test, or Z-test, depending on parameters `use_t` and `equal_var`. It applies the delta method to calculate p-value and confidence intervals. The `confidence_level` parameter defines a confidence level for the computed confidence interval.
+Similar to `SimpleMean`,  `RatioOfMeans` applies the Welch's t-test, Student's t-test, or Z-test, depending on parameters `use_t` and `equal_var`. It applies the delta method to calculate p-value and confidence intervals.
+
+The `alternative` parameter defines the alternative hypothesis. The `confidence_level` parameter defines a confidence level for the computed confidence interval.
 
 ### Result
 
@@ -214,9 +222,13 @@ The results contains the following fields:
 - `variant_{treatment_variant_id}`: Proportion of treatment observations.
 - `ratio`: Ratio of number of treatment observations and control observations.
 - `ratio_conf_int_lower`, `ratio_conf_int_upper`: The lower and the upper bounds of the confidence interval of the ratio. Only for binomial test.
-- `pvalue`: P-value. The nul hypothesis is that actual proportion of number of observations is equal to expected.
+- `pvalue`: P-value. The nul hypothesis is that actual proportion of number of observations is equal to the expected.
+
+The `confidence_level` parameter defines a confidence level for the computed confidence interval. The default is `0.95`.
 
 ### Power analysis
+
+You 
 
 ### Simulations and A/A tests
 
