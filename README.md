@@ -214,7 +214,6 @@ The results contains the following fields:
 - `variant_{treatment_variant_id}`: Proportion of treatment observations.
 - `ratio`: Ratio of number of treatment observations and control observations.
 - `ratio_conf_int_lower`, `ratio_conf_int_upper`: The lower and the upper bounds of the confidence interval of the ratio. Only for binomial test.
-- `rel_diff`: Relative difference of proportions.
 - `pvalue`: P-value. The nul hypothesis is that actual proportion of number of observations is equal to expected.
 
 ### Power analysis
@@ -232,44 +231,3 @@ The results contains the following fields:
 ### Group by units
 
 ## Package name
-
-## Appendix. Design choices
-
-### Naming
-
-Test class:
-
-- `Experiment`
-- `ABTest`
-- `Test`
-
-Test calculation method:
-
-- `analyze`
-- `analyse`
-- `compute`
-- `fit`
-- `calc`
-- `calculate`
-
-Out of the box metrics:
-
-- `SimpleMean`
-- `RatioOfMeans`
-- `Bootstrap`
-- `SampleRatio`
-
-Confidence interval:
-
-- `conf_int`
-- `ci`
-
-### Metric definition
-
-- `tt.Experiment({"metric_name": tt.MetricType(**metric_kwargs)}, **test_kwargs)`
-- `tt.Experiment(metric_name=tt.MetricType(**metric_kwargs), **test_kwargs)`
-- `tt.Experiment(tt.MetricType(metric_name, **metric_kwargs), **test_kwargs)`
-
-### Separate results class
-
-### Dataframes
