@@ -245,7 +245,7 @@ The `power` accepts the following parameters:
 - `rel_diff`: Relative difference of means.
 - `nobs`: Number of observations in control and a treatment in total. If `None` (default) then it will be computed from the sample.
 - `alpha`: Significance level. Default is `0.05`.
-- `ratio`: Ratio of the number of observations in treatment relative to control.
+- `ratio`: Ratio of the number of observations in treatment relative to control. Default is `1`.
 - `alternative`: Alternative hypothesis. Default is `"two-sided"`.
 - `use_t`: Indicates to use the Student’s t-distribution (`True`) or the Normal distribution (`False`) when computing power. Default is `True`.
 - `equal_var`: Not used if `use_t` is `False`. If `True`, calculate the power of a standard independent Student's t-test that assumes equal population variances. If `False`, calculate the power of a Welch’s t-test, which does not assume equal population variance. Default is `False`.
@@ -253,6 +253,46 @@ The `power` accepts the following parameters:
 The `solve_power` accepts the same parameters as the `power`. Also it accepts an additional parameter `power`, the power of a test. One parameters of `rel_diff`, `nobs`, `alpha`, `power`, `ratio` should be `None`. This is the parameter to be solved.
 
 ### Simulations and A/A tests
+
+Tea-tasting provide the method `simulate` which:
+
+- Randomly splits the provided dataset on treatment and control multiple times.
+- Optionally, updates the treatment data in each split.
+- Calculates results in each split.
+- Summarizes statistics of the simulations.
+
+This can be useful for A/A tests and for power analysis.
+
+Example usage:
+
+```python
+aa_test = experiment.simulate(users_data, n_iter=10000)
+aa_test.describe()
+```
+
+The method `simulate` accepts the following parameters:
+
+- `data`: A sample of data in the same format as the data required for the analysis of A/B test, with an exception that a column with variant of test is not required.
+- `n_iter`: Number of simulations to run. Default is `10_000`.
+- `ratio`: Ratio of the number of observations in treatment relative to control. Default is `1`.
+- `random_seed`: Random seed. Default is `None`.
+- `treatment`: An optional function which updates a treatment data on each iteration. It should accept a Polars dataframe and return a Polars dataframe of the same length and the same set of columns. Default is `None`, which means that treatment data are not updated (A/A test).
+
+It returns an instance of the class `SimulationsResult` which provide the following methods:
+
+- `to_polars`: Create a Polars dataframe with detailed results, with a row for each pair (simulation, metric).
+- `to_pandas`: Create a Pandas dataframe with detailed results, with a row for each pair (simulation, metric).
+- `describe`: Summarize statistics of the simulations.
+
+Methods `to_polars` and `to_pandas` return the same columns as similar methods of the experiment results. In addition, there is a column with a number of simulation.
+
+Method `describe` returns a Polars dataframe with the following columns:
+
+- `metric`: Metric name.
+- `null_rejected`: Proportion of iterations in which the null hypothesis has been rejected. By default, it's calculated based on p-value. But if a metric doesn't provide a p-value, then confidence interval is used.
+- `null_rejected_conf_int_lower`, `null_rejected_conf_int_upper`: The lower and the upper bounds of the confidence interval of the proportion iterations in which the null hypothesis has been rejected.
+
+It accepts an optional parameter `alpha` which is used in the calculation of the proportion. But it only used in calculations based on p-values. Default is `0.05`.
 
 ## Other features
 
@@ -263,5 +303,9 @@ The `solve_power` accepts the same parameters as the `power`. Also it accepts an
 ### More than two variants
 
 ### Group by units
+
+### Global settings
+
+alpha, confidence_level, ratio, alternative, use_t, equal_var
 
 ## Package name
