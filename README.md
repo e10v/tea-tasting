@@ -31,7 +31,7 @@ users_data = tt.sample_users_data(size=1000, seed=42)
 
 experiment = tt.Experiment({
     "Visits per user": tt.SimpleMean("visits"),
-    "CR visits to orders": tt.RatioOfMeans(numer="orders", denom="visits"),
+    "Orders per visits": tt.RatioOfMeans(numer="orders", denom="visits"),
     "Orders per user": tt.SimpleMean("orders"),
     "Revenue per user": tt.SimpleMean("revenue"),
 })
@@ -44,12 +44,12 @@ I'll discuss each step below.
 
 ### Input data
 
-The `sample_users_data` function samples data which can be used as an example. Data contains information about an A/B test in an online store. The randomization unit is user. It's a Polars dataframe with rows representing users and the following columns:
+The `sample_users_data` function generates synthetic data which can be used as an example. Data contains information about an A/B test in an online store. The randomization unit is user. It's a Polars dataframe with rows representing users and the following columns:
 
 - `user_id` -- User ID (`int`).
 - `variant` -- Variant of the A/B test (`int`, `0` or `1`).
-- `visits` -- Number of users's visits (`int`, `>= 1`).
-- `orders` -- Number of users's purchases (`int`, `>= 0`, `<= visits`).
+- `visits` -- Number of user's visits (`int`, `>= 1`).
+- `orders` -- Number of user's purchases (`int`, `>= 0`, `<= visits`).
 - `revenue` -- Total amount of user's purchases (`float`, `>= 0`, `0` if `orders == 0`).
 
 Tea-tasting accepts dataframes of the following types:
@@ -71,13 +71,13 @@ The `Experiment` class defines the A/B test. The first parameter, `metrics`, is 
 
 You can specify a custom variant column name using the `variant` parameter. Default is `"variant"`.
 
-Also you can specify a control variant. Default is `None`, which means that variant with minimal ID is used.
+Also you can specify a control variant. Default is `None`, which means that variant with minimal ID is used as control.
 
 ```python
 experiment = tt.Experiment(
     {
         "Visits per user": tt.SimpleMean("visits"),
-        "CR visits to orders": tt.RatioOfMeans(numer="orders", denom="visits"),
+        "Orders per visits": tt.RatioOfMeans(numer="orders", denom="visits"),
         "Orders per user": tt.SimpleMean("orders"),
         "Revenue per user": tt.SimpleMean("revenue"),
     },
@@ -132,6 +132,56 @@ The list of columns depends on the metric. For `SimpleMean` and `RatioOfMeans` t
 
 Both `SimpleMean` and `RatioOfMeans` classes support variance reduction with CUPED/CUPAC.
 
+```python
+users_data = tt.sample_users_data(size=1000, seed=42, pre=True)
+
+experiment = tt.Experiment(
+    {
+        "Visits per user": tt.SimpleMean("visits", covariate="pre_visits"),
+        "Orders per visits": tt.RatioOfMeans(
+            numer="orders",
+            denom="visits",
+            numer_covariate="pre_orders",
+            denom_covariate="pre_visits",
+        ),
+        "Orders per user": tt.SimpleMean("orders", covariate="pre_orders",),
+        "Revenue per user": tt.SimpleMean("revenue", covariate="pre_revenue"),
+    },
+)
+```
+
+The parameter `pre` of the function `sample_users_data` indicates whether to generate synthetic pre-experimental data in the example dataset. They will be included as additional columns:
+
+- `pre_visits` -- Number of user's visits in some period before the experiment.
+- `pre_orders` -- Number of user's purchases in some period before the experiment.
+- `pre_revenue` -- Total amount of user's purchases in some period before the experiment.
+
+You can define the covariates:
+
+- Using the parameter `covariate` of the `SimpleMean` class.
+- Using the parameters `numer_covariate` and `denom_covariate` of the `RatioOfMeans` class.
+
+You can use a simple metric as a covariate for ratio metric as well:
+
+```python
+experiment = tt.Experiment(
+    {
+        "Orders per visits": tt.RatioOfMeans(
+            numer="orders",
+            denom="visits",
+            numer_covariate="pre_orders_per_visits",
+            # denom_covariate is None by default,
+            # which means it's equal to 1 for all users.
+        ),
+    },
+)
+```
+
+Actually, under the hood, `SimpleMean` utilizes the `RatioOfMeans` class:
+
+- `SimpleMean("orders")` is similar to `tt.RatioOfMeans(numer="orders")`.
+- `SimpleMean("orders", covariate="pre_orders")` is similar to `tt.RatioOfMeans(numer="orders", numer_covariate="pre_orders")`.
+
 ### Sample ratio mismatch
 
 ### Power analysis
@@ -143,8 +193,6 @@ Both `SimpleMean` and `RatioOfMeans` classes support variance reduction with CUP
 ### Bootstrap
 
 ### Custom metrics
-
-### Analysis from stats
 
 ### More than two variants
 
