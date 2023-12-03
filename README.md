@@ -69,11 +69,15 @@ revenue etc.).
 
 The `Experiment` class defines the A/B test. The first parameter, `metrics`, is a dictionary of metric names as keys and metric definitions as values.
 
-You can specify a custom variant column name using the `variant` parameter. Default is `"variant"`.
+To specify a custom variant column name, use the `variant` parameter. Default is `"variant"`.
 
-Also you can specify a control variant. Default is `None`, which means that variant with minimal ID is used as control.
+To specify a control variant use the `"control"` parameter. Default is `None`, which means that minimal variant value is used as control.
 
 ```python
+data = users_data.with_columns(
+    pl.col("variant").replace({0: "A", 1: "B"}).alias("variant_id"),
+)
+
 experiment = tt.Experiment(
     {
         "Visits per user": tt.SimpleMean("visits"),
@@ -84,13 +88,15 @@ experiment = tt.Experiment(
     variant="variant_id",
     control="A",
 )
+
+experiment_result = experiment.analyze(data)
 ```
 
 ### Simple metrics
 
-The `SimpleMean` class is useful if you want to compare simple metric averages. The first parameter, `value`, is a name of a column that contains the metric values.
+The `SimpleMean` class is useful for comparing simple metric averages. The first parameter, `value`, is a name of a column that contains the metric values.
 
-It applies the Welch's t-test, Student's t-test, or Z-test, depending on parameters:
+It performs the Welch's t-test, Student's t-test, or Z-test, depending on parameters:
 
 - `use_t`: Indicates to use the Student’s t-distribution (`True`) or the Normal distribution (`False`) when computing p-value and confidence interval. Default is `True`.
 - `equal_var`: Not used if `use_t` is `False`. If `True`, perform a standard independent Student's t-test that assumes equal population variances. If `False`, perform Welch’s t-test, which does not assume equal population variance. Default is `False`.
@@ -101,31 +107,32 @@ The `alternative` parameter defines the alternative hypothesis. The following op
 - `"less"`: The mean of the distribution underlying the first sample is less than the mean of the distribution underlying the second sample.
 - `"greater"`: The mean of the distribution underlying the first sample is greater than the mean of the distribution underlying the second sample.
 
-The `confidence_level` parameter defines a confidence level for the computed confidence interval.
+The `confidence_level` parameter defines a confidence level for the computed confidence interval. Default is `0.95`.
+
+Default values of the parameters `use_t`, `equal_var`, `alternative` and `confidence_level` can be redefined in global settings (see below).
 
 ### Ratio metrics
 
-Ratio metrics are useful when an analysis unit differs from a randomization units. For example, you might want to compare orders per visit (the analysis unit). And there can be several visits per user (the randomization unit). It's not correct to use the `tt.SimpleMean` class in this case.
+Ratio metrics are useful when an analysis unit differs from a randomization units. For example, one might want to compare orders per visit (the analysis unit). And there can be several visits per user (randomization unit). It's not correct to use the `tt.SimpleMean` class in this case.
 
 The `RatioOfMeans` class defines a ratio metric that compares ratios of averages. For example, average number of orders per average number of visits. The `numer` parameter defines a numerator column name. The `denom` parameter defines a denominator column name.
 
-Similar to `SimpleMean`,  `RatioOfMeans` applies the Welch's t-test, Student's t-test, or Z-test, depending on parameters `use_t` and `equal_var`. It applies the delta method to calculate p-value and confidence intervals.
-
-The `alternative` parameter defines the alternative hypothesis. The `confidence_level` parameter defines a confidence level for the computed confidence interval.
+Similar to `SimpleMean`,  `RatioOfMeans` applies the Welch's t-test, Student's t-test, or Z-test. The parameters are `use_t`, `equal_var`, `alternative` and `confidence_level` with the same definitions and defaults as in `SimpleMean`.
 
 ### Result
 
-Once you've defined an experiment, you can calculate the result by calling `experiment.analyze`. It accepts the experiment data as the first parameter, `data`, and returns an instance of the `ExperimentResult` class.
+Once the experiment is defined, it can calculate the result with method `experiment.analyze`. It accepts the experiment data as the first parameter, `data`, and returns an instance of the `ExperimentResult` class.
 
-The `ExperimentResult` object contains the experiment result for each metrics. You can serialize results using one of these methods:
+The `ExperimentResult` object contains the experiment result for each metric. To serialize results use one of these methods:
 
 - `to_polars`: Polars dataframe, with a row for each metric.
 - `to_pandas`: Pandas dataframe, with a row for each metric.
 - `to_dicts`: Sequence of dictionaries, with a dictionary for each metric.
-- `to_html`: HTML table.
+- `to_html`: HTML table, with a row for each metric.
 
-The list of fields depends on the metric. For `SimpleMean` and `RatioOfMeans` the fields are:
+List of fields depends on the metric. For `SimpleMean` and `RatioOfMeans` the fields are:
 
+- `metric`: Metric name.
 - `variant_{control_variant_id}`: Control mean.
 - `variant_{treatment_variant_id}`: Treatment mean.
 - `diff`: Difference of means.
@@ -156,6 +163,8 @@ experiment = tt.Experiment(
         "Revenue per user": tt.SimpleMean("revenue", covariate="pre_revenue"),
     },
 )
+
+experiment_result = experiment.analyze(users_data)
 ```
 
 The parameter `pre` of the function `sample_users_data` indicates whether to generate synthetic pre-experimental data in the example dataset. They will be included as additional columns:
@@ -164,12 +173,12 @@ The parameter `pre` of the function `sample_users_data` indicates whether to gen
 - `pre_orders`: Number of user's purchases in some period before the experiment.
 - `pre_revenue`: Total amount of user's purchases in some period before the experiment.
 
-You can define the covariates:
+To define the covariates:
 
-- Using the parameter `covariate` of the `SimpleMean` class.
-- Using the parameters `numer_covariate` and `denom_covariate` of the `RatioOfMeans` class.
+- Use the parameter `covariate` of the `SimpleMean` class.
+- Use the parameters `numer_covariate` and `denom_covariate` of the `RatioOfMeans` class.
 
-You can use a simple metric as a covariate for ratio metric as well:
+It's possible to use a simple metric as a covariate for ratio metric as well:
 
 ```python
 experiment = tt.Experiment(
@@ -192,7 +201,7 @@ Actually, under the hood, `SimpleMean` utilizes the `RatioOfMeans` class:
 
 ### Sample ratio mismatch
 
-To perform a sample ratio mismatch, use the `SampleRatio` class:
+To check for a sample ratio mismatch, use the `SampleRatio` class:
 
 ```python
 experiment = tt.Experiment({
@@ -204,12 +213,12 @@ experiment = tt.Experiment({
 })
 ```
 
-By default, it expects the equal number of observations per variant. To set a different ratio use the `ratio` parameter. It accept the values of two types:
+By default, it expects the equal number of observations per variant. To set a different ratio use the `ratio` parameter. It accept two types of values:
 
-- A ratio of number of treatment observations per number of control observations, as a number. For, example `SampleRatio(0.5)` -- ratio of treatment observations per number of control observations is 1:2.
+- A ratio of number of treatment observations per number of control observations, as a number. For example, `SampleRatio(0.5)`: ratio of treatment observations per number of control observations is 1:2. Default is `1` but can be redefined in global settings.
 - A dictionary with variants as keys and expected ratios. For example, `SampleRatio({"A": 2, "B": 1})`.
 
-The statistical criteria depends on the `test` parameter:
+Statistical criteria depends on the `test` parameter:
 
 - `"auto"` (default): Perform the binomial test if the number of observations is less than 1000. Otherwise perform the G-test.
 - `"binomial"`: Binomial test.
@@ -218,17 +227,18 @@ The statistical criteria depends on the `test` parameter:
 
 The results contains the following fields:
 
+- `metric`: Metric name.
 - `variant_{control_variant_id}`: Number of observations in control.
 - `variant_{treatment_variant_id}`: Number of observations in treatment.
 - `ratio`: Ratio of the number of observations in treatment relative to control.
 - `ratio_conf_int_lower`, `ratio_conf_int_upper`: The lower and the upper bounds of the confidence interval of the ratio. Only for binomial test.
-- `pvalue`: P-value. The nul hypothesis is that the actual ratio of the number of observations is equal to the expected.
+- `pvalue`: P-value. The null hypothesis is that the actual ratio of the number of observations is equal to the expected.
 
-The `confidence_level` parameter defines a confidence level for the computed confidence interval. The default is `0.95`.
+The `confidence_level` parameter defines a confidence level for the computed confidence interval. The default is `0.95` but can be redefined in global settings.
 
 ### Power analysis
 
-Both classes, `SimpleMean` and `RatioOfMeans`, provide two methods for power analysis:
+Both classes `SimpleMean` and `RatioOfMeans` provide two methods for power analysis:
 
 - `power`: Calculate the power of a test.
 - `solve_power`: Solve for any one parameter of the power.
@@ -237,20 +247,23 @@ Example usage:
 
 ```python
 orders_power = SimpleMean("orders").power(users_data, rel_diff=0.05)
+orders_mde = SimpleMean("orders").solve_power(users_data)
 ```
 
-The `power` accepts the following parameters:
+The parameters are:
 
 - `data`: A sample of data in the same format as the data required for the analysis of A/B test, with an exception that a column with variant of test is not required.
-- `rel_diff`: Relative difference of means.
-- `nobs`: Number of observations in control and a treatment in total. If `None` (default) then it will be computed from the sample.
+- `rel_diff`: Relative difference of means. Default is `None`.
+- `nobs`: Number of observations in control and a treatment in total. Default is `"auto"` which means it will be computed from the sample.
 - `alpha`: Significance level. Default is `0.05`.
 - `ratio`: Ratio of the number of observations in treatment relative to control. Default is `1`.
 - `alternative`: Alternative hypothesis. Default is `"two-sided"`.
 - `use_t`: Indicates to use the Student’s t-distribution (`True`) or the Normal distribution (`False`) when computing power. Default is `True`.
 - `equal_var`: Not used if `use_t` is `False`. If `True`, calculate the power of a standard independent Student's t-test that assumes equal population variances. If `False`, calculate the power of a Welch’s t-test, which does not assume equal population variance. Default is `False`.
 
-The `solve_power` accepts the same parameters as the `power`. Also it accepts an additional parameter `power`, the power of a test. One parameters of `rel_diff`, `nobs`, `alpha`, `power`, `ratio` should be `None`. This is the parameter to be solved.
+The `solve_power` accepts the same parameters as the `power`. Also it accepts an additional parameter `power`, the power of a test, with default `0.8`. One parameter of `rel_diff`, `nobs`, `alpha`, `power`, `ratio` should be `None`. This is the parameter to be solved.
+
+Default values of the parameters `ratio`, `use_t`, `equal_var`, `alternative` and `alpha` can be redefined in global settings (see below).
 
 ### Simulations and A/A tests
 
@@ -258,7 +271,7 @@ Tea-tasting provide the method `simulate` which:
 
 - Randomly splits the provided dataset on treatment and control multiple times.
 - Optionally, updates the treatment data in each split.
-- Calculates results in each split.
+- Calculates results for each split.
 - Summarizes statistics of the simulations.
 
 This can be useful for A/A tests and for power analysis.
@@ -274,9 +287,9 @@ The method `simulate` accepts the following parameters:
 
 - `data`: A sample of data in the same format as the data required for the analysis of A/B test, with an exception that a column with variant of test is not required.
 - `n_iter`: Number of simulations to run. Default is `10_000`.
-- `ratio`: Ratio of the number of observations in treatment relative to control. Default is `1`.
+- `ratio`: Ratio of the number of observations in treatment relative to control. Default is `1` but can be redefined in global settings.
 - `random_seed`: Random seed. Default is `None`.
-- `treatment`: An optional function which updates a treatment data on each iteration. It should accept a Polars dataframe and return a Polars dataframe of the same length and the same set of columns. Default is `None`, which means that treatment data are not updated (A/A test).
+- `treatment`: An optional function which updates a treatment data on each iteration. It should accept a Polars dataframe and a random seed, and return a Polars dataframe of the same length and the same set of columns. Default is `None`, which means that treatment data are not updated (A/A test).
 
 It returns an instance of the class `SimulationsResult` which provide the following methods:
 
@@ -284,15 +297,17 @@ It returns an instance of the class `SimulationsResult` which provide the follow
 - `to_pandas`: Create a Pandas dataframe with detailed results, with a row for each pair (simulation, metric).
 - `describe`: Summarize statistics of the simulations.
 
-Methods `to_polars` and `to_pandas` return the same columns as similar methods of the experiment results. In addition, there is a column with a number of simulation.
+Methods `to_polars` and `to_pandas` return the same columns as similar methods of the experiment results. In addition, there is a column with a sequential number of a simulation.
 
 Method `describe` returns a Polars dataframe with the following columns:
 
 - `metric`: Metric name.
-- `null_rejected`: Proportion of iterations in which the null hypothesis has been rejected. By default, it's calculated based on p-value. But if a metric doesn't provide a p-value, then confidence interval is used.
+- `null_rejected`: Proportion of iterations in which the null hypothesis has been rejected. By default, it's calculated based on p-value. But if a metric doesn't provide a p-value, then a confidence interval is used.
 - `null_rejected_conf_int_lower`, `null_rejected_conf_int_upper`: The lower and the upper bounds of the confidence interval of the proportion iterations in which the null hypothesis has been rejected.
 
-It accepts an optional parameter `alpha` which is used in the calculation of the proportion. But it only used in calculations based on p-values. Default is `0.05`.
+There are two optional parameters of `describe` (both can be redefined in global settings):
+
+- `alpha`: P-value threshold for the calculation of the proportion in which the null hypothesis has been rejected. It's only used in calculations based on p-values. Default is - `confidence_level`: Confidence level for the computed confidence interval of the proportion.
 
 ## Other features
 
