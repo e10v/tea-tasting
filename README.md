@@ -74,6 +74,8 @@ To specify a custom variant column name, use the `variant` parameter. Default is
 To specify a control variant use the `"control"` parameter. Default is `None`, which means that minimal variant value is used as control.
 
 ```python
+users_data = tt.sample_users_data(size=1000, seed=42)
+
 data = users_data.with_columns(
     pl.col("variant").replace({0: "A", 1: "B"}).alias("variant_id"),
 )
@@ -246,6 +248,7 @@ Both classes `SimpleMean` and `RatioOfMeans` provide two methods for power analy
 Example usage:
 
 ```python
+users_data = tt.sample_users_data(size=1000, seed=42)
 orders_power = SimpleMean("orders").power(users_data, rel_diff=0.05)
 orders_mde = SimpleMean("orders").solve_power(users_data)
 ```
@@ -279,7 +282,8 @@ This can be useful for A/A tests and for power analysis.
 Example usage:
 
 ```python
-aa_test = experiment.simulate(users_data, n_iter=10000)
+users_data = tt.sample_users_data(size=1000, seed=42)
+aa_test = experiment.simulate(users_data)
 aa_test.describe()
 ```
 
@@ -307,11 +311,47 @@ Method `describe` returns a Polars dataframe with the following columns:
 
 There are two optional parameters of `describe` (both can be redefined in global settings):
 
-- `alpha`: P-value threshold for the calculation of the proportion in which the null hypothesis has been rejected. It's only used in calculations based on p-values. Default is - `confidence_level`: Confidence level for the computed confidence interval of the proportion.
+- `alpha`: P-value threshold for the calculation of the proportion in which the null hypothesis has been rejected. It's only used in calculations based on p-values. Default is `0.05`.
+- `confidence_level`: Confidence level for the computed confidence interval of the proportion. Default is `0.95`.
 
 ## Other features
 
 ### Bootstrap
+
+To compare an arbitrary statistic values between variants use the `Bootstrap` class:
+
+```python
+import numpy as np
+
+
+users_data = tt.sample_users_data(size=1000, seed=42)
+
+experiment = tt.Experiment({
+    "Median revenue per user": tt.Bootstrap("revenue", statistic=np.median),
+})
+experiment_result = experiment.analyze(users_data)
+```
+
+The `statistic` parameter is a callable which accepts a NumPy array as the first parameter, and the `axis` parameter which defines an axis along which the statistic is computed.
+
+The first parameter of the `Bootstrap` class is name or a list of names names of the columns used in the calculation of a statistic.
+
+The other parameters are:
+
+- `n_resamples`: The number of resamples performed to form the bootstrap distribution of the statistic. Default is `10_000`.
+- `confidence_level`: The confidence level of the confidence interval. Default is `0.95`.
+
+Both `n_resamples` and `confidence_level` defaults can be redefined in global settings.
+
+The results contains the following fields:
+
+- `metric`: Metric name.
+- `variant_{control_variant_id}`: The value of the statistic in control.
+- `variant_{treatment_variant_id}`: The value of the statistic in treatment.
+- `diff`: Difference of statistic values.
+- `diff_conf_int_lower`, `diff_conf_int_upper`: The lower and the upper bounds of the confidence interval of the difference of statistic values.
+- `rel_diff`: Relative difference of statistic values.
+- `rel_diff_conf_int_lower`, `rel_diff_conf_int_upper`: The lower and the upper bounds of the confidence interval of the relative difference of statistic values.
 
 ### Custom metrics
 
@@ -321,6 +361,6 @@ There are two optional parameters of `describe` (both can be redefined in global
 
 ### Global settings
 
-alpha, confidence_level, ratio, alternative, use_t, equal_var
+alpha, confidence_level, ratio, alternative, use_t, equal_var, n_resamples
 
 ## Package name
