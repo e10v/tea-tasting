@@ -353,6 +353,47 @@ The results contains the following fields:
 
 ## Other features
 
+### Global configuration
+
+Usually there is one confidence level for all metrics. It's convenient to set a confidence level for each metric separately. Use global configuration to manage default parameter values in this case.
+
+Tea-tasting rely on global settings for the following parameters:
+
+- `alpha`,
+- `alternative`,
+- `confidence_level`,
+- `equal_var`,
+- `n_resamples`,
+- `ratio`,
+- `use_t`.
+
+But it's possible to set default values for custom parameters as well. See the example in the next section with custom metric.
+
+Set a global option value using `set_config`:
+
+```python
+tt.set_config(confidence_level=0.98, some_custom_parameter=1)
+```
+
+Set a global option value within a context using `config_context`:
+
+```python
+with tt.config_context(confidence_level=0.98, some_custom_parameter=1):
+    # Define the experiment and metrics here.
+```
+
+Get a global option value using `get_config` with the option name as a parameter:
+
+```python
+default_pvalue = global_config("confidence_level")
+```
+
+Get a dictionary with global options using `get_config` without parameters:
+
+```python
+global_config = tt.get_config()
+```
+
 ### Custom metrics
 
 To create a custom metric define a new class with `MetricBase` as a parent. The class should define least two methods: `__init__` and `analyze`. Method `analyze` should accepts the following parameters:
@@ -362,7 +403,7 @@ To create a custom metric define a new class with `MetricBase` as a parent. The 
 - `contr_variant`: Control variant ID.
 - `treat_variant`: Treatment variant ID.
 
-Method `analyze` should return a `NamedTuple` with results. Make sure to use the same field names as other clases. For example, `pvalue`, not `p_value`. Field names starting with `_` are not copied to an experiment results.
+Method `analyze` should return a `NamedTuple` with results. Make sure to use the same field names as other clases. For example, `pvalue`, not `p_value`. Field names starting with `_` are not copied to experiment result.
 
 Example:
 
@@ -374,22 +415,35 @@ import scipy.stats
 import tea_tasting as tt
 
 
+tt.set_config(use_continuity=True)  # Set defult value for a custom parameter.
+
 class MannWhitneyUResult(NamedTuple):
     pvalue: float
-    _statistic: float  # Will not be used in experiment results.
+    _statistic: float  # Not used in experiment result.
 
 class MannWhitneyU(tt.MetricBase):
     def __init__(
         self,
         value: str,
-        use_continuity: bool = True,
-        alternative: str = "two-sided",
+        use_continuity: bool | None = None,
+        alternative: str | None = None,
         method: str = "auto",
         nan_policy: str = "propagate",
     ):
         self.value = value
-        self.use_continuity = use_continuity
-        self.alternative = alternative
+
+        # Get default value for a custom parameter.
+        self.use_continuity = (
+            use_continuity if use_continuity is not None
+            else tt.get_config("use_continuity")
+        )
+
+        # Get default value for a standard parameter.
+        self.alternative = (
+            alternative if alternative is not None
+            else tt.get_config("alternative")
+        )
+
         self.method = method
         self.nan_policy = nan_policy
 
@@ -426,8 +480,6 @@ experiment_result.to_polars()
 
 ### Group by units
 
-### Global settings
-
-alpha, confidence_level, ratio, alternative, use_t, equal_var, n_resamples
+### Analyze from stats
 
 ## Package name
