@@ -314,8 +314,6 @@ There are two optional parameters of `describe` (both can be redefined in global
 - `alpha`: P-value threshold for the calculation of the proportion in which the null hypothesis has been rejected. It's only used in calculations based on p-values. Default is `0.05`.
 - `confidence_level`: Confidence level for the computed confidence interval of the proportion. Default is `0.95`.
 
-## Other features
-
 ### Bootstrap
 
 To compare an arbitrary statistic values between variants use the `Bootstrap` class:
@@ -353,7 +351,76 @@ The results contains the following fields:
 - `rel_diff`: Relative difference of statistic values.
 - `rel_diff_conf_int_lower`, `rel_diff_conf_int_upper`: The lower and the upper bounds of the confidence interval of the relative difference of statistic values.
 
+## Other features
+
 ### Custom metrics
+
+To create a custom metric define a new class with `MetricBase` as a parent. The class should define least two methods: `__init__` and `analyze`. Method `analyze` should accepts the following parameters:
+
+- `contr_data`: A Polars dataframe with control data.
+- `treat_data`: A Polars dataframe with treatment data.
+- `contr_variant`: Control variant ID.
+- `treat_variant`: Treatment variant ID.
+
+Method `analyze` should return a `NamedTuple` with results. Make sure to use the same field names as other clases. For example, `pvalue`, not `p_value`. Field names starting with `_` are not copied to an experiment results.
+
+Example:
+
+```python
+from typing import Any, NamedTuple
+
+import polars as pl
+import scipy.stats
+import tea_tasting as tt
+
+
+class MannWhitneyUResult(NamedTuple):
+    pvalue: float
+    _statistic: float  # Will not be used in experiment results.
+
+class MannWhitneyU(tt.MetricBase):
+    def __init__(
+        self,
+        value: str,
+        use_continuity: bool = True,
+        alternative: str = "two-sided",
+        method: str = "auto",
+        nan_policy: str = "propagate",
+    ):
+        self.value = value
+        self.use_continuity = use_continuity
+        self.alternative = alternative
+        self.method = method
+        self.nan_policy = nan_policy
+
+    def analyze(
+        self,
+        contr_data: pl.DataFrame,
+        treat_data: pl.DataFrame,
+        contr_variant: Any,  # Not used.
+        treat_variant: Any,  # Not used.
+    ) -> MannWhitneyUResult:
+        res = scipy.stats.mannwhitneyu(
+            treat_data.get_column(self.value).to_numpy(),
+            contr_data.get_column(self.value).to_numpy(),
+            use_continuity=self.use_continuity,
+            alternative=self.alternative,
+            method=self.method,
+            nan_policy=self.nan_policy,
+        )
+
+        return MannWhitneyUResult(pvalue=res.pvalue. _statistic=res.statistic)
+
+
+users_data = tt.sample_users_data(size=1000, seed=42)
+
+experiment = tt.Experiment({
+    "Revenue rank test": MannWhitneyU("revenue"),
+})
+
+experiment_result = experiment.analyze(users_data)
+experiment_result.to_polars()
+```
 
 ### More than two variants
 
