@@ -501,4 +501,14 @@ Tea-tasting will:
 
 ### Analyze from stats
 
+Some statistical criteria, like Z-test ot Student's t-test, require only some aggregated statistics to perform an analysis. Usually it's computationally optimal to calculate these statistics on a database side.
+
+Metrics `SimpleMean` and `RatioOfMeans` can perform an analysis based on aggregated statistics. Method `experiment.analyze_from_stats` perform analysis of the experiment bases on statistics. But only for metrics which support this feature (e.g. `SimpleMean` and `RatioOfMeans`). It accepts a dictionary with variant IDs as keys and instances of the class `Stats` as values.
+
+Class `Stats` is initialized with the following parameters:
+
+- `mean`: A dictionary with column names as keys and column value means as a values.
+- `var`: A dictionary with column names as keys and column value variances as a values.
+- `cov`: A dictionary with tuples `(column_name_1, column_name_2_)` as keys and columns covariances as values. Column names in a tuple a sorted in alphabetical order.
+
 ## Package name
