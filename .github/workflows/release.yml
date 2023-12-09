@@ -1,0 +1,25 @@
+name: Build and publish python package
+on:
+  release:
+    types: [published]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # permissions:
+    #   id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up PDM
+        uses: pdm-project/setup-pdm@v3
+        with:
+          python-version: "3.11"
+          prerelease: false
+          enable-pep582: false
+          cache: true
+      - name: Install dependencies
+        run: pdm sync
+      - name: Build and publish
+        env:
+          PDM_PUBLISH_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: pdm publish -v
