@@ -46,11 +46,11 @@ I'll discuss each step below.
 
 The `sample_users_data` function generates synthetic data which can be used as an example. Data contains information about an A/B test in an online store. The randomization unit is user. It's a Polars dataframe with rows representing users and the following columns:
 
-- `user_id`: User ID (`int`).
-- `variant`: Variant of the A/B test (`int`, `0` or `1`).
-- `visits`: Number of user's visits (`int`, `>= 1`).
-- `orders`: Number of user's purchases (`int`, `>= 0`, `<= visits`).
-- `revenue`: Total amount of user's purchases (`float`, `>= 0`, `0` if `orders == 0`).
+- `user_id`: User ID.
+- `variant`: Variant of the A/B test.
+- `visits`: Number of user's visits.
+- `orders`: Number of user's purchases.
+- `revenue`: Total amount of user's purchases.
 
 Tea-tasting accepts dataframes of the following types:
 
@@ -74,8 +74,6 @@ To specify a custom variant column name, use the `variant` parameter. Default is
 To specify a control variant use the `"control"` parameter. Default is `None`, which means that minimal variant value is used as control.
 
 ```python
-users_data = tt.sample_users_data(size=1000, seed=42)
-
 data = users_data.with_columns(
     pl.col("variant").replace({0: "A", 1: "B"}).alias("variant_id"),
 )
@@ -123,7 +121,7 @@ Similar to `SimpleMean`,  `RatioOfMeans` applies the Welch's t-test, Student's t
 
 ### Result
 
-Once the experiment is defined, it can calculate the result with method `experiment.analyze`. It accepts the experiment data as the first parameter, `data`, and returns an instance of the `ExperimentResult` class.
+Once the experiment is defined, calculate the result with method `experiment.analyze`. It accepts the experiment data as the first parameter, `data`, and returns an instance of the `ExperimentResult` class.
 
 The `ExperimentResult` object contains the experiment result for each metric. To serialize results use one of these methods:
 
@@ -150,6 +148,9 @@ List of fields depends on the metric. For `SimpleMean` and `RatioOfMeans` the fi
 Both `SimpleMean` and `RatioOfMeans` classes support variance reduction with CUPED/CUPAC.
 
 ```python
+import tea_tasting as tt
+
+
 users_data = tt.sample_users_data(size=1000, seed=42, pre=True)
 
 experiment = tt.Experiment(
@@ -196,11 +197,6 @@ experiment = tt.Experiment(
 )
 ```
 
-Actually, under the hood, `SimpleMean` utilizes the `RatioOfMeans` class:
-
-- `SimpleMean("orders")` is similar to `tt.RatioOfMeans(numer="orders")`.
-- `SimpleMean("orders", covariate="pre_orders")` is similar to `tt.RatioOfMeans(numer="orders", numer_covariate="pre_orders")`.
-
 ### Sample ratio mismatch
 
 To check for a sample ratio mismatch, use the `SampleRatio` class:
@@ -224,8 +220,8 @@ Statistical criteria depends on the `test` parameter:
 
 - `"auto"` (default): Perform the binomial test if the number of observations is less than 1000. Otherwise perform the G-test.
 - `"binomial"`: Binomial test.
-- `"g-test"`: G-test.
-- `"chi-squared"`: Pearson’s chi-squared test.
+- `"g"`: G-test.
+- `"pearson"`: Pearson’s chi-squared test.
 
 The results contains the following fields:
 
@@ -236,7 +232,7 @@ The results contains the following fields:
 - `ratio_conf_int_lower`, `ratio_conf_int_upper`: The lower and the upper bounds of the confidence interval of the ratio. Only for binomial test.
 - `pvalue`: P-value. The null hypothesis is that the actual ratio of the number of observations is equal to the expected.
 
-The `confidence_level` parameter defines a confidence level for the computed confidence interval. The default is `0.95` but can be redefined in global settings.
+The `confidence_level` parameter defines a confidence level for the computed confidence interval.
 
 ### Power analysis
 
@@ -248,9 +244,8 @@ Both classes `SimpleMean` and `RatioOfMeans` provide two methods for power analy
 Example usage:
 
 ```python
-users_data = tt.sample_users_data(size=1000, seed=42)
 orders_power = SimpleMean("orders").power(users_data, rel_diff=0.05)
-orders_mde = SimpleMean("orders").solve_power(users_data)
+orders_mde = SimpleMean("orders").solve_power(users_data, parameter="rel_diff")
 ```
 
 The parameters are:
@@ -264,7 +259,10 @@ The parameters are:
 - `use_t`: Indicates to use the Student’s t-distribution (`True`) or the Normal distribution (`False`) when computing power. Default is `True`.
 - `equal_var`: Not used if `use_t` is `False`. If `True`, calculate the power of a standard independent Student's t-test that assumes equal population variances. If `False`, calculate the power of a Welch’s t-test, which does not assume equal population variance. Default is `False`.
 
-The `solve_power` accepts the same parameters as the `power`. Also it accepts an additional parameter `power`, the power of a test, with default `0.8`. One parameter of `rel_diff`, `nobs`, `alpha`, `power`, `ratio` should be `None`. This is the parameter to be solved.
+The `solve_power` accepts the same parameters as the `power`. Also it accepts two additional parameters:
+
+- `power`: Power of a test. Default is `0.8`.
+- `parameter`: Name of the parameter to solve. Default is `"rel_diff"`.
 
 Default values of the parameters `ratio`, `use_t`, `equal_var`, `alternative` and `alpha` can be redefined in global settings (see below).
 
@@ -282,7 +280,6 @@ This can be useful for A/A tests and for power analysis.
 Example usage:
 
 ```python
-users_data = tt.sample_users_data(size=1000, seed=42)
 aa_test = experiment.simulate(users_data)
 aa_test.describe()
 ```
@@ -293,7 +290,7 @@ The method `simulate` accepts the following parameters:
 - `n_iter`: Number of simulations to run. Default is `10_000`.
 - `ratio`: Ratio of the number of observations in treatment relative to control. Default is `1` but can be redefined in global settings.
 - `random_seed`: Random seed. Default is `None`.
-- `treatment`: An optional function which updates a treatment data on each iteration. It should accept a Polars dataframe and a random seed, and return a Polars dataframe of the same length and the same set of columns. Default is `None`, which means that treatment data are not updated (A/A test).
+- `treatment`: An optional function which updates treatment data on each iteration. It should accept a Polars dataframe and a random seed, and return a Polars dataframe of the same length and the same set of columns. Default is `None`, which means that treatment data are not updated (A/A test).
 
 It returns an instance of the class `SimulationsResult` which provide the following methods:
 
@@ -309,10 +306,10 @@ Method `describe` returns a Polars dataframe with the following columns:
 - `null_rejected`: Proportion of iterations in which the null hypothesis has been rejected. By default, it's calculated based on p-value. But if a metric doesn't provide a p-value, then a confidence interval is used.
 - `null_rejected_conf_int_lower`, `null_rejected_conf_int_upper`: The lower and the upper bounds of the confidence interval of the proportion iterations in which the null hypothesis has been rejected.
 
-There are two optional parameters of `describe` (both can be redefined in global settings):
+There are two optional parameters of `describe`:
 
-- `alpha`: P-value threshold for the calculation of the proportion in which the null hypothesis has been rejected. It's only used in calculations based on p-values. Default is `0.05`.
-- `confidence_level`: Confidence level for the computed confidence interval of the proportion. Default is `0.95`.
+- `alpha`: P-value threshold for the calculation of the proportion in which the null hypothesis has been rejected. It's only used in calculations based on p-values.
+- `confidence_level`: Confidence level for the computed confidence interval of the proportion.
 
 ### Bootstrap
 
@@ -322,8 +319,6 @@ To compare an arbitrary statistic values between variants use the `Bootstrap` cl
 import numpy as np
 
 
-users_data = tt.sample_users_data(size=1000, seed=42)
-
 experiment = tt.Experiment({
     "Median revenue per user": tt.Bootstrap("revenue", statistic=np.median),
 })
@@ -332,12 +327,12 @@ experiment_result = experiment.analyze(users_data)
 
 The `statistic` parameter is a callable which accepts a NumPy array as the first parameter, and the `axis` parameter which defines an axis along which the statistic is computed.
 
-The first parameter of the `Bootstrap` class is name or a list of names names of the columns used in the calculation of a statistic.
+The first parameter of the `Bootstrap` class is a name or a list of names of the columns used in the calculation of a statistic.
 
 The other parameters are:
 
 - `n_resamples`: The number of resamples performed to form the bootstrap distribution of the statistic. Default is `10_000`.
-- `confidence_level`: The confidence level of the confidence interval. Default is `0.95`.
+- `confidence_level`: The confidence level of the confidence interval.
 
 Both `n_resamples` and `confidence_level` defaults can be redefined in global settings.
 
@@ -367,7 +362,7 @@ Tea-tasting rely on global settings for the following parameters:
 - `ratio`,
 - `use_t`.
 
-But it's possible to set default values for custom parameters as well. See the example in the next section with custom metric.
+It is possible to set default values for custom parameters as well. See the example in the next section with a custom metric.
 
 Set a global option value using `set_config`:
 
@@ -379,7 +374,7 @@ Set a global option value within a context using `config_context`:
 
 ```python
 with tt.config_context(confidence_level=0.98, some_custom_parameter=1):
-    # Define the experiment and metrics here.
+    # Define the experiment and the metrics here.
 ```
 
 Get a global option value using `get_config` with the option name as a parameter:
@@ -403,7 +398,7 @@ To create a custom metric define a new class with `MetricBase` as a parent. The 
 - `contr_variant`: Control variant ID.
 - `treat_variant`: Treatment variant ID.
 
-Method `analyze` should return a `NamedTuple` with results. Make sure to use the same field names as other clases. For example, `pvalue`, not `p_value`. Field names starting with `_` are not copied to experiment result.
+Method `analyze` should return a `NamedTuple` with results. Make sure to use the same field names as other classes. For example, `pvalue`, not `p_value`. Field names starting with `_` are not copied to experiment result.
 
 Example:
 
@@ -415,7 +410,7 @@ import scipy.stats
 import tea_tasting as tt
 
 
-tt.set_config(use_continuity=True)  # Set defult value for a custom parameter.
+tt.set_config(use_continuity=True)  # Set default value for a custom parameter.
 
 class MannWhitneyUResult(NamedTuple):
     pvalue: float
