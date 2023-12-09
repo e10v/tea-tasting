@@ -473,6 +473,17 @@ experiment_result.to_polars()
 
 ### More than two variants
 
+With tea-tasting, it's possible to analyze experiments with more than two variants. But the variants will be compared in pairs using two-sample statistical tests.
+
+Pairs depend on the value of the parameter `control`:
+
+- If `control` is `None`, each couple of variants is compared. In each pair, the control is a variant with the lowest variant ID.
+- Otherwise, the control is to compared to each of the rest variants.
+
+To retrieve the result with `to_pandas`, `to_polars`, `to_dicts`, or `to_html`, pass the control and the treatment variant IDs as the first and the second parameter.
+
+Keep in mind that tea-tasting doesn't adjust multiple comparison.
+
 ### Group by units
 
 ### Analyze from stats
