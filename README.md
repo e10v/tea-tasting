@@ -509,7 +509,12 @@ Class `Stats` is initialized with the following parameters:
 
 - `mean`: A dictionary with column names as keys and column value means as a values.
 - `var`: A dictionary with column names as keys and column value variances as a values.
-- `cov`: A dictionary with tuples `(column_name_1, column_name_2)` as keys and columns covariances as values. Column names in a tuple a sorted in alphabetical order.
+- `cov`: A dictionary with tuples `(column_name_1, column_name_2)` as keys and columns covariances as values. Column names in a tuple are sorted in alphabetical order.
 - `nobs`: Number of observations.
 
 ## Package name
+
+The package name "tea-tasting" is a play of words which refers to two topics:
+
+- [Lady tasting tea](https://en.wikipedia.org/wiki/Lady_tasting_tea) is a famous experiment which was devised by Ronald Fisher. In this experiment, Fisher developed the null hypothesis significance testing framework to analyze a lady's claim that she could discern whether the tea or the milk was added first to a cup.
+- "Tea-tasting" phonetically resembles "t-testing" or Student's t-test, a statistical test developed by William Gosset.
