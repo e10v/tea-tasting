@@ -98,7 +98,7 @@ The `SimpleMean` class is useful for comparing simple averages of metrics. The f
 
 It performs the Welch's t-test, Student's t-test, or Z-test, depending on the parameters:
 
-- `use_t`: Indicates to use the Student’s t-distribution (`True`) or the Normal distribution (`False`) when computing p-value and confidence interval. Default is `True`.
+- `use_t`: Indicates to use the Student's t-distribution (`True`) or the Normal distribution (`False`) when computing p-value and confidence interval. Default is `True`.
 - `equal_var`: Not used if `use_t` is `False`. If `True`, perform a standard independent Student's t-test that assumes equal population variances. If `False`, perform Welch’s t-test, which does not assume equal population variance. Default is `False`.
 
 The `alternative` parameter defines the alternative hypothesis. The following options are available:
@@ -123,7 +123,7 @@ Similar to `SimpleMean`,  `RatioOfMeans` applies the Welch's t-test, Student's t
 
 Once the experiment is defined, calculate the result with method `experiment.analyze`. It accepts the experiment data as the first parameter, `data`, and returns an instance of the `ExperimentResult` class.
 
-The `ExperimentResult` object contains the experiment results for each metric. To serialize results use one of these methods:
+The `ExperimentResult` object contains results for each metric of the experiment. To serialize results use one of these methods:
 
 - `to_polars`: Polars dataframe, with a row for each metric.
 - `to_pandas`: Pandas dataframe, with a row for each metric.
@@ -256,7 +256,7 @@ The parameters include:
 - `alpha`: Significance level. Default is `0.05`.
 - `ratio`: Ratio of the number of observations in treatment relative to control. Default is `1`.
 - `alternative`: Alternative hypothesis. Default is `"two-sided"`.
-- `use_t`: Indicates to use the Student’s t-distribution (`True`) or the Normal distribution (`False`) when computing power. Default is `True`.
+- `use_t`: Indicates to use the Student's t-distribution (`True`) or the Normal distribution (`False`) when computing power. Default is `True`.
 - `equal_var`: Not used if `use_t` is `False`. If `True`, calculate the power of a standard independent Student's t-test that assumes equal population variances. If `False`, calculate the power of a Welch’s t-test, which does not assume equal population variance. Default is `False`.
 
 The `solve_power` method accepts the same parameters as the `power` method. Also it accepts two additional parameters:
@@ -268,7 +268,7 @@ Default values of the parameters `ratio`, `use_t`, `equal_var`, `alternative` an
 
 ### Simulations and A/A tests
 
-Tea-tasting provide the method `simulate` which:
+The `simulate` method in Tea-tasting:
 
 - Randomly splits the provided dataset on treatment and control multiple times.
 - Optionally, updates the treatment data in each split.
@@ -391,7 +391,7 @@ global_config = tt.get_config()
 
 ### Custom metrics
 
-To create a custom metric, define a new class inheriting from `MetricBase`. The class should define least two methods: `__init__` and `analyze`. The `analyze` method should accepts the following parameters:
+Create a custom metric by defining a new class that inherits from `MetricBase`. The class should define least two methods: `__init__` and `analyze`. The `analyze` method should accepts the following parameters:
 
 - `contr_data`: A Polars dataframe with control data.
 - `treat_data`: A Polars dataframe with treatment data.
@@ -480,7 +480,7 @@ Pairs depend on the value of the parameter `control`:
 - If `control` is `None`, each couple of variants is compared. In each pair, the control is a variant with the lowest variant ID.
 - Otherwise, the control is compared to each of the rest variants.
 
-To retrieve the result with `to_pandas`, `to_polars`, `to_dicts`, or `to_html`, pass the control and the treatment variant IDs as the first and the second parameter.
+To retrieve results using `to_pandas`, `to_polars`, `to_dicts`, or `to_html`, pass the control and treatment variant IDs as the first and second parameters.
 
 Keep in mind that tea-tasting does not adjust for multiple comparisons.
 
