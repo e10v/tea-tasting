@@ -145,7 +145,7 @@ List of fields depends on the metric. For `SimpleMean` and `RatioOfMeans` the fi
 
 ### Variance reduction with CUPED/CUPAC
 
-Both the `SimpleMean` and `RatioOfMeans` classes support variance reduction with CUPED/CUPAC.
+Both the `SimpleMean` and `RatioOfMeans` classes support variance reduction through CUPED/CUPAC.
 
 ```python
 import tea_tasting as tt
@@ -211,7 +211,7 @@ experiment = tt.Experiment({
 })
 ```
 
-By default, it expects the equal number of observations per variant. Use the `ratio` parameter to set a different ratio. It accepts two types of values:
+By default, it expects an equal number of observations per each variant. Use the `ratio` parameter to set a different ratio. It accepts two types of values:
 
 - A numerical ratio of treatment observations to control observations. For example, `SampleRatio(0.5)`: ratio of treatment observations per number of control observations is 1:2. Default is `1` but can be redefined in global settings.
 - A dictionary with variants as keys and expected ratios. For example, `SampleRatio({"A": 2, "B": 1})`.
@@ -230,7 +230,7 @@ The result contains the following fields:
 - `variant_{treatment_variant_id}`: Number of observations in treatment.
 - `ratio`: Ratio of the number of observations in treatment relative to control.
 - `ratio_conf_int_lower`, `ratio_conf_int_upper`: The lower and the upper bounds of the confidence interval of the ratio. Only for binomial test.
-- `pvalue`: P-value. The null hypothesis is that the actual ratio of the number of observations is equal to the expected.
+- `pvalue`: P-value. The null hypothesis asserts that the actual ratio of the number of observations equals the expected ratio.
 
 The `confidence_level` parameter specifies the confidence interval's confidence level.
 
@@ -248,7 +248,7 @@ orders_power = SimpleMean("orders").power(users_data, rel_diff=0.05)
 orders_mde = SimpleMean("orders").solve_power(users_data, parameter="rel_diff")
 ```
 
-The parameters are:
+The parameters include:
 
 - `data`: A sample of data in the same format as the data required for the analysis of A/B test, with an exception that a column with variant of test is not required.
 - `rel_diff`: Relative difference of means. Default is `None`.
@@ -275,7 +275,7 @@ Tea-tasting provide the method `simulate` which:
 - Calculates results for each split.
 - Summarizes statistics of the simulations.
 
-This can be useful for A/A tests and for power analysis.
+This approach can be useful for conducting A/A tests and for power analysis.
 
 Example usage:
 
@@ -292,13 +292,13 @@ The method `simulate` accepts the following parameters:
 - `random_seed`: Random seed. Default is `None`.
 - `treatment`: An optional function which updates treatment data on each iteration. It should accept a Polars dataframe and a random seed, and return a Polars dataframe of the same length and the same set of columns. Default is `None`, which means that treatment data are not updated (A/A test).
 
-It returns an instance of the class `SimulationsResult` which provide the following methods:
+It returns an instance of the `SimulationsResult` class, which provides the following methods:
 
 - `to_polars`: Create a Polars dataframe with detailed results, with a row for each pair (simulation, metric).
 - `to_pandas`: Create a Pandas dataframe with detailed results, with a row for each pair (simulation, metric).
 - `describe`: Summarize statistics of the simulations.
 
-Methods `to_polars` and `to_pandas` return the same columns as similar methods of the experiment results. In addition, there is a column with a sequential number of a simulation.
+The `to_polars` and `to_pandas` methods return columns similar to those in the experiment results. In addition, there is a column with a sequential number of a simulation.
 
 Method `describe` returns a Polars dataframe with the following columns:
 
@@ -306,7 +306,7 @@ Method `describe` returns a Polars dataframe with the following columns:
 - `null_rejected`: Proportion of iterations in which the null hypothesis has been rejected. By default, it's calculated based on p-value. But if a metric doesn't provide a p-value, then a confidence interval is used.
 - `null_rejected_conf_int_lower`, `null_rejected_conf_int_upper`: The lower and the upper bounds of the confidence interval of the proportion iterations in which the null hypothesis has been rejected.
 
-There are two optional parameters of `describe`:
+The `describe` method has two optional parameters:
 
 - `alpha`: P-value threshold for the calculation of the proportion in which the null hypothesis has been rejected. It's only used in calculations based on p-values.
 - `confidence_level`: Confidence level for the computed confidence interval of the proportion.
@@ -364,26 +364,26 @@ Tea-tasting rely on global settings for the following parameters:
 
 You can also set default values for custom parameters. See the example in the next section with a custom metric.
 
-Set a global option value using `set_config`:
+Use `set_config` to set a global option value::
 
 ```python
 tt.set_config(confidence_level=0.98, some_custom_parameter=1)
 ```
 
-Set a global option value within a context using `config_context`:
+Use `config_context` to set a global option value within a context::
 
 ```python
 with tt.config_context(confidence_level=0.98, some_custom_parameter=1):
     # Define the experiment and the metrics here.
 ```
 
-Get a global option value using `get_config` with the option name as a parameter:
+Use `get_config` with the option name as a parameter to get a global option value:
 
 ```python
 default_pvalue = tt.get_config("confidence_level")
 ```
 
-Get a dictionary with global options using `get_config` without parameters:
+Use `get_config` without parameters to get a dictionary of global options:
 
 ```python
 global_config = tt.get_config()
@@ -473,7 +473,7 @@ experiment_result.to_polars()
 
 ### More than two variants
 
-With tea-tasting, it's possible to analyze experiments with more than two variants. But the variants will be compared in pairs using two-sample statistical tests.
+With tea-tasting, it's possible to analyze experiments with more than two variants. However, the variants will be compared in pairs using two-sample statistical tests.
 
 Pairs depend on the value of the parameter `control`:
 
@@ -482,7 +482,7 @@ Pairs depend on the value of the parameter `control`:
 
 To retrieve the result with `to_pandas`, `to_polars`, `to_dicts`, or `to_html`, pass the control and the treatment variant IDs as the first and the second parameter.
 
-Keep in mind that tea-tasting doesn't adjust multiple comparison.
+Keep in mind that tea-tasting does not adjust for multiple comparisons.
 
 ### Group by units
 
