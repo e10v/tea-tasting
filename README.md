@@ -3,7 +3,7 @@
 Tea-tasting is a Python package for statistical analysis of A/B tests that features:
 
 - T-test, Z-test, and bootstrap out of the box.
-- Extensible API: You can define and use statistical tests of your choice.
+- Extensible API: Define and use statistical tests of your choice.
 - Delta method for ratio metrics.
 - Variance reduction with CUPED/CUPAC (also in combination with delta method for ratio metrics).
 - Fieller's confidence interval for percent change.
@@ -11,7 +11,7 @@ Tea-tasting is a Python package for statistical analysis of A/B tests that featu
 - Power analysis.
 - A/A tests.
 
-The package is in the planning stage. This means that there is no working code at the time. This readme describes the future API of the package. See more details in Tom Preston-Werner's blog post on [Readme Driven Development](https://tom.preston-werner.com/2010/08/23/readme-driven-development).
+The package is currently in the planning stage, meaning no working code exists at present. This readme describes the future API of the package. See more details in Tom Preston-Werner's blog post on [Readme Driven Development](https://tom.preston-werner.com/2010/08/23/readme-driven-development).
 
 ## Installation
 
@@ -67,11 +67,11 @@ revenue etc.).
 
 ### A/B test definition
 
-The `Experiment` class defines the A/B test. The first parameter, `metrics`, is a dictionary of metric names as keys and metric definitions as values.
+The `Experiment` class defines an A/B test. The first parameter, `metrics`, is a dictionary of metric names as keys and metric definitions as values.
 
 To specify a custom variant column name, use the `variant` parameter. Default is `"variant"`.
 
-To specify a control variant use the `"control"` parameter. Default is `None`, which means that minimal variant value is used as control.
+To specify a control variant, use the `control` parameter. Default is `None`, which means that minimal variant value is used as control.
 
 ```python
 data = users_data.with_columns(
@@ -94,9 +94,9 @@ experiment_result = experiment.analyze(data)
 
 ### Simple metrics
 
-The `SimpleMean` class is useful for comparing simple metric averages. The first parameter, `value`, is a name of a column that contains the metric values.
+The `SimpleMean` class is useful for comparing simple averages of metrics. The first parameter, `value`, is a name of a column that contains the metric values.
 
-It performs the Welch's t-test, Student's t-test, or Z-test, depending on parameters:
+It performs the Welch's t-test, Student's t-test, or Z-test, depending on the parameters:
 
 - `use_t`: Indicates to use the Student’s t-distribution (`True`) or the Normal distribution (`False`) when computing p-value and confidence interval. Default is `True`.
 - `equal_var`: Not used if `use_t` is `False`. If `True`, perform a standard independent Student's t-test that assumes equal population variances. If `False`, perform Welch’s t-test, which does not assume equal population variance. Default is `False`.
@@ -113,7 +113,7 @@ Default values of the parameters `use_t`, `equal_var`, `alternative` and `confid
 
 ### Ratio metrics
 
-Ratio metrics are useful when an analysis unit differs from a randomization units. For example, one might want to compare orders per visit (the analysis unit). And there can be several visits per user (randomization unit). It's not correct to use the `tt.SimpleMean` class in this case.
+Ratio metrics are useful when an analysis unit differs from a randomization units. For example, one might want to compare orders per visit (the analysis unit). And there can be several visits per user (randomization unit). In this case, using the `SimpleMean` class would be incorrect.
 
 The `RatioOfMeans` class defines a ratio metric that compares ratios of averages. For example, average number of orders per average number of visits. The `numer` parameter defines a numerator column name. The `denom` parameter defines a denominator column name.
 
@@ -123,7 +123,7 @@ Similar to `SimpleMean`,  `RatioOfMeans` applies the Welch's t-test, Student's t
 
 Once the experiment is defined, calculate the result with method `experiment.analyze`. It accepts the experiment data as the first parameter, `data`, and returns an instance of the `ExperimentResult` class.
 
-The `ExperimentResult` object contains the experiment result for each metric. To serialize results use one of these methods:
+The `ExperimentResult` object contains the experiment results for each metric. To serialize results use one of these methods:
 
 - `to_polars`: Polars dataframe, with a row for each metric.
 - `to_pandas`: Pandas dataframe, with a row for each metric.
@@ -145,7 +145,7 @@ List of fields depends on the metric. For `SimpleMean` and `RatioOfMeans` the fi
 
 ### Variance reduction with CUPED/CUPAC
 
-Both `SimpleMean` and `RatioOfMeans` classes support variance reduction with CUPED/CUPAC.
+Both the `SimpleMean` and `RatioOfMeans` classes support variance reduction with CUPED/CUPAC.
 
 ```python
 import tea_tasting as tt
@@ -199,7 +199,7 @@ experiment = tt.Experiment(
 
 ### Sample ratio mismatch
 
-To check for a sample ratio mismatch, use the `SampleRatio` class:
+Use the `SampleRatio` class to check for sample ratio mismatch:
 
 ```python
 experiment = tt.Experiment({
@@ -211,9 +211,9 @@ experiment = tt.Experiment({
 })
 ```
 
-By default, it expects the equal number of observations per variant. To set a different ratio use the `ratio` parameter. It accept two types of values:
+By default, it expects the equal number of observations per variant. Use the `ratio` parameter to set a different ratio. It accepts two types of values:
 
-- A ratio of number of treatment observations per number of control observations, as a number. For example, `SampleRatio(0.5)`: ratio of treatment observations per number of control observations is 1:2. Default is `1` but can be redefined in global settings.
+- A numerical ratio of treatment observations to control observations. For example, `SampleRatio(0.5)`: ratio of treatment observations per number of control observations is 1:2. Default is `1` but can be redefined in global settings.
 - A dictionary with variants as keys and expected ratios. For example, `SampleRatio({"A": 2, "B": 1})`.
 
 Statistical criteria depends on the `test` parameter:
@@ -223,7 +223,7 @@ Statistical criteria depends on the `test` parameter:
 - `"g"`: G-test.
 - `"pearson"`: Pearson’s chi-squared test.
 
-The results contains the following fields:
+The result contains the following fields:
 
 - `metric`: Metric name.
 - `variant_{control_variant_id}`: Number of observations in control.
@@ -232,7 +232,7 @@ The results contains the following fields:
 - `ratio_conf_int_lower`, `ratio_conf_int_upper`: The lower and the upper bounds of the confidence interval of the ratio. Only for binomial test.
 - `pvalue`: P-value. The null hypothesis is that the actual ratio of the number of observations is equal to the expected.
 
-The `confidence_level` parameter defines a confidence level for the computed confidence interval.
+The `confidence_level` parameter specifies the confidence interval's confidence level.
 
 ### Power analysis
 
@@ -259,7 +259,7 @@ The parameters are:
 - `use_t`: Indicates to use the Student’s t-distribution (`True`) or the Normal distribution (`False`) when computing power. Default is `True`.
 - `equal_var`: Not used if `use_t` is `False`. If `True`, calculate the power of a standard independent Student's t-test that assumes equal population variances. If `False`, calculate the power of a Welch’s t-test, which does not assume equal population variance. Default is `False`.
 
-The `solve_power` accepts the same parameters as the `power`. Also it accepts two additional parameters:
+The `solve_power` method accepts the same parameters as the `power` method. Also it accepts two additional parameters:
 
 - `power`: Power of a test. Default is `0.8`.
 - `parameter`: Name of the parameter to solve. Default is `"rel_diff"`.
@@ -313,7 +313,7 @@ There are two optional parameters of `describe`:
 
 ### Bootstrap
 
-To compare an arbitrary statistic values between variants use the `Bootstrap` class:
+To compare arbitrary statistics between variants, use the `Bootstrap` class:
 
 ```python
 import numpy as np
@@ -327,7 +327,7 @@ experiment_result = experiment.analyze(users_data)
 
 The `statistic` parameter is a callable which accepts a NumPy array as the first parameter, and the `axis` parameter which defines an axis along which the statistic is computed.
 
-The first parameter of the `Bootstrap` class is a name or a list of names of the columns used in the calculation of a statistic.
+The `Bootstrap` class's first parameter should be the name or a list of names of columns used in calculating a statistic.
 
 The other parameters are:
 
@@ -350,7 +350,7 @@ The results contains the following fields:
 
 ### Global configuration
 
-Usually there is one confidence level for all metrics. It's convenient to set a confidence level for each metric separately. Use global configuration to manage default parameter values in this case.
+Usually there is one confidence level for all metrics. It's convenient to set a confidence level for each metric separately. In this case, use global configuration to manage default parameter values.
 
 Tea-tasting rely on global settings for the following parameters:
 
@@ -362,7 +362,7 @@ Tea-tasting rely on global settings for the following parameters:
 - `ratio`,
 - `use_t`.
 
-It is possible to set default values for custom parameters as well. See the example in the next section with a custom metric.
+You can also set default values for custom parameters. See the example in the next section with a custom metric.
 
 Set a global option value using `set_config`:
 
@@ -380,7 +380,7 @@ with tt.config_context(confidence_level=0.98, some_custom_parameter=1):
 Get a global option value using `get_config` with the option name as a parameter:
 
 ```python
-default_pvalue = global_config("confidence_level")
+default_pvalue = tt.get_config("confidence_level")
 ```
 
 Get a dictionary with global options using `get_config` without parameters:
@@ -391,14 +391,14 @@ global_config = tt.get_config()
 
 ### Custom metrics
 
-To create a custom metric define a new class with `MetricBase` as a parent. The class should define least two methods: `__init__` and `analyze`. Method `analyze` should accepts the following parameters:
+To create a custom metric, define a new class inheriting from `MetricBase`. The class should define least two methods: `__init__` and `analyze`. The `analyze` method should accepts the following parameters:
 
 - `contr_data`: A Polars dataframe with control data.
 - `treat_data`: A Polars dataframe with treatment data.
 - `contr_variant`: Control variant ID.
 - `treat_variant`: Treatment variant ID.
 
-Method `analyze` should return a `NamedTuple` with results. Make sure to use the same field names as other classes. For example, `pvalue`, not `p_value`. Field names starting with `_` are not copied to experiment result.
+Method `analyze` should return a `NamedTuple` with results. Make sure to use the same field names as other classes. For example, `pvalue`, not `p_value`. Field names starting with `_` are not included in the experiment results.
 
 Example:
 
@@ -414,7 +414,7 @@ tt.set_config(use_continuity=True)  # Set default value for a custom parameter.
 
 class MannWhitneyUResult(NamedTuple):
     pvalue: float
-    _statistic: float  # Not used in experiment result.
+    _statistic: float  # Not used in experiment results.
 
 class MannWhitneyU(tt.MetricBase):
     def __init__(
@@ -486,7 +486,7 @@ Keep in mind that tea-tasting doesn't adjust multiple comparison.
 
 ### Group by units
 
-By default, tea-tasting assumes that data are grouped by randomization units (e.g. users). But sometimes one might want to use clustered error, perform multilevel modelling, or other methods that rely on more detailed data (e.g. visits).
+By default, tea-tasting assumes data are grouped by randomization units, such as users. But sometimes one might want to use clustered error, perform multilevel modelling, or other methods that rely on more detailed data, such as visits.
 
 To do that:
 
