@@ -478,13 +478,26 @@ With tea-tasting, it's possible to analyze experiments with more than two varian
 Pairs depend on the value of the parameter `control`:
 
 - If `control` is `None`, each couple of variants is compared. In each pair, the control is a variant with the lowest variant ID.
-- Otherwise, the control is to compared to each of the rest variants.
+- Otherwise, the control is compared to each of the rest variants.
 
 To retrieve the result with `to_pandas`, `to_polars`, `to_dicts`, or `to_html`, pass the control and the treatment variant IDs as the first and the second parameter.
 
 Keep in mind that tea-tasting doesn't adjust multiple comparison.
 
 ### Group by units
+
+By default, tea-tasting assumes that data are grouped by randomization units (e.g. users). But sometimes one might want to use clustered error, perform multilevel modelling, or other methods that rely on more detailed data (e.g. visits).
+
+To do that:
+
+- Define a custom metric which rely on detailed data (e.g. `CRSE`). Set the attribute `use_raw_data` to `True`.
+- Define the experiment. Set the `randomization_unit` unit parameter. It should be a column name or a sequence of column names which defines a randomization unit (e.g. `randomization_unit="user_id"`).
+- Call `analyze` with detailed data (e.g. visits).
+
+Tea-tasting will:
+
+- Use the raw data to analyze the custom metric.
+- Group the data by the randomization units and use it to analyze other metrics.
 
 ### Analyze from stats
 
