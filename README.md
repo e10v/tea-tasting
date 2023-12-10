@@ -254,8 +254,6 @@ Additional parameters:
 - `method` (default `"bca"`): Whether to return the "percentile" bootstrap confidence interval (`"percentile"`), the "basic" (aka "reverse") bootstrap confidence interval (`"basic"`), or the bias-corrected and accelerated bootstrap confidence interval (`"bca"`).
 - `random_seed` (default `None`): Random seed.
 
-You can customize these defaults in the global settings of **tea-tasting**.
-
 The `Bootstrap` class provides a detailed result output, including:
 
 - `metric`: The name of the computed metric.
