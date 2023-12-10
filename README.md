@@ -11,9 +11,9 @@
 - Power analysis.
 - A/A tests.
 
-Currently, **tea-tasting** is in the planning stage, and I'm starting with a README that outlines the envisioned API — a strategy known as Readme Driven Development (RDD).
+Currently, **tea-tasting** is in the planning stage, and I'm starting with a README that outlines the proposed API — an approach known as Readme Driven Development (RDD).
 
-Check out my [blog post](https://e10v.me/tea-tasting-rdd) where I delve into my motivations for creating this package and the benefits of the RDD approach.
+Check out my [blog post](https://e10v.me/tea-tasting-rdd) where I explain the motivation for creating this package and the benefits of the RDD approach.
 
 ## Installation
 
