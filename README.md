@@ -251,6 +251,8 @@ Additional parameters:
 
 - `n_resamples` (default `10_000`): Sets the number of bootstrap resamples for distribution estimation.
 - `confidence_level` (default `0.95`): Determines the confidence level for interval calculations.
+- `method` (default `"bca"`): Whether to return the "percentile" bootstrap confidence interval (`"percentile"`), the "basic" (aka "reverse") bootstrap confidence interval (`"basic"`), or the bias-corrected and accelerated bootstrap confidence interval (`"bca"`).
+- `random_seed` (default `None`): Random seed.
 
 You can customize these defaults in the global settings of **tea-tasting**.
 
