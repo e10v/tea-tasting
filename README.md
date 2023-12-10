@@ -2,11 +2,11 @@
 
 Tea-tasting is a Python package for statistical analysis of A/B tests that features:
 
-- T-test, Z-test, and bootstrap out of the box.
+- Student's t-test, Z-test, and Bootstrap out of the box.
 - Extensible API: Define and use statistical tests of your choice.
-- Delta method for ratio metrics.
-- Variance reduction with CUPED/CUPAC (also in combination with delta method for ratio metrics).
-- Fieller's confidence interval for percent change.
+- [Delta method](https://alexdeng.github.io/public/files/kdd2018-dm.pdf) for ratio metrics.
+- Variance reduction with [CUPED](https://exp-platform.com/Documents/2013-02-CUPED-ImprovingSensitivityOfControlledExperiments.pdf)/[CUPAC](https://doordash.engineering/2020/06/08/improving-experimental-power-through-control-using-predictions-as-covariate-cupac/) (also in combination with delta method for ratio metrics).
+- [Fieller's confidence interval](https://en.wikipedia.org/wiki/Fieller%27s_theorem) for percent change.
 - Sample ratio mismatch check.
 - Power analysis.
 - A/A tests.
@@ -514,7 +514,7 @@ The `Stats` class is initialized with the following parameters:
 
 ## Package name
 
-The package name "tea-tasting" is a play of words which refers to two topics:
+The package name "tea-tasting" is a play of words which refers to two subjects:
 
 - [Lady tasting tea](https://en.wikipedia.org/wiki/Lady_tasting_tea) is a famous experiment which was devised by Ronald Fisher. In this experiment, Fisher developed the null hypothesis significance testing framework to analyze a lady's claim that she could discern whether the tea or the milk was added first to a cup.
 - "Tea-tasting" phonetically resembles "t-testing" or Student's t-test, a statistical test developed by William Gosset.
