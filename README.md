@@ -1,17 +1,19 @@
-# Tea-tasting: statistical analysis of A/B tests
+# tea-tasting: statistical analysis of A/B tests
 
-Tea-tasting is a Python package for statistical analysis of A/B tests that features:
+**tea-tasting** is a Python package for statistical analysis of A/B tests that features:
 
-- T-test, Z-test, and bootstrap out of the box.
+- Student's t-test, Z-test, and Bootstrap out of the box.
 - Extensible API: Define and use statistical tests of your choice.
-- Delta method for ratio metrics.
-- Variance reduction with CUPED/CUPAC (also in combination with delta method for ratio metrics).
-- Fieller's confidence interval for percent change.
+- [Delta method](https://alexdeng.github.io/public/files/kdd2018-dm.pdf) for ratio metrics.
+- Variance reduction with [CUPED](https://exp-platform.com/Documents/2013-02-CUPED-ImprovingSensitivityOfControlledExperiments.pdf)/[CUPAC](https://doordash.engineering/2020/06/08/improving-experimental-power-through-control-using-predictions-as-covariate-cupac/) (also in combination with delta method for ratio metrics).
+- [Fieller's confidence interval](https://en.wikipedia.org/wiki/Fieller%27s_theorem) for percent change.
 - Sample ratio mismatch check.
 - Power analysis.
 - A/A tests.
 
-The package is currently in the planning stage, meaning no working code exists at present. This readme describes the future API of the package. See more details in Tom Preston-Werner's blog post on [Readme Driven Development](https://tom.preston-werner.com/2010/08/23/readme-driven-development).
+Currently, **tea-tasting** is in the planning stage, and I'm starting with a README that outlines the envisioned API — a strategy known as Readme Driven Development (RDD).
+
+Check out my [blog post](https://e10v.me/tea-tasting-rdd) where I delve into my motivations for creating this package and the benefits of the RDD approach.
 
 ## Installation
 
@@ -21,7 +23,7 @@ pip install tea-tasting
 
 ## Basic usage
 
-Let's start with a simple example:
+Begin with this simple example to understand the basic functionality:
 
 ```python
 import tea_tasting as tt
@@ -40,38 +42,39 @@ experiment_result = experiment.analyze(users_data)
 experiment_result.to_polars()
 ```
 
-I'll discuss each step below.
+In the following sections, each step of this process will be explained in detail.
 
 ### Input data
 
-The `sample_users_data` function generates synthetic data which can be used as an example. Data contains information about an A/B test in an online store. The randomization unit is user. It's a Polars dataframe with rows representing users and the following columns:
+The `sample_users_data` function in **tea-tasting** creates synthetic data for demonstration purposes. This data mimics what you might encounter in an A/B test for an online store, structured as a Polars DataFrame. Each row in this DataFrame represents an individual user, with the following columns:
 
-- `user_id`: User ID.
-- `variant`: Variant of the A/B test.
-- `visits`: Number of user's visits.
-- `orders`: Number of user's purchases.
-- `revenue`: Total amount of user's purchases.
+- `user_id`: The unique identifier for each user.
+- `variant`: The specific variant (e.g., A or B) assigned to the user in the A/B test.
+- `visits`: The total number of visits by the user.
+- `orders`: The total number of purchases made by the user.
+- `revenue`: The total revenue generated from the user's purchases.
 
-Tea-tasting accepts dataframes of the following types:
+**tea-tasting** is designed to work with DataFrames in various formats, including:
 
-- Polars dataframes.
-- Pandas dataframes.
-- Object supporting the [Python dataframe interchange protocol](https://data-apis.org/dataframe-protocol/latest/index.html).
+- Polars DataFrames.
+- Pandas DataFrames.
+- Any object that adheres to the [Python DataFrame Interchange Protocol](https://data-apis.org/dataframe-protocol/latest/index.html).
 
-By default, tea-tasting assumes that:
+By default, **tea-tasting** assumes that:
 
-- Data are grouped by randomization units (e.g. users).
-- There is a column that represent a variant (e.g. A, B).
-- There is a column for each value needed for metric calculation (e.g. number of orders,
-revenue etc.).
+- The data is grouped by randomization units, such as individual users.
+- There is at least one column indicating the variant of the A/B test (typically labeled as A, B, etc.).
+- All necessary columns for metric calculations (like the number of orders, revenue, etc.) are included in the DataFrame.
 
 ### A/B test definition
 
-The `Experiment` class defines an A/B test. The first parameter, `metrics`, is a dictionary of metric names as keys and metric definitions as values.
+The `Experiment` class in **tea-tasting** is used to define the parameters of an A/B test. The key aspects of this definition include:
 
-To specify a custom variant column name, use the `variant` parameter. Default is `"variant"`.
+- Metrics: Specified using the `metrics` parameter, which is a dictionary. Here, metric names are the keys, and their corresponding definitions are the values. These definitions determine how each metric is calculated and analyzed.
+- Variant column: If your data uses a different column name to denote the variant (other than the default `"variant")`, specify this using the `variant` parameter. The default is `"variant"`.
+- Control variant: To define a specific control group variant, use the `control` parameter. By default, this is set to `None`, meaning the variant with the minimal ID is automatically considered the control group.
 
-To specify a control variant, use the `control` parameter. Default is `None`, which means that minimal variant value is used as control.
+Example usage:
 
 ```python
 data = users_data.with_columns(
@@ -94,58 +97,62 @@ experiment_result = experiment.analyze(data)
 
 ### Simple metrics
 
-The `SimpleMean` class is useful for comparing simple averages of metrics. The first parameter, `value`, is a name of a column that contains the metric values.
+The `SimpleMean` class in **tea-tasting** facilitates the comparison of simple metric averages. Utilize this class to perform statistical tests on the average values of different metrics. Key aspects include:
 
-It performs the Welch's t-test, Student's t-test, or Z-test, depending on the parameters:
+- Metric column: Specify the column containing metric values using the `value` parameter.
+- Statistical tests: Based on the parameters, `SimpleMean` can perform different types of tests:
+  - `use_t` (default `True`): Set to `True` to use the Student's t-distribution or `False` for the Normal distribution in p-value and confidence interval calculations.
+  - `equal_var` (default `False`): When `True`, a standard independent Student's t-test assuming equal population variances is used. If `False`, Welch’s t-test is used, which does not assume equal population variance. This parameter is ignored if `use_t` is set to `False`.
+- Alternative hypothesis: The `alternative` parameter specifies the nature of the hypothesis test:
+  - `"two-sided"` (default): Tests if the means of the two distributions are unequal.
+  - `"less"`: Tests if the mean of the treatment distribution is less than that of the control.
+  - `"greater"`: Tests if the mean of the treatment distribution is greater than that of the control.
+- Confidence level: The `confidence_level` parameter, defaulting to `0.95`, sets the confidence level for the confidence interval of the test.
 
-- `use_t`: Indicates to use the Student's t-distribution (`True`) or the Normal distribution (`False`) when computing p-value and confidence interval. Default is `True`.
-- `equal_var`: Not used if `use_t` is `False`. If `True`, perform a standard independent Student's t-test that assumes equal population variances. If `False`, perform Welch’s t-test, which does not assume equal population variance. Default is `False`.
-
-The `alternative` parameter defines the alternative hypothesis. The following options are available:
-
-- `"two-sided"` (default): The means of the distributions underlying the samples are unequal.
-- `"less"`: The mean of the distribution underlying the first sample is less than the mean of the distribution underlying the second sample.
-- `"greater"`: The mean of the distribution underlying the first sample is greater than the mean of the distribution underlying the second sample.
-
-The `confidence_level` parameter defines a confidence level for the computed confidence interval. Default is `0.95`.
-
-Default values of the parameters `use_t`, `equal_var`, `alternative` and `confidence_level` can be redefined in global settings (see below).
+You can customize the default values for `use_t`, `equal_var`, `alternative`, and `confidence_level` in the global settings for consistent application across your analyses.
 
 ### Ratio metrics
 
-Ratio metrics are useful when an analysis unit differs from a randomization units. For example, one might want to compare orders per visit (the analysis unit). And there can be several visits per user (randomization unit). In this case, using the `SimpleMean` class would be incorrect.
+The `RatioOfMeans` class in **tea-tasting** is specifically designed for situations where the analysis unit differs from the randomization unit. This is common in cases where you need to compare ratios, such as orders per visit, where visits per user vary.
 
-The `RatioOfMeans` class defines a ratio metric that compares ratios of averages. For example, average number of orders per average number of visits. The `numer` parameter defines a numerator column name. The `denom` parameter defines a denominator column name.
+- Defining ratio metrics: `RatioOfMeans` calculates the ratio of averages, such as the average number of orders per average number of visits. It requires two parameters:
+  - `numer`: The column name for the numerator of the ratio.
+  - `denom`: The column name for the denominator of the ratio.
+- Statistical tests: Like `SimpleMean`, `RatioOfMeans` supports various statistical tests, including Welch's t-test, Student's t-test, and Z-test. The parameters are:
+  - `use_t` (default `True`): Choose between Student's t-distribution (`True`) and Normal distribution (`False`).
+  - `equal_var` (default `False`): Used to determine the type of t-test (standard or Welch’s). Irrelevant if `use_t` is `False`.
+  - `alternative`: Specifies the nature of the hypothesis test (`"two-sided"`, `"less"`, or `"greater"`).
+- `confidence_level` (default `0.95`): Sets the confidence level for the test.
 
-Similar to `SimpleMean`,  `RatioOfMeans` applies the Welch's t-test, Student's t-test, or Z-test. The parameters are `use_t`, `equal_var`, `alternative` and `confidence_level` with the same definitions and defaults as in `SimpleMean`.
+### Analyzing and retrieving experiment results
 
-### Result
+After defining an experiment with the `Experiment` class, you can analyze the data and obtain results using the `analyze` method. This method takes your experiment data as input and returns an `ExperimentResult` object containing detailed outcomes for each defined metric.
 
-Once the experiment is defined, calculate the result with method `experiment.analyze`. It accepts the experiment data as the first parameter, `data`, and returns an instance of the `ExperimentResult` class.
+The `ExperimentResult` object offers several methods to serialize and view the experiment results in different formats:
 
-The `ExperimentResult` object contains results for each metric of the experiment. To serialize results use one of these methods:
+- `to_polars()`: Returns a Polars DataFrame with each row representing a metric.
+- `to_pandas()`: Converts the results into a Pandas DataFrame, again with each row for a metric.
+- `to_dicts()`: Provides a sequence of dictionaries, each corresponding to a metric.
+- `to_html()`: Generates an HTML table for an easily readable web format.
 
-- `to_polars`: Polars dataframe, with a row for each metric.
-- `to_pandas`: Pandas dataframe, with a row for each metric.
-- `to_dicts`: Sequence of dictionaries, with a dictionary for each metric.
-- `to_html`: HTML table, with a row for each metric.
+The fields in the result vary based on the metric. For metrics defined using `SimpleMean` and `RatioOfMeans`, the fields include:
 
-List of fields depends on the metric. For `SimpleMean` and `RatioOfMeans` the fields are:
-
-- `metric`: Metric name.
-- `variant_{control_variant_id}`: Control mean.
-- `variant_{treatment_variant_id}`: Treatment mean.
-- `diff`: Difference of means.
-- `diff_conf_int_lower`, `diff_conf_int_upper`: The lower and the upper bounds of the confidence interval of the difference of means.
-- `rel_diff`: Relative difference of means.
-- `rel_diff_conf_int_lower`, `rel_diff_conf_int_upper`: The lower and the upper bounds of the confidence interval of the relative difference of means.
-- `pvalue`: P-value.
+- `metric`: The name of the metric.
+- `variant_{control_variant_id}`: The mean value for the control variant.
+- `variant_{treatment_variant_id}`: The mean value for the treatment variant.
+- `diff`: The difference in means between the treatment and control.
+- `diff_conf_int_lower` and `diff_conf_int_upper`: The lower and upper bounds of the confidence interval for the difference in means.
+- `rel_diff`: The relative difference between means.
+- `rel_diff_conf_int_lower` and `rel_diff_conf_int_upper`: The confidence interval bounds for the relative difference.
+- `pvalue`: The p-value from the statistical test.
 
 ## More features
 
 ### Variance reduction with CUPED/CUPAC
 
-Both the `SimpleMean` and `RatioOfMeans` classes support variance reduction through CUPED/CUPAC.
+**tea-tasting** supports variance reduction with CUPED/CUPAC, within both `SimpleMean` and `RatioOfMeans` classes.
+
+Example usage:
 
 ```python
 import tea_tasting as tt
@@ -170,36 +177,22 @@ experiment = tt.Experiment(
 experiment_result = experiment.analyze(users_data)
 ```
 
-The parameter `pre` of the function `sample_users_data` indicates whether to generate synthetic pre-experimental data in the example dataset. They will be included as additional columns:
+The `sample_users_data` function's `pre` parameter controls the inclusion of pre-experimental data, useful for variance reduction. These data appear as additional columns:
 
-- `pre_visits`: Number of user's visits in some period before the experiment.
-- `pre_orders`: Number of user's purchases in some period before the experiment.
-- `pre_revenue`: Total amount of user's purchases in some period before the experiment.
+- `pre_visits`: User visits before the experiment.
+- `pre_orders`: User purchases before the experiment.
+- `pre_revenue`: User-generated revenue before the experiment.
 
-To define the covariates:
+Defining covariates:
 
-- Use the parameter `covariate` of the `SimpleMean` class.
-- Use the parameters `numer_covariate` and `denom_covariate` of the `RatioOfMeans` class.
+- In `SimpleMean`, use the `covariate` parameter to specify the pre-experimental metric.
+- In `RatioOfMeans`, `numer_covariate` and `denom_covariate` define covariates for the numerator and denominator, respectively.
 
-It's possible to use a simple metric as a covariate for ratio metric as well:
+### Checking for sample ratio mismatch
 
-```python
-experiment = tt.Experiment(
-    {
-        "Orders per visits": tt.RatioOfMeans(
-            numer="orders",
-            denom="visits",
-            numer_covariate="pre_orders_per_visits",
-            # denom_covariate is None by default,
-            # which means it's equal to 1 for all users.
-        ),
-    },
-)
-```
+The `SampleRatio` class in **tea-tasting** is designed to detect mismatches in the sample ratios of different variants in your A/B test.
 
-### Sample ratio mismatch
-
-Use the `SampleRatio` class to check for sample ratio mismatch:
+Example usage:
 
 ```python
 experiment = tt.Experiment({
@@ -211,109 +204,33 @@ experiment = tt.Experiment({
 })
 ```
 
-By default, it expects an equal number of observations per each variant. Use the `ratio` parameter to set a different ratio. It accepts two types of values:
+By default, `SampleRatio` assumes an equal number of observations across all variants. To specify a different expected ratio, use the `ratio` parameter. It accepts two types of values:
 
-- A numerical ratio of treatment observations to control observations. For example, `SampleRatio(0.5)`: ratio of treatment observations per number of control observations is 1:2. Default is `1` but can be redefined in global settings.
-- A dictionary with variants as keys and expected ratios. For example, `SampleRatio({"A": 2, "B": 1})`.
+- A numerical ratio of treatment observations to control observations (e.g., 1:2), like `SampleRatio(0.5)`.
+- A dictionary with variants as keys and expected ratios as values, like `SampleRatio({"A": 2, "B": 1})`.
 
-Statistical criteria depends on the `test` parameter:
+`test` parameter determines the statistical test to apply:
 
-- `"auto"` (default): Perform the binomial test if the number of observations is less than 1000. Otherwise perform the G-test.
-- `"binomial"`: Binomial test.
-- `"g"`: G-test.
-- `"pearson"`: Pearson’s chi-squared test.
+- `"auto"` (default): Uses the binomial test for observations under 1000, and the G-test for larger datasets.
+- `"binomial"`: Specifically uses the binomial test.
+- `"g"`: Applies the G-test.
+- `"pearson"`: Utilizes Pearson’s chi-squared test.
 
-The result contains the following fields:
+The output from `SampleRatio` includes:
 
-- `metric`: Metric name.
-- `variant_{control_variant_id}`: Number of observations in control.
-- `variant_{treatment_variant_id}`: Number of observations in treatment.
-- `ratio`: Ratio of the number of observations in treatment relative to control.
-- `ratio_conf_int_lower`, `ratio_conf_int_upper`: The lower and the upper bounds of the confidence interval of the ratio. Only for binomial test.
-- `pvalue`: P-value. The null hypothesis asserts that the actual ratio of the number of observations equals the expected ratio.
+- `metric`: The name of the metric.
+- `variant_{control_variant_id}` and `variant_{treatment_variant_id}`: Observation counts for control and treatment.
+- `ratio`: The observed ratio of treatment to control observations.
+- `ratio_conf_int_lower` and `ratio_conf_int_upper`: Confidence interval bounds for the observed ratio, applicable for the binomial test.
+- `pvalue`: The p-value, testing if the actual observation ratio matches the expected.
 
-The `confidence_level` parameter specifies the confidence interval's confidence level.
-
-### Power analysis
-
-Both classes `SimpleMean` and `RatioOfMeans` provide two methods for power analysis:
-
-- `power`: Calculate the power of a test.
-- `solve_power`: Solve for any one parameter of the power.
-
-Example usage:
-
-```python
-orders_power = SimpleMean("orders").power(users_data, rel_diff=0.05)
-orders_mde = SimpleMean("orders").solve_power(users_data, parameter="rel_diff")
-```
-
-The parameters include:
-
-- `data`: A sample of data in the same format as the data required for the analysis of A/B test, with an exception that a column with variant of test is not required.
-- `rel_diff`: Relative difference of means. Default is `None`.
-- `nobs`: Number of observations in control and a treatment in total. Default is `"auto"` which means it will be computed from the sample.
-- `alpha`: Significance level. Default is `0.05`.
-- `ratio`: Ratio of the number of observations in treatment relative to control. Default is `1`.
-- `alternative`: Alternative hypothesis. Default is `"two-sided"`.
-- `use_t`: Indicates to use the Student's t-distribution (`True`) or the Normal distribution (`False`) when computing power. Default is `True`.
-- `equal_var`: Not used if `use_t` is `False`. If `True`, calculate the power of a standard independent Student's t-test that assumes equal population variances. If `False`, calculate the power of a Welch’s t-test, which does not assume equal population variance. Default is `False`.
-
-The `solve_power` method accepts the same parameters as the `power` method. Also it accepts two additional parameters:
-
-- `power`: Power of a test. Default is `0.8`.
-- `parameter`: Name of the parameter to solve. Default is `"rel_diff"`.
-
-Default values of the parameters `ratio`, `use_t`, `equal_var`, `alternative` and `alpha` can be redefined in global settings (see below).
-
-### Simulations and A/A tests
-
-The `simulate` method in Tea-tasting:
-
-- Randomly splits the provided dataset on treatment and control multiple times.
-- Optionally, updates the treatment data in each split.
-- Calculates results for each split.
-- Summarizes statistics of the simulations.
-
-This approach can be useful for conducting A/A tests and for power analysis.
-
-Example usage:
-
-```python
-aa_test = experiment.simulate(users_data)
-aa_test.describe()
-```
-
-The method `simulate` accepts the following parameters:
-
-- `data`: A sample of data in the same format as the data required for the analysis of A/B test, with an exception that a column with variant of test is not required.
-- `n_iter`: Number of simulations to run. Default is `10_000`.
-- `ratio`: Ratio of the number of observations in treatment relative to control. Default is `1` but can be redefined in global settings.
-- `random_seed`: Random seed. Default is `None`.
-- `treatment`: An optional function which updates treatment data on each iteration. It should accept a Polars dataframe and a random seed, and return a Polars dataframe of the same length and the same set of columns. Default is `None`, which means that treatment data are not updated (A/A test).
-
-It returns an instance of the `SimulationsResult` class, which provides the following methods:
-
-- `to_polars`: Create a Polars dataframe with detailed results, with a row for each pair (simulation, metric).
-- `to_pandas`: Create a Pandas dataframe with detailed results, with a row for each pair (simulation, metric).
-- `describe`: Summarize statistics of the simulations.
-
-The `to_polars` and `to_pandas` methods return columns similar to those in the experiment results. In addition, there is a column with a sequential number of a simulation.
-
-Method `describe` returns a Polars dataframe with the following columns:
-
-- `metric`: Metric name.
-- `null_rejected`: Proportion of iterations in which the null hypothesis has been rejected. By default, it's calculated based on p-value. But if a metric doesn't provide a p-value, then a confidence interval is used.
-- `null_rejected_conf_int_lower`, `null_rejected_conf_int_upper`: The lower and the upper bounds of the confidence interval of the proportion iterations in which the null hypothesis has been rejected.
-
-The `describe` method has two optional parameters:
-
-- `alpha`: P-value threshold for the calculation of the proportion in which the null hypothesis has been rejected. It's only used in calculations based on p-values.
-- `confidence_level`: Confidence level for the computed confidence interval of the proportion.
+The `confidence_level` parameter, which defaults to `0.95`, sets the confidence level for the interval calculations.
 
 ### Bootstrap
 
-To compare arbitrary statistics between variants, use the `Bootstrap` class:
+The `Bootstrap` class in **tea-tasting** is designed for comparing statistics between variants using bootstrap resampling methods.
+
+Example usage:
 
 ```python
 import numpy as np
@@ -325,52 +242,123 @@ experiment = tt.Experiment({
 experiment_result = experiment.analyze(users_data)
 ```
 
-The `statistic` parameter is a callable which accepts a NumPy array as the first parameter, and the `axis` parameter which defines an axis along which the statistic is computed.
+Configuring the `Bootstrap` class:
 
-The `Bootstrap` class's first parameter should be the name or a list of names of columns used in calculating a statistic.
+- Statistical function: The `statistic` parameter is a callable, such as a NumPy function, that computes the statistic. It should accept a NumPy array and an `axis` parameter for computation direction.
+- Target columns: The first argument of Bootstrap is either a single column name or a list of column names from which the statistic will be computed.
 
-The other parameters are:
+Additional parameters:
 
-- `n_resamples`: The number of resamples performed to form the bootstrap distribution of the statistic. Default is `10_000`.
-- `confidence_level`: The confidence level of the confidence interval.
+- `n_resamples` (default `10_000`): Sets the number of bootstrap resamples for distribution estimation.
+- `confidence_level` (default `0.95`): Determines the confidence level for interval calculations.
+- `method` (default `"bca"`): Whether to return the "percentile" bootstrap confidence interval (`"percentile"`), the "basic" (aka "reverse") bootstrap confidence interval (`"basic"`), or the bias-corrected and accelerated bootstrap confidence interval (`"bca"`).
+- `random_seed` (default `None`): Random seed.
 
-Both `n_resamples` and `confidence_level` defaults can be redefined in global settings.
+The `Bootstrap` class provides a detailed result output, including:
 
-The results contains the following fields:
+- `metric`: The name of the computed metric.
+- `variant_{control_variant_id}` and `variant_{treatment_variant_id}`: Statistic values for control and treatment groups.
+- `diff`: The difference between the statistic values of the treatment and control.
+- `diff_conf_int_lower` and `diff_conf_int_upper`: Confidence interval bounds for this difference.
+- `rel_diff`: The relative difference between the statistic values.
+- `rel_diff_conf_int_lower` and `rel_diff_conf_int_upper`: Confidence interval bounds for the relative difference.
 
-- `metric`: Metric name.
-- `variant_{control_variant_id}`: The value of the statistic in control.
-- `variant_{treatment_variant_id}`: The value of the statistic in treatment.
-- `diff`: Difference of statistic values.
-- `diff_conf_int_lower`, `diff_conf_int_upper`: The lower and the upper bounds of the confidence interval of the difference of statistic values.
-- `rel_diff`: Relative difference of statistic values.
-- `rel_diff_conf_int_lower`, `rel_diff_conf_int_upper`: The lower and the upper bounds of the confidence interval of the relative difference of statistic values.
+### Power analysis
+
+Both the `SimpleMean` and `RatioOfMeans` classes in **tea-tasting** offer two methods for conducting power analysis:
+
+- `power()`: Calculates the statistical power of the test.
+- `solve_power()`: Solves for a specific power analysis parameter, such as the minimum detectable effect.
+
+Example usage:
+
+```python
+orders_per_user = SimpleMean("orders")
+orders_power = orders_per_user.power(users_data, rel_diff=0.05)
+orders_mde = orders_per_user.solve_power(users_data, parameter="rel_diff")
+```
+
+Parameters for power analysis:
+
+- `data`: The dataset, formatted similarly to A/B test analysis data, excluding the variant column.
+- `rel_diff` (default `None`): Relative difference of means.
+- `nobs` (default `"auto"`): Total number of observations. If `"auto"`, automatically computed from the sample.
+- `alpha` (default `0.05`): Significance level.
+- `ratio` (default `1`): The ratio of observations in the treatment group to the control group.
+- `alternative` (default `"two-sided"`): The alternative hypothesis.
+- `use_t` (default `True`): Determines whether to use the Student's t-distribution (`True`) or Normal distribution (`False`).
+- `equal_var` (default `False`): Relevant only when `use_t` is `True`. If `True`, assumes equal population variances for a standard Student's t-test. If `False`, uses Welch’s t-test.
+
+Additional parameters for `solve_power`:
+
+- `power` (default `0.8`): The desired power of the test.
+- `parameter` (default `"rel_diff"`): The specific parameter to solve for.
+
+You can customize the default values for the parameters `ratio`, `use_t`, `equal_var`, `alternative` and `alpha` globally in **tea-tasting**'s settings.
+
+### Simulations and A/A tests
+
+**tea-tasting**'s `simulate` method is useful in A/A testing and power analysis. How it works:
+
+- Data splitting: Randomly divides the dataset into treatment and control groups multiple times.
+- Data updating (optional): Allows for the modification of treatment data in each iteration.
+- Result calculation: Computes the results for each data split.
+- Statistical summary: Aggregates and summarizes the statistical outcomes of all simulations.
+
+Example usage:
+
+```python
+aa_test = experiment.simulate(users_data)
+aa_test.describe()
+```
+
+Parameters of `simulate`:
+
+- `data`: The dataset for simulation, similar in format to A/B testing data but without the variant column.
+- `n_iter` (default `10_000`): Determines the number of simulation runs.
+- `ratio` (default `1`): The expected ratio of treatment to control observations.
+- `random_seed` (default `None`): Sets a seed for reproducibility.
+- `treatment` (default `None`): A function to modify treatment data per iteration. If `None`, the treatment data is not updated, suitable for A/A testing.
+
+The simulate method returns a `SimulationsResult` object, offering several ways to access and analyze the simulation data:
+
+- `to_polars()`: Converts results into a Polars DataFrame, detailing each simulation and metric.
+- `to_pandas()`: Provides a similar output in a Pandas DataFrame format.
+- `describe()`: Offers a summary of the simulations, including metrics such as:
+  - `metric`: The name of each analyzed metric.
+  - `null_rejected`: The proportion of simulations where the null hypothesis was rejected, calculated using either p-value or confidence intervals.
+  - `null_rejected_conf_int_lower` and `null_rejected_conf_int_upper`: Bounds of the confidence interval for the proportion of null hypothesis rejections.
+
+Additional parameters for `describe`:
+
+- `alpha`: Threshold for p-value based calculations of null hypothesis rejection.
+- `confidence_level`: Sets the confidence level for interval estimations.
 
 ## Other features
 
-### Global configuration
+### Global settings
 
-Usually there is one confidence level for all metrics. It's convenient to set a confidence level for each metric separately. In this case, use global configuration to manage default parameter values.
+In **tea-tasting**, global settings allow you to manage default values for various parameters across all metrics.
 
-Tea-tasting rely on global settings for the following parameters:
+You can globally set defaults for the following parameters:
 
-- `alpha`,
-- `alternative`,
-- `confidence_level`,
-- `equal_var`,
-- `n_resamples`,
-- `ratio`,
-- `use_t`.
+- `alpha`: Significance level for statistical tests.
+- `alternative`: Specifies the alternative hypothesis in testing.
+- `confidence_level`: Sets the confidence level for intervals.
+- `equal_var`: Determines the assumption of equal variances in tests.
+- `n_resamples`: Number of resamples for bootstrap methods.
+- `ratio`: Default ratio of treatment to control observations.
+- `use_t`: Chooses between the Student's t-distribution and the Normal distribution.
 
-You can also set default values for custom parameters. See the example in the next section with a custom metric.
+Additionally, custom parameter defaults can also be defined.
 
-Use `set_config` to set a global option value::
+Use `set_config` to set a global option value:
 
 ```python
 tt.set_config(confidence_level=0.98, some_custom_parameter=1)
 ```
 
-Use `config_context` to set a global option value within a context::
+Use `config_context` to temporarily set a global option value within a context:
 
 ```python
 with tt.config_context(confidence_level=0.98, some_custom_parameter=1):
@@ -391,16 +379,18 @@ global_config = tt.get_config()
 
 ### Custom metrics
 
-Create a custom metric by defining a new class that inherits from `MetricBase`. The class should define least two methods: `__init__` and `analyze`. The `analyze` method should accepts the following parameters:
+In **tea-tasting**, you can create custom metrics. This is done by defining a new class that inherits from `MetricBase` and implements at least two key methods: `__init__` and `analyze`:
 
-- `contr_data`: A Polars dataframe with control data.
-- `treat_data`: A Polars dataframe with treatment data.
-- `contr_variant`: Control variant ID.
-- `treat_variant`: Treatment variant ID.
+- `__init__`: Initializes the new metric, setting up any necessary parameters.
+- `analyze`: Performs the actual metric analysis. This method should accept:
+  - `contr_data`: A Polars DataFrame containing control group data.
+  - `treat_data`: A Polars DataFrame with treatment group data.
+  - `contr_variant`: The identifier for the control variant.
+  - `treat_variant`: The identifier for the treatment variant.
 
-Method `analyze` should return a `NamedTuple` with results. Make sure to use the same field names as other classes. For example, `pvalue`, not `p_value`. Field names starting with `_` are not included in the experiment results.
+The `analyze` method should return a `NamedTuple` containing the analysis results. It's important to use consistent field names across different metrics for uniformity (e.g., use `pvalue` instead of `p_value`). Note that field names starting with `_` are not included in the final experiment results.
 
-Example:
+Here's an example demonstrating how to create a custom metric using the Mann-Whitney U test:
 
 ```python
 from typing import Any, NamedTuple
@@ -428,16 +418,10 @@ class MannWhitneyU(tt.MetricBase):
         self.value = value
 
         # Get default value for a custom parameter.
-        self.use_continuity = (
-            use_continuity if use_continuity is not None
-            else tt.get_config("use_continuity")
-        )
+        self.use_continuity = use_continuity or tt.get_config("use_continuity")
 
         # Get default value for a standard parameter.
-        self.alternative = (
-            alternative if alternative is not None
-            else tt.get_config("alternative")
-        )
+        self.alternative = alternative or tt.get_config("alternative")
 
         self.method = method
         self.nan_policy = nan_policy
@@ -462,59 +446,67 @@ class MannWhitneyU(tt.MetricBase):
 
 
 users_data = tt.sample_users_data(size=1000, seed=42)
-
-experiment = tt.Experiment({
-    "Revenue rank test": MannWhitneyU("revenue"),
-})
-
+experiment = tt.Experiment({"Revenue rank test": MannWhitneyU("revenue")})
 experiment_result = experiment.analyze(users_data)
 experiment_result.to_polars()
 ```
 
 ### More than two variants
 
-With tea-tasting, it's possible to analyze experiments with more than two variants. However, the variants will be compared in pairs using two-sample statistical tests.
+In **tea-tasting**, it's possible to analyze experiments with more than two variants. However, the variants will be compared in pairs through two-sample statistical tests.
 
-Pairs depend on the value of the parameter `control`:
+How variant pairs are determined:
 
-- If `control` is `None`, each couple of variants is compared. In each pair, the control is a variant with the lowest variant ID.
-- Otherwise, the control is compared to each of the rest variants.
+- Default control variant: When the `control` parameter is set to `None`, **tea-tasting** automatically compares each variant pair. The variant with the lowest ID in each pair acts as the control.
+- Specified control variant: If a specific variant is set as `control`, it is then compared against each of the other variants.
 
-To retrieve results using `to_pandas`, `to_polars`, `to_dicts`, or `to_html`, pass the control and treatment variant IDs as the first and second parameters.
+To access the results, use one of the following methods and specify both control and treatment variant IDs:
 
-Keep in mind that tea-tasting does not adjust for multiple comparisons.
+- `to_pandas()`,
+- `to_polars()`,
+- `to_dicts()`,
+- `to_html()`.
+
+It's important to note that **tea-tasting** does not adjust for multiple comparisons. When dealing with multiple variant pairs, additional steps may be necessary to account for this, depending on your analysis needs.
 
 ### Group by units
 
-By default, tea-tasting assumes data are grouped by randomization units, such as users. But sometimes one might want to use clustered error, perform multilevel modelling, or other methods that rely on more detailed data, such as visits.
+By default, **tea-tasting** assumes data are grouped by randomization units, such as users. But sometimes one might want to perform clustered error analysis, multilevel modelling, or other methods that rely on more detailed data, such as visits.
 
-To do that:
+Steps to analyze data grouped by different units:
 
-- Define a custom metric which rely on detailed data (e.g. `CRSE`). Set the attribute `use_raw_data` to `True`.
-- Define the experiment. Set the `randomization_unit` unit parameter. It should be a column name or a sequence of column names which defines a randomization unit (e.g. `randomization_unit="user_id"`).
-- Call `analyze` with detailed data (e.g. visits).
+- Define a custom metric for detailed data:
+  - When you need to work with detailed data, create a custom metric (for example, a class-based metric like `CRSE`).
+  - In your custom metric, set the attribute `use_raw_data` to `True`. This tells **tea-tasting** to work with the data as is, without pre-aggregating it.
+- Set up your experiment with specific randomization units:
+  - When defining your `Experiment`, specify the randomization unit using the `randomization_unit` parameter.
+  - This parameter should be either a single column name or a sequence of column names that define your randomization unit (e.g., `randomization_unit="user_id"` for user-level analysis).
+- Analyze with detailed data:
+  - Perform the analysis by calling the `analyze` method on your experiment, passing in the detailed dataset.
 
-Tea-tasting will:
+How **tea-tasting** manages this data:
 
-- Use the raw data to analyze the custom metric.
-- Group the data by the randomization units and use it to analyze other metrics.
+- For the custom metric that uses detailed data, **tea-tasting** directly applies the analysis on this raw, detailed dataset.
+- For other metrics in the experiment, **tea-tasting** will first group the data by the specified randomization units before conducting the analysis.
 
 ### Analyze from stats
 
-Some statistical criteria, like Z-test ot Student's t-test, require only some aggregated statistics to perform an analysis. Usually it's computationally optimal to calculate these statistics on a database side.
+**tea-tasting** facilitates analysis using aggregated statistics, particularly beneficial for statistical tests like Z-test or Student's t-test, where full datasets are not necessary. This method is often more computationally efficient, especially when these aggregated statistics can be calculated directly within a database.
 
-Metrics `SimpleMean`, `RatioOfMeans`, and `SampleRatio` can perform an analysis based on aggregated statistics. Method `experiment.analyze_from_stats` perform analysis of the experiment bases on statistics. But only for metrics which support this feature (e.g. `SimpleMean`, `RatioOfMeans`, and `SampleRatio`). It accepts a dictionary with variant IDs as keys and instances of the `Stats` class as values.
+The `experiment.analyze_from_stats` method is specifically designed for this type of analysis. It works with metrics like `SimpleMean`, `RatioOfMeans`, and `SampleRatio` that support analysis based on aggregated statistics.
 
-The `Stats` class is initialized with the following parameters:
+This method requires a dictionary where each key is a variant ID, and the corresponding value is an instance of the `Stats` class, representing aggregated statistics for that variant.
 
-- `mean`: A dictionary with column names as keys and column value means as a values.
-- `var`: A dictionary with column names as keys and column value variances as a values.
-- `cov`: A dictionary with tuples `(column_name_1, column_name_2)` as keys and columns covariances as values. Column names in a tuple are sorted in alphabetical order.
-- `nobs`: Number of observations.
+To prepare your data for this method, initialize the `Stats` class with these parameters:
+
+- `mean`: A dictionary with column names as keys and their mean values as values.
+- `var`: A dictionary mapping column names to their variances.
+- `cov`: A dictionary with tuples of column names `(column_name_1, column_name_2)` as keys and the covariance between these columns as values. Ensure these column names are in alphabetical order.
+- `nobs`: The total number of observations per variant.
 
 ## Package name
 
-The package name "tea-tasting" is a play of words which refers to two topics:
+The package name "tea-tasting" is a play of words which refers to two subjects:
 
 - [Lady tasting tea](https://en.wikipedia.org/wiki/Lady_tasting_tea) is a famous experiment which was devised by Ronald Fisher. In this experiment, Fisher developed the null hypothesis significance testing framework to analyze a lady's claim that she could discern whether the tea or the milk was added first to a cup.
-- "Tea-tasting" phonetically resembles "t-testing" or Student's t-test, a statistical test developed by William Gosset.
+- "tea-tasting" phonetically resembles "t-testing" or Student's t-test, a statistical test developed by William Gosset.
