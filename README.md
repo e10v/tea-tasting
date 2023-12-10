@@ -318,7 +318,7 @@ Parameters of `simulate`:
 - `n_iter` (default `10_000`): Determines the number of simulation runs.
 - `ratio` (default `1`): The expected ratio of treatment to control observations.
 - `random_seed` (default `None`): Sets a seed for reproducibility.
-- `treatment` (default `None`): A function to modify treatment data per iteration. If `None`, the treatment data remains constant, suitable for A/A testing.
+- `treatment` (default `None`): A function to modify treatment data per iteration. If `None`, the treatment data is not updated, suitable for A/A testing.
 
 The simulate method returns a `SimulationsResult` object, offering several ways to access and analyze the simulation data:
 
