@@ -1,11 +1,16 @@
 [project]
 name = "tea-tasting"
 version = "0.0.1"
-description = "A Python package for statistical analysis of A/B tests"
+description = "A Python package for statistical analysis of A/B tests."
 authors = [
     {name = "Evgeny Ivanov", email = "ivanov.evgeny.n@gmail.com"},
 ]
-dependencies = []
+dependencies = [
+    "ibis-framework>=7,<8",
+    "numpy>=1.25,<2",
+    "pandas>=2,<3",
+    "scipy>=1.10,<2",
+]
 requires-python = ">=3.10"
 readme = "README.md"
 license = {text = "MIT"}
@@ -14,9 +19,11 @@ classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Information Technology",
     "Intended Audience :: Science/Research",
+    "License :: OSI Approved",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -31,3 +38,8 @@ source = "https://github.com/e10v/tea-tasting"
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
+
+[tool.pdm]
+[tool.pdm.dev-dependencies]
+lint = ["ruff", "pyright"]
+test = ["pytest", "coverage[toml]"]
