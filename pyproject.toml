@@ -35,11 +35,55 @@ classifiers = [
 [project.urls]
 source = "https://github.com/e10v/tea-tasting"
 
+
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
+
+[tool]
 [tool.pdm]
+[tool.pdm.build]
+package-dir = "src"
+
 [tool.pdm.dev-dependencies]
 lint = ["ruff", "pyright"]
 test = ["pytest", "coverage[toml]"]
+
+[tool.pdm.scripts]
+lint = "ruff check . --preview"
+test = "coverage run -m pytest"
+type = "pyright"
+
+
+[tool.ruff]
+select = [
+    "A", "ANN", "ARG", "B", "BLE", "C4", "C90", "COM", "D", "E", "ERA", "F",
+    "FA", "FIX", "FLY", "FURB", "I", "ICN", "INP", "INT", "ISC", "N", "NPY",
+    "PD", "PERF", "PGH", "PIE", "PL", "PT", "Q", "RET", "RSE", "RUF", "S",
+    "SIM", "SLF", "SLOT", "T10", "T20", "TCH", "TD", "TID", "TRY", "UP", "W",
+]
+
+[tool.ruff.isort]
+force-sort-within-sections = true
+lines-after-imports = 2
+known-local-folder = ["tea_tasting"]
+
+[tool.ruff.pydocstyle]
+convention = "google"
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+
+[tool.coverage]
+[tool.coverage.run]
+source = ["src/tea_tasting"]
+[tool.coverage.report]
+exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover"]
+
+
+[tool.pyright]
+typeCheckingMode = "strict"
+reportMissingTypeStubs = false
