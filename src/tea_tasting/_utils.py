@@ -1,9 +1,11 @@
 """Useful functions."""
 
+from __future__ import annotations
+
 from typing import Any
 
 
-def check_value(
+def check_scalar(
     value: Any,
     name: str = "Value",
     type_: Any = None,
@@ -12,25 +14,6 @@ def check_value(
     le: Any = None,
     lt: Any = None,
 ) -> None:
-    """Validate parameter type and value.
-
-    Args:
-        value: Parameter value.
-        name: Parameter name.
-        type_: If not `None`, parameter value must be an instance of `type_`.
-        ge: If not `None`, parameter value must be `>= ge`.
-        gt: If not `None`, parameter value must be `> gt`.
-        le: If not `None`, parameter value must be `<= le`.
-        lt: If not `None`, parameter value must be `< lt`.
-
-    Raises:
-        TypeError: Parameter value is not an instance of `type_`.
-        ValueError: any of the cases:
-        - Parameter value `< ge`.
-        - Parameter value `<= gt`.
-        - Parameter value `> le`.
-        - Parameter value `>= lt`.
-    """
     if type_ is not None and  not isinstance(value, type_):
         raise TypeError(f"{name} must be an instance of {type_}.")
 
