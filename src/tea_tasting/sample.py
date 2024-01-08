@@ -9,6 +9,8 @@ import ibis
 import numpy as np
 import pandas as pd
 
+import tea_tasting._utils
+
 
 if TYPE_CHECKING:
     from ibis.expr.types import Table
@@ -18,13 +20,13 @@ def sample_users_data(  # noqa: PLR0913
     size: int = 10000,
     covariates: bool = False,
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
-    ratio: float = 1.0,
+    ratio: float | int = 1,
     visits_uplift: float = 0.0,
     orders_uplift: float = 0.1,
     revenue_uplift: float = 0.1,
-    avg_visits: float = 2.0,
+    avg_visits: float | int = 2,
     avg_orders_per_visit: float = 0.25,
-    avg_revenue_per_order: float = 10.0,
+    avg_revenue_per_order: float | int = 10,
 ) -> Table:
     """Generates a sample of data for examples.
 
@@ -62,6 +64,26 @@ def sample_users_data(  # noqa: PLR0913
             orders_covariate (optional): Number of orders before the experiment.
             revenue_covariate (optional): Revenue before the experiment.
     """
+    tea_tasting._utils.check_scalar(size, name="size", type_=int, ge=10)
+    tea_tasting._utils.check_scalar(ratio, name="ratio", type_=float | int, gt=0)
+    tea_tasting._utils.check_scalar(
+        visits_uplift, name="visits_uplift", type_=float, gt=-1)
+    tea_tasting._utils.check_scalar(
+        orders_uplift,
+        name="orders_uplift",
+        type_=float,
+        gt=-1,
+        lt=(1 + max(visits_uplift, 0))/avg_orders_per_visit - 1,
+    )
+    tea_tasting._utils.check_scalar(
+        revenue_uplift, name="revenue_uplift", type_=float, gt=-1)
+    tea_tasting._utils.check_scalar(
+        avg_visits, name="avg_visits", type_=float | int, gt=1)
+    tea_tasting._utils.check_scalar(
+        avg_orders_per_visit, name="avg_orders_per_visit", type_=float, gt=0, lt=1)
+    tea_tasting._utils.check_scalar(
+        avg_revenue_per_order, name="avg_revenue_per_order", type_=float, gt=0)
+
     rng = np.random.default_rng(seed=seed)
     treat = rng.binomial(n=1, p=ratio / (1 + ratio), size=size)
 
