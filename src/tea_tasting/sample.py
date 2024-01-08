@@ -82,7 +82,7 @@ def sample_users_data(  # noqa: PLR0913
     tea_tasting._utils.check_scalar(
         avg_orders_per_visit, name="avg_orders_per_visit", type_=float, gt=0, lt=1)
     tea_tasting._utils.check_scalar(
-        avg_revenue_per_order, name="avg_revenue_per_order", type_=float, gt=0)
+        avg_revenue_per_order, name="avg_revenue_per_order", type_=float | int, gt=0)
 
     rng = np.random.default_rng(seed=seed)
     treat = rng.binomial(n=1, p=ratio / (1 + ratio), size=size)
@@ -139,4 +139,5 @@ def sample_users_data(  # noqa: PLR0913
             revenue_covariate=revenue_covariate,
         )
 
-    return ibis.memtable(data)
+    con = ibis.pandas.connect()
+    return con.create_table("users_data", data)
