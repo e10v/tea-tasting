@@ -19,7 +19,7 @@ _global_config = {
 }
 
 
-def get_config(option: str | None = None) -> Any:  # noqa: ANN401
+def get_config(option: str | None = None) -> Any:
     """Get global configuration.
 
     Args:
