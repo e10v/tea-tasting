@@ -38,11 +38,11 @@ def sample_users_data(  # noqa: PLR0913
     - number of orders made by the user,
     - revenue generated from user's orders.
 
-    Optionally, pre-experimantal data can be generated as well.
+    Optionally, pre-experimental data can be generated as well.
 
     Args:
         size: Sample size.
-        covariates: If True, genarates pre-experimantal data as the covariates
+        covariates: If True, generates pre-experimental data as the covariates
             in addition to default columns.
         seed: Random seed.
         ratio: Ratio of treatment observations to control observations.
@@ -55,7 +55,7 @@ def sample_users_data(  # noqa: PLR0913
 
     Returns:
         An Ibis Table with the following columns:
-            user: User indentificator.
+            user: User identifier.
             variant: Variant of the test. 0 is control, 1 is treatment.
             visits: Number of visits.
             orders: Number of orders.
@@ -126,7 +126,7 @@ def sample_users_data(  # noqa: PLR0913
         )
 
         revenue_per_order_covariate = rng.lognormal(
-            mean=np.log(revenue_per_order/revenue_per_order_mult) - 0.125,
+            mean=np.log(revenue_per_order / revenue_per_order_mult) - 0.125,
             sigma=0.5,
             size=size,
         )
