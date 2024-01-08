@@ -80,6 +80,9 @@ known-local-folder = ["tea_tasting"]
 [tool.ruff.pydocstyle]
 convention = "google"
 
+[tool.ruff.pylint]
+max-args = 8
+
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
