@@ -126,7 +126,7 @@ def sample_users_data(  # noqa: PLR0913
         )
 
         revenue_per_order_covariate = rng.lognormal(
-            mean=np.log(revenue_per_order/revenue_per_order_mult) - 0.125,
+            mean=np.log(revenue_per_order / revenue_per_order_mult) - 0.125,
             sigma=0.5,
             size=size,
         )
