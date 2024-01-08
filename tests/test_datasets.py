@@ -1,11 +1,11 @@
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false
 from __future__ import annotations
 
-import tea_tasting.sample
+import tea_tasting.datasets
 
 
 def test_sample_users_data_default():
-    users_data = tea_tasting.sample.sample_users_data(seed=42)
+    users_data = tea_tasting.datasets.sample_users_data(seed=42)
     assert users_data.columns == ["user", "variant", "visits", "orders", "revenue"]
 
     data = users_data.to_pandas()
@@ -19,7 +19,7 @@ def test_sample_users_data_default():
 
 
 def test_sample_users_data_covariates():
-    users_data = tea_tasting.sample.sample_users_data(seed=42, covariates=True)
+    users_data = tea_tasting.datasets.sample_users_data(seed=42, covariates=True)
     assert users_data.columns == [
         "user", "variant", "visits", "orders", "revenue",
         "visits_covariate", "orders_covariate", "revenue_covariate",
