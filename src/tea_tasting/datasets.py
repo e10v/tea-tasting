@@ -64,25 +64,25 @@ def sample_users_data(  # noqa: PLR0913
             orders_covariate (optional): Number of orders before the experiment.
             revenue_covariate (optional): Revenue before the experiment.
     """
-    tea_tasting._utils.check_scalar(size, name="size", type_=int, ge=10)
-    tea_tasting._utils.check_scalar(ratio, name="ratio", type_=float | int, gt=0)
+    tea_tasting._utils.check_scalar(size, name="size", typ=int, ge=10)
+    tea_tasting._utils.check_scalar(ratio, name="ratio", typ=float | int, gt=0)
     tea_tasting._utils.check_scalar(
-        visits_uplift, name="visits_uplift", type_=float, gt=-1)
+        visits_uplift, name="visits_uplift", typ=float, gt=-1)
     tea_tasting._utils.check_scalar(
         orders_uplift,
         name="orders_uplift",
-        type_=float,
+        typ=float,
         gt=-1,
         lt=(1 + max(visits_uplift, 0))/avg_orders_per_visit - 1,
     )
     tea_tasting._utils.check_scalar(
-        revenue_uplift, name="revenue_uplift", type_=float, gt=-1)
+        revenue_uplift, name="revenue_uplift", typ=float, gt=-1)
     tea_tasting._utils.check_scalar(
-        avg_visits, name="avg_visits", type_=float | int, gt=1)
+        avg_visits, name="avg_visits", typ=float | int, gt=1)
     tea_tasting._utils.check_scalar(
-        avg_orders_per_visit, name="avg_orders_per_visit", type_=float, gt=0, lt=1)
+        avg_orders_per_visit, name="avg_orders_per_visit", typ=float, gt=0, lt=1)
     tea_tasting._utils.check_scalar(
-        avg_revenue_per_order, name="avg_revenue_per_order", type_=float | int, gt=0)
+        avg_revenue_per_order, name="avg_revenue_per_order", typ=float | int, gt=0)
 
     rng = np.random.default_rng(seed=seed)
     treat = rng.binomial(n=1, p=ratio / (1 + ratio), size=size)
