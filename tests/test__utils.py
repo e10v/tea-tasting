@@ -5,10 +5,10 @@ import pytest
 import tea_tasting._utils
 
 
-def test_check_scalar_type():
-    tea_tasting._utils.check_scalar(1, type_=int)
+def test_check_scalar_typ():
+    tea_tasting._utils.check_scalar(1, typ=int)
     with pytest.raises(TypeError):
-        tea_tasting._utils.check_scalar(1, type_=str)
+        tea_tasting._utils.check_scalar(1, typ=str)
 
 def test_check_scalar_ge():
     tea_tasting._utils.check_scalar(1, ge=1)
