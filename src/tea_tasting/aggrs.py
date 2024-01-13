@@ -41,18 +41,20 @@ class Aggregates:
         self._var = var
         self._cov = cov
 
+    def __repr__(self: Self) -> str:
+        return (
+            f"Aggregates(count={self._count!r}, mean={self._mean!r}, "
+            f"var={self._var!r}, cov={self._cov!r})"
+        )
 
     def count(self: Self) -> int:
         return self._count
 
-
     def mean(self: Self, key: str) -> float | int:
         return self._mean[key]
 
-
     def var(self: Self, key: str) -> float | int:
         return self._var[key]
-
 
     def cov(
         self: Self,
@@ -60,13 +62,6 @@ class Aggregates:
         right: str,
     ) -> float | int:
         return self._cov[tea_tasting._utils.sorted_tuple(left, right)]
-
-
-    def __repr__(self: Self) -> str:
-        return (
-            f"Aggregates(count={self._count!r}, mean={self._mean!r}, "
-            f"var={self._var!r}, cov={self._cov!r})"
-        )
 
 
 def read_aggregates(
@@ -81,7 +76,7 @@ def read_aggregates(
     all_mean_cols = tuple({*mean_cols, *var_cols, *itertools.chain(*cov_cols)})
     mean_expr = {_MEAN.format(col): data[col].mean() for col in all_mean_cols}  # type: ignore
 
-    mean_sq_expr = {
+    mean_of_sq_expr = {
         _MEAN_OF_SQ.format(col): (data[col] * data[col]).mean()  # type: ignore
         for col in tuple(set(var_cols))
     }
@@ -90,7 +85,7 @@ def read_aggregates(
         tea_tasting._utils.sorted_tuple(left, right)
         for left, right in cov_cols
     })
-    mean_mul_expr = {
+    mean_of_mul_expr = {
         _MEAN_OF_MUL.format(left, right): (data[left] * data[right]).mean()  # type: ignore
         for left, right in uniq_cov_cols
     }
@@ -98,8 +93,8 @@ def read_aggregates(
     aggr_data = data.group_by(group_col).aggregate(
         **count_expr,
         **mean_expr,
-        **mean_sq_expr,
-        **mean_mul_expr,
+        **mean_of_sq_expr,
+        **mean_of_mul_expr,
     )
 
     result: dict[Any, Aggregates] = {}
