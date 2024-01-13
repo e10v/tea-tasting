@@ -56,11 +56,7 @@ class Aggregates:
     def var(self: Self, key: str) -> float | int:
         return self._var[key]
 
-    def cov(
-        self: Self,
-        left: str,
-        right: str,
-    ) -> float | int:
+    def cov(self: Self, left: str, right: str) -> float | int:
         return self._cov[tea_tasting._utils.sorted_tuple(left, right)]
 
 
