@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 def check_scalar(
@@ -28,3 +32,9 @@ def check_scalar(
 
     if lt is not None and value >= lt:
         raise ValueError(f"{name} == {value}, must be < {lt}.")
+
+
+def sorted_tuple(left: str, right: str) -> tuple[str, str]:
+    if right < left:
+        return right, left
+    return left, right
