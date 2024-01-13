@@ -1,4 +1,5 @@
 """Classes for working with aggregates: count, mean, var, cov."""
+# pyright: reportUnknownArgumentType=false, reportUnknownMemberType=false, reportUnknownVariableType=false
 
 from __future__ import annotations
 
@@ -9,7 +10,8 @@ import tea_tasting._utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Hashable, Sequence
+    from collections.abc import Sequence
+    from typing import Any
 
     from ibis.expr.types import Table
     from typing_extensions import Self
@@ -17,8 +19,8 @@ if TYPE_CHECKING:
 
 _COUNT = "_count"
 _MEAN = "_mean__{}"
-_MEAN_SQ = "_mean_sq__{}"
-_MEAN_MUL = "_mean_mul__{}__{}"
+_MEAN_OF_SQ = "_mean_of_sq__{}"
+_MEAN_OF_MUL = "_mean_of_mul__{}__{}"
 
 
 class Aggregates:
@@ -73,16 +75,14 @@ def read_aggregates(
     mean_cols: Sequence[str],
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
-) -> dict[Hashable, Aggregates]:
+) -> dict[Any, Aggregates]:
     count_expr = {_COUNT: data.count()}
 
-    mean_expr = {
-        _MEAN.format(col): data[col].mean()
-        for col in tuple({*mean_cols, *var_cols, *itertools.chain(*cov_cols)})
-    }
+    all_mean_cols = tuple({*mean_cols, *var_cols, *itertools.chain(*cov_cols)})
+    mean_expr = {_MEAN.format(col): data[col].mean() for col in all_mean_cols}  # type: ignore
 
     mean_sq_expr = {
-        _MEAN_SQ.format(col): (data[col] * data[col]).mean()
+        _MEAN_OF_SQ.format(col): (data[col] * data[col]).mean()  # type: ignore
         for col in tuple(set(var_cols))
     }
 
@@ -91,7 +91,7 @@ def read_aggregates(
         for left, right in cov_cols
     })
     mean_mul_expr = {
-        _MEAN_MUL.format(left, right): (data[left] * data[right]).mean()
+        _MEAN_OF_MUL.format(left, right): (data[left] * data[right]).mean()  # type: ignore
         for left, right in uniq_cov_cols
     }
 
@@ -102,24 +102,27 @@ def read_aggregates(
         **mean_mul_expr,
     )
 
-    result: dict[Hashable, Aggregates] = {}
+    result: dict[Any, Aggregates] = {}
 
     for group, group_data in aggr_data.to_pandas().groupby(group_col):
         s = group_data.iloc[0]
         count = s[_COUNT]
-        mean = {col: s[_MEAN.format(col)] for col in mean_cols}
-        coef = count / (count - 1)
+        bessel_factor = count / (count - 1)
+        mean = {col: s[_MEAN.format(col)] for col in all_mean_cols}
+
         var = {
-            col: (s[_MEAN_SQ.format(col)] - s[_MEAN.format(col)]**2) * coef
+            col: (s[_MEAN_OF_SQ.format(col)] - s[_MEAN.format(col)]**2) * bessel_factor
             for col in var_cols
         }
+
         cov = {
             (left, right): (
-                s[_MEAN_MUL.format(left, right)] -
+                s[_MEAN_OF_MUL.format(left, right)] -
                 s[_MEAN.format(left)]*s[_MEAN.format(right)]
-            ) * coef
+            ) * bessel_factor
             for left, right in uniq_cov_cols
         }
+
         result[group] = Aggregates(
             count=count,
             mean=mean,
