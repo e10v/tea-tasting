@@ -24,14 +24,14 @@ _MEAN_OF_MUL = "_mean_of_mul__{}__{}"
 
 
 class Aggregates:
-    _count: int
+    _count: int | None
     _mean: dict[str, float | int]
     _var: dict[str, float | int]
     _cov: dict[tuple[str, str], float | int]
 
     def __init__(
         self: Self,
-        count: int,
+        count: int | None,
         mean: dict[str, float | int],
         var: dict[str, float | int],
         cov: dict[tuple[str, str], float | int],
@@ -48,15 +48,23 @@ class Aggregates:
         )
 
     def count(self: Self) -> int:
+        if self._count is None:
+            raise RuntimeError("Count is not defined.")
         return self._count
 
-    def mean(self: Self, key: str) -> float | int:
+    def mean(self: Self, key: str | None) -> float | int:
+        if key is None:
+            return 1
         return self._mean[key]
 
-    def var(self: Self, key: str) -> float | int:
+    def var(self: Self, key: str | None) -> float | int:
+        if key is None:
+            return 0
         return self._var[key]
 
-    def cov(self: Self, left: str, right: str) -> float | int:
+    def cov(self: Self, left: str | None, right: str | None) -> float | int:
+        if left is None or right is None:
+            return 0
         return self._cov[tea_tasting._utils.sorted_tuple(left, right)]
 
 
