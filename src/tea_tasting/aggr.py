@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     from typing import Any
 
     from ibis.expr.types import Table
-    from typing_extensions import Self
 
 
 _COUNT = "_count"
@@ -30,7 +29,7 @@ class Aggregates:
     _cov: dict[tuple[str, str], float | int]
 
     def __init__(
-        self: Self,
+        self: Aggregates,
         count: int | None,
         mean: dict[str, float | int],
         var: dict[str, float | int],
@@ -41,34 +40,34 @@ class Aggregates:
         self._var = var
         self._cov = cov
 
-    def __repr__(self: Self) -> str:
+    def __repr__(self: Aggregates) -> str:
         return (
             f"Aggregates(count={self._count!r}, mean={self._mean!r}, "
             f"var={self._var!r}, cov={self._cov!r})"
         )
 
-    def count(self: Self) -> int:
+    def count(self: Aggregates) -> int:
         if self._count is None:
             raise RuntimeError("Count is not defined.")
         return self._count
 
-    def mean(self: Self, key: str | None) -> float | int:
+    def mean(self: Aggregates, key: str | None) -> float | int:
         if key is None:
             return 1
         return self._mean[key]
 
-    def var(self: Self, key: str | None) -> float | int:
+    def var(self: Aggregates, key: str | None) -> float | int:
         if key is None:
             return 0
         return self._var[key]
 
-    def cov(self: Self, left: str | None, right: str | None) -> float | int:
+    def cov(self: Aggregates, left: str | None, right: str | None) -> float | int:
         if left is None or right is None:
             return 0
         return self._cov[tea_tasting._utils.sorted_tuple(left, right)]
 
     def filter(
-        self: Self,
+        self: Aggregates,
         has_count: bool,
         mean_cols: Sequence[str],
         var_cols: Sequence[str],
