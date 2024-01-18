@@ -67,6 +67,23 @@ class Aggregates:
             return 0
         return self._cov[tea_tasting._utils.sorted_tuple(left, right)]
 
+    def filter(
+        self: Self,
+        has_count: bool,
+        mean_cols: Sequence[str],
+        var_cols: Sequence[str],
+        cov_cols: Sequence[tuple[str, str]],
+    ) -> Aggregates:
+        has_count, mean_cols, var_cols, cov_cols = _validate_aggr_cols(
+            has_count, mean_cols, var_cols, cov_cols)
+
+        return Aggregates(
+            count=self.count() if has_count else None,
+            mean={col: self.mean(col) for col in mean_cols},
+            var={col: self.var(col) for col in var_cols},
+            cov={cols: self.cov(*cols) for cols in cov_cols},
+        )
+
 
 def read_aggregates(
     data: Table,
