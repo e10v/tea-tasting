@@ -49,7 +49,7 @@ class Aggregates:
 
     def count(self: Aggregates) -> int:
         if self._count is None:
-            raise RuntimeError("Count is not defined.")
+            raise RuntimeError("Count is None.")
         return self._count
 
     def mean(self: Aggregates, key: str | None) -> float | int:
