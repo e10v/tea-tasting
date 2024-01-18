@@ -71,27 +71,23 @@ class Aggregates:
 def read_aggregates(
     data: Table,
     group_col: str,
+    has_count: bool,
     mean_cols: Sequence[str],
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
 ) -> dict[Any, Aggregates]:
-    count_expr = {_COUNT: data.count()}
+    has_count, mean_cols, var_cols, cov_cols = _validate_aggr_cols(
+        has_count, mean_cols, var_cols, cov_cols)
 
-    all_mean_cols = tuple({*mean_cols, *var_cols, *itertools.chain(*cov_cols)})
-    mean_expr = {_MEAN.format(col): data[col].mean() for col in all_mean_cols}  # type: ignore
-
+    count_expr = {_COUNT: data.count()} if has_count else {}
+    mean_expr = {_MEAN.format(col): data[col].mean() for col in mean_cols}  # type: ignore
     mean_of_sq_expr = {
         _MEAN_OF_SQ.format(col): (data[col] * data[col]).mean()  # type: ignore
-        for col in tuple(set(var_cols))
+        for col in var_cols
     }
-
-    uniq_cov_cols = tuple({
-        tea_tasting._utils.sorted_tuple(left, right)
-        for left, right in cov_cols
-    })
     mean_of_mul_expr = {
         _MEAN_OF_MUL.format(left, right): (data[left] * data[right]).mean()  # type: ignore
-        for left, right in uniq_cov_cols
+        for left, right in cov_cols
     }
 
     aggr_data = data.group_by(group_col).aggregate(
@@ -107,7 +103,7 @@ def read_aggregates(
         s = group_data.iloc[0]
         count = s[_COUNT]
         bessel_factor = count / (count - 1)
-        mean = {col: s[_MEAN.format(col)] for col in all_mean_cols}
+        mean = {col: s[_MEAN.format(col)] for col in mean_cols}
 
         var = {
             col: (s[_MEAN_OF_SQ.format(col)] - s[_MEAN.format(col)]**2) * bessel_factor
@@ -119,7 +115,7 @@ def read_aggregates(
                 s[_MEAN_OF_MUL.format(left, right)] -
                 s[_MEAN.format(left)]*s[_MEAN.format(right)]
             ) * bessel_factor
-            for left, right in uniq_cov_cols
+            for left, right in cov_cols
         }
 
         result[group] = Aggregates(
@@ -130,3 +126,19 @@ def read_aggregates(
         )
 
     return result
+
+
+def _validate_aggr_cols(
+    has_count: bool,
+    mean_cols: Sequence[str],
+    var_cols: Sequence[str],
+    cov_cols: Sequence[tuple[str, str]],
+) -> tuple[bool, tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...]]:
+    has_count = has_count or len(var_cols) > 0 or len(cov_cols) > 0
+    mean_cols = tuple({*mean_cols, *var_cols, *itertools.chain(*cov_cols)})
+    var_cols = tuple(set(var_cols))
+    cov_cols = tuple({
+        tea_tasting._utils.sorted_tuple(left, right)
+        for left, right in cov_cols
+    })
+    return has_count, mean_cols, var_cols, cov_cols
