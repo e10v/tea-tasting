@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import tea_tasting._utils
 
@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from typing import Any
 
     from ibis.expr.types import Table
+    from pandas import DataFrame
 
 
 _COUNT = "_count"
@@ -84,6 +85,7 @@ class Aggregates:
         )
 
 
+@overload
 def read_aggregates(
     data: Table,
     group_col: str,
@@ -92,6 +94,27 @@ def read_aggregates(
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
 ) -> dict[Any, Aggregates]:
+    ...
+
+@overload
+def read_aggregates(
+    data: Table,
+    group_col: None,
+    has_count: bool,
+    mean_cols: Sequence[str],
+    var_cols: Sequence[str],
+    cov_cols: Sequence[tuple[str, str]],
+) -> Aggregates:
+    ...
+
+def read_aggregates(
+    data: Table,
+    group_col: str | None,
+    has_count: bool,
+    mean_cols: Sequence[str],
+    var_cols: Sequence[str],
+    cov_cols: Sequence[tuple[str, str]],
+) -> dict[Any, Aggregates] | Aggregates:
     has_count, mean_cols, var_cols, cov_cols = _validate_aggr_cols(
         has_count, mean_cols, var_cols, cov_cols)
 
@@ -106,21 +129,48 @@ def read_aggregates(
         for left, right in cov_cols
     }
 
-    aggr_data = data.group_by(group_col).aggregate(
+    group_data = data.group_by(group_col) if group_col is not None else data
+    aggr_data = group_data.aggregate(
         **count_expr,
         **mean_expr,
         **mean_of_sq_expr,
         **mean_of_mul_expr,
+    ).to_pandas()
+
+    if group_col is not None:
+        return {
+            group: _calc_aggregates(
+                group_data,
+                has_count=has_count,
+                mean_cols=mean_cols,
+                var_cols=var_cols,
+                cov_cols=cov_cols,
+            )
+            for group, group_data in aggr_data.groupby(group_col)
+        }
+
+    return _calc_aggregates(
+        aggr_data,
+        has_count=has_count,
+        mean_cols=mean_cols,
+        var_cols=var_cols,
+        cov_cols=cov_cols,
     )
 
-    result: dict[Any, Aggregates] = {}
 
-    for group, group_data in aggr_data.to_pandas().groupby(group_col):
-        s = group_data.iloc[0]
+def _calc_aggregates(
+    data: DataFrame,
+    has_count: bool,
+    mean_cols: Sequence[str],
+    var_cols: Sequence[str],
+    cov_cols: Sequence[tuple[str, str]],
+) -> Aggregates:
+    s = data.iloc[0]
+    mean = {col: s[_MEAN.format(col)] for col in mean_cols}
+
+    if has_count:
         count = s[_COUNT]
         bessel_factor = count / (count - 1)
-        mean = {col: s[_MEAN.format(col)] for col in mean_cols}
-
         var = {
             col: (s[_MEAN_OF_SQ.format(col)] - s[_MEAN.format(col)]**2) * bessel_factor
             for col in var_cols
@@ -133,15 +183,17 @@ def read_aggregates(
             ) * bessel_factor
             for left, right in cov_cols
         }
+    else:
+        count = None
+        var = {}
+        cov = {}
 
-        result[group] = Aggregates(
-            count=count,
-            mean=mean,
-            var=var,
-            cov=cov,
-        )
-
-    return result
+    return Aggregates(
+        count=count,
+        mean=mean,
+        var=var,
+        cov=cov,
+    )
 
 
 def _validate_aggr_cols(
