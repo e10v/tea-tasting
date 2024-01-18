@@ -84,6 +84,46 @@ class Aggregates:
             cov={cols: self.cov(*cols) for cols in cov_cols},
         )
 
+    def __add__(self: Aggregates, other: Aggregates) -> Aggregates:
+        return Aggregates(
+            count=self.count() + other.count() if self._count is not None else None,
+            mean={col: _add_mean(self, other, col) for col in self._mean},
+            var={col: _add_var(self, other, col) for col in self._var},
+            cov={cols: _add_cov(self, other, cols) for cols in self._cov},
+        )
+
+
+def _add_mean(left: Aggregates, right: Aggregates, col: str) -> float | int:
+    sum_ = left.count()*left.mean(col) + right.count()*right.mean(col)
+    count = left.count() + right.count()
+    return sum_ / count
+
+def _add_var(left: Aggregates, right: Aggregates, col: str) -> float | int:
+    count = left.count() + right.count()
+    left_mean_of_sq = left.var(col)*(1 - 1/left.count()) + left.mean(col)**2
+    right_mean_of_sq = right.var(col)*(1 - 1/right.count()) + right.mean(col)**2
+    mean_of_sq = (left.count()*left_mean_of_sq + right.count()*right_mean_of_sq) / count
+    mean = _add_mean(left, right, col)
+    return (mean_of_sq - mean**2) * count / (count - 1)
+
+def _add_cov(left: Aggregates, right: Aggregates, cols: tuple[str, str]) -> float | int:
+    count = left.count() + right.count()
+    left_mean_of_mul = (
+        left.cov(*cols)*(1 - 1/left.count()) +
+        left.mean(cols[0])*left.mean(cols[1])
+    )
+    right_mean_of_mul = (
+        right.cov(*cols)*(1 - 1/right.count()) +
+        right.mean(cols[0])*right.mean(cols[1])
+    )
+    mean_of_mul = (
+        left.count()*left_mean_of_mul +
+        right.count()*right_mean_of_mul
+    ) / count
+    mean0 = _add_mean(left, right, cols[0])
+    mean1 = _add_mean(left, right, cols[1])
+    return (mean_of_mul - mean0*mean1) * count / (count - 1)
+
 
 @overload
 def read_aggregates(
