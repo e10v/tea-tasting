@@ -169,33 +169,33 @@ def read_aggregates(
         for left, right in cov_cols
     }
 
-    group_data = data.group_by(group_col) if group_col is not None else data
-    aggr_data = group_data.aggregate(
+    grouped_data = data.group_by(group_col) if group_col is not None else data
+    aggr_data = grouped_data.aggregate(
         **count_expr,
         **mean_expr,
         **mean_of_sq_expr,
         **mean_of_mul_expr,
     ).to_pandas()
 
-    if group_col is not None:
-        return {
-            group: _calc_aggregates(
-                group_data,
-                has_count=has_count,
-                mean_cols=mean_cols,
-                var_cols=var_cols,
-                cov_cols=cov_cols,
-            )
-            for group, group_data in aggr_data.groupby(group_col)
-        }
+    if group_col is None:
+        return _calc_aggregates(
+            aggr_data,
+            has_count=has_count,
+            mean_cols=mean_cols,
+            var_cols=var_cols,
+            cov_cols=cov_cols,
+        )
 
-    return _calc_aggregates(
-        aggr_data,
-        has_count=has_count,
-        mean_cols=mean_cols,
-        var_cols=var_cols,
-        cov_cols=cov_cols,
-    )
+    return {
+        group: _calc_aggregates(
+            group_data,
+            has_count=has_count,
+            mean_cols=mean_cols,
+            var_cols=var_cols,
+            cov_cols=cov_cols,
+        )
+        for group, group_data in aggr_data.groupby(group_col)
+    }
 
 
 def _calc_aggregates(
