@@ -30,6 +30,7 @@ def test_check_scalar_lt():
     with pytest.raises(ValueError, match="must be <"):
         tea_tasting._utils.check_scalar(1, lt=1)
 
+
 def test_sorted_tuple():
     assert tea_tasting._utils.sorted_tuple("a", "b") == ("a", "b")
     assert tea_tasting._utils.sorted_tuple("b", "a") == ("a", "b")
