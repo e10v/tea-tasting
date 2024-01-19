@@ -83,16 +83,16 @@ def test_aggregates_add(data: Table):
     d = data.to_pandas()
     aggr = tea_tasting.aggr.Aggregates(
         count=len(d),
-        mean={"visits": d["visits"].mean(), "orders": d["orders"].mean()},
+        mean={"visits": d["visits"].mean(), "orders": d["orders"].mean()},  # type: ignore
         var={"visits": d["visits"].var(), "orders": d["orders"].var()},  # type: ignore
-        cov={("visits", "orders"): d["visits"].cov(d["orders"])},
+        cov={("visits", "orders"): d["visits"].cov(d["orders"])},  # type: ignore
     )
     aggrs = tuple(
         tea_tasting.aggr.Aggregates(
             count=len(d),
-            mean={"visits": d["visits"].mean(), "orders": d["orders"].mean()},
+            mean={"visits": d["visits"].mean(), "orders": d["orders"].mean()},  # type: ignore
             var={"visits": d["visits"].var(), "orders": d["orders"].var()},  # type: ignore
-            cov={("visits", "orders"): d["visits"].cov(d["orders"])},
+            cov={("visits", "orders"): d["visits"].cov(d["orders"])},  # type: ignore
         )
         for _, d in d.groupby("variant")
     )
@@ -107,9 +107,9 @@ def test_read_aggregates_groups(data: Table):
     correct_aggrs = {
         v: tea_tasting.aggr.Aggregates(
             count=len(d),
-            mean={"visits": d["visits"].mean(), "orders": d["orders"].mean()},
+            mean={"visits": d["visits"].mean(), "orders": d["orders"].mean()},  # type: ignore
             var={"visits": d["visits"].var(), "orders": d["orders"].var()},  # type: ignore
-            cov={("orders", "visits"): d["visits"].cov(d["orders"])},
+            cov={("orders", "visits"): d["visits"].cov(d["orders"])},  # type: ignore
         )
         for v, d in data.to_pandas().groupby("variant")
     }
@@ -131,9 +131,9 @@ def test_read_aggregates_no_groups(data: Table):
     d = data.to_pandas()
     correct_aggr = tea_tasting.aggr.Aggregates(
         count=len(d),
-        mean={"visits": d["visits"].mean(), "orders": d["orders"].mean()},
+        mean={"visits": d["visits"].mean(), "orders": d["orders"].mean()},  # type: ignore
         var={"visits": d["visits"].var(), "orders": d["orders"].var()},  # type: ignore
-        cov={("orders", "visits"): d["visits"].cov(d["orders"])},
+        cov={("orders", "visits"): d["visits"].cov(d["orders"])},  # type: ignore
     )
     aggr = tea_tasting.aggr.read_aggregates(
         data,
