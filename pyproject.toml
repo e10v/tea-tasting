@@ -10,7 +10,6 @@ dependencies = [
     "numpy>=1.25,<2",
     "pandas>=2,<3",
     "scipy>=1.10,<2",
-    "typing-extensions>=4,<5",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
@@ -68,7 +67,7 @@ select = [
     "PD", "PERF", "PGH", "PIE", "PL", "PT", "Q", "RET", "RSE", "RUF", "S",
     "SIM", "SLF", "SLOT", "T10", "T20", "TCH", "TD", "TID", "TRY", "UP", "W",
 ]
-ignore = ["ANN401", "SLF001", "TRY003"]
+ignore = ["ANN401", "PGH003", "SLF001", "TRY003"]
 
 [tool.ruff.per-file-ignores]
 "tests/*" = ["ANN201", "D100", "D103", "PLR2004", "PT001", "S101"]
@@ -93,7 +92,7 @@ testpaths = ["tests"]
 [tool.coverage.run]
 source = ["src/tea_tasting"]
 [tool.coverage.report]
-exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover"]
+exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover", "    ..."]
 
 
 [tool.pyright]
