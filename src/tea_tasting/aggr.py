@@ -178,7 +178,7 @@ def read_aggregates(
     ).to_pandas()
 
     if group_col is None:
-        return _calc_aggregates(
+        return _get_aggregates(
             aggr_data,
             has_count=has_count,
             mean_cols=mean_cols,
@@ -187,7 +187,7 @@ def read_aggregates(
         )
 
     return {
-        group: _calc_aggregates(
+        group: _get_aggregates(
             group_data,
             has_count=has_count,
             mean_cols=mean_cols,
@@ -198,7 +198,7 @@ def read_aggregates(
     }
 
 
-def _calc_aggregates(
+def _get_aggregates(
     data: DataFrame,
     has_count: bool,
     mean_cols: Sequence[str],
