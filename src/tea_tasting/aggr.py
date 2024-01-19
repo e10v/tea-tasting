@@ -1,4 +1,4 @@
-"""Classes for working with aggregates: count, mean, var, cov."""
+"""Module for working with aggregated statistics: count, mean, var, cov."""
 # pyright: reportUnknownArgumentType=false, reportUnknownMemberType=false, reportUnknownVariableType=false
 
 from __future__ import annotations
