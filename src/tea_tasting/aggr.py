@@ -116,10 +116,8 @@ def _add_cov(left: Aggregates, right: Aggregates, cols: tuple[str, str]) -> floa
         right.cov(*cols)*(1 - 1/right.count()) +
         right.mean(cols[0])*right.mean(cols[1])
     )
-    mean_of_mul = (
-        left.count()*left_mean_of_mul +
-        right.count()*right_mean_of_mul
-    ) / count
+    sum_of_mul = left.count()*left_mean_of_mul + right.count()*right_mean_of_mul
+    mean_of_mul = sum_of_mul / count
     mean0 = _add_mean(left, right, cols[0])
     mean1 = _add_mean(left, right, cols[1])
     return (mean_of_mul - mean0*mean1) * count / (count - 1)
