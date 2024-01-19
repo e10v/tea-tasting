@@ -24,6 +24,7 @@ _MEAN_OF_MUL = "_mean_of_mul__{}__{}"
 
 
 class Aggregates:
+    """Aggregated statistics."""
     _count: int | None
     _mean: dict[str, float | int]
     _var: dict[str, float | int]
@@ -36,6 +37,14 @@ class Aggregates:
         var: dict[str, float | int],
         cov: dict[tuple[str, str], float | int],
     ) -> None:
+        """Create an object with aggregated statistics.
+
+        Args:
+            count: Sample size.
+            mean: Variables sample means.
+            var: Variables sample variances.
+            cov: Pairs of variables sample covariances.
+        """
         self._count = count
         self._mean = mean
         self._var = var
@@ -45,27 +54,61 @@ class Aggregates:
         }
 
     def __repr__(self: Aggregates) -> str:
+        """Object representation."""
         return (
             f"Aggregates(count={self._count!r}, mean={self._mean!r}, "
             f"var={self._var!r}, cov={self._cov!r})"
         )
 
     def count(self: Aggregates) -> int:
+        """Sample size.
+
+        Raises:
+            RuntimeError: Count is None (it wasn't defined at init).
+
+        Returns:
+            Number of observations.
+        """
         if self._count is None:
             raise RuntimeError("Count is None.")
         return self._count
 
     def mean(self: Aggregates, key: str | None) -> float | int:
+        """Sample mean.
+
+        Args:
+            key: Variable name.
+
+        Returns:
+            Sample mean.
+        """
         if key is None:
             return 1
         return self._mean[key]
 
     def var(self: Aggregates, key: str | None) -> float | int:
+        """Sample variance.
+
+        Args:
+            key: Variable name.
+
+        Returns:
+            Sample variance.
+        """
         if key is None:
             return 0
         return self._var[key]
 
     def cov(self: Aggregates, left: str | None, right: str | None) -> float | int:
+        """Sample covariance.
+
+        Args:
+            left: First variable name.
+            right: Second variable name.
+
+        Returns:
+            Sample covariance.
+        """
         if left is None or right is None:
             return 0
         return self._cov[tea_tasting._utils.sorted_tuple(left, right)]
@@ -77,6 +120,17 @@ class Aggregates:
         var_cols: Sequence[str],
         cov_cols: Sequence[tuple[str, str]],
     ) -> Aggregates:
+        """Filter aggregated statistics.
+
+        Args:
+            has_count: If True, keep sample size in the resulting object.
+            mean_cols: Sample means variable names.
+            var_cols: Sample variances variable names.
+            cov_cols: Sample covariances variable names.
+
+        Returns:
+            Filtered aggregated statistics.
+        """
         has_count, mean_cols, var_cols, cov_cols = _validate_aggr_cols(
             has_count, mean_cols, var_cols, cov_cols)
 
@@ -88,6 +142,16 @@ class Aggregates:
         )
 
     def __add__(self: Aggregates, other: Aggregates) -> Aggregates:
+        """Calculate aggregated statistics of the concatenation of two samples.
+
+        Samples are assumed to be independent.
+
+        Args:
+            other: Aggregated statistics of the second sample.
+
+        Returns:
+            Aggregated statistics of the concatenation of two samples.
+        """
         return Aggregates(
             count=self.count() + other.count() if self._count is not None else None,
             mean={col: _add_mean(self, other, col) for col in self._mean},
@@ -156,6 +220,19 @@ def read_aggregates(
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
 ) -> dict[Any, Aggregates] | Aggregates:
+    """Read aggregated statistics from an Ibis Table.
+
+    Args:
+        data: Ibis Table.
+        group_col: Column name to group by before aggregation.
+        has_count: If True, calculate the sample size.
+        mean_cols: Column names for calculation of sample means.
+        var_cols: Column names for calculation of sample variances.
+        cov_cols: Pairs of column names for calculation of sample covariances.
+
+    Returns:
+        Aggregated statistics from the Ibis Table.
+    """
     has_count, mean_cols, var_cols, cov_cols = _validate_aggr_cols(
         has_count, mean_cols, var_cols, cov_cols)
 
