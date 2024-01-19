@@ -39,7 +39,10 @@ class Aggregates:
         self._count = count
         self._mean = mean
         self._var = var
-        self._cov = cov
+        self._cov = {
+            tea_tasting._utils.sorted_tuple(left, right): value
+            for (left, right), value in cov.items()
+        }
 
     def __repr__(self: Aggregates) -> str:
         return (

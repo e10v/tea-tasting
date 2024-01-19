@@ -85,14 +85,14 @@ def test_aggregates_add(data: Table):
         count=len(d),
         mean={"visits": d["visits"].mean(), "orders": d["orders"].mean()},
         var={"visits": d["visits"].var(), "orders": d["orders"].var()},  # type: ignore
-        cov={("orders", "visits"): d["visits"].cov(d["orders"])},
+        cov={("visits", "orders"): d["visits"].cov(d["orders"])},
     )
     aggrs = tuple(
         tea_tasting.aggr.Aggregates(
             count=len(d),
             mean={"visits": d["visits"].mean(), "orders": d["orders"].mean()},
             var={"visits": d["visits"].var(), "orders": d["orders"].var()},  # type: ignore
-            cov={("orders", "visits"): d["visits"].cov(d["orders"])},
+            cov={("visits", "orders"): d["visits"].cov(d["orders"])},
         )
         for _, d in d.groupby("variant")
     )
