@@ -15,9 +15,9 @@ if TYPE_CHECKING:
 
 
 COUNT = 100
-MEAN = {"x": 1.0, "y": 2}
-VAR = {"x": 3.0, "y": 4}
-COV = {("x", "y"): 5.0}
+MEAN = {"x": 5.0, "y": 4}
+VAR = {"x": 3.0, "y": 2}
+COV = {("x", "y"): 1.0}
 
 @pytest.fixture
 def aggr() -> tea_tasting.aggr.Aggregates:
@@ -66,6 +66,18 @@ def test_aggregates_none(aggr: tea_tasting.aggr.Aggregates):
     assert aggr.var(None) == 0
     assert aggr.cov(None, "y") == 0
     assert aggr.cov("x", None) == 0
+
+def test_aggregates_ratio_var(aggr: tea_tasting.aggr.Aggregates):
+    assert aggr.ratio_var("x", "y") == pytest.approx(0.2265625)
+
+def test_aggregates_ratio_cov():
+    aggr = tea_tasting.aggr.Aggregates(
+        count=None,
+        mean={"a": 8, "b": 7, "c": 6, "d": 5},
+        var={},
+        cov={("a", "c"): 4, ("a", "d"): 3, ("b", "c"): 2, ("b", "d"): 1},
+    )
+    assert aggr.ratio_cov("a", "b", "c", "d") == pytest.approx(-0.0146938775510204)
 
 def test_aggregates_filter(aggr: tea_tasting.aggr.Aggregates):
     filtered_aggr = aggr.filter(
