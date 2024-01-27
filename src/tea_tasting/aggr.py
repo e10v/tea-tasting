@@ -113,6 +113,63 @@ class Aggregates:
             return 0
         return self._cov[tea_tasting._utils.sorted_tuple(left, right)]
 
+    def ratio_var(
+        self: Aggregates,
+        numer: str | None,
+        denom: str | None,
+    ) -> float | int:
+        """Sample variance of the ratio of two variables using the Delta method.
+
+        References:
+            [Delta method](https://en.wikipedia.org/wiki/Delta_method).
+            [Taylor expansions for the moments of functions of random variables](https://en.wikipedia.org/wiki/Taylor_expansions_for_the_moments_of_functions_of_random_variables).
+
+        Args:
+            numer: Numerator variable name.
+            denom: Denominator variable name.
+
+        Returns:
+            Sample variance of the ratio of two variables.
+        """
+        denom_mean_sq = self.mean(denom) * self.mean(denom)
+        return (
+            self.var(numer)
+            - 2 * self.cov(numer, denom) * self.mean(numer) / self.mean(denom)
+            + self.var(denom) * self.mean(numer) * self.mean(numer) / denom_mean_sq
+        ) / denom_mean_sq
+
+    def ratio_cov(
+        self: Aggregates,
+        left_numer: str | None,
+        left_denom: str | None,
+        right_numer: str | None,
+        right_denom: str | None,
+    ) -> float | int:
+        """Sample covariance of the ratios of variables using the Delta method.
+
+        References:
+            [Delta method](https://en.wikipedia.org/wiki/Delta_method).
+            [Taylor expansions for the moments of functions of random variables](https://en.wikipedia.org/wiki/Taylor_expansions_for_the_moments_of_functions_of_random_variables).
+
+        Args:
+            left_numer: First numerator variable name.
+            left_denom: First denominator variable name.
+            right_numer: Second numerator variable name.
+            right_denom: Second denominator variable name.
+
+        Returns:
+            Sample covariance of the ratios of variables.
+        """
+        left_ratio_of_means = self.mean(left_numer) / self.mean(left_denom)
+        right_ratio_of_means = self.mean(right_numer) / self.mean(right_denom)
+        return (
+            self.cov(left_numer, right_numer)
+            - self.cov(left_numer, right_denom) * right_ratio_of_means
+            - self.cov(left_denom, right_numer) * left_ratio_of_means
+            + self.cov(left_denom, right_denom)
+                * left_ratio_of_means * right_ratio_of_means
+        ) / self.mean(left_denom) / self.mean(right_denom)
+
     def filter(
         self: Aggregates,
         has_count: bool,

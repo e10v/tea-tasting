@@ -92,7 +92,7 @@ testpaths = ["tests"]
 [tool.coverage.run]
 source = ["src/tea_tasting"]
 [tool.coverage.report]
-exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover", "    ..."]
+exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover", "@overload"]
 
 
 [tool.pyright]
