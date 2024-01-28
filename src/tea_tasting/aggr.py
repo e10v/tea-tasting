@@ -300,7 +300,8 @@ def read_aggregates(
             _DEMEAN.format(col): data[col] - data[col].mean()  # type: ignore
             for col in demean_cols
         }
-        data = data.mutate(**demean_expr)
+        grouped_data = data.group_by(group_col) if group_col is not None else data
+        data = grouped_data.mutate(**demean_expr)
 
     count_expr = {_COUNT: data.count()} if has_count else {}
     mean_expr = {_MEAN.format(col): data[col].mean() for col in mean_cols}  # type: ignore
