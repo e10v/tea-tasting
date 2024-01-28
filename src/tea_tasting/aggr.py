@@ -19,8 +19,9 @@ if TYPE_CHECKING:
 
 _COUNT = "_count"
 _MEAN = "_mean__{}"
-_MEAN_OF_SQ = "_mean_of_sq__{}"
-_MEAN_OF_MUL = "_mean_of_mul__{}__{}"
+_VAR = "_var__{}"
+_COV = "_cov__{}__{}"
+_DEMEAN = "_demean__{}"
 
 
 class Aggregates:
@@ -293,14 +294,26 @@ def read_aggregates(
     has_count, mean_cols, var_cols, cov_cols = _validate_aggr_cols(
         has_count, mean_cols, var_cols, cov_cols)
 
+    demean_cols = tuple({*var_cols, *itertools.chain(*cov_cols)})
+    if len(demean_cols) > 0:
+        demean_expr = {
+            _DEMEAN.format(col): data[col] - data[col].mean()  # type: ignore
+            for col in demean_cols
+        }
+        data = data.mutate(**demean_expr)
+
     count_expr = {_COUNT: data.count()} if has_count else {}
     mean_expr = {_MEAN.format(col): data[col].mean() for col in mean_cols}  # type: ignore
-    mean_of_sq_expr = {
-        _MEAN_OF_SQ.format(col): (data[col] * data[col]).mean()  # type: ignore
+    var_expr = {
+        _VAR.format(col): (
+            data[_DEMEAN.format(col)] * data[_DEMEAN.format(col)]
+        ).sum() / (data.count() - 1)  # type: ignore
         for col in var_cols
     }
-    mean_of_mul_expr = {
-        _MEAN_OF_MUL.format(left, right): (data[left] * data[right]).mean()  # type: ignore
+    cov_expr = {
+        _COV.format(left, right): (
+            data[_DEMEAN.format(left)] * data[_DEMEAN.format(right)]
+        ).sum() / (data.count() - 1)  # type: ignore
         for left, right in cov_cols
     }
 
@@ -308,8 +321,8 @@ def read_aggregates(
     aggr_data = grouped_data.aggregate(
         **count_expr,
         **mean_expr,
-        **mean_of_sq_expr,
-        **mean_of_mul_expr,
+        **var_expr,
+        **cov_expr,
     ).to_pandas()
 
     if group_col is None:
@@ -341,33 +354,11 @@ def _get_aggregates(
     cov_cols: Sequence[tuple[str, str]],
 ) -> Aggregates:
     s = data.iloc[0]
-    mean = {col: s[_MEAN.format(col)] for col in mean_cols}
-
-    if has_count:
-        count = s[_COUNT]
-        bessel_factor = count / (count - 1)
-        var = {
-            col: (s[_MEAN_OF_SQ.format(col)] - s[_MEAN.format(col)]**2) * bessel_factor
-            for col in var_cols
-        }
-
-        cov = {
-            (left, right): (
-                s[_MEAN_OF_MUL.format(left, right)] -
-                s[_MEAN.format(left)]*s[_MEAN.format(right)]
-            ) * bessel_factor
-            for left, right in cov_cols
-        }
-    else:
-        count = None
-        var = {}
-        cov = {}
-
     return Aggregates(
-        count=count,
-        mean=mean,
-        var=var,
-        cov=cov,
+        count=s[_COUNT] if has_count else None,
+        mean={col: s[_MEAN.format(col)] for col in mean_cols},
+        var={col: s[_VAR.format(col)] for col in var_cols},
+        cov={cols: s[_COV.format(*cols)] for cols in cov_cols},
     )
 
 
