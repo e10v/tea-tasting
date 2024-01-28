@@ -308,13 +308,13 @@ def read_aggregates(
     var_expr = {
         _VAR.format(col): (
             data[_DEMEAN.format(col)] * data[_DEMEAN.format(col)]
-        ).sum() / (data.count() - 1)  # type: ignore
+        ).sum().cast("float") / (data.count() - 1)  # type: ignore
         for col in var_cols
     }
     cov_expr = {
         _COV.format(left, right): (
             data[_DEMEAN.format(left)] * data[_DEMEAN.format(right)]
-        ).sum() / (data.count() - 1)  # type: ignore
+        ).sum().cast("float") / (data.count() - 1)  # type: ignore
         for left, right in cov_cols
     }
 
