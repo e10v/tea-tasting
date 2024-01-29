@@ -61,6 +61,34 @@ class Aggregates:
             f"var={self._var!r}, cov={self._cov!r})"
         )
 
+    def filter(
+        self: Aggregates,
+        has_count: bool,
+        mean_cols: Sequence[str],
+        var_cols: Sequence[str],
+        cov_cols: Sequence[tuple[str, str]],
+    ) -> Aggregates:
+        """Filter aggregated statistics.
+
+        Args:
+            has_count: If True, keep sample size in the resulting object.
+            mean_cols: Sample means variable names.
+            var_cols: Sample variances variable names.
+            cov_cols: Sample covariances variable names.
+
+        Returns:
+            Filtered aggregated statistics.
+        """
+        mean_cols, var_cols, cov_cols = _validate_aggr_cols(
+            mean_cols, var_cols, cov_cols)
+
+        return Aggregates(
+            count=self.count() if has_count else None,
+            mean={col: self.mean(col) for col in mean_cols},
+            var={col: self.var(col) for col in var_cols},
+            cov={cols: self.cov(*cols) for cols in cov_cols},
+        )
+
     def count(self: Aggregates) -> int:
         """Sample size.
 
@@ -171,34 +199,6 @@ class Aggregates:
                 * left_ratio_of_means * right_ratio_of_means
         ) / self.mean(left_denom) / self.mean(right_denom)
 
-    def filter(
-        self: Aggregates,
-        has_count: bool,
-        mean_cols: Sequence[str],
-        var_cols: Sequence[str],
-        cov_cols: Sequence[tuple[str, str]],
-    ) -> Aggregates:
-        """Filter aggregated statistics.
-
-        Args:
-            has_count: If True, keep sample size in the resulting object.
-            mean_cols: Sample means variable names.
-            var_cols: Sample variances variable names.
-            cov_cols: Sample covariances variable names.
-
-        Returns:
-            Filtered aggregated statistics.
-        """
-        has_count, mean_cols, var_cols, cov_cols = _validate_aggr_cols(
-            has_count, mean_cols, var_cols, cov_cols)
-
-        return Aggregates(
-            count=self.count() if has_count else None,
-            mean={col: self.mean(col) for col in mean_cols},
-            var={col: self.var(col) for col in var_cols},
-            cov={cols: self.cov(*cols) for cols in cov_cols},
-        )
-
     def __add__(self: Aggregates, other: Aggregates) -> Aggregates:
         """Calculate aggregated statistics of the concatenation of two samples.
 
@@ -290,8 +290,7 @@ def read_aggregates(
     Returns:
         Aggregated statistics from the Ibis Table.
     """
-    has_count, mean_cols, var_cols, cov_cols = _validate_aggr_cols(
-        has_count, mean_cols, var_cols, cov_cols)
+    mean_cols, var_cols, cov_cols = _validate_aggr_cols(mean_cols, var_cols, cov_cols)
 
     demean_cols = tuple({*var_cols, *itertools.chain(*cov_cols)})
     if len(demean_cols) > 0:
@@ -363,16 +362,14 @@ def _get_aggregates(
 
 
 def _validate_aggr_cols(
-    has_count: bool,
     mean_cols: Sequence[str],
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
-) -> tuple[bool, tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...]]:
-    has_count = has_count or len(var_cols) > 0 or len(cov_cols) > 0
-    mean_cols = tuple({*mean_cols, *var_cols, *itertools.chain(*cov_cols)})
-    var_cols = tuple(set(var_cols))
+) -> tuple[tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...]]:
+    mean_cols = tuple({*mean_cols})
+    var_cols = tuple({*var_cols})
     cov_cols = tuple({
         tea_tasting._utils.sorted_tuple(left, right)
         for left, right in cov_cols
     })
-    return has_count, mean_cols, var_cols, cov_cols
+    return mean_cols, var_cols, cov_cols

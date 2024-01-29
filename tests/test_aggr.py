@@ -48,6 +48,18 @@ def test_aggregates_repr(aggr: tea_tasting.aggr.Aggregates):
     assert aggr_repr._var == aggr._var
     assert aggr_repr._cov == aggr._cov
 
+def test_aggregates_filter(aggr: tea_tasting.aggr.Aggregates):
+    filtered_aggr = aggr.filter(
+        has_count=False,
+        mean_cols=("x", "x"),
+        var_cols=("x",),
+        cov_cols=(),
+    )
+    assert filtered_aggr._count is None
+    assert filtered_aggr._mean == {"x": MEAN["x"]}
+    assert filtered_aggr._var == {"x": VAR["x"]}
+    assert filtered_aggr._cov == {}
+
 def test_aggregates_calls(aggr: tea_tasting.aggr.Aggregates):
     assert aggr.count() == COUNT
     assert aggr.mean("x") == MEAN["x"]
@@ -78,18 +90,6 @@ def test_aggregates_ratio_cov():
         cov={("a", "c"): 4, ("a", "d"): 3, ("b", "c"): 2, ("b", "d"): 1},
     )
     assert aggr.ratio_cov("a", "b", "c", "d") == pytest.approx(-0.0146938775510204)
-
-def test_aggregates_filter(aggr: tea_tasting.aggr.Aggregates):
-    filtered_aggr = aggr.filter(
-        has_count=False,
-        mean_cols=("x",),
-        var_cols=("x",),
-        cov_cols=(),
-    )
-    assert filtered_aggr._count == COUNT
-    assert filtered_aggr._mean == {"x": MEAN["x"]}
-    assert filtered_aggr._var == {"x": VAR["x"]}
-    assert filtered_aggr._cov == {}
 
 def test_aggregates_add(data: Table):
     d = data.to_pandas()
