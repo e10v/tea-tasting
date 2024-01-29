@@ -224,28 +224,27 @@ def _add_mean(left: Aggregates, right: Aggregates, col: str) -> float | int:
     return sum_ / count
 
 def _add_var(left: Aggregates, right: Aggregates, col: str) -> float | int:
-    count = left.count() + right.count()
-    left_mean_of_sq = left.var(col)*(1 - 1/left.count()) + left.mean(col)**2
-    right_mean_of_sq = right.var(col)*(1 - 1/right.count()) + right.mean(col)**2
-    mean_of_sq = (left.count()*left_mean_of_sq + right.count()*right_mean_of_sq) / count
-    mean = _add_mean(left, right, col)
-    return (mean_of_sq - mean**2) * count / (count - 1)
+    left_n = left.count()
+    right_n = right.count()
+    total_n = left_n + right_n
+    diff_of_means = left.mean(col) - right.mean(col)
+    return (
+        left.var(col) * (left_n - 1)
+        + right.var(col) * (right_n - 1)
+        + diff_of_means * diff_of_means * left_n * right_n / total_n
+    ) / (total_n - 1)
 
 def _add_cov(left: Aggregates, right: Aggregates, cols: tuple[str, str]) -> float | int:
-    count = left.count() + right.count()
-    left_mean_of_mul = (
-        left.cov(*cols)*(1 - 1/left.count()) +
-        left.mean(cols[0])*left.mean(cols[1])
-    )
-    right_mean_of_mul = (
-        right.cov(*cols)*(1 - 1/right.count()) +
-        right.mean(cols[0])*right.mean(cols[1])
-    )
-    sum_of_mul = left.count()*left_mean_of_mul + right.count()*right_mean_of_mul
-    mean_of_mul = sum_of_mul / count
-    mean0 = _add_mean(left, right, cols[0])
-    mean1 = _add_mean(left, right, cols[1])
-    return (mean_of_mul - mean0*mean1) * count / (count - 1)
+    left_n = left.count()
+    right_n = right.count()
+    total_n = left_n + right_n
+    diff_of_means0 = left.mean(cols[0]) - right.mean(cols[0])
+    diff_of_means1 = left.mean(cols[1]) - right.mean(cols[1])
+    return (
+        left.cov(*cols) * (left_n - 1)
+        + right.cov(*cols) * (right_n - 1)
+        + diff_of_means0 * diff_of_means1 * left_n * right_n / total_n
+    ) / (total_n - 1)
 
 
 @overload
