@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from ibis.expr.types import Table
 
 
-def sample_users_data(  # noqa: PLR0913
+def make_users_data(  # noqa: PLR0913
     size: int = 10000,
     covariates: bool = False,
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
