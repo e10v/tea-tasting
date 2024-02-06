@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
-
 def test_aggr_cols_or():
     aggr_cols0 = tea_tasting.metrics.base.AggrCols(
         has_count=False,
@@ -50,7 +49,6 @@ def test_aggr_cols_or():
 def data() -> ibis.expr.types.Table:
     return tea_tasting.datasets.make_users_data(size=100, seed=42)
 
-
 @pytest.fixture
 def correct_aggrs(
     data: ibis.expr.types.Table,
@@ -63,7 +61,6 @@ def correct_aggrs(
         var_cols=("orders", "revenue"),
         cov_cols=(("visits", "revenue"),),
     )
-
 
 @pytest.fixture
 def aggr_metric() -> tea_tasting.metrics.base.MetricBaseAggr:
@@ -95,20 +92,27 @@ def aggr_metric() -> tea_tasting.metrics.base.MetricBaseAggr:
     return AggrMetric()
 
 
+def _compare_aggrs(
+    left: dict[Any, tea_tasting.aggr.Aggregates],
+    right: dict[Any, tea_tasting.aggr.Aggregates],
+) -> None:
+    assert left.keys() == right.keys()
+    for variant in left:
+        l = left[variant]  # noqa: E741
+        r = right[variant]
+        assert l._count == r._count
+        assert l._mean == r._mean
+        assert l._var == r._var
+        assert l._cov == r._cov
+
+
 def test_metric_base_aggr_read_grouped_aggregates_table(
     aggr_metric: tea_tasting.metrics.base.MetricBaseAggr,
     data: ibis.expr.types.Table,
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
     aggrs = aggr_metric.read_grouped_aggregates(data, variant_col="variant")
-    assert aggrs.keys() == correct_aggrs.keys()
-    for variant in aggrs:
-        aggr = aggrs[variant]
-        correct_aggr = correct_aggrs[variant]
-        assert aggr._count == correct_aggr._count
-        assert aggr._mean == correct_aggr._mean
-        assert aggr._var == correct_aggr._var
-        assert aggr._cov == correct_aggr._cov
+    _compare_aggrs(aggrs, correct_aggrs)
 
 def test_metric_base_aggr_read_grouped_aggregates_df(
     aggr_metric: tea_tasting.metrics.base.MetricBaseAggr,
@@ -116,28 +120,14 @@ def test_metric_base_aggr_read_grouped_aggregates_df(
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
     aggrs = aggr_metric.read_grouped_aggregates(data.to_pandas(), variant_col="variant")
-    assert aggrs.keys() == correct_aggrs.keys()
-    for variant in aggrs:
-        aggr = aggrs[variant]
-        correct_aggr = correct_aggrs[variant]
-        assert aggr._count == correct_aggr._count
-        assert aggr._mean == correct_aggr._mean
-        assert aggr._var == correct_aggr._var
-        assert aggr._cov == correct_aggr._cov
+    _compare_aggrs(aggrs, correct_aggrs)
 
 def test_metric_base_aggr_read_grouped_aggregates_aggrs(
     aggr_metric: tea_tasting.metrics.base.MetricBaseAggr,
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
     aggrs = aggr_metric.read_grouped_aggregates(correct_aggrs)
-    assert aggrs.keys() == correct_aggrs.keys()
-    for variant in aggrs:
-        aggr = aggrs[variant]
-        correct_aggr = correct_aggrs[variant]
-        assert aggr._count == correct_aggr._count
-        assert aggr._mean == correct_aggr._mean
-        assert aggr._var == correct_aggr._var
-        assert aggr._cov == correct_aggr._cov
+    _compare_aggrs(aggrs, correct_aggrs)
 
 def test_metric_base_aggr_read_grouped_aggregates_raises(
     aggr_metric: tea_tasting.metrics.base.MetricBaseAggr,
