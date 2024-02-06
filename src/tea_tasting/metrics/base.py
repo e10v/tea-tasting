@@ -1,4 +1,4 @@
-"""Metrics definitions."""
+"""Metrics base classes."""
 # pyright: reportUnknownMemberType=false
 
 from __future__ import annotations
@@ -48,7 +48,7 @@ class AggrCols(NamedTuple):
             var_cols=tuple({*self.var_cols, *other.var_cols}),
             cov_cols=tuple({
                 tea_tasting._utils.sorted_tuple(*cols)
-                for cols in tuple(*self.cov_cols, *other.cov_cols)
+                for cols in tuple({*self.cov_cols, *other.cov_cols})
             }),
         )
 
