@@ -106,7 +106,7 @@ class MetricBaseAggr(abc.ABC):
         ...
 
     @overload
-    def validate_data(
+    def read_grouped_aggregates(
         self: MetricBaseAggr,
         data: dict[Any, tea_tasting.aggr.Aggregates],
         variant_col: None = None,
@@ -114,14 +114,14 @@ class MetricBaseAggr(abc.ABC):
         ...
 
     @overload
-    def validate_data(
+    def read_grouped_aggregates(
         self: MetricBaseAggr,
         data: pd.DataFrame | ibis.expr.types.Table,
         variant_col: str,
     ) ->  dict[Any, tea_tasting.aggr.Aggregates]:
         ...
 
-    def validate_data(
+    def read_grouped_aggregates(
         self: MetricBaseAggr,
         data: pd.DataFrame | ibis.expr.types.Table | dict[
             Any, tea_tasting.aggr.Aggregates],
