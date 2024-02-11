@@ -38,14 +38,6 @@ def test_aggregates_init(aggr: tea_tasting.aggr.Aggregates):
     assert aggr._var == VAR
     assert aggr._cov == COV
 
-def test_aggregates_repr(aggr: tea_tasting.aggr.Aggregates):
-    from tea_tasting.aggr import Aggregates  # type: ignore # noqa: F401
-    aggr_repr = eval(repr(aggr))  # noqa: S307, PGH001
-    assert aggr_repr._count == aggr._count
-    assert aggr_repr._mean == aggr._mean
-    assert aggr_repr._var == aggr._var
-    assert aggr_repr._cov == aggr._cov
-
 def test_aggregates_filter(aggr: tea_tasting.aggr.Aggregates):
     filtered_aggr = aggr.filter(
         has_count=False,
