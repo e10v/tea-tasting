@@ -23,7 +23,7 @@ _COV = "_cov__{}__{}"
 _DEMEAN = "_demean__{}"
 
 
-class Aggregates:
+class Aggregates(tea_tasting._utils.ReprMixin):
     """Aggregated statistics."""
     _count: int | None
     _mean: dict[str, float | int]
@@ -52,13 +52,6 @@ class Aggregates:
             tea_tasting._utils.sorted_tuple(left, right): value
             for (left, right), value in cov.items()
         }
-
-    def __repr__(self: Aggregates) -> str:
-        """Object representation."""
-        return (
-            f"Aggregates(count={self._count!r}, mean={self._mean!r}, "
-            f"var={self._var!r}, cov={self._cov!r})"
-        )
 
     def filter(
         self: Aggregates,
