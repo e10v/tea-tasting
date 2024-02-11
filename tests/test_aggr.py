@@ -9,7 +9,7 @@ import tea_tasting.datasets
 
 
 if TYPE_CHECKING:
-    from ibis.expr.types import Table
+    import ibis.expr.types
 
 
 COUNT = 100
@@ -28,7 +28,7 @@ def aggr() -> tea_tasting.aggr.Aggregates:
 
 
 @pytest.fixture
-def data() -> Table:
+def data() -> ibis.expr.types.Table:
     return tea_tasting.datasets.make_users_data(size=100, seed=42)
 
 
@@ -89,7 +89,7 @@ def test_aggregates_ratio_cov():
     )
     assert aggr.ratio_cov("a", "b", "c", "d") == pytest.approx(-0.0146938775510204)
 
-def test_aggregates_add(data: Table):
+def test_aggregates_add(data: ibis.expr.types.Table):
     d = data.to_pandas()
     aggr = tea_tasting.aggr.Aggregates(
         count=len(d),
@@ -113,7 +113,7 @@ def test_aggregates_add(data: Table):
     assert aggrs_add._cov == pytest.approx(aggr._cov)
 
 
-def test_read_aggregates_groups(data: Table):
+def test_read_aggregates_groups(data: ibis.expr.types.Table):
     correct_aggrs = {
         v: tea_tasting.aggr.Aggregates(
             count=len(d),
@@ -137,7 +137,7 @@ def test_read_aggregates_groups(data: Table):
         assert aggrs[i]._var == pytest.approx(correct_aggrs[i]._var)
         assert aggrs[i]._cov == pytest.approx(correct_aggrs[i]._cov)
 
-def test_read_aggregates_no_groups(data: Table):
+def test_read_aggregates_no_groups(data: ibis.expr.types.Table):
     d = data.to_pandas()
     correct_aggr = tea_tasting.aggr.Aggregates(
         count=len(d),
@@ -158,7 +158,7 @@ def test_read_aggregates_no_groups(data: Table):
     assert aggr._var == pytest.approx(correct_aggr._var)
     assert aggr._cov == pytest.approx(correct_aggr._cov)
 
-def test_read_aggregates_no_count(data: Table):
+def test_read_aggregates_no_count(data: ibis.expr.types.Table):
     aggr = tea_tasting.aggr.read_aggregates(
         data,
         group_col=None,
