@@ -56,13 +56,13 @@ class ReprMixin:
         return tuple(p.name for p in params)
 
     def _get_param_value(self: ReprMixin, param_name: str) -> Any:
-        if hasattr(self, param_name):
-            return getattr(self, param_name)
         if hasattr(self, "_" + param_name):
             return getattr(self, "_" + param_name)
-        return getattr(self, param_name + "_")
+        if hasattr(self, param_name + "_"):
+            return getattr(self, param_name + "_")
+        return getattr(self, param_name)
 
     def __repr__(self: ReprMixin) -> str:
         params = {p: self._get_param_value(p) for p in self._get_param_names()}
-        params_repr = ", ".join(f"{k!r}: {v!r}" for k, v in params.items())
-        return self.__class__.__name__ + params_repr
+        params_repr = ", ".join(f"{k}={v!r}" for k, v in params.items())
+        return f"{self.__class__.__name__}({params_repr})"
