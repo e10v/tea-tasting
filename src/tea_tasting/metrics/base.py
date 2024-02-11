@@ -150,15 +150,13 @@ class MetricBaseAggr(abc.ABC):
             if variant_col is None:
                 raise ValueError(
                     "variant_col is None, but should be an instance of str.")
-            aggrs = tea_tasting.aggr.read_aggregates(
+            return tea_tasting.aggr.read_aggregates(
                 data=table,
                 group_col=variant_col,
                 **self.aggr_cols._asdict(),
             )
-        else:
-            aggrs = table
 
-        return aggrs
+        return table
 
 
 class MetricBaseFull(abc.ABC):
