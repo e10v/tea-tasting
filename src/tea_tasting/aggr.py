@@ -12,8 +12,8 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from typing import Any
 
-    from ibis.expr.types import Table
-    from pandas import DataFrame
+    import ibis.expr.types
+    import pandas as pd
 
 
 _COUNT = "_count"
@@ -248,7 +248,7 @@ def _add_cov(left: Aggregates, right: Aggregates, cols: tuple[str, str]) -> floa
 
 @overload
 def read_aggregates(
-    data: Table,
+    data: ibis.expr.types.Table,
     group_col: str,
     has_count: bool,
     mean_cols: Sequence[str],
@@ -259,7 +259,7 @@ def read_aggregates(
 
 @overload
 def read_aggregates(
-    data: Table,
+    data: ibis.expr.types.Table,
     group_col: None,
     has_count: bool,
     mean_cols: Sequence[str],
@@ -269,7 +269,7 @@ def read_aggregates(
     ...
 
 def read_aggregates(
-    data: Table,
+    data: ibis.expr.types.Table,
     group_col: str | None,
     has_count: bool,
     mean_cols: Sequence[str],
@@ -345,7 +345,7 @@ def read_aggregates(
 
 
 def _get_aggregates(
-    data: DataFrame,
+    data: pd.DataFrame,
     has_count: bool,
     mean_cols: Sequence[str],
     var_cols: Sequence[str],

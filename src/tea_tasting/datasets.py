@@ -12,7 +12,7 @@ import tea_tasting._utils
 
 
 if TYPE_CHECKING:
-    from ibis.expr.types import Table
+    import ibis.expr.types  # noqa: TCH004
 
 
 def make_users_data(  # noqa: PLR0913
@@ -26,7 +26,7 @@ def make_users_data(  # noqa: PLR0913
     avg_visits: float | int = 2,
     avg_orders_per_visit: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-) -> Table:
+) -> ibis.expr.types.Table:
     """Generates a sample of data for examples.
 
     Data mimics what you might encounter in an A/B test for an online store. Each row
