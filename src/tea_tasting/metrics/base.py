@@ -1,5 +1,4 @@
 """Metrics base classes."""
-# pyright: reportUnknownMemberType=false
 
 from __future__ import annotations
 

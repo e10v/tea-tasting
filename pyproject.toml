@@ -101,3 +101,7 @@ exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover", "@overload", "@abc.abs
 [tool.pyright]
 typeCheckingMode = "strict"
 reportMissingTypeStubs = false
+reportPrivateUsage = false
+reportUnknownArgumentType = false
+reportUnknownMemberType = false
+reportUnknownVariableType = false
