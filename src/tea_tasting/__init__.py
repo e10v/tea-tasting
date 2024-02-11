@@ -1,5 +1,4 @@
 """A Python package for statistical analysis of A/B tests."""
-# ruff: noqa: F401
 # pyright: reportUnusedImport=false
 
 from __future__ import annotations

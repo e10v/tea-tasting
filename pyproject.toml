@@ -61,6 +61,8 @@ write_to = "tea_tasting/_version.txt"
 
 
 [tool.ruff]
+src = ["src"]
+
 [tool.ruff.lint]
 select = [
     "A", "ANN", "ARG", "B", "BLE", "C4", "C90", "COM", "D", "E", "ERA", "F",
@@ -71,12 +73,12 @@ select = [
 ignore = ["ANN401", "PGH003", "SLF001", "TRY003"]
 
 [tool.ruff.lint.per-file-ignores]
+"*/__init__.py" = ["F401"]
 "tests/*" = ["ANN201", "D100", "D103", "D104", "PLR2004", "PT001", "S101"]
 
 [tool.ruff.lint.isort]
 force-sort-within-sections = true
 lines-after-imports = 2
-known-local-folder = ["tea_tasting"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
