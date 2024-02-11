@@ -34,3 +34,30 @@ def test_check_scalar_lt():
 def test_sorted_tuple():
     assert tea_tasting._utils.sorted_tuple("a", "b") == ("a", "b")
     assert tea_tasting._utils.sorted_tuple("b", "a") == ("a", "b")
+
+
+def test_repr_mixin_repr():
+    class Repr(tea_tasting._utils.ReprMixin):
+        def __init__(self: Repr, a: int, b: int, c: int) -> None:
+            self._a = a
+            self.a_ = -1
+            self.a = -1
+            self.b_ = b
+            self.b = -1
+            self.c = c
+    r = Repr(a=1, b=2, c=3)
+    assert repr(r) == "Repr(a=1, b=2, c=3)"
+
+def test_repr_mixin_repr_obj():
+    class Obj(tea_tasting._utils.ReprMixin):
+        ...
+    obj = Obj()
+    assert repr(obj) == "Obj()"
+
+def test_repr_mixin_repr_pos():
+    class Pos(tea_tasting._utils.ReprMixin):
+        def __init__(self: Pos, *args: int) -> None:
+            self.args = args
+    pos = Pos(1, 2, 3)
+    with pytest.raises(RuntimeError):
+        repr(pos)
