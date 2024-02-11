@@ -1,5 +1,4 @@
 """Generates a sample of data for examples."""
-# pyright: reportUnknownMemberType=false
 
 from __future__ import annotations
 
