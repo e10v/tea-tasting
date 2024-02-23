@@ -61,13 +61,13 @@ def correct_aggrs(
     )
 
 @pytest.fixture
-def aggr_metric() -> tea_tasting.metrics.base.MetricBaseAggr:
-    class AggrMetric(tea_tasting.metrics.base.MetricBaseAggr):
-        def __init__(self: tea_tasting.metrics.base.MetricBaseAggr) -> None:
+def aggr_metric() -> tea_tasting.metrics.base.MetricBaseAggregated:
+    class AggrMetric(tea_tasting.metrics.base.MetricBaseAggregated):
+        def __init__(self: tea_tasting.metrics.base.MetricBaseAggregated) -> None:
             return None
 
         def analyze(
-            self: tea_tasting.metrics.base.MetricBaseAggr,
+            self: tea_tasting.metrics.base.MetricBaseAggregated,
             data: pd.DataFrame | ibis.expr.types.Table | dict[  # noqa: ARG002
                 Any, tea_tasting.aggr.Aggregates],
             control: Any,  # noqa: ARG002
@@ -78,7 +78,7 @@ def aggr_metric() -> tea_tasting.metrics.base.MetricBaseAggr:
 
         @property
         def aggr_cols(
-            self: tea_tasting.metrics.base.MetricBaseAggr,
+            self: tea_tasting.metrics.base.MetricBaseAggregated,
         ) -> tea_tasting.metrics.base.AggrCols:
             return tea_tasting.metrics.base.AggrCols(
                 has_count=True,
@@ -104,32 +104,32 @@ def _compare_aggrs(
         assert l._cov == r._cov
 
 
-def test_metric_base_aggr_read_grouped_aggregates_table(
-    aggr_metric: tea_tasting.metrics.base.MetricBaseAggr,
+def test_metric_base_aggregated_validate_aggregates_table(
+    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated,
     data: ibis.expr.types.Table,
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
-    aggrs = aggr_metric.read_grouped_aggregates(data, variant_col="variant")
+    aggrs = aggr_metric.validate_aggregates(data, variant_col="variant")
     _compare_aggrs(aggrs, correct_aggrs)
 
-def test_metric_base_aggr_read_grouped_aggregates_df(
-    aggr_metric: tea_tasting.metrics.base.MetricBaseAggr,
+def test_metric_base_aggregated_validate_aggregates_df(
+    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated,
     data: ibis.expr.types.Table,
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
-    aggrs = aggr_metric.read_grouped_aggregates(data.to_pandas(), variant_col="variant")
+    aggrs = aggr_metric.validate_aggregates(data.to_pandas(), variant_col="variant")
     _compare_aggrs(aggrs, correct_aggrs)
 
-def test_metric_base_aggr_read_grouped_aggregates_aggrs(
-    aggr_metric: tea_tasting.metrics.base.MetricBaseAggr,
+def test_metric_base_aggregated_validate_aggregates_aggrs(
+    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated,
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
-    aggrs = aggr_metric.read_grouped_aggregates(correct_aggrs)
+    aggrs = aggr_metric.validate_aggregates(correct_aggrs)
     _compare_aggrs(aggrs, correct_aggrs)
 
-def test_metric_base_aggr_read_grouped_aggregates_raises(
-    aggr_metric: tea_tasting.metrics.base.MetricBaseAggr,
+def test_metric_base_aggregated_validate_aggregates_raises(
+    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated,
     data: ibis.expr.types.Table,
 ):
     with pytest.raises(ValueError, match="variant_col"):
-        aggr_metric.read_grouped_aggregates(data)  # type: ignore
+        aggr_metric.validate_aggregates(data)  # type: ignore

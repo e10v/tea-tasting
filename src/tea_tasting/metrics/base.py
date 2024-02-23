@@ -52,18 +52,18 @@ class AggrCols(NamedTuple):
         )
 
 
-class MetricBaseAggr(abc.ABC):
+class MetricBaseAggregated(abc.ABC):
     """Metric which is analyzed using aggregates."""
     @property
     @abc.abstractmethod
-    def aggr_cols(self: MetricBaseAggr) -> AggrCols:
+    def aggr_cols(self: MetricBaseAggregated) -> AggrCols:
         """Columns to be aggregated for a metric analysis."""
         ...
 
     @overload
     @abc.abstractmethod
     def analyze(
-        self: MetricBaseAggr,
+        self: MetricBaseAggregated,
         data: dict[Any, tea_tasting.aggr.Aggregates],
         control: Any,
         treatment: Any,
@@ -74,7 +74,7 @@ class MetricBaseAggr(abc.ABC):
     @overload
     @abc.abstractmethod
     def analyze(
-        self: MetricBaseAggr,
+        self: MetricBaseAggregated,
         data: pd.DataFrame | ibis.expr.types.Table,
         control: Any,
         treatment: Any,
@@ -84,7 +84,7 @@ class MetricBaseAggr(abc.ABC):
 
     @abc.abstractmethod
     def analyze(
-        self: MetricBaseAggr,
+        self: MetricBaseAggregated,
         data: pd.DataFrame | ibis.expr.types.Table | dict[
             Any, tea_tasting.aggr.Aggregates],
         control: Any,
@@ -105,28 +105,28 @@ class MetricBaseAggr(abc.ABC):
         ...
 
     @overload
-    def read_grouped_aggregates(
-        self: MetricBaseAggr,
+    def validate_aggregates(
+        self: MetricBaseAggregated,
         data: dict[Any, tea_tasting.aggr.Aggregates],
         variant_col: None = None,
     ) ->  dict[Any, tea_tasting.aggr.Aggregates]:
         ...
 
     @overload
-    def read_grouped_aggregates(
-        self: MetricBaseAggr,
+    def validate_aggregates(
+        self: MetricBaseAggregated,
         data: pd.DataFrame | ibis.expr.types.Table,
         variant_col: str,
     ) ->  dict[Any, tea_tasting.aggr.Aggregates]:
         ...
 
-    def read_grouped_aggregates(
-        self: MetricBaseAggr,
+    def validate_aggregates(
+        self: MetricBaseAggregated,
         data: pd.DataFrame | ibis.expr.types.Table | dict[
             Any, tea_tasting.aggr.Aggregates],
         variant_col: str | None = None,
     ) ->  dict[Any, tea_tasting.aggr.Aggregates]:
-        """Validates experimental data.
+        """Validate aggregated experimental data.
 
         Reads aggregates if data is not a dictionary of Aggregates.
 
@@ -159,19 +159,19 @@ class MetricBaseAggr(abc.ABC):
         return table
 
 
-class MetricBaseFull(abc.ABC):
-    """Metric which is analyzed using detailed data."""
+class MetricBaseGranular(abc.ABC):
+    """Metric which is analyzed using granular data."""
     use_raw_data: bool = False
 
     @property
     @abc.abstractmethod
-    def cols(self: MetricBaseFull) -> Sequence[str]:
+    def cols(self: MetricBaseGranular) -> Sequence[str]:
         """Columns to be fetched for a metric analysis."""
         ...
 
     @abc.abstractmethod
     def analyze(
-        self: MetricBaseFull,
+        self: MetricBaseGranular,
         data: pd.DataFrame | ibis.expr.types.Table,
         control: Any,
         treatment: Any,
@@ -191,4 +191,4 @@ class MetricBaseFull(abc.ABC):
         ...
 
 
-MetricBase = MetricBaseAggr | MetricBaseFull
+MetricBase = MetricBaseAggregated | MetricBaseGranular
