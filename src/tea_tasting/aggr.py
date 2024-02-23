@@ -31,7 +31,7 @@ class Aggregates(tea_tasting._utils.ReprMixin):
     _cov: dict[tuple[str, str], float | int]
 
     def __init__(
-        self: Aggregates,
+        self,
         count: int | None,
         mean: dict[str, float | int],
         var: dict[str, float | int],
@@ -54,7 +54,7 @@ class Aggregates(tea_tasting._utils.ReprMixin):
         }
 
     def filter(
-        self: Aggregates,
+        self,
         has_count: bool,
         mean_cols: Sequence[str],
         var_cols: Sequence[str],
@@ -81,7 +81,7 @@ class Aggregates(tea_tasting._utils.ReprMixin):
             cov={cols: self.cov(*cols) for cols in cov_cols},
         )
 
-    def count(self: Aggregates) -> int:
+    def count(self) -> int:
         """Sample size.
 
         Raises:
@@ -94,7 +94,7 @@ class Aggregates(tea_tasting._utils.ReprMixin):
             raise RuntimeError("Count is None.")
         return self._count
 
-    def mean(self: Aggregates, key: str | None) -> float | int:
+    def mean(self, key: str | None) -> float | int:
         """Sample mean.
 
         Args:
@@ -107,7 +107,7 @@ class Aggregates(tea_tasting._utils.ReprMixin):
             return 1
         return self._mean[key]
 
-    def var(self: Aggregates, key: str | None) -> float | int:
+    def var(self, key: str | None) -> float | int:
         """Sample variance.
 
         Args:
@@ -120,7 +120,7 @@ class Aggregates(tea_tasting._utils.ReprMixin):
             return 0
         return self._var[key]
 
-    def cov(self: Aggregates, left: str | None, right: str | None) -> float | int:
+    def cov(self, left: str | None, right: str | None) -> float | int:
         """Sample covariance.
 
         Args:
@@ -135,7 +135,7 @@ class Aggregates(tea_tasting._utils.ReprMixin):
         return self._cov[tea_tasting._utils.sorted_tuple(left, right)]
 
     def ratio_var(
-        self: Aggregates,
+        self,
         numer: str | None,
         denom: str | None,
     ) -> float | int:
@@ -160,7 +160,7 @@ class Aggregates(tea_tasting._utils.ReprMixin):
         ) / denom_mean_sq
 
     def ratio_cov(
-        self: Aggregates,
+        self,
         left_numer: str | None,
         left_denom: str | None,
         right_numer: str | None,
@@ -191,7 +191,7 @@ class Aggregates(tea_tasting._utils.ReprMixin):
                 * left_ratio_of_means * right_ratio_of_means
         ) / self.mean(left_denom) / self.mean(right_denom)
 
-    def __add__(self: Aggregates, other: Aggregates) -> Aggregates:
+    def __add__(self, other: Aggregates) -> Aggregates:
         """Calculate aggregated statistics of the concatenation of two samples.
 
         Samples are assumed to be independent.

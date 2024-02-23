@@ -55,14 +55,14 @@ class ReprMixin:
                     "There should not be positional arguments in the __init__.")
         return tuple(p.name for p in params)
 
-    def _get_param_value(self: ReprMixin, param_name: str) -> Any:
+    def _get_param_value(self, param_name: str) -> Any:
         if hasattr(self, "_" + param_name):
             return getattr(self, "_" + param_name)
         if hasattr(self, param_name + "_"):
             return getattr(self, param_name + "_")
         return getattr(self, param_name)
 
-    def __repr__(self: ReprMixin) -> str:
+    def __repr__(self) -> str:
         params = {p: self._get_param_value(p) for p in self._get_param_names()}
         params_repr = ", ".join(f"{k}={v!r}" for k, v in params.items())
         return f"{self.__class__.__name__}({params_repr})"
