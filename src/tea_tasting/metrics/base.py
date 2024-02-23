@@ -104,22 +104,6 @@ class MetricBaseAggregated(abc.ABC):
         """
         ...
 
-    @overload
-    def validate_aggregates(
-        self,
-        data: dict[Any, tea_tasting.aggr.Aggregates],
-        variant_col: None = None,
-    ) ->  dict[Any, tea_tasting.aggr.Aggregates]:
-        ...
-
-    @overload
-    def validate_aggregates(
-        self,
-        data: pd.DataFrame | ibis.expr.types.Table,
-        variant_col: str,
-    ) ->  dict[Any, tea_tasting.aggr.Aggregates]:
-        ...
-
     def validate_aggregates(
         self,
         data: pd.DataFrame | ibis.expr.types.Table | dict[
