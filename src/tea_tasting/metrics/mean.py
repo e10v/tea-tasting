@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, NamedTuple
 
+import numpy as np
+
 import tea_tasting._utils
 import tea_tasting.aggr
 import tea_tasting.config
@@ -184,3 +186,19 @@ class RatioOfMeans(
             self.denom_covariate,
         )
         return left_var + covariate_coef*covariate_coef*right_var - 2*covariate_coef*cov
+
+    def _scale(
+        self,
+        contr_var: float,
+        contr_count: int,
+        treat_var: float,
+        treat_count: int,
+    ) -> float:
+        if self.use_t and self.equal_var:
+            pooled_var = (
+                ((contr_count - 1)*contr_var + (treat_count - 1)*treat_var)
+                / (contr_count + treat_count - 2)
+            )
+            return np.sqrt(pooled_var * (1.0/contr_count + 1.0/treat_count))
+
+        return np.sqrt(contr_var/contr_count + treat_var/treat_count)
