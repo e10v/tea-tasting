@@ -1,10 +1,12 @@
 """Analysis of means of two independent samples."""
+# ruff: noqa: PD901
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
+import scipy.stats
 
 import tea_tasting._utils
 import tea_tasting.aggr
@@ -94,6 +96,7 @@ class RatioOfMeans(
             else tea_tasting.config.get_config("use_t")
         )
 
+
     @property
     def aggr_cols(self) -> tea_tasting.metrics.base.AggrCols:
         """Columns to be aggregated for a metric analysis."""
@@ -117,6 +120,7 @@ class RatioOfMeans(
                 if col0 < col1
             ),
         )
+
 
     def analyze(
         self,
@@ -150,6 +154,7 @@ class RatioOfMeans(
             treat_count=treat.count(),
         )
 
+
     def _analyze_from_stats(
         self,
         contr_mean: float,
@@ -160,6 +165,7 @@ class RatioOfMeans(
         treat_count: int,
     ) -> MeansResult:
         ...
+
 
     def _covariate_coef(self, aggr: tea_tasting.aggr.Aggregates) -> float:
         return aggr.ratio_cov(
@@ -187,18 +193,36 @@ class RatioOfMeans(
         )
         return left_var + covariate_coef*covariate_coef*right_var - 2*covariate_coef*cov
 
-    def _scale(
+
+    def _scale_and_distr(
         self,
         contr_var: float,
         contr_count: int,
         treat_var: float,
         treat_count: int,
-    ) -> float:
+    ) -> tuple[float, scipy.stats.rv_frozen]:
         if self.use_t and self.equal_var:
             pooled_var = (
                 ((contr_count - 1)*contr_var + (treat_count - 1)*treat_var)
                 / (contr_count + treat_count - 2)
             )
-            return np.sqrt(pooled_var * (1.0/contr_count + 1.0/treat_count))
+            scale = np.sqrt(pooled_var * (1.0/contr_count + 1.0/treat_count))
+        else:
+            scale = np.sqrt(contr_var/contr_count + treat_var/treat_count)
 
-        return np.sqrt(contr_var/contr_count + treat_var/treat_count)
+        if not self.use_t:
+            distr = scipy.stats.norm()
+        else:
+            if self.equal_var:
+                df = contr_count + treat_count - 2
+            else:
+                contr_vn = contr_var / contr_count
+                treat_vn = treat_var / treat_count
+                df = (
+                    (contr_vn + treat_vn)**2 /
+                    (contr_vn**2 / (contr_count - 1) + treat_vn**2 / (treat_count - 1))
+                )
+
+            distr = scipy.stats.t(df=df)
+
+        return scale, distr
