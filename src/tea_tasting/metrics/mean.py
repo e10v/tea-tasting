@@ -164,7 +164,58 @@ class RatioOfMeans(
         treat_var: float,
         treat_count: int,
     ) -> MeansResult:
-        ...
+        scale, distr = self._scale_and_distr(
+            contr_var=contr_var,
+            contr_count=contr_count,
+            treat_var=treat_var,
+            treat_count=treat_count,
+        )
+        rel_scale, rel_distr = self._scale_and_distr(
+            contr_var=contr_var / contr_mean / contr_mean,
+            contr_count=contr_count,
+            treat_var=treat_var / treat_mean / treat_mean,
+            treat_count=treat_count,
+        )
+
+        means_ratio = treat_mean / contr_mean
+        effect_size = treat_mean - contr_mean
+        std_effect_size = effect_size / scale
+
+        if self.alternative == "less":
+            q = self.confidence_level
+            effect_size_ci_lower = means_ratio_ci_lower = float("-inf")
+            effect_size_ci_upper = effect_size + scale*distr.ppf(q)
+            means_ratio_ci_upper = means_ratio * np.exp(rel_scale * rel_distr.ppf(q))
+            pvalue = distr.cdf(std_effect_size)
+        elif self.alternative == "greater":
+            q = 1 - self.confidence_level
+            effect_size_ci_lower = effect_size + scale*distr.ppf(q)
+            means_ratio_ci_lower = means_ratio * np.exp(rel_scale * rel_distr.ppf(q))
+            effect_size_ci_upper = means_ratio_ci_upper = float("+inf")
+            pvalue = distr.cdf(-std_effect_size)
+        else:
+            q = (1 + self.confidence_level) / 2
+            half_ci = scale * distr.ppf(q)
+            effect_size_ci_lower = effect_size + half_ci
+            effect_size_ci_upper = effect_size + half_ci
+
+            rel_half_ci = np.exp(rel_scale * rel_distr.ppf(q))
+            means_ratio_ci_lower = means_ratio / rel_half_ci
+            means_ratio_ci_upper = means_ratio * rel_half_ci
+
+            pvalue = 2 * distr.cdf(-np.abs(std_effect_size))
+
+        return MeansResult(
+            control=contr_mean,
+            treatment=treat_mean,
+            effect_size=effect_size,
+            effect_size_ci_lower=effect_size_ci_lower,
+            effect_size_ci_upper=effect_size_ci_upper,
+            rel_effect_size=means_ratio - 1,
+            rel_effect_size_ci_lower=means_ratio_ci_lower - 1,
+            rel_effect_size_ci_upper=means_ratio_ci_upper - 1,
+            pvalue=pvalue,
+        )
 
 
     def _covariate_coef(self, aggr: tea_tasting.aggr.Aggregates) -> float:
@@ -177,6 +228,7 @@ class RatioOfMeans(
             self.numer_covariate,
             self.denom_covariate,
         )
+
 
     def _metric_var(
         self,
@@ -201,7 +253,7 @@ class RatioOfMeans(
         treat_var: float,
         treat_count: int,
     ) -> tuple[float, scipy.stats.rv_frozen]:
-        if self.use_t and self.equal_var:
+        if self.equal_var:
             pooled_var = (
                 ((contr_count - 1)*contr_var + (treat_count - 1)*treat_var)
                 / (contr_count + treat_count - 2)
