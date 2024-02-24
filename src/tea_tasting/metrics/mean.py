@@ -255,26 +255,25 @@ class RatioOfMeans(
     ) -> tuple[float, scipy.stats.rv_frozen]:
         if self.equal_var:
             pooled_var = (
-                ((contr_count - 1)*contr_var + (treat_count - 1)*treat_var)
-                / (contr_count + treat_count - 2)
-            )
-            scale = np.sqrt(pooled_var * (1.0/contr_count + 1.0/treat_count))
+                (contr_count - 1)*contr_var + (treat_count - 1)*treat_var
+            ) / (contr_count + treat_count - 2)
+            scale = np.sqrt(pooled_var/contr_count + pooled_var/treat_count)
         else:
             scale = np.sqrt(contr_var/contr_count + treat_var/treat_count)
 
-        if not self.use_t:
-            distr = scipy.stats.norm()
-        else:
+        if self.use_t:
             if self.equal_var:
                 df = contr_count + treat_count - 2
             else:
-                contr_vn = contr_var / contr_count
-                treat_vn = treat_var / treat_count
-                df = (
-                    (contr_vn + treat_vn)**2 /
-                    (contr_vn**2 / (contr_count - 1) + treat_vn**2 / (treat_count - 1))
+                contr_mean_var = contr_var / contr_count
+                treat_mean_var = treat_var / treat_count
+                df = (contr_mean_var + treat_mean_var)**2 / (
+                    contr_mean_var**2 / (contr_count - 1)
+                    + treat_mean_var**2 / (treat_count - 1)
                 )
 
             distr = scipy.stats.t(df=df)
+        else:
+            distr = scipy.stats.norm()
 
         return scale, distr
