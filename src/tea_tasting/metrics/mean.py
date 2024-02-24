@@ -25,7 +25,20 @@ class MeansResult(NamedTuple):
     """Result of an analysis of means.
 
     Attributes:
-        control: _description_
+        control: Control mean.
+        treatment: Treatment mean.
+        effect_size: Absolute effect size. Difference between two means.
+        effect_size_ci_lower: Lower bound of the absolute effect size
+            confidence interval.
+        effect_size_ci_upper: Upper bound of the absolute effect size
+            confidence interval.
+        rel_effect_size: Relative effect size. Difference between two means,
+            divided by the control mean.
+        rel_effect_size_ci_lower: Lower bound of the relative effect size
+            confidence interval.
+        rel_effect_size_ci_upper: Upper bound of the relative effect size
+            confidence P-value.
+        pvalue: float
     """
     control: float
     treatment: float
@@ -64,12 +77,11 @@ class RatioOfMeans(
             denom_covariate: Covariate denominator column name.
             alternative: Default alternative hypothesis.
             confidence_level: Default confidence level for the confidence interval.
-            equal_var: Defines whether to use the Welch's t-test (`False`)
-                or the standard Student's t-test (`True`) by default. The standard
-                Student's t-test assumes equal population variances,
-                while Welch's t-test doesn't. Applicable only if `use_t` is `True`.
-            use_t: Defines whether to use the Student's t-distribution (`True`) or
-                the Normal distribution (`False`).
+            equal_var: Defines whether equal variance is assumed. If True,
+                pooled variance is used for the calculation of the standard error
+                of the difference between two means.
+            use_t: Defines whether to use the Student's t-distribution (True) or
+                the Normal distribution (False).
         """
         self.numer = numer
         self.denom = denom
