@@ -234,15 +234,17 @@ class RatioOfMeans(
 
 
     def _covariate_coef(self, aggr: tea_tasting.aggr.Aggregates) -> float:
-        return aggr.ratio_cov(
+        cov = aggr.ratio_cov(
             self.numer,
             self.denom,
             self.numer_covariate,
             self.denom_covariate,
-        ) / aggr.ratio_var(
-            self.numer_covariate,
-            self.denom_covariate,
         )
+
+        if cov == 0:
+            return 0
+
+        return cov / aggr.ratio_var(self.numer_covariate, self.denom_covariate)
 
 
     def _metric_mean(
@@ -304,3 +306,69 @@ class RatioOfMeans(
             distr = scipy.stats.norm()
 
         return scale, distr
+
+
+if __name__ == "__main__":
+    import pandas as pd
+    import tea_tasting.datasets
+
+    data = tea_tasting.datasets.make_users_data(covariates=True, seed=2)
+    cols = (
+        "visits", "orders", "revenue",
+        "visits_covariate", "orders_covariate", "revenue_covariate",
+    )
+    data = tea_tasting.aggr.read_aggregates(
+        data,
+        group_col="variant",
+        has_count=True,
+        mean_cols=cols,
+        var_cols=cols,
+        cov_cols=tuple(
+            (col0, col1)
+            for col0 in cols
+            for col1 in cols
+            if col0 < col1
+        ),
+    )
+
+    with tea_tasting.config.config_context(alternative="less"):
+        visits_per_user = RatioOfMeans(numer="visits")
+        visits_per_user_cuped = RatioOfMeans(
+            numer="visits",
+            numer_covariate="visits_covariate",
+        )
+        orders_per_visit = RatioOfMeans(numer="orders", denom="visits")
+        orders_per_visit_cuped = RatioOfMeans(
+            numer="orders",
+            denom="visits",
+            numer_covariate="orders_covariate",
+            denom_covariate="visits_covariate",
+        )
+        orders_per_user = RatioOfMeans(numer="orders")
+        orders_per_user_cuped = RatioOfMeans(
+            numer="orders",
+            numer_covariate="orders_covariate",
+        )
+        revenue_per_user = RatioOfMeans(numer="revenue")
+        revenue_per_user_cuped = RatioOfMeans(
+            numer="revenue",
+            numer_covariate="revenue_covariate",
+        )
+
+    metrics =  (
+        (visits_per_user, "visits_per_user"),
+        (visits_per_user_cuped, "visits_per_user_cuped"),
+        (orders_per_visit, "orders_per_visit"),
+        (orders_per_visit_cuped, "orders_per_visit_cuped"),
+        (orders_per_user, "orders_per_user"),
+        (orders_per_user_cuped, "orders_per_user_cuped"),
+        (revenue_per_user, "revenue_per_user"),
+        (revenue_per_user_cuped, "revenue_per_user_cuped"),
+    )
+
+    results = pd.DataFrame(
+        {"metric": name} | metric.analyze(data, control=0, treatment=1)._asdict()
+        for metric, name in metrics
+    )
+
+    print(results)
