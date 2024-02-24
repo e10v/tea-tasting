@@ -144,12 +144,15 @@ class RatioOfMeans(
         data = self.validate_aggregates(data, variant_col=variant_col)
         contr = data[control]
         treat = data[treatment]
-        covariate_coef = self._covariate_coef(contr + treat)
+        total = contr + treat
+        covariate_coef = self._covariate_coef(total)
+        covariate_mean = total.mean(self.numer_covariate) / total.mean(
+            self.denom_covariate)
         return self._analyze_from_stats(
-            contr_mean=contr.mean(self.numer) / contr.mean(self.denom),
+            contr_mean=self._metric_mean(contr, covariate_coef, covariate_mean),
             contr_var=self._metric_var(contr, covariate_coef),
             contr_count=contr.count(),
-            treat_mean=treat.mean(self.numer) / treat.mean(self.denom),
+            treat_mean=self._metric_mean(treat, covariate_coef, covariate_mean),
             treat_var=self._metric_var(treat, covariate_coef),
             treat_count=treat.count(),
         )
@@ -196,7 +199,7 @@ class RatioOfMeans(
         else:
             q = (1 + self.confidence_level) / 2
             half_ci = scale * distr.ppf(q)
-            effect_size_ci_lower = effect_size + half_ci
+            effect_size_ci_lower = effect_size - half_ci
             effect_size_ci_upper = effect_size + half_ci
 
             rel_half_ci = np.exp(rel_scale * rel_distr.ppf(q))
@@ -227,6 +230,18 @@ class RatioOfMeans(
         ) / aggr.ratio_var(
             self.numer_covariate,
             self.denom_covariate,
+        )
+
+
+    def _metric_mean(
+        self,
+        aggr: tea_tasting.aggr.Aggregates,
+        covariate_coef: float,
+        covariate_mean: float,
+    ) -> float:
+        return aggr.mean(self.numer)/aggr.mean(self.denom) - covariate_coef*(
+            aggr.mean(self.numer_covariate)/aggr.mean(self.denom_covariate)
+            - covariate_mean
         )
 
 
