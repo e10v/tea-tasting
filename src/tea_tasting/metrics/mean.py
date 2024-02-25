@@ -11,6 +11,7 @@ import scipy.stats
 import tea_tasting.aggr
 import tea_tasting.config
 import tea_tasting.metrics.base
+import tea_tasting.utils
 
 
 if TYPE_CHECKING:
@@ -59,7 +60,7 @@ class RatioOfMeans(tea_tasting.metrics.base.MetricBaseAggregated):
         denom: str | None = None,
         numer_covariate: str | None = None,
         denom_covariate: str | None = None,
-        alternative: Literal["two-sided", "less", "greater"] | None = None,
+        alternative: Literal["two-sided", "greater", "less"] | None = None,
         confidence_level: float | None = None,
         equal_var: bool | None = None,
         use_t: bool | None = None,
@@ -79,27 +80,29 @@ class RatioOfMeans(tea_tasting.metrics.base.MetricBaseAggregated):
             use_t: Defines whether to use the Student's t-distribution (True) or
                 the Normal distribution (False).
         """
-        self.numer = numer
-        self.denom = denom
-        self.numer_covariate = numer_covariate
-        self.denom_covariate = denom_covariate
+        self.numer = tea_tasting.utils.check_scalar(numer, "numer", typ=str)
+        self.denom = tea_tasting.utils.check_scalar(denom, "denom", typ=str | None)
+        self.numer_covariate = tea_tasting.utils.check_scalar(
+            numer_covariate, "numer_covariate", typ=str | None)
+        self.denom_covariate = tea_tasting.utils.check_scalar(
+            denom_covariate, "denom_covariate", typ=str | None)
         self.alternative = (
-            alternative
+            tea_tasting.utils.auto_check(alternative, "alternative")
             if alternative is not None
             else tea_tasting.config.get_config("alternative")
         )
         self.confidence_level = (
-            confidence_level
+            tea_tasting.utils.auto_check(confidence_level, "confidence_level")
             if confidence_level is not None
             else tea_tasting.config.get_config("confidence_level")
         )
         self.equal_var = (
-            equal_var
+            tea_tasting.utils.auto_check(equal_var, "equal_var")
             if equal_var is not None
             else tea_tasting.config.get_config("equal_var")
         )
         self.use_t = (
-            use_t
+            tea_tasting.utils.auto_check(use_t, "use_t")
             if use_t is not None
             else tea_tasting.config.get_config("use_t")
         )
