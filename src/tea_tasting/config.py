@@ -5,6 +5,8 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING
 
+import tea_tasting.utils
+
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -52,9 +54,9 @@ def set_config(
         use_t: Defines whether to use the Student's t-distribution (True) or
             the Normal distribution (False) by default. Default is True.
     """
-    for param, value in locals().items():
+    for name, value in locals().items():
         if value is not None:
-            _global_config[param] = value
+            _global_config[name] = tea_tasting.utils.auto_check(value, name)
 
 
 @contextlib.contextmanager
