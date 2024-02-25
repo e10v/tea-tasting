@@ -46,7 +46,7 @@ class AggrCols(NamedTuple):
             mean_cols=tuple({*self.mean_cols, *other.mean_cols}),
             var_cols=tuple({*self.var_cols, *other.var_cols}),
             cov_cols=tuple({
-                tea_tasting._utils.sorted_tuple(*cols)
+                tea_tasting.aggr._sorted_tuple(*cols)
                 for cols in tuple({*self.cov_cols, *other.cov_cols})
             }),
         )

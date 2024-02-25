@@ -49,7 +49,7 @@ class Aggregates(tea_tasting._utils.ReprMixin):
         self._mean = mean
         self._var = var
         self._cov = {
-            tea_tasting._utils.sorted_tuple(left, right): value
+            _sorted_tuple(left, right): value
             for (left, right), value in cov.items()
         }
 
@@ -132,7 +132,7 @@ class Aggregates(tea_tasting._utils.ReprMixin):
         """
         if left is None or right is None:
             return 0
-        return self._cov[tea_tasting._utils.sorted_tuple(left, right)]
+        return self._cov[_sorted_tuple(left, right)]
 
     def ratio_var(
         self,
@@ -361,7 +361,13 @@ def _validate_aggr_cols(
     mean_cols = tuple({*mean_cols})
     var_cols = tuple({*var_cols})
     cov_cols = tuple({
-        tea_tasting._utils.sorted_tuple(left, right)
+        _sorted_tuple(left, right)
         for left, right in cov_cols
     })
     return mean_cols, var_cols, cov_cols
+
+
+def _sorted_tuple(left: str, right: str) -> tuple[str, str]:
+    if right < left:
+        return right, left
+    return left, right

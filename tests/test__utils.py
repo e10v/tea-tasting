@@ -31,11 +31,6 @@ def test_check_scalar_lt():
         tea_tasting._utils.check_scalar(1, lt=1)
 
 
-def test_sorted_tuple():
-    assert tea_tasting._utils.sorted_tuple("a", "b") == ("a", "b")
-    assert tea_tasting._utils.sorted_tuple("b", "a") == ("a", "b")
-
-
 def test_repr_mixin_repr():
     class Repr(tea_tasting._utils.ReprMixin):
         def __init__(self, a: int, b: int, c: int) -> None:

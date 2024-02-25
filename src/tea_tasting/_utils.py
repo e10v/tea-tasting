@@ -35,12 +35,6 @@ def check_scalar(
         raise ValueError(f"{name} == {value}, must be < {lt}.")
 
 
-def sorted_tuple(left: str, right: str) -> tuple[str, str]:
-    if right < left:
-        return right, left
-    return left, right
-
-
 class ReprMixin:
     @classmethod
     def _get_param_names(cls: type[ReprMixin]) -> tuple[str, ...]:
