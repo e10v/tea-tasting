@@ -10,8 +10,9 @@ import scipy.stats
 
 import tea_tasting.aggr
 import tea_tasting.config
-import tea_tasting.metrics.base
 import tea_tasting.utils
+
+from .base import AggrCols, MetricBaseAggregated
 
 
 if TYPE_CHECKING:
@@ -51,7 +52,7 @@ class MeansResult(NamedTuple):
     pvalue: float
 
 
-class RatioOfMeans(tea_tasting.metrics.base.MetricBaseAggregated):
+class RatioOfMeans(MetricBaseAggregated):
     """Compares ratios of metrics means between variants."""
 
     def __init__(  # noqa: PLR0913
@@ -109,7 +110,7 @@ class RatioOfMeans(tea_tasting.metrics.base.MetricBaseAggregated):
 
 
     @property
-    def aggr_cols(self) -> tea_tasting.metrics.base.AggrCols:
+    def aggr_cols(self) -> AggrCols:
         """Columns to be aggregated for a metric analysis."""
         cols = tuple(
             col for col in (
@@ -120,7 +121,7 @@ class RatioOfMeans(tea_tasting.metrics.base.MetricBaseAggregated):
             )
             if col is not None
         )
-        return tea_tasting.metrics.base.AggrCols(
+        return AggrCols(
             has_count=True,
             mean_cols=cols,
             var_cols=cols,
