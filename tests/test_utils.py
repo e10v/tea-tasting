@@ -30,6 +30,11 @@ def test_check_scalar_lt():
     with pytest.raises(ValueError, match="must be <"):
         tea_tasting.utils.check_scalar(1, lt=1)
 
+def test_check_scalar_is_in():
+    tea_tasting.utils.check_scalar(1, is_in={0, 1})
+    with pytest.raises(ValueError, match="must be in"):
+        tea_tasting.utils.check_scalar(1, is_in={0, 2})
+
 
 def test_repr_mixin_repr():
     class Repr(tea_tasting.utils.ReprMixin):

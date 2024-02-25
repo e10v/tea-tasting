@@ -18,6 +18,7 @@ def check_scalar(
     gt: Any = None,
     le: Any = None,
     lt: Any = None,
+    is_in: Any = None,
 ) -> None:
     """Validate scalar parameter's type and value.
 
@@ -25,10 +26,11 @@ def check_scalar(
         value: Parameter to validate.
         name: Parameter name.
         typ: Acceptable data types.
-        ge: If not None, check that parameter is greater than or equal to ge.
-        gt: If not None, check that parameter is greater than to gt.
-        le: If not None, check that parameter is less than or equal to le.
-        lt: If not None, check that parameter is less than to gt.
+        ge: If not None, check that the parameter value is greater than or equal to ge.
+        gt: If not None, check that the parameter value is greater than to gt.
+        le: If not None, check that the parameter value is less than or equal to le.
+        lt: If not None, check that the parameter value is less than to gt.
+        is_in: If not None, check that the parameter value is in is_in.
     """
     if typ is not None and not isinstance(value, typ):
         raise TypeError(f"{name} must be an instance of {typ}.")
@@ -44,6 +46,9 @@ def check_scalar(
 
     if lt is not None and value >= lt:
         raise ValueError(f"{name} == {value}, must be < {lt}.")
+
+    if is_in is not None and value not in is_in:
+        raise ValueError(f"{name} == {value}, must be in {is_in}.")
 
 
 class ReprMixin:
