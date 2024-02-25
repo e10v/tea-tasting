@@ -196,19 +196,19 @@ class RatioOfMeans(
         effect_size = treat_mean - contr_mean
         std_effect_size = effect_size / scale
 
-        if self.alternative == "less":
-            q = self.confidence_level
-            effect_size_ci_lower = means_ratio_ci_lower = float("-inf")
-            effect_size_ci_upper = effect_size + scale*distr.ppf(q)
-            means_ratio_ci_upper = means_ratio * np.exp(rel_scale * rel_distr.ppf(q))
-            pvalue = distr.cdf(std_effect_size)
-        elif self.alternative == "greater":
+        if self.alternative == "greater":
             q = 1 - self.confidence_level
             effect_size_ci_lower = effect_size + scale*distr.ppf(q)
             means_ratio_ci_lower = means_ratio * np.exp(rel_scale * rel_distr.ppf(q))
             effect_size_ci_upper = means_ratio_ci_upper = float("+inf")
             pvalue = distr.cdf(-std_effect_size)
-        else:
+        elif self.alternative == "less":
+            q = self.confidence_level
+            effect_size_ci_lower = means_ratio_ci_lower = float("-inf")
+            effect_size_ci_upper = effect_size + scale*distr.ppf(q)
+            means_ratio_ci_upper = means_ratio * np.exp(rel_scale * rel_distr.ppf(q))
+            pvalue = distr.cdf(std_effect_size)
+        else:  # two-sided
             q = (1 + self.confidence_level) / 2
             half_ci = scale * distr.ppf(q)
             effect_size_ci_lower = effect_size - half_ci
@@ -306,69 +306,3 @@ class RatioOfMeans(
             distr = scipy.stats.norm()
 
         return scale, distr
-
-
-if __name__ == "__main__":
-    import pandas as pd
-    import tea_tasting.datasets
-
-    data = tea_tasting.datasets.make_users_data(covariates=True, seed=2)
-    cols = (
-        "visits", "orders", "revenue",
-        "visits_covariate", "orders_covariate", "revenue_covariate",
-    )
-    data = tea_tasting.aggr.read_aggregates(
-        data,
-        group_col="variant",
-        has_count=True,
-        mean_cols=cols,
-        var_cols=cols,
-        cov_cols=tuple(
-            (col0, col1)
-            for col0 in cols
-            for col1 in cols
-            if col0 < col1
-        ),
-    )
-
-    with tea_tasting.config.config_context(alternative="less"):
-        visits_per_user = RatioOfMeans(numer="visits")
-        visits_per_user_cuped = RatioOfMeans(
-            numer="visits",
-            numer_covariate="visits_covariate",
-        )
-        orders_per_visit = RatioOfMeans(numer="orders", denom="visits")
-        orders_per_visit_cuped = RatioOfMeans(
-            numer="orders",
-            denom="visits",
-            numer_covariate="orders_covariate",
-            denom_covariate="visits_covariate",
-        )
-        orders_per_user = RatioOfMeans(numer="orders")
-        orders_per_user_cuped = RatioOfMeans(
-            numer="orders",
-            numer_covariate="orders_covariate",
-        )
-        revenue_per_user = RatioOfMeans(numer="revenue")
-        revenue_per_user_cuped = RatioOfMeans(
-            numer="revenue",
-            numer_covariate="revenue_covariate",
-        )
-
-    metrics =  (
-        (visits_per_user, "visits_per_user"),
-        (visits_per_user_cuped, "visits_per_user_cuped"),
-        (orders_per_visit, "orders_per_visit"),
-        (orders_per_visit_cuped, "orders_per_visit_cuped"),
-        (orders_per_user, "orders_per_user"),
-        (orders_per_user_cuped, "orders_per_user_cuped"),
-        (revenue_per_user, "revenue_per_user"),
-        (revenue_per_user_cuped, "revenue_per_user_cuped"),
-    )
-
-    results = pd.DataFrame(
-        {"metric": name} | metric.analyze(data, control=0, treatment=1)._asdict()
-        for metric, name in metrics
-    )
-
-    print(results)
