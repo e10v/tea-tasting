@@ -13,12 +13,13 @@ import tea_tasting.utils
 
 if TYPE_CHECKING:
     import ibis.expr.types  # noqa: TCH004
+    import numpy.typing as npt
 
 
 def make_users_data(  # noqa: PLR0913
-    size: int = 4000,
-    covariates: bool = False,
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    covariates: bool = False,
+    n_users: int = 4000,
     ratio: float | int = 1,
     visits_uplift: float = 0.0,
     orders_uplift: float = 0.1,
@@ -40,10 +41,10 @@ def make_users_data(  # noqa: PLR0913
     Optionally, pre-experimental data can be generated as well.
 
     Args:
-        size: Sample size.
+        seed: Random seed.
         covariates: If True, generates pre-experimental data as the covariates
             in addition to default columns.
-        seed: Random seed.
+        n_users: Number of users.
         ratio: Ratio of treatment observations to control observations.
         visits_uplift: Relative visits uplift in the treatment variant.
         orders_uplift: Relative orders uplift in the treatment variant.
@@ -63,42 +64,125 @@ def make_users_data(  # noqa: PLR0913
             orders_covariate (optional): Number of orders before the experiment.
             revenue_covariate (optional): Revenue before the experiment.
     """
-    tea_tasting.utils.check_scalar(size, name="size", typ=int, ge=10)
-    tea_tasting.utils.check_scalar(ratio, name="ratio", typ=float | int, gt=0)
-    tea_tasting.utils.check_scalar(
-        visits_uplift, name="visits_uplift", typ=float, gt=1/avg_visits - 1)
-    tea_tasting.utils.check_scalar(
-        orders_uplift,
-        name="orders_uplift",
-        typ=float,
-        gt=-1,
-        lt=(1 + visits_uplift)/avg_orders_per_visit - 1,
+    _check_params(
+        n_users=n_users,
+        ratio=ratio,
+        visits_uplift=visits_uplift,
+        orders_uplift=orders_uplift,
+        revenue_uplift=revenue_uplift,
+        avg_visits=avg_visits,
+        avg_orders_per_visit=avg_orders_per_visit,
+        avg_revenue_per_order=avg_revenue_per_order,
     )
-    tea_tasting.utils.check_scalar(
-        revenue_uplift, name="revenue_uplift", typ=float, gt=-1)
-    tea_tasting.utils.check_scalar(
-        avg_visits, name="avg_visits", typ=float | int, gt=1)
-    tea_tasting.utils.check_scalar(
-        avg_orders_per_visit, name="avg_orders_per_visit", typ=float, gt=0, lt=1)
-    tea_tasting.utils.check_scalar(
-        avg_revenue_per_order, name="avg_revenue_per_order", typ=float | int, gt=0)
 
     rng = np.random.default_rng(seed=seed)
-    treat = rng.binomial(n=1, p=ratio / (1 + ratio), size=size)
+    user = np.arange(n_users)
+    variant = rng.binomial(n=1, p=ratio / (1 + ratio), size=n_users)
 
-    visits_mult = 1 + visits_uplift*treat
-    visits = 1 + rng.poisson(lam=avg_visits*visits_mult - 1, size=size)
+    visits_mult = 1 + visits_uplift*variant
+    visits = 1 + rng.poisson(lam=avg_visits*visits_mult - 1, size=n_users)
 
-    orders_per_visits_mult = (1 + orders_uplift*treat) / (1 + visits_uplift*treat)
+    orders_per_visits_mult = (1 + orders_uplift*variant) / (1 + visits_uplift*variant)
+    orders_per_visits = rng.beta(
+        a=avg_orders_per_visit*orders_per_visits_mult,
+        b=1 - avg_orders_per_visit*orders_per_visits_mult,
+        size=n_users,
+    )
+
+    orders = rng.binomial(n=visits, p=orders_per_visits, size=n_users)
+
+    revenue_per_order_mult = (1 + revenue_uplift*variant) / (1 + orders_uplift*variant)
+    revenue_per_order = rng.lognormal(
+        mean=np.log(avg_revenue_per_order * revenue_per_order_mult) - 0.125,
+        sigma=0.5,
+        size=n_users,
+    )
+
+    revenue = orders * revenue_per_order
+
+    data = pd.DataFrame({
+        "user": user,
+        "variant": variant,
+        "visits": visits,
+        "orders": orders,
+        "revenue": revenue,
+    })
+
+    if covariates:
+        visits_covariate = rng.poisson(lam=visits / visits_mult, size=n_users)
+        orders_per_visits_covariate = orders_per_visits / orders_per_visits_mult
+
+        orders_covariate = rng.binomial(
+            n=visits_covariate,
+            p=orders_per_visits_covariate,
+            size=n_users,
+        )
+
+        revenue_per_order_covariate = rng.lognormal(
+            mean=np.log(revenue_per_order / revenue_per_order_mult) - 0.125,
+            sigma=0.5,
+            size=n_users,
+        )
+
+        revenue_covariate = orders_covariate * revenue_per_order_covariate
+
+        data = data.assign(
+            visits_covariate=visits_covariate,
+            orders_covariate=orders_covariate,
+            revenue_covariate=revenue_covariate,
+        )
+
+    con = ibis.pandas.connect()
+    return con.create_table("users_data", data)
+
+
+def _make_data(  # noqa: PLR0913
+    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    covariates: bool = False,
+    n_users: int = 4000,
+    ratio: float | int = 1,
+    visits_uplift: float = 0.0,
+    orders_uplift: float = 0.1,
+    revenue_uplift: float = 0.1,
+    avg_visits: float | int = 2,
+    avg_orders_per_visit: float = 0.25,
+    avg_revenue_per_order: float | int = 10,
+    explode_visits: bool = False,
+) -> ibis.expr.types.Table:
+    _check_params(
+        n_users=n_users,
+        ratio=ratio,
+        visits_uplift=visits_uplift,
+        orders_uplift=orders_uplift,
+        revenue_uplift=revenue_uplift,
+        avg_visits=avg_visits,
+        avg_orders_per_visit=avg_orders_per_visit,
+        avg_revenue_per_order=avg_revenue_per_order,
+    )
+
+    size = n_users
+    rng = np.random.default_rng(seed=seed)
+    user = np.arange(n_users)
+    variant = rng.binomial(n=1, p=ratio / (1 + ratio), size=n_users)
+    visits_mult = 1 + visits_uplift*variant
+    visits = 1 + rng.poisson(lam=avg_visits*visits_mult - 1, size=n_users)
+
+    if explode_visits:
+        user = np.repeat(user, visits)
+        variant = np.repeat(variant, visits)
+        visits_mult = np.repeat(visits_mult, visits)
+        visits = 1
+        size = len(user)
+
+    orders_per_visits_mult = (1 + orders_uplift*variant) / (1 + visits_uplift*variant)
     orders_per_visits = rng.beta(
         a=avg_orders_per_visit*orders_per_visits_mult,
         b=1 - avg_orders_per_visit*orders_per_visits_mult,
         size=size,
     )
-
     orders = rng.binomial(n=visits, p=orders_per_visits, size=size)
 
-    revenue_per_order_mult = (1 + revenue_uplift*treat) / (1 + orders_uplift*treat)
+    revenue_per_order_mult = (1 + revenue_uplift*variant) / (1 + orders_uplift*variant)
     revenue_per_order = rng.lognormal(
         mean=np.log(avg_revenue_per_order * revenue_per_order_mult) - 0.125,
         sigma=0.5,
@@ -108,8 +192,8 @@ def make_users_data(  # noqa: PLR0913
     revenue = orders * revenue_per_order
 
     data = pd.DataFrame({
-        "user": np.arange(size),
-        "variant": treat,
+        "user": user,
+        "variant": variant,
         "visits": visits,
         "orders": orders,
         "revenue": revenue,
@@ -133,6 +217,11 @@ def make_users_data(  # noqa: PLR0913
 
         revenue_covariate = orders_covariate * revenue_per_order_covariate
 
+        if explode_visits:
+            visits_covariate = _avg_by_groups(visits_covariate, user)
+            orders_covariate = _avg_by_groups(orders_covariate, user)
+            revenue_covariate = _avg_by_groups(revenue_covariate, user)
+
         data = data.assign(
             visits_covariate=visits_covariate,
             orders_covariate=orders_covariate,
@@ -141,3 +230,63 @@ def make_users_data(  # noqa: PLR0913
 
     con = ibis.pandas.connect()
     return con.create_table("users_data", data)
+
+
+def _check_params(
+    n_users: int,
+    ratio: float | int,
+    visits_uplift: float,
+    orders_uplift: float,
+    revenue_uplift: float,
+    avg_visits: float | int,
+    avg_orders_per_visit: float,
+    avg_revenue_per_order: float | int,
+) -> None:
+    tea_tasting.utils.check_scalar(n_users, name="n_users", typ=int, ge=10)
+    tea_tasting.utils.check_scalar(ratio, name="ratio", typ=float | int, gt=0)
+    tea_tasting.utils.check_scalar(
+        visits_uplift, name="visits_uplift", typ=float, gt=1/avg_visits - 1)
+    tea_tasting.utils.check_scalar(
+        orders_uplift,
+        name="orders_uplift",
+        typ=float,
+        gt=-1,
+        lt=(1 + visits_uplift)/avg_orders_per_visit - 1,
+    )
+    tea_tasting.utils.check_scalar(
+        revenue_uplift, name="revenue_uplift", typ=float, gt=-1)
+    tea_tasting.utils.check_scalar(
+        avg_visits, name="avg_visits", typ=float | int, gt=1)
+    tea_tasting.utils.check_scalar(
+        avg_orders_per_visit, name="avg_orders_per_visit", typ=float, gt=0, lt=1)
+    tea_tasting.utils.check_scalar(
+        avg_revenue_per_order, name="avg_revenue_per_order", typ=float | int, gt=0)
+
+
+def _avg_by_groups(
+    values: npt.ArrayLike,
+    groups: npt.ArrayLike,
+) -> npt.ArrayLike:
+    return np.concatenate([
+        np.full(v.shape, v.mean())
+        for v in np.split(values, np.unique(groups, return_index=True)[1])
+        if len(v) > 0
+    ])
+
+
+if __name__ == "__main__":
+    print(make_users_data(seed=42, covariates=True).to_pandas())
+    print(_make_data(seed=42, covariates=True).to_pandas())
+    print(_make_data(seed=42, covariates=True, explode_visits=True).to_pandas())
+    print(
+        _make_data(seed=42, covariates=True, n_users=1000000, visits_uplift=0.05)
+            .to_pandas()
+            .describe(),
+    )
+    print(
+        _make_data(seed=42, covariates=True, n_users=1000000, visits_uplift=0.05, explode_visits=True)
+            .to_pandas()
+            .groupby("user", as_index=False)
+            .sum()
+            .describe(),
+    )

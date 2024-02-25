@@ -60,7 +60,7 @@ def test_aggr_cols_len():
 
 @pytest.fixture
 def data() -> ibis.expr.types.Table:
-    return tea_tasting.datasets.make_users_data(size=100, seed=42)
+    return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
 
 @pytest.fixture
 def correct_aggrs(

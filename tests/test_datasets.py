@@ -5,7 +5,7 @@ import tea_tasting.datasets
 
 def test_make_users_data_default():
     size = 100
-    users_data = tea_tasting.datasets.make_users_data(size=size, seed=42)
+    users_data = tea_tasting.datasets.make_users_data(n_users=size, seed=42)
     assert users_data.columns == ["user", "variant", "visits", "orders", "revenue"]
 
     data = users_data.to_pandas()
@@ -22,7 +22,7 @@ def test_make_users_data_default():
 def test_make_users_data_covariates():
     size = 100
     users_data = tea_tasting.datasets.make_users_data(
-        size=size, seed=42, covariates=True)
+        n_users=size, seed=42, covariates=True)
     assert users_data.columns == [
         "user", "variant", "visits", "orders", "revenue",
         "visits_covariate", "orders_covariate", "revenue_covariate",
