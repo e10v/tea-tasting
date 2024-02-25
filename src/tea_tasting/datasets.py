@@ -66,13 +66,13 @@ def make_users_data(  # noqa: PLR0913
     tea_tasting.utils.check_scalar(size, name="size", typ=int, ge=10)
     tea_tasting.utils.check_scalar(ratio, name="ratio", typ=float | int, gt=0)
     tea_tasting.utils.check_scalar(
-        visits_uplift, name="visits_uplift", typ=float, gt=-1)
+        visits_uplift, name="visits_uplift", typ=float, gt=1/avg_visits - 1)
     tea_tasting.utils.check_scalar(
         orders_uplift,
         name="orders_uplift",
         typ=float,
         gt=-1,
-        lt=(1 + max(visits_uplift, 0))/avg_orders_per_visit - 1,
+        lt=(1 + visits_uplift)/avg_orders_per_visit - 1,
     )
     tea_tasting.utils.check_scalar(
         revenue_uplift, name="revenue_uplift", typ=float, gt=-1)
