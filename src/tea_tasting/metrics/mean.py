@@ -193,11 +193,11 @@ class RatioOfMeans(tea_tasting.metrics.base.MetricBaseAggregated):
         std_effect_size = effect_size / scale
 
         if self.alternative == "greater":
-            q = 1 - self.confidence_level
-            effect_size_ci_lower = effect_size + scale*distr.ppf(q)
-            means_ratio_ci_lower = means_ratio * np.exp(log_scale * log_distr.ppf(q))
+            q = self.confidence_level
+            effect_size_ci_lower = effect_size + scale*distr.isf(q)
+            means_ratio_ci_lower = means_ratio * np.exp(log_scale * log_distr.isf(q))
             effect_size_ci_upper = means_ratio_ci_upper = float("+inf")
-            pvalue = distr.cdf(-std_effect_size)
+            pvalue = distr.sf(std_effect_size)
         elif self.alternative == "less":
             q = self.confidence_level
             effect_size_ci_lower = means_ratio_ci_lower = float("-inf")
