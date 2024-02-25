@@ -7,4 +7,4 @@ from tea_tasting.metrics.base import (
     MetricBaseAggregated,
     MetricBaseGranular,
 )
-from tea_tasting.metrics.mean import RatioOfMeans
+from tea_tasting.metrics.mean import RatioOfMeans, SimpleMean
