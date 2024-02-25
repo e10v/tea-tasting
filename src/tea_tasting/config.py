@@ -43,14 +43,14 @@ def set_config(
     """Set global configuration.
 
     Args:
-        alternative: Default alternative hypothesis.
+        alternative: Default alternative hypothesis. Default is "two-sided".
         confidence_level: Default confidence level for the confidence interval.
-        equal_var: Defines whether to use the Welch's t-test (`False`) or the standard
-            Student's t-test (`True`) by default. The standard Student's t-test assumes
-            equal population variances, while Welch's t-test doesn't. Applicable only if
-            `use_t` is `True`.
-        use_t: Defines whether to use the Student's t-distribution (`True`) or
-            the Normal distribution (`False`) by default.
+            Default is 0.95.
+        equal_var: Defines whether equal variance is assumed. If True,
+            pooled variance is used for the calculation of the standard error
+            of the difference between two means. Default is False.
+        use_t: Defines whether to use the Student's t-distribution (True) or
+            the Normal distribution (False) by default. Default is True.
     """
     for param, value in locals().items():
         if value is not None:
@@ -67,14 +67,14 @@ def config_context(
     """Context manager for configuration.
 
     Args:
-        alternative: Default alternative hypothesis.
+        alternative: Default alternative hypothesis. Default is "two-sided".
         confidence_level: Default confidence level for the confidence interval.
-        equal_var: Defines whether to use the Welch's t-test (`False`) or the standard
-            Student's t-test (`True`) by default. The standard Student's t-test assumes
-            equal population variances, while Welch's t-test doesn't. Applicable only if
-            `use_t` is `True`.
-        use_t: Defines whether to use the Student's t-distribution (`True`) or
-            the Normal distribution (`False`) by default.
+            Default is 0.95.
+        equal_var: Defines whether equal variance is assumed. If True,
+            pooled variance is used for the calculation of the standard error
+            of the difference between two means. Default is False.
+        use_t: Defines whether to use the Student's t-distribution (True) or
+            the Normal distribution (False) by default. Default is True.
     """
     new_config = locals()
     old_config = get_config()

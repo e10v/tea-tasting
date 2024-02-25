@@ -38,7 +38,7 @@ def test_sorted_tuple():
 
 def test_repr_mixin_repr():
     class Repr(tea_tasting._utils.ReprMixin):
-        def __init__(self: Repr, a: int, b: int, c: int) -> None:
+        def __init__(self, a: int, b: int, c: int) -> None:
             self._a = a
             self.a_ = -1
             self.a = -1
@@ -56,7 +56,7 @@ def test_repr_mixin_repr_obj():
 
 def test_repr_mixin_repr_pos():
     class Pos(tea_tasting._utils.ReprMixin):
-        def __init__(self: Pos, *args: int) -> None:
+        def __init__(self, *args: int) -> None:
             self.args = args
     pos = Pos(1, 2, 3)
     with pytest.raises(RuntimeError):

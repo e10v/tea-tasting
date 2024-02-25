@@ -63,11 +63,11 @@ def correct_aggrs(
 @pytest.fixture
 def aggr_metric() -> tea_tasting.metrics.base.MetricBaseAggregated:
     class AggrMetric(tea_tasting.metrics.base.MetricBaseAggregated):
-        def __init__(self: tea_tasting.metrics.base.MetricBaseAggregated) -> None:
+        def __init__(self) -> None:
             return None
 
         def analyze(
-            self: tea_tasting.metrics.base.MetricBaseAggregated,
+            self,
             data: pd.DataFrame | ibis.expr.types.Table | dict[  # noqa: ARG002
                 Any, tea_tasting.aggr.Aggregates],
             control: Any,  # noqa: ARG002
@@ -78,7 +78,7 @@ def aggr_metric() -> tea_tasting.metrics.base.MetricBaseAggregated:
 
         @property
         def aggr_cols(
-            self: tea_tasting.metrics.base.MetricBaseAggregated,
+            self,
         ) -> tea_tasting.metrics.base.AggrCols:
             return tea_tasting.metrics.base.AggrCols(
                 has_count=True,

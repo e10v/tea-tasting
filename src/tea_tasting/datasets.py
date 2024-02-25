@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 def make_users_data(  # noqa: PLR0913
-    size: int = 10000,
+    size: int = 4000,
     covariates: bool = False,
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     ratio: float | int = 1,
@@ -100,7 +100,8 @@ def make_users_data(  # noqa: PLR0913
 
     revenue_per_order_mult = (1 + revenue_uplift*treat) / (1 + orders_uplift*treat)
     revenue_per_order = rng.lognormal(
-        mean=np.log(avg_revenue_per_order * revenue_per_order_mult) - 0.5,
+        mean=np.log(avg_revenue_per_order * revenue_per_order_mult) - 0.125,
+        sigma=0.5,
         size=size,
     )
 
