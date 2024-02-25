@@ -7,11 +7,13 @@ from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from typing import Any
+    from typing import Any, TypeVar
+
+    R = TypeVar("R")
 
 
 def check_scalar(
-    value: Any,
+    value: R,
     name: str = "value",
     typ: Any = None,
     ge: Any = None,
@@ -19,7 +21,7 @@ def check_scalar(
     le: Any = None,
     lt: Any = None,
     is_in: Any = None,
-) -> None:
+) -> R:
     """Check scalar parameter's type and value.
 
     Args:
@@ -31,32 +33,34 @@ def check_scalar(
         le: If not None, check that the parameter value is less than or equal to le.
         lt: If not None, check that the parameter value is less than to gt.
         is_in: If not None, check that the parameter value is in is_in.
+
+    Returns:
+        Parameter value.
     """
     if typ is not None and not isinstance(value, typ):
         raise TypeError(f"{name} must be an instance of {typ}.")
-
     if ge is not None and value < ge:
         raise ValueError(f"{name} == {value}, must be >= {ge}.")
-
     if gt is not None and value <= gt:
         raise ValueError(f"{name} == {value}, must be > {gt}.")
-
     if le is not None and value > le:
         raise ValueError(f"{name} == {value}, must be <= {le}.")
-
     if lt is not None and value >= lt:
         raise ValueError(f"{name} == {value}, must be < {lt}.")
-
     if is_in is not None and value not in is_in:
         raise ValueError(f"{name} == {value}, must be in {is_in}.")
+    return value
 
 
-def auto_check(value: Any, name: str) -> None:
+def auto_check(value: R, name: str) -> R:
     """Check parameter's type and value based in it's name.
 
     Args:
         value: Parameter value.
         name: Parameter name.
+
+    Returns:
+        Parameter value.
     """
     if name == "alternative":
         check_scalar(value, name, typ=str, is_in={"two-sided", "greater", "less"})
@@ -64,6 +68,7 @@ def auto_check(value: Any, name: str) -> None:
         check_scalar(value, name, typ=float, gt=0, lt=1)
     elif name in {"equal_var", "use_t"}:
         check_scalar(value, name, typ=bool)
+    return value
 
 
 class ReprMixin:
