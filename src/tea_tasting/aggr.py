@@ -5,7 +5,7 @@ from __future__ import annotations
 import itertools
 from typing import TYPE_CHECKING, overload
 
-import tea_tasting._utils
+import tea_tasting.utils
 
 
 if TYPE_CHECKING:
@@ -23,7 +23,7 @@ _COV = "_cov__{}__{}"
 _DEMEAN = "_demean__{}"
 
 
-class Aggregates(tea_tasting._utils.ReprMixin):
+class Aggregates(tea_tasting.utils.ReprMixin):
     """Aggregated statistics."""
     _count: int | None
     _mean: dict[str, float | int]

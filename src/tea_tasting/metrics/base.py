@@ -9,8 +9,8 @@ import ibis
 import ibis.expr.types
 import pandas as pd
 
-import tea_tasting._utils
 import tea_tasting.aggr
+import tea_tasting.utils
 
 
 if TYPE_CHECKING:
@@ -52,7 +52,7 @@ class AggrCols(NamedTuple):
         )
 
 
-class MetricBaseAggregated(abc.ABC, tea_tasting._utils.ReprMixin):
+class MetricBaseAggregated(abc.ABC, tea_tasting.utils.ReprMixin):
     """Metric which is analyzed using aggregates."""
     @property
     @abc.abstractmethod
@@ -143,7 +143,7 @@ class MetricBaseAggregated(abc.ABC, tea_tasting._utils.ReprMixin):
         return table
 
 
-class MetricBaseGranular(abc.ABC, tea_tasting._utils.ReprMixin):
+class MetricBaseGranular(abc.ABC, tea_tasting.utils.ReprMixin):
     """Metric which is analyzed using granular data."""
     use_raw_data: bool = False
 

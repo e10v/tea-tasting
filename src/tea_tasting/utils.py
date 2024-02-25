@@ -12,13 +12,24 @@ if TYPE_CHECKING:
 
 def check_scalar(
     value: Any,
-    name: str = "Value",
+    name: str = "value",
     typ: Any = None,
     ge: Any = None,
     gt: Any = None,
     le: Any = None,
     lt: Any = None,
 ) -> None:
+    """Validate scalar parameter's type and value.
+
+    Args:
+        value: Parameter to validate.
+        name: Parameter name.
+        typ: Acceptable data types.
+        ge: If not None, check that parameter is greater than or equal to ge.
+        gt: If not None, check that parameter is greater than to gt.
+        le: If not None, check that parameter is less than or equal to le.
+        lt: If not None, check that parameter is less than to gt.
+    """
     if typ is not None and not isinstance(value, typ):
         raise TypeError(f"{name} must be an instance of {typ}.")
 
@@ -36,6 +47,15 @@ def check_scalar(
 
 
 class ReprMixin:
+    """Mixin class for object representation.
+
+    Representation string is generated based on parameters values saved in attributes.
+    Attributes names in priority order:
+
+    - "_{parameter name}",
+    - "{parameter name}_",
+    - "{parameter name}".
+    """
     @classmethod
     def _get_param_names(cls: type[ReprMixin]) -> tuple[str, ...]:
         if cls.__init__ is object.__init__:
@@ -57,6 +77,7 @@ class ReprMixin:
         return getattr(self, param_name)
 
     def __repr__(self) -> str:
+        """Object representation."""
         params = {p: self._get_param_value(p) for p in self._get_param_names()}
         params_repr = ", ".join(f"{k}={v!r}" for k, v in params.items())
         return f"{self.__class__.__name__}({params_repr})"
