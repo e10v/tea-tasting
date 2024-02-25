@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, NamedTuple
 import numpy as np
 import scipy.stats
 
-import tea_tasting._utils
 import tea_tasting.aggr
 import tea_tasting.config
 import tea_tasting.metrics.base
@@ -51,10 +50,7 @@ class MeansResult(NamedTuple):
     pvalue: float
 
 
-class RatioOfMeans(
-    tea_tasting.metrics.base.MetricBaseAggregated,
-    tea_tasting._utils.ReprMixin,
-):
+class RatioOfMeans(tea_tasting.metrics.base.MetricBaseAggregated):
     """Compares ratios of metrics means between variants."""
 
     def __init__(  # noqa: PLR0913

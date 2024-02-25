@@ -52,7 +52,7 @@ class AggrCols(NamedTuple):
         )
 
 
-class MetricBaseAggregated(abc.ABC):
+class MetricBaseAggregated(abc.ABC, tea_tasting._utils.ReprMixin):
     """Metric which is analyzed using aggregates."""
     @property
     @abc.abstractmethod
@@ -143,7 +143,7 @@ class MetricBaseAggregated(abc.ABC):
         return table
 
 
-class MetricBaseGranular(abc.ABC):
+class MetricBaseGranular(abc.ABC, tea_tasting._utils.ReprMixin):
     """Metric which is analyzed using granular data."""
     use_raw_data: bool = False
 
