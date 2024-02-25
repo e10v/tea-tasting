@@ -178,3 +178,42 @@ def test_ratio_of_means_analyze_ratio_less_use_norm(
     assert result.rel_effect_size_ci_lower == float("-inf")
     assert result.rel_effect_size_ci_upper == pytest.approx(0.34578466493619153)
     assert result.pvalue == pytest.approx(0.3604265417728255)
+
+
+def test_simple_mean(data: dict[str, tea_tasting.aggr.Aggregates]):
+    metric = tea_tasting.metrics.mean.SimpleMean(
+        "orders",
+        covariate="orders_covariate",
+        alternative="greater",
+        confidence_level=0.9,
+        equal_var=True,
+        use_t=False,
+    )
+    ratio_metric = tea_tasting.metrics.mean.RatioOfMeans(
+        "orders",
+        numer_covariate="orders_covariate",
+        alternative="greater",
+        confidence_level=0.9,
+        equal_var=True,
+        use_t=False,
+    )
+    _compare_results(metric.analyze(data, 0, 1), ratio_metric.analyze(data, 0, 1))
+
+
+def _compare_results(
+    left: tea_tasting.metrics.mean.MeansResult,
+    right: tea_tasting.metrics.mean.MeansResult,
+) -> None:
+    assert isinstance(left, tea_tasting.metrics.mean.MeansResult)
+    assert isinstance(right, tea_tasting.metrics.mean.MeansResult)
+    assert left.control == pytest.approx(right.control)
+    assert left.treatment == pytest.approx(right.treatment)
+    assert left.effect_size == pytest.approx(right.effect_size)
+    assert left.effect_size_ci_lower == pytest.approx(right.effect_size_ci_lower)
+    assert left.effect_size_ci_upper == pytest.approx(right.effect_size_ci_upper)
+    assert left.rel_effect_size == pytest.approx(right.rel_effect_size)
+    assert left.rel_effect_size_ci_lower == pytest.approx(
+        right.rel_effect_size_ci_lower)
+    assert left.rel_effect_size_ci_upper == pytest.approx(
+        right.rel_effect_size_ci_upper)
+    assert left.pvalue == pytest.approx(right.pvalue)

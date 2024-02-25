@@ -10,9 +10,8 @@ import scipy.stats
 
 import tea_tasting.aggr
 import tea_tasting.config
+from tea_tasting.metrics.base import AggrCols, MetricBaseAggregated
 import tea_tasting.utils
-
-from .base import AggrCols, MetricBaseAggregated
 
 
 if TYPE_CHECKING:
@@ -306,3 +305,41 @@ class RatioOfMeans(MetricBaseAggregated):
             distr = scipy.stats.norm()
 
         return scale, distr
+
+
+class SimpleMean(RatioOfMeans):
+    """Compares metrics means between variants."""
+    def __init__(
+        self,
+        value: str,
+        covariate: str | None = None,
+        alternative: Literal["two-sided", "greater", "less"] | None = None,
+        confidence_level: float | None = None,
+        equal_var: bool | None = None,
+        use_t: bool | None = None,
+    ) -> None:
+        """Create a simple metric.
+
+        Args:
+            value: Metric column name.
+            covariate: Covariate column name.
+            alternative: Default alternative hypothesis.
+            confidence_level: Default confidence level for the confidence interval.
+            equal_var: Defines whether equal variance is assumed. If True,
+                pooled variance is used for the calculation of the standard error
+                of the difference between two means.
+            use_t: Defines whether to use the Student's t-distribution (True) or
+                the Normal distribution (False).
+        """
+        super().__init__(
+            numer=value,
+            denom=None,
+            numer_covariate=covariate,
+            denom_covariate=None,
+            alternative=alternative,
+            confidence_level=confidence_level,
+            equal_var=equal_var,
+            use_t=use_t,
+        )
+        self.value = value
+        self.covariate = covariate
