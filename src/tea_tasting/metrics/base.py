@@ -52,8 +52,33 @@ class AggrCols(NamedTuple):
         )
 
 
-class MetricBaseAggregated(abc.ABC, tea_tasting.utils.ReprMixin):
-    """Metric which is analyzed using aggregates."""
+class MetricBase(abc.ABC, tea_tasting.utils.ReprMixin):
+    """Base class for metrics."""
+
+    @abc.abstractmethod
+    def analyze(
+        self,
+        data: pd.DataFrame | ibis.expr.types.Table,
+        control: Any,
+        treatment: Any,
+        variant_col: str,
+    ) -> NamedTuple | dict[str, Any]:
+        """Analyzes metric in an experiment.
+
+        Args:
+            data: Experimental data.
+            control: Control variant.
+            treatment: Treatment variant.
+            variant_col: Variant column.
+
+        Returns:
+            Experiment results for a metric.
+        """
+        ...
+
+
+class MetricBaseAggregated(MetricBase):
+    """Base class for metrics analyzed using aggregates."""
     @property
     @abc.abstractmethod
     def aggr_cols(self) -> AggrCols:
@@ -143,8 +168,8 @@ class MetricBaseAggregated(abc.ABC, tea_tasting.utils.ReprMixin):
         return table
 
 
-class MetricBaseGranular(abc.ABC, tea_tasting.utils.ReprMixin):
-    """Metric which is analyzed using granular data."""
+class MetricBaseGranular(MetricBase):
+    """Base class for metrics analyzed using granular data."""
     use_raw_data: bool = False
 
     @property
@@ -152,27 +177,3 @@ class MetricBaseGranular(abc.ABC, tea_tasting.utils.ReprMixin):
     def cols(self) -> Sequence[str]:
         """Columns to be fetched for a metric analysis."""
         ...
-
-    @abc.abstractmethod
-    def analyze(
-        self,
-        data: pd.DataFrame | ibis.expr.types.Table,
-        control: Any,
-        treatment: Any,
-        variant_col: str,
-    ) -> NamedTuple | dict[str, Any]:
-        """Analyzes metric in an experiment.
-
-        Args:
-            data: Experimental data.
-            control: Control variant.
-            treatment: Treatment variant.
-            variant_col: Variant column.
-
-        Returns:
-            Experiment results for a metric.
-        """
-        ...
-
-
-MetricBase = MetricBaseAggregated | MetricBaseGranular
