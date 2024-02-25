@@ -185,7 +185,7 @@ class RatioOfMeans(
             treat_var=treat_var,
             treat_count=treat_count,
         )
-        rel_scale, rel_distr = self._scale_and_distr(
+        log_scale, log_distr = self._scale_and_distr(
             contr_var=contr_var / contr_mean / contr_mean,
             contr_count=contr_count,
             treat_var=treat_var / treat_mean / treat_mean,
@@ -199,14 +199,14 @@ class RatioOfMeans(
         if self.alternative == "greater":
             q = 1 - self.confidence_level
             effect_size_ci_lower = effect_size + scale*distr.ppf(q)
-            means_ratio_ci_lower = means_ratio * np.exp(rel_scale * rel_distr.ppf(q))
+            means_ratio_ci_lower = means_ratio * np.exp(log_scale * log_distr.ppf(q))
             effect_size_ci_upper = means_ratio_ci_upper = float("+inf")
             pvalue = distr.cdf(-std_effect_size)
         elif self.alternative == "less":
             q = self.confidence_level
             effect_size_ci_lower = means_ratio_ci_lower = float("-inf")
             effect_size_ci_upper = effect_size + scale*distr.ppf(q)
-            means_ratio_ci_upper = means_ratio * np.exp(rel_scale * rel_distr.ppf(q))
+            means_ratio_ci_upper = means_ratio * np.exp(log_scale * log_distr.ppf(q))
             pvalue = distr.cdf(std_effect_size)
         else:  # two-sided
             q = (1 + self.confidence_level) / 2
@@ -214,7 +214,7 @@ class RatioOfMeans(
             effect_size_ci_lower = effect_size - half_ci
             effect_size_ci_upper = effect_size + half_ci
 
-            rel_half_ci = np.exp(rel_scale * rel_distr.ppf(q))
+            rel_half_ci = np.exp(log_scale * log_distr.ppf(q))
             means_ratio_ci_lower = means_ratio / rel_half_ci
             means_ratio_ci_upper = means_ratio * rel_half_ci
 
@@ -237,13 +237,16 @@ class RatioOfMeans(
         covariate_var = aggr.ratio_var(self.numer_covariate, self.denom_covariate)
         if covariate_var == 0:
             return 0
+        return self._covariate_cov(aggr) / covariate_var
 
+
+    def _covariate_cov(self, aggr: tea_tasting.aggr.Aggregates) -> float:
         return aggr.ratio_cov(
             self.numer,
             self.denom,
             self.numer_covariate,
             self.denom_covariate,
-        ) / covariate_var
+        )
 
 
     def _metric_mean(
@@ -263,15 +266,14 @@ class RatioOfMeans(
         aggr: tea_tasting.aggr.Aggregates,
         covariate_coef: float,
     ) -> float:
-        left_var = aggr.ratio_var(self.numer, self.denom)
-        right_var = aggr.ratio_var(self.numer_covariate, self.denom_covariate)
-        cov = aggr.ratio_cov(
-            self.numer,
-            self.denom,
-            self.numer_covariate,
-            self.denom_covariate,
+        var = aggr.ratio_var(self.numer, self.denom)
+        covariate_var = aggr.ratio_var(self.numer_covariate, self.denom_covariate)
+        covariate_cov = self._covariate_cov(aggr)
+        return (
+            var
+            + covariate_coef * covariate_coef * covariate_var
+            - 2 * covariate_coef * covariate_cov
         )
-        return left_var + covariate_coef*covariate_coef*right_var - 2*covariate_coef*cov
 
 
     def _scale_and_distr(
@@ -299,7 +301,6 @@ class RatioOfMeans(
                     contr_mean_var**2 / (contr_count - 1)
                     + treat_mean_var**2 / (treat_count - 1)
                 )
-
             distr = scipy.stats.t(df=df)
         else:
             distr = scipy.stats.norm()
