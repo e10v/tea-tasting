@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 class MeansResult(NamedTuple):
-    """Result of an analysis of means.
+    """Result of an analysis of metric means.
 
     Attributes:
         control: Control mean.
