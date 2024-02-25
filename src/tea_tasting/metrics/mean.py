@@ -234,17 +234,16 @@ class RatioOfMeans(
 
 
     def _covariate_coef(self, aggr: tea_tasting.aggr.Aggregates) -> float:
-        cov = aggr.ratio_cov(
+        covariate_var = aggr.ratio_var(self.numer_covariate, self.denom_covariate)
+        if covariate_var == 0:
+            return 0
+
+        return aggr.ratio_cov(
             self.numer,
             self.denom,
             self.numer_covariate,
             self.denom_covariate,
-        )
-
-        if cov == 0:
-            return 0
-
-        return cov / aggr.ratio_var(self.numer_covariate, self.denom_covariate)
+        ) / covariate_var
 
 
     def _metric_mean(
