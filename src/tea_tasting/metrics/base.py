@@ -51,6 +51,18 @@ class AggrCols(NamedTuple):
             }),
         )
 
+    def __len__(self) -> int:
+        """Total length of all object attributes.
+
+        If has_count is True then its value is 1, otherwise 0.
+        """
+        return (
+            int(self.has_count)
+            + len(self.mean_cols)
+            + len(self.var_cols)
+            + len(self.cov_cols)
+        )
+
 
 class MetricBase(abc.ABC, tea_tasting.utils.ReprMixin):
     """Base class for metrics."""
