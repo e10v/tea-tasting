@@ -20,10 +20,10 @@ def check_scalar(
     lt: Any = None,
     is_in: Any = None,
 ) -> None:
-    """Validate scalar parameter's type and value.
+    """Check scalar parameter's type and value.
 
     Args:
-        value: Parameter to validate.
+        value: Parameter value.
         name: Parameter name.
         typ: Acceptable data types.
         ge: If not None, check that the parameter value is greater than or equal to ge.
@@ -49,6 +49,21 @@ def check_scalar(
 
     if is_in is not None and value not in is_in:
         raise ValueError(f"{name} == {value}, must be in {is_in}.")
+
+
+def auto_check(value: Any, name: str) -> None:
+    """Check parameter's type and value based in it's name.
+
+    Args:
+        value: Parameter value.
+        name: Parameter name.
+    """
+    if name == "alternative":
+        check_scalar(value, name, typ=str, is_in={"two-sided", "greater", "less"})
+    elif name == "confidence_level":
+        check_scalar(value, name, typ=float, gt=0, lt=1)
+    elif name in {"equal_var", "use_t"}:
+        check_scalar(value, name, typ=bool)
 
 
 class ReprMixin:

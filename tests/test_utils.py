@@ -36,6 +36,33 @@ def test_check_scalar_is_in():
         tea_tasting.utils.check_scalar(1, is_in={0, 2})
 
 
+def test_auto_check_alternative():
+    tea_tasting.utils.auto_check("two-sided", "alternative")
+    with pytest.raises(TypeError):
+        tea_tasting.utils.auto_check(2, "alternative")
+    with pytest.raises(ValueError, match="must be in"):
+        tea_tasting.utils.auto_check("2s", "alternative")
+
+def test_auto_check_confidence_level():
+    tea_tasting.utils.auto_check(0.95, "confidence_level")
+    with pytest.raises(TypeError):
+        tea_tasting.utils.auto_check(0, "confidence_level")
+    with pytest.raises(ValueError, match="must be >"):
+        tea_tasting.utils.auto_check(0.0, "confidence_level")
+    with pytest.raises(ValueError, match="must be <"):
+        tea_tasting.utils.auto_check(1.0, "confidence_level")
+
+def test_auto_check_equal_var():
+    tea_tasting.utils.auto_check(True, "equal_var")
+    with pytest.raises(TypeError):
+        tea_tasting.utils.auto_check(0, "equal_var")
+
+def test_auto_check_use_t():
+    tea_tasting.utils.auto_check(False, "use_t")
+    with pytest.raises(TypeError):
+        tea_tasting.utils.auto_check(0, "use_t")
+
+
 def test_repr_mixin_repr():
     class Repr(tea_tasting.utils.ReprMixin):
         def __init__(self, a: int, b: int, c: int) -> None:
