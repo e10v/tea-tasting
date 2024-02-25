@@ -35,7 +35,7 @@ def get_config(option: str | None = None) -> Any:
 
 
 def set_config(
-    alternative: Literal["two-sided", "less", "greater"] | None = None,
+    alternative: Literal["two-sided", "greater", "less"] | None = None,
     confidence_level: float | None = None,
     equal_var: bool | None = None,
     use_t: bool | None = None,
@@ -59,7 +59,7 @@ def set_config(
 
 @contextlib.contextmanager
 def config_context(
-    alternative: Literal["two-sided", "less", "greater"] | None = None,
+    alternative: Literal["two-sided", "greater", "less"] | None = None,
     confidence_level: float | None = None,
     equal_var: bool | None = None,
     use_t: bool | None = None,

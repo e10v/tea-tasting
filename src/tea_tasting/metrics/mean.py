@@ -59,7 +59,7 @@ class RatioOfMeans(tea_tasting.metrics.base.MetricBaseAggregated):
         denom: str | None = None,
         numer_covariate: str | None = None,
         denom_covariate: str | None = None,
-        alternative: Literal["two-sided", "less", "greater"] | None = None,
+        alternative: Literal["two-sided", "greater", "less"] | None = None,
         confidence_level: float | None = None,
         equal_var: bool | None = None,
         use_t: bool | None = None,
