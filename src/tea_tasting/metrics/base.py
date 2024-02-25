@@ -27,10 +27,10 @@ class AggrCols(NamedTuple):
         var_cols: Column names for calculation of sample variances.
         cov_cols: Pairs of column names for calculation of sample covariances.
     """
-    has_count: bool
-    mean_cols: Sequence[str]
-    var_cols: Sequence[str]
-    cov_cols: Sequence[tuple[str, str]]
+    has_count: bool = False
+    mean_cols: Sequence[str] = ()
+    var_cols: Sequence[str] = ()
+    cov_cols: Sequence[tuple[str, str]] = ()
 
     def __or__(self, other: AggrCols) -> AggrCols:
         """Combine columns. Exclude duplicates.
