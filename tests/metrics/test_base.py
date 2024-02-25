@@ -43,6 +43,21 @@ def test_aggr_cols_or():
     assert len(aggr_cols.cov_cols) == 3
 
 
+def test_aggr_cols_len():
+    assert len(tea_tasting.metrics.base.AggrCols(
+        has_count=False,
+        mean_cols=("a", "b"),
+        var_cols=("b", "c"),
+        cov_cols=(("a", "b"), ("c", "b")),
+    )) == 6
+    assert len(tea_tasting.metrics.base.AggrCols(
+        has_count=True,
+        mean_cols=("b", "c"),
+        var_cols=("c", "d"),
+        cov_cols=(("b", "c"), ("d", "c")),
+    )) == 7
+
+
 @pytest.fixture
 def data() -> ibis.expr.types.Table:
     return tea_tasting.datasets.make_users_data(size=100, seed=42)

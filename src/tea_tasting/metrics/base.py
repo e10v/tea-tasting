@@ -27,10 +27,10 @@ class AggrCols(NamedTuple):
         var_cols: Column names for calculation of sample variances.
         cov_cols: Pairs of column names for calculation of sample covariances.
     """
-    has_count: bool
-    mean_cols: Sequence[str]
-    var_cols: Sequence[str]
-    cov_cols: Sequence[tuple[str, str]]
+    has_count: bool = False
+    mean_cols: Sequence[str] = ()
+    var_cols: Sequence[str] = ()
+    cov_cols: Sequence[tuple[str, str]] = ()
 
     def __or__(self, other: AggrCols) -> AggrCols:
         """Combine columns. Exclude duplicates.
@@ -51,9 +51,46 @@ class AggrCols(NamedTuple):
             }),
         )
 
+    def __len__(self) -> int:
+        """Total length of all object attributes.
 
-class MetricBaseAggregated(abc.ABC, tea_tasting.utils.ReprMixin):
-    """Metric which is analyzed using aggregates."""
+        If has_count is True then its value is 1, otherwise 0.
+        """
+        return (
+            int(self.has_count)
+            + len(self.mean_cols)
+            + len(self.var_cols)
+            + len(self.cov_cols)
+        )
+
+
+class MetricBase(abc.ABC, tea_tasting.utils.ReprMixin):
+    """Base class for metrics."""
+
+    @abc.abstractmethod
+    def analyze(
+        self,
+        data: pd.DataFrame | ibis.expr.types.Table,
+        control: Any,
+        treatment: Any,
+        variant_col: str,
+    ) -> NamedTuple | dict[str, Any]:
+        """Analyzes metric in an experiment.
+
+        Args:
+            data: Experimental data.
+            control: Control variant.
+            treatment: Treatment variant.
+            variant_col: Variant column.
+
+        Returns:
+            Experiment results for a metric.
+        """
+        ...
+
+
+class MetricBaseAggregated(MetricBase):
+    """Base class for metrics analyzed using aggregates."""
     @property
     @abc.abstractmethod
     def aggr_cols(self) -> AggrCols:
@@ -143,8 +180,8 @@ class MetricBaseAggregated(abc.ABC, tea_tasting.utils.ReprMixin):
         return table
 
 
-class MetricBaseGranular(abc.ABC, tea_tasting.utils.ReprMixin):
-    """Metric which is analyzed using granular data."""
+class MetricBaseGranular(MetricBase):
+    """Base class for metrics analyzed using granular data."""
     use_raw_data: bool = False
 
     @property
@@ -152,27 +189,3 @@ class MetricBaseGranular(abc.ABC, tea_tasting.utils.ReprMixin):
     def cols(self) -> Sequence[str]:
         """Columns to be fetched for a metric analysis."""
         ...
-
-    @abc.abstractmethod
-    def analyze(
-        self,
-        data: pd.DataFrame | ibis.expr.types.Table,
-        control: Any,
-        treatment: Any,
-        variant_col: str,
-    ) -> NamedTuple | dict[str, Any]:
-        """Analyzes metric in an experiment.
-
-        Args:
-            data: Experimental data.
-            control: Control variant.
-            treatment: Treatment variant.
-            variant_col: Variant column.
-
-        Returns:
-            Experiment results for a metric.
-        """
-        ...
-
-
-MetricBase = MetricBaseAggregated | MetricBaseGranular
