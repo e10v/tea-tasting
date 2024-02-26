@@ -1,4 +1,5 @@
 """Generates a sample of data for examples."""
+# ruff: noqa: PLR0913
 
 from __future__ import annotations
 
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
     import numpy.typing as npt
 
 
-def make_users_data(  # noqa: PLR0913
+def make_users_data(
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     covariates: bool = False,
     n_users: int = 4000,
@@ -30,9 +31,11 @@ def make_users_data(  # noqa: PLR0913
 ) -> ibis.expr.types.Table:
     """Generates a sample of data for examples.
 
-    Data mimics what you might encounter in an A/B test for an online store. Each row
-    represents an individual user with information about:
+    Data mimics what you might encounter in an A/B test for an online store,
+    with user-level randomization. Each row represents an individual user
+    with information about:
 
+    - user identifier,
     - variant of the test,
     - number of visits by the user,
     - number of orders made by the user,
@@ -64,7 +67,9 @@ def make_users_data(  # noqa: PLR0913
             orders_covariate (optional): Number of orders before the experiment.
             revenue_covariate (optional): Revenue before the experiment.
     """
-    _check_params(
+    return _make_data(
+        seed=seed,
+        covariates=covariates,
         n_users=n_users,
         ratio=ratio,
         visits_uplift=visits_uplift,
@@ -73,70 +78,76 @@ def make_users_data(  # noqa: PLR0913
         avg_visits=avg_visits,
         avg_orders_per_visit=avg_orders_per_visit,
         avg_revenue_per_order=avg_revenue_per_order,
+        explode_visits=False,
     )
 
-    rng = np.random.default_rng(seed=seed)
-    user = np.arange(n_users)
-    variant = rng.binomial(n=1, p=ratio / (1 + ratio), size=n_users)
 
-    visits_mult = 1 + visits_uplift*variant
-    visits = 1 + rng.poisson(lam=avg_visits*visits_mult - 1, size=n_users)
+def make_visits_data(
+    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    covariates: bool = False,
+    n_users: int = 4000,
+    ratio: float | int = 1,
+    visits_uplift: float = 0.0,
+    orders_uplift: float = 0.1,
+    revenue_uplift: float = 0.1,
+    avg_visits: float | int = 2,
+    avg_orders_per_visit: float = 0.25,
+    avg_revenue_per_order: float | int = 10,
+) -> ibis.expr.types.Table:
+    """Generates a sample of data for examples.
 
-    orders_per_visits_mult = (1 + orders_uplift*variant) / (1 + visits_uplift*variant)
-    orders_per_visits = rng.beta(
-        a=avg_orders_per_visit*orders_per_visits_mult,
-        b=1 - avg_orders_per_visit*orders_per_visits_mult,
-        size=n_users,
+    Data mimics what you might encounter in an A/B test for an online store,
+    with user-level randomization. Each row represents a user's visit
+    with information about:
+
+    - user identifier,
+    - variant of the test,
+    - number of visits by the user,
+    - number of orders made by the user,
+    - revenue generated from user's orders.
+
+    Optionally, pre-experimental data can be generated as well.
+
+    Args:
+        seed: Random seed.
+        covariates: If True, generates pre-experimental data as the covariates
+            in addition to default columns.
+        n_users: Number of users.
+        ratio: Ratio of treatment observations to control observations.
+        visits_uplift: Relative visits uplift in the treatment variant.
+        orders_uplift: Relative orders uplift in the treatment variant.
+        revenue_uplift: Relative revenue uplift in the treatment variant.
+        avg_visits: Average number of visits per user.
+        avg_orders_per_visit: Average number of orders per visit. Should be less than 1.
+        avg_revenue_per_order: Average revenue per order.
+
+    Returns:
+        An Ibis Table with the following columns:
+            user: User identifier.
+            variant: Variant of the test. 0 is control, 1 is treatment.
+            visits: Number of visits.
+            orders: Number of orders.
+            revenue: Revenue.
+            visits_covariate (optional): Number of visits before the experiment.
+            orders_covariate (optional): Number of orders before the experiment.
+            revenue_covariate (optional): Revenue before the experiment.
+    """
+    return _make_data(
+        seed=seed,
+        covariates=covariates,
+        n_users=n_users,
+        ratio=ratio,
+        visits_uplift=visits_uplift,
+        orders_uplift=orders_uplift,
+        revenue_uplift=revenue_uplift,
+        avg_visits=avg_visits,
+        avg_orders_per_visit=avg_orders_per_visit,
+        avg_revenue_per_order=avg_revenue_per_order,
+        explode_visits=True,
     )
 
-    orders = rng.binomial(n=visits, p=orders_per_visits, size=n_users)
 
-    revenue_per_order_mult = (1 + revenue_uplift*variant) / (1 + orders_uplift*variant)
-    revenue_per_order = rng.lognormal(
-        mean=np.log(avg_revenue_per_order * revenue_per_order_mult) - 0.125,
-        sigma=0.5,
-        size=n_users,
-    )
-
-    revenue = orders * revenue_per_order
-
-    data = pd.DataFrame({
-        "user": user,
-        "variant": variant,
-        "visits": visits,
-        "orders": orders,
-        "revenue": revenue,
-    })
-
-    if covariates:
-        visits_covariate = rng.poisson(lam=visits / visits_mult, size=n_users)
-        orders_per_visits_covariate = orders_per_visits / orders_per_visits_mult
-
-        orders_covariate = rng.binomial(
-            n=visits_covariate,
-            p=orders_per_visits_covariate,
-            size=n_users,
-        )
-
-        revenue_per_order_covariate = rng.lognormal(
-            mean=np.log(revenue_per_order / revenue_per_order_mult) - 0.125,
-            sigma=0.5,
-            size=n_users,
-        )
-
-        revenue_covariate = orders_covariate * revenue_per_order_covariate
-
-        data = data.assign(
-            visits_covariate=visits_covariate,
-            orders_covariate=orders_covariate,
-            revenue_covariate=revenue_covariate,
-        )
-
-    con = ibis.pandas.connect()
-    return con.create_table("users_data", data)
-
-
-def _make_data(  # noqa: PLR0913
+def _make_data(
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     covariates: bool = False,
     n_users: int = 4000,
@@ -160,32 +171,39 @@ def _make_data(  # noqa: PLR0913
         avg_revenue_per_order=avg_revenue_per_order,
     )
 
-    size = n_users
     rng = np.random.default_rng(seed=seed)
     user = np.arange(n_users)
     variant = rng.binomial(n=1, p=ratio / (1 + ratio), size=n_users)
     visits_mult = 1 + visits_uplift*variant
     visits = 1 + rng.poisson(lam=avg_visits*visits_mult - 1, size=n_users)
+    size = n_users
+    orders_per_visits_sample_size = 1  # Parameter of Beta distribution (alpha + beta).
+    revenue_log_scale = 0.5  # Parameter of log-normal distribution.
 
     if explode_visits:
         user = np.repeat(user, visits)
-        variant = np.repeat(variant, visits)
-        visits_mult = np.repeat(visits_mult, visits)
         visits = 1
         size = len(user)
+        revenue_log_scale = np.sqrt(np.log(
+            1 + avg_visits*(np.exp(revenue_log_scale**2) - 1)))
 
     orders_per_visits_mult = (1 + orders_uplift*variant) / (1 + visits_uplift*variant)
     orders_per_visits = rng.beta(
-        a=avg_orders_per_visit*orders_per_visits_mult,
-        b=1 - avg_orders_per_visit*orders_per_visits_mult,
-        size=size,
+        a=avg_orders_per_visit * orders_per_visits_mult
+            * orders_per_visits_sample_size,
+        b=(1 - avg_orders_per_visit*orders_per_visits_mult)
+            * orders_per_visits_sample_size,
+        size=n_users,
     )
-    orders = rng.binomial(n=visits, p=orders_per_visits, size=size)
+    orders = rng.binomial(n=visits, p=orders_per_visits[user], size=size)
 
     revenue_per_order_mult = (1 + revenue_uplift*variant) / (1 + orders_uplift*variant)
     revenue_per_order = rng.lognormal(
-        mean=np.log(avg_revenue_per_order * revenue_per_order_mult) - 0.125,
-        sigma=0.5,
+        mean=(
+            np.log(avg_revenue_per_order * revenue_per_order_mult[user])
+            - revenue_log_scale * revenue_log_scale / 2
+        ),
+        sigma=revenue_log_scale,
         size=size,
     )
 
@@ -193,25 +211,28 @@ def _make_data(  # noqa: PLR0913
 
     data = pd.DataFrame({
         "user": user,
-        "variant": variant,
+        "variant": variant[user],
         "visits": visits,
         "orders": orders,
         "revenue": revenue,
     })
 
     if covariates:
-        visits_covariate = rng.poisson(lam=visits / visits_mult, size=size)
+        visits_covariate = rng.poisson(lam=visits / visits_mult[user], size=size)
         orders_per_visits_covariate = orders_per_visits / orders_per_visits_mult
 
         orders_covariate = rng.binomial(
             n=visits_covariate,
-            p=orders_per_visits_covariate,
+            p=orders_per_visits_covariate[user],
             size=size,
         )
 
         revenue_per_order_covariate = rng.lognormal(
-            mean=np.log(revenue_per_order / revenue_per_order_mult) - 0.125,
-            sigma=0.5,
+            mean=(
+                np.log(revenue_per_order / revenue_per_order_mult[user])
+                - revenue_log_scale * revenue_log_scale / 2
+            ),
+            sigma=revenue_log_scale,
             size=size,
         )
 
@@ -272,21 +293,3 @@ def _avg_by_groups(
         for v in np.split(values, np.unique(groups, return_index=True)[1])
         if len(v) > 0
     ])
-
-
-if __name__ == "__main__":
-    print(make_users_data(seed=42, covariates=True).to_pandas())
-    print(_make_data(seed=42, covariates=True).to_pandas())
-    print(_make_data(seed=42, covariates=True, explode_visits=True).to_pandas())
-    print(
-        _make_data(seed=42, covariates=True, n_users=1000000, visits_uplift=0.05)
-            .to_pandas()
-            .describe(),
-    )
-    print(
-        _make_data(seed=42, covariates=True, n_users=1000000, visits_uplift=0.05, explode_visits=True)
-            .to_pandas()
-            .groupby("user", as_index=False)
-            .sum()
-            .describe(),
-    )
