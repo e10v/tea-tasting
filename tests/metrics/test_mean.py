@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def table() -> ibis.expr.types.Table:
-    return tea_tasting.datasets.make_users_data(size=100, covariates=True, seed=42)
+    return tea_tasting.datasets.make_users_data(n_users=100, covariates=True, seed=42)
 
 @pytest.fixture
 def dataframe(table: ibis.expr.types.Table) -> pd.DataFrame:
