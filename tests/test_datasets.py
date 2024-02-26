@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import ibis.expr.types
+import pandas as pd
+
 import tea_tasting.datasets
 
 
 def test_make_users_data_default():
     n_users = 100
     users_data = tea_tasting.datasets.make_users_data(seed=42, n_users=n_users)
+    assert isinstance(users_data, ibis.expr.types.Table)
     assert users_data.columns == ["user", "variant", "visits", "orders", "revenue"]
 
     data = users_data.to_pandas()
@@ -23,6 +27,7 @@ def test_make_users_data_covariates():
     n_users = 100
     users_data = tea_tasting.datasets.make_users_data(
         seed=42, covariates=True, n_users=n_users)
+    assert isinstance(users_data, ibis.expr.types.Table)
     assert users_data.columns == [
         "user", "variant", "visits", "orders", "revenue",
         "visits_covariate", "orders_covariate", "revenue_covariate",
@@ -40,9 +45,18 @@ def test_make_users_data_covariates():
     ) == 1
 
 
+def test_make_users_data_pandas():
+    n_users = 100
+    data = tea_tasting.datasets.make_users_data(
+        to_pandas=True, seed=42, n_users=n_users)
+    assert isinstance(data, pd.DataFrame)
+    assert data.columns.to_list() == ["user", "variant", "visits", "orders", "revenue"]
+
+
 def test_make_visits_data_default():
     n_users = 100
     visits_data = tea_tasting.datasets.make_visits_data(seed=42, n_users=n_users)
+    assert isinstance(visits_data, ibis.expr.types.Table)
     assert visits_data.columns == ["user", "variant", "visits", "orders", "revenue"]
 
     data = visits_data.to_pandas()
@@ -61,6 +75,7 @@ def test_make_visits_data_covariates():
     n_users = 100
     visits_data = tea_tasting.datasets.make_visits_data(
         seed=42, covariates=True, n_users=n_users)
+    assert isinstance(visits_data, ibis.expr.types.Table)
     assert visits_data.columns == [
         "user", "variant", "visits", "orders", "revenue",
         "visits_covariate", "orders_covariate", "revenue_covariate",
@@ -76,3 +91,11 @@ def test_make_visits_data_covariates():
         .eq(data["orders_covariate"].gt(0))
         .astype(int).min()
     ) == 1
+
+
+def test_make_visits_data_pandas():
+    n_users = 100
+    data = tea_tasting.datasets.make_visits_data(
+        to_pandas=True, seed=42, n_users=n_users)
+    assert isinstance(data, pd.DataFrame)
+    assert data.columns.to_list() == ["user", "variant", "visits", "orders", "revenue"]

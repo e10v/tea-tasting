@@ -37,10 +37,12 @@ def get_config(option: str | None = None) -> Any:
 
 
 def set_config(
+    *,
     alternative: Literal["two-sided", "greater", "less"] | None = None,
     confidence_level: float | None = None,
     equal_var: bool | None = None,
     use_t: bool | None = None,
+    **kwargs: Any,
 ) -> None:
     """Set global configuration.
 
@@ -53,6 +55,7 @@ def set_config(
             of the difference between two means. Default is False.
         use_t: Defines whether to use the Student's t-distribution (True) or
             the Normal distribution (False) by default. Default is True.
+        kwargs: User-defined global parameters.
     """
     for name, value in locals().items():
         if value is not None:
@@ -61,10 +64,12 @@ def set_config(
 
 @contextlib.contextmanager
 def config_context(
+    *,
     alternative: Literal["two-sided", "greater", "less"] | None = None,
     confidence_level: float | None = None,
     equal_var: bool | None = None,
     use_t: bool | None = None,
+    **kwargs: Any,
 ) -> Generator[None, Any, None]:
     """Context manager for configuration.
 
@@ -77,6 +82,7 @@ def config_context(
             of the difference between two means. Default is False.
         use_t: Defines whether to use the Student's t-distribution (True) or
             the Normal distribution (False) by default. Default is True.
+        kwargs: User-defined global parameters.
     """
     new_config = locals()
     old_config = get_config()

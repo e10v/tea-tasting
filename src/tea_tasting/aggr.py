@@ -25,32 +25,32 @@ _DEMEAN = "_demean__{}"
 
 class Aggregates(tea_tasting.utils.ReprMixin):
     """Aggregated statistics."""
-    _count: int | None
-    _mean: dict[str, float | int]
-    _var: dict[str, float | int]
-    _cov: dict[tuple[str, str], float | int]
+    count_: int | None
+    mean_: dict[str, float | int]
+    var_: dict[str, float | int]
+    cov_: dict[tuple[str, str], float | int]
 
     def __init__(
         self,
-        count: int | None,
-        mean: dict[str, float | int],
-        var: dict[str, float | int],
-        cov: dict[tuple[str, str], float | int],
+        count_: int | None,
+        mean_: dict[str, float | int],
+        var_: dict[str, float | int],
+        cov_: dict[tuple[str, str], float | int],
     ) -> None:
         """Create an object with aggregated statistics.
 
         Args:
-            count: Sample size.
-            mean: Variables sample means.
-            var: Variables sample variances.
-            cov: Pairs of variables sample covariances.
+            count_: Sample size.
+            mean_: Variables sample means.
+            var_: Variables sample variances.
+            cov_: Pairs of variables sample covariances.
         """
-        self._count = count
-        self._mean = mean
-        self._var = var
-        self._cov = {
+        self.count_ = count_
+        self.mean_ = mean_
+        self.var_ = var_
+        self.cov_ = {
             _sorted_tuple(left, right): value
-            for (left, right), value in cov.items()
+            for (left, right), value in cov_.items()
         }
 
     def filter(
@@ -75,10 +75,10 @@ class Aggregates(tea_tasting.utils.ReprMixin):
             mean_cols, var_cols, cov_cols)
 
         return Aggregates(
-            count=self.count() if has_count else None,
-            mean={col: self.mean(col) for col in mean_cols},
-            var={col: self.var(col) for col in var_cols},
-            cov={cols: self.cov(*cols) for cols in cov_cols},
+            count_=self.count() if has_count else None,
+            mean_={col: self.mean(col) for col in mean_cols},
+            var_={col: self.var(col) for col in var_cols},
+            cov_={cols: self.cov(*cols) for cols in cov_cols},
         )
 
     def count(self) -> int:
@@ -90,9 +90,9 @@ class Aggregates(tea_tasting.utils.ReprMixin):
         Returns:
             Number of observations.
         """
-        if self._count is None:
+        if self.count_ is None:
             raise RuntimeError("Count is None.")
-        return self._count
+        return self.count_
 
     def mean(self, key: str | None) -> float | int:
         """Sample mean.
@@ -105,7 +105,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):
         """
         if key is None:
             return 1
-        return self._mean[key]
+        return self.mean_[key]
 
     def var(self, key: str | None) -> float | int:
         """Sample variance.
@@ -118,7 +118,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):
         """
         if key is None:
             return 0
-        return self._var[key]
+        return self.var_[key]
 
     def cov(self, left: str | None, right: str | None) -> float | int:
         """Sample covariance.
@@ -132,7 +132,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):
         """
         if left is None or right is None:
             return 0
-        return self._cov[_sorted_tuple(left, right)]
+        return self.cov_[_sorted_tuple(left, right)]
 
     def ratio_var(
         self,
@@ -203,10 +203,10 @@ class Aggregates(tea_tasting.utils.ReprMixin):
             Aggregated statistics of the concatenation of two samples.
         """
         return Aggregates(
-            count=self.count() + other.count() if self._count is not None else None,
-            mean={col: _add_mean(self, other, col) for col in self._mean},
-            var={col: _add_var(self, other, col) for col in self._var},
-            cov={cols: _add_cov(self, other, cols) for cols in self._cov},
+            count_=self.count() + other.count() if self.count_ is not None else None,
+            mean_={col: _add_mean(self, other, col) for col in self.mean_},
+            var_={col: _add_var(self, other, col) for col in self.var_},
+            cov_={cols: _add_cov(self, other, cols) for cols in self.cov_},
         )
 
 
@@ -346,10 +346,10 @@ def _get_aggregates(
 ) -> Aggregates:
     s = data.iloc[0]
     return Aggregates(
-        count=s[_COUNT] if has_count else None,
-        mean={col: s[_MEAN.format(col)] for col in mean_cols},
-        var={col: s[_VAR.format(col)] for col in var_cols},
-        cov={cols: s[_COV.format(*cols)] for cols in cov_cols},
+        count_=s[_COUNT] if has_count else None,
+        mean_={col: s[_MEAN.format(col)] for col in mean_cols},
+        var_={col: s[_VAR.format(col)] for col in var_cols},
+        cov_={cols: s[_COV.format(*cols)] for cols in cov_cols},
     )
 
 

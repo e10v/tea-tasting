@@ -18,11 +18,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up PDM
-        uses: pdm-project/setup-pdm@v3
+        uses: pdm-project/setup-pdm@v4
         with:
           python-version: ${{ matrix.python-version }}
-          prerelease: false
-          enable-pep582: false
           cache: true
       - name: Install dependencies
         run: pdm sync -G test
@@ -31,9 +29,11 @@ jobs:
       - name: Convert coverage report
         run: pdm run coverage xml
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           files: ./coverage.xml
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   lint:
     runs-on: ubuntu-latest
     strategy:
@@ -43,11 +43,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up PDM
-        uses: pdm-project/setup-pdm@v3
+        uses: pdm-project/setup-pdm@v4
         with:
           python-version: ${{ matrix.python-version }}
-          prerelease: false
-          enable-pep582: false
           cache: true
       - name: Install dependencies
         run: pdm sync -G :all

@@ -65,15 +65,15 @@ def test_auto_check_use_t():
 
 def test_repr_mixin_repr():
     class Repr(tea_tasting.utils.ReprMixin):
-        def __init__(self, a: int, b: int, c: int) -> None:
-            self._a = a
+        def __init__(self, a: int, b: bool, c: str) -> None:
+            self._a = -1
             self.a_ = -1
-            self.a = -1
-            self.b_ = b
-            self.b = -1
+            self.a = a
+            self.b_ = -1
+            self.b = b
             self.c = c
-    r = Repr(a=1, b=2, c=3)
-    assert repr(r) == "Repr(a=1, b=2, c=3)"
+    r = Repr(a=1, b=False, c="c")
+    assert repr(r) == f"Repr(a=1, b=False, c={'c'!r})"
 
 def test_repr_mixin_repr_obj():
     class Obj(tea_tasting.utils.ReprMixin):

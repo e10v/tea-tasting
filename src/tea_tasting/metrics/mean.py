@@ -60,6 +60,7 @@ class RatioOfMeans(MetricBaseAggregated):
         denom: str | None = None,
         numer_covariate: str | None = None,
         denom_covariate: str | None = None,
+        *,
         alternative: Literal["two-sided", "greater", "less"] | None = None,
         confidence_level: float | None = None,
         equal_var: bool | None = None,
@@ -152,7 +153,7 @@ class RatioOfMeans(MetricBaseAggregated):
         Returns:
             Experiment result for a metric.
         """
-        data = self.validate_aggregates(data, variant_col=variant_col)
+        data = self.aggregate_by_variants(data, variant_col=variant_col)
         contr = data[control]
         treat = data[treatment]
         total = contr + treat
@@ -313,6 +314,7 @@ class SimpleMean(RatioOfMeans):
         self,
         value: str,
         covariate: str | None = None,
+        *,
         alternative: Literal["two-sided", "greater", "less"] | None = None,
         confidence_level: float | None = None,
         equal_var: bool | None = None,

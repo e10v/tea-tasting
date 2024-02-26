@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 def check_scalar(
     value: R,
     name: str = "value",
+    *,
     typ: Any = None,
     ge: Any = None,
     gt: Any = None,
@@ -75,14 +76,9 @@ class ReprMixin:
     """Mixin class for object representation.
 
     Representation string is generated based on parameters values saved in attributes.
-    Attributes names in priority order:
-
-    - "_{parameter name}",
-    - "{parameter name}_",
-    - "{parameter name}".
     """
     @classmethod
-    def _get_param_names(cls: type[ReprMixin]) -> tuple[str, ...]:
+    def _get_param_names(cls) -> tuple[str, ...]:
         if cls.__init__ is object.__init__:
             return ()
         init_signature = inspect.signature(cls.__init__)
@@ -94,15 +90,8 @@ class ReprMixin:
                     "There should not be positional arguments in the __init__.")
         return tuple(p.name for p in params)
 
-    def _get_param_value(self, param_name: str) -> Any:
-        if hasattr(self, "_" + param_name):
-            return getattr(self, "_" + param_name)
-        if hasattr(self, param_name + "_"):
-            return getattr(self, param_name + "_")
-        return getattr(self, param_name)
-
     def __repr__(self) -> str:
         """Object representation."""
-        params = {p: self._get_param_value(p) for p in self._get_param_names()}
+        params = {p: getattr(self, p) for p in self._get_param_names()}
         params_repr = ", ".join(f"{k}={v!r}" for k, v in params.items())
         return f"{self.__class__.__name__}({params_repr})"
