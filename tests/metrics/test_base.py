@@ -119,32 +119,32 @@ def _compare_aggrs(
         assert l._cov == r._cov
 
 
-def test_metric_base_aggregated_validate_aggregates_table(
+def test_metric_base_aggregated_aggregate_by_variants_table(
     aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated,
     data: ibis.expr.types.Table,
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
-    aggrs = aggr_metric.validate_aggregates(data, variant_col="variant")
+    aggrs = aggr_metric.aggregate_by_variants(data, variant_col="variant")
     _compare_aggrs(aggrs, correct_aggrs)
 
-def test_metric_base_aggregated_validate_aggregates_df(
+def test_metric_base_aggregated_aggregate_by_variants_df(
     aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated,
     data: ibis.expr.types.Table,
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
-    aggrs = aggr_metric.validate_aggregates(data.to_pandas(), variant_col="variant")
+    aggrs = aggr_metric.aggregate_by_variants(data.to_pandas(), variant_col="variant")
     _compare_aggrs(aggrs, correct_aggrs)
 
-def test_metric_base_aggregated_validate_aggregates_aggrs(
+def test_metric_base_aggregated_aggregate_by_variants_aggrs(
     aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated,
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
-    aggrs = aggr_metric.validate_aggregates(correct_aggrs)
+    aggrs = aggr_metric.aggregate_by_variants(correct_aggrs)
     _compare_aggrs(aggrs, correct_aggrs)
 
-def test_metric_base_aggregated_validate_aggregates_raises(
+def test_metric_base_aggregated_aggregate_by_variants_raises(
     aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated,
     data: ibis.expr.types.Table,
 ):
     with pytest.raises(ValueError, match="variant_col"):
-        aggr_metric.validate_aggregates(data)  # type: ignore
+        aggr_metric.aggregate_by_variants(data)  # type: ignore

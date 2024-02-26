@@ -153,7 +153,7 @@ class RatioOfMeans(MetricBaseAggregated):
         Returns:
             Experiment result for a metric.
         """
-        data = self.validate_aggregates(data, variant_col=variant_col)
+        data = self.aggregate_by_variants(data, variant_col=variant_col)
         contr = data[control]
         treat = data[treatment]
         total = contr + treat

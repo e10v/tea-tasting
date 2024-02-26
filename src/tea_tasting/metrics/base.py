@@ -141,7 +141,7 @@ class MetricBaseAggregated(MetricBase):
         """
         ...
 
-    def validate_aggregates(
+    def aggregate_by_variants(
         self,
         data: pd.DataFrame | ibis.expr.types.Table | dict[
             Any, tea_tasting.aggr.Aggregates],
