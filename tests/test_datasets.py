@@ -4,13 +4,13 @@ import tea_tasting.datasets
 
 
 def test_make_users_data_default():
-    size = 100
-    users_data = tea_tasting.datasets.make_users_data(n_users=size, seed=42)
+    n_users = 100
+    users_data = tea_tasting.datasets.make_users_data(seed=42, n_users=n_users)
     assert users_data.columns == ["user", "variant", "visits", "orders", "revenue"]
 
     data = users_data.to_pandas()
-    assert len(data) == size
-    assert data["user"].drop_duplicates().count() == size
+    assert len(data) == n_users
+    assert data["user"].drop_duplicates().count() == n_users
     assert data["variant"].drop_duplicates().count() == 2
     assert data["visits"].min() > 0
     assert data["orders"].min() >= 0
@@ -20,15 +20,53 @@ def test_make_users_data_default():
 
 
 def test_make_users_data_covariates():
-    size = 100
+    n_users = 100
     users_data = tea_tasting.datasets.make_users_data(
-        n_users=size, seed=42, covariates=True)
+        seed=42, covariates=True, n_users=n_users)
     assert users_data.columns == [
         "user", "variant", "visits", "orders", "revenue",
         "visits_covariate", "orders_covariate", "revenue_covariate",
     ]
 
     data = users_data.to_pandas()
+    assert data["visits_covariate"].min() >= 0
+    assert data["orders_covariate"].min() >= 0
+    assert data["orders_covariate"].sub(data["visits_covariate"]).min() <= 0
+    assert data["revenue_covariate"].min() >= 0
+    assert (
+        data["revenue_covariate"].gt(0)
+        .eq(data["orders_covariate"].gt(0))
+        .astype(int).min()
+    ) == 1
+
+
+def test_make_visits_data_default():
+    n_users = 100
+    visits_data = tea_tasting.datasets.make_visits_data(seed=42, n_users=n_users)
+    assert visits_data.columns == ["user", "variant", "visits", "orders", "revenue"]
+
+    data = visits_data.to_pandas()
+    assert len(data) > n_users
+    assert data["user"].drop_duplicates().count() == n_users
+    assert data["variant"].drop_duplicates().count() == 2
+    assert data["visits"].min() == 1
+    assert data["visits"].max() == 1
+    assert data["orders"].min() >= 0
+    assert data["orders"].sub(data["visits"]).min() <= 0
+    assert data["revenue"].min() >= 0
+    assert data["revenue"].gt(0).eq(data["orders"].gt(0)).astype(int).min() == 1
+
+
+def test_make_visits_data_covariates():
+    n_users = 100
+    visits_data = tea_tasting.datasets.make_visits_data(
+        seed=42, covariates=True, n_users=n_users)
+    assert visits_data.columns == [
+        "user", "variant", "visits", "orders", "revenue",
+        "visits_covariate", "orders_covariate", "revenue_covariate",
+    ]
+
+    data = visits_data.to_pandas()
     assert data["visits_covariate"].min() >= 0
     assert data["orders_covariate"].min() >= 0
     assert data["orders_covariate"].sub(data["visits_covariate"]).min() <= 0
