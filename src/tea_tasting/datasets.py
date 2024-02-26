@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import ibis
 import numpy as np
@@ -13,13 +13,18 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
+    from typing import Literal
+
     import ibis.expr.types  # noqa: TCH004
     import numpy.typing as npt
 
 
+@overload
 def make_users_data(
-    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    *,
+    to_pandas: Literal[False] = False,
     covariates: bool = False,
+    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
     visits_uplift: float = 0.0,
@@ -29,6 +34,39 @@ def make_users_data(
     avg_orders_per_visit: float = 0.25,
     avg_revenue_per_order: float | int = 10,
 ) -> ibis.expr.types.Table:
+    ...
+
+@overload
+def make_users_data(
+    *,
+    to_pandas: Literal[True] = True,
+    covariates: bool = False,
+    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    n_users: int = 4000,
+    ratio: float | int = 1,
+    visits_uplift: float = 0.0,
+    orders_uplift: float = 0.1,
+    revenue_uplift: float = 0.1,
+    avg_visits: float | int = 2,
+    avg_orders_per_visit: float = 0.25,
+    avg_revenue_per_order: float | int = 10,
+) -> pd.DataFrame:
+    ...
+
+def make_users_data(
+    *,
+    to_pandas: bool = False,
+    covariates: bool = False,
+    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    n_users: int = 4000,
+    ratio: float | int = 1,
+    visits_uplift: float = 0.0,
+    orders_uplift: float = 0.1,
+    revenue_uplift: float = 0.1,
+    avg_visits: float | int = 2,
+    avg_orders_per_visit: float = 0.25,
+    avg_revenue_per_order: float | int = 10,
+) -> ibis.expr.types.Table | pd.DataFrame:
     """Generates a sample of data for examples.
 
     Data mimics what you might encounter in an A/B test for an online store,
@@ -44,9 +82,10 @@ def make_users_data(
     Optionally, pre-experimental data can be generated as well.
 
     Args:
-        seed: Random seed.
+        to_pandas: If True, return Pandas DataFrame instead if Ibis Table.
         covariates: If True, generates pre-experimental data as the covariates
             in addition to default columns.
+        seed: Random seed.
         n_users: Number of users.
         ratio: Ratio of treatment observations to control observations.
         visits_uplift: Relative visits uplift in the treatment variant.
@@ -57,7 +96,7 @@ def make_users_data(
         avg_revenue_per_order: Average revenue per order.
 
     Returns:
-        An Ibis Table with the following columns:
+        An Ibis Table or a Pandas DataFrame with the following columns:
             user: User identifier.
             variant: Variant of the test. 0 is control, 1 is treatment.
             visits: Number of visits.
@@ -68,8 +107,9 @@ def make_users_data(
             revenue_covariate (optional): Revenue before the experiment.
     """
     return _make_data(
-        seed=seed,
+        to_pandas=to_pandas,
         covariates=covariates,
+        seed=seed,
         n_users=n_users,
         ratio=ratio,
         visits_uplift=visits_uplift,
@@ -82,9 +122,12 @@ def make_users_data(
     )
 
 
+@overload
 def make_visits_data(
-    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    *,
+    to_pandas: Literal[False] = False,
     covariates: bool = False,
+    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
     visits_uplift: float = 0.0,
@@ -94,6 +137,39 @@ def make_visits_data(
     avg_orders_per_visit: float = 0.25,
     avg_revenue_per_order: float | int = 10,
 ) -> ibis.expr.types.Table:
+    ...
+
+@overload
+def make_visits_data(
+    *,
+    to_pandas: Literal[True] = True,
+    covariates: bool = False,
+    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    n_users: int = 4000,
+    ratio: float | int = 1,
+    visits_uplift: float = 0.0,
+    orders_uplift: float = 0.1,
+    revenue_uplift: float = 0.1,
+    avg_visits: float | int = 2,
+    avg_orders_per_visit: float = 0.25,
+    avg_revenue_per_order: float | int = 10,
+) -> pd.DataFrame:
+    ...
+
+def make_visits_data(
+    *,
+    to_pandas: bool = False,
+    covariates: bool = False,
+    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    n_users: int = 4000,
+    ratio: float | int = 1,
+    visits_uplift: float = 0.0,
+    orders_uplift: float = 0.1,
+    revenue_uplift: float = 0.1,
+    avg_visits: float | int = 2,
+    avg_orders_per_visit: float = 0.25,
+    avg_revenue_per_order: float | int = 10,
+) -> ibis.expr.types.Table | pd.DataFrame:
     """Generates a sample of data for examples.
 
     Data mimics what you might encounter in an A/B test for an online store,
@@ -109,9 +185,10 @@ def make_visits_data(
     Optionally, pre-experimental data can be generated as well.
 
     Args:
-        seed: Random seed.
+        to_pandas: If True, return Pandas DataFrame instead if Ibis Table.
         covariates: If True, generates pre-experimental data as the covariates
             in addition to default columns.
+        seed: Random seed.
         n_users: Number of users.
         ratio: Ratio of treatment observations to control observations.
         visits_uplift: Relative visits uplift in the treatment variant.
@@ -133,8 +210,9 @@ def make_visits_data(
             revenue_covariate (optional): Revenue before the experiment.
     """
     return _make_data(
-        seed=seed,
+        to_pandas=to_pandas,
         covariates=covariates,
+        seed=seed,
         n_users=n_users,
         ratio=ratio,
         visits_uplift=visits_uplift,
@@ -148,8 +226,9 @@ def make_visits_data(
 
 
 def _make_data(
-    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    to_pandas: bool = False,
     covariates: bool = False,
+    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
     visits_uplift: float = 0.0,
@@ -159,7 +238,7 @@ def _make_data(
     avg_orders_per_visit: float = 0.25,
     avg_revenue_per_order: float | int = 10,
     explode_visits: bool = False,
-) -> ibis.expr.types.Table:
+) -> ibis.expr.types.Table | pd.DataFrame:
     _check_params(
         n_users=n_users,
         ratio=ratio,
@@ -248,6 +327,9 @@ def _make_data(
             orders_covariate=orders_covariate,
             revenue_covariate=revenue_covariate,
         )
+
+    if to_pandas:
+        return data
 
     con = ibis.pandas.connect()
     return con.create_table("users_data", data)
