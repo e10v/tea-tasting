@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 def check_scalar(
     value: R,
     name: str = "value",
+    *,
     typ: Any = None,
     ge: Any = None,
     gt: Any = None,
