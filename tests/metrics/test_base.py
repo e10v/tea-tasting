@@ -113,10 +113,10 @@ def _compare_aggrs(
     for variant in left:
         l = left[variant]  # noqa: E741
         r = right[variant]
-        assert l._count == r._count
-        assert l._mean == r._mean
-        assert l._var == r._var
-        assert l._cov == r._cov
+        assert l.count_ == r.count_
+        assert l.mean_ == r.mean_
+        assert l.var_ == r.var_
+        assert l.cov_ == r.cov_
 
 
 def test_metric_base_aggregated_aggregate_by_variants_table(
