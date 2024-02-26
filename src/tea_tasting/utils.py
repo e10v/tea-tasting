@@ -76,11 +76,6 @@ class ReprMixin:
     """Mixin class for object representation.
 
     Representation string is generated based on parameters values saved in attributes.
-    Attributes names in priority order:
-
-    - "_{parameter name}",
-    - "{parameter name}_",
-    - "{parameter name}".
     """
     @classmethod
     def _get_param_names(cls) -> tuple[str, ...]:
