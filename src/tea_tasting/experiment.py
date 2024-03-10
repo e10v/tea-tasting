@@ -19,7 +19,7 @@ class ExperimentResult(NamedTuple):
     def to_dicts(self) -> tuple[dict[str, Any], ...]:
         """Return result as a sequence of dictionaries, one dictionary per metric."""
         return tuple(
-            {"metric": k} | v if isinstance(v, dict) else v._asdict()
+            {"metric": k} | (v if isinstance(v, dict) else v._asdict())
             for k, v in self.result.items()
         )
 
