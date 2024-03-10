@@ -32,10 +32,10 @@ class Aggregates(tea_tasting.utils.ReprMixin):
 
     def __init__(
         self,
-        count_: int | None,
-        mean_: dict[str, float | int],
-        var_: dict[str, float | int],
-        cov_: dict[tuple[str, str], float | int],
+        count_: int | None = None,
+        mean_: dict[str, float | int] = {},  # noqa: B006
+        var_: dict[str, float | int] = {},  # noqa: B006
+        cov_: dict[tuple[str, str], float | int] = {},  # noqa: B006
     ) -> None:
         """Create an object with aggregated statistics.
 

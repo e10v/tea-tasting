@@ -66,6 +66,7 @@ class AggrCols(NamedTuple):
 
 class MetricBase(abc.ABC, tea_tasting.utils.ReprMixin):
     """Base class for metrics."""
+    use_raw_data: bool = False
 
     @abc.abstractmethod
     def analyze(
@@ -177,13 +178,19 @@ class MetricBaseAggregated(MetricBase):
                 **self.aggr_cols._asdict(),
             )
 
+        if not isinstance(table, dict) or not all(  # type: ignore
+            isinstance(v, tea_tasting.aggr.Aggregates) for v in table.values()  # type: ignore
+        ):
+            raise TypeError(
+                f"data is a {type(data)}, but must be an instance of"
+                " DataFrame, Table, or a dictionary if Aggregates.",
+            )
+
         return table
 
 
 class MetricBaseGranular(MetricBase):
     """Base class for metrics analyzed using granular data."""
-    use_raw_data: bool = False
-
     @property
     @abc.abstractmethod
     def cols(self) -> Sequence[str]:

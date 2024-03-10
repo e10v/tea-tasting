@@ -148,3 +148,6 @@ def test_metric_base_aggregated_aggregate_by_variants_raises(
 ):
     with pytest.raises(ValueError, match="variant_col"):
         aggr_metric.aggregate_by_variants(data)  # type: ignore
+
+    with pytest.raises(TypeError):
+        aggr_metric.aggregate_by_variants(1)  # type: ignore
