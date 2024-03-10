@@ -218,7 +218,7 @@ class RatioOfMeans(MetricBaseAggregated):
             means_ratio_ci_lower = means_ratio / rel_half_ci
             means_ratio_ci_upper = means_ratio * rel_half_ci
 
-            pvalue = 2 * distr.cdf(-np.abs(std_effect_size))
+            pvalue = 2 * distr.sf(np.abs(std_effect_size))
 
         return MeansResult(
             control=contr_mean,
