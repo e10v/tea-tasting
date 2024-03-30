@@ -138,77 +138,80 @@ class MetricBaseAggregated(MetricBase, Generic[R]):
         Returns:
             Experiment results for a metric.
         """
+        aggr = aggregate_by_variants(
+            data,
+            aggr_cols=self.aggr_cols,
+            variant_col=variant_col,
+        )
         return self.analyze_aggregates(
-            self.aggregate_by_variants(data, variant_col),
-            control=control,
-            treatment=treatment,
+            control=aggr[control],
+            treatment=aggr[treatment],
         )
 
 
     @abc.abstractmethod
     def analyze_aggregates(
         self,
-        data: dict[Any, tea_tasting.aggr.Aggregates],
-        control: Any,
-        treatment: Any,
+        control: tea_tasting.aggr.Aggregates,
+        treatment: tea_tasting.aggr.Aggregates,
     ) -> R:
         """Analyze metric in an experiment using aggregated statistics.
 
         Args:
-            data: Experimental data.
-            control: Control variant.
-            treatment: Treatment variant.
+            control: Control data.
+            treatment: Treatment data.
 
         Returns:
             Experiment results for a metric.
         """
         ...
 
-    def aggregate_by_variants(
-        self,
-        data: pd.DataFrame | ibis.expr.types.Table | dict[
-            Any, tea_tasting.aggr.Aggregates],
-        variant_col: str | None = None,
-    ) ->  dict[Any, tea_tasting.aggr.Aggregates]:
-        """Validate aggregated experimental data.
 
-        Reads aggregates if data is not a dictionary of Aggregates.
+def aggregate_by_variants(
+    data: pd.DataFrame | ibis.expr.types.Table | dict[Any, tea_tasting.aggr.Aggregates],
+    aggr_cols: AggrCols,
+    variant_col: str | None = None,
+) ->  dict[Any, tea_tasting.aggr.Aggregates]:
+    """Validate aggregated experimental data.
 
-        Args:
-            data: Experimental data.
-            variant_col: Variant column name.
+    Reads aggregates if data is not a dictionary of Aggregates.
 
-        Raises:
-            ValueError: variant_col is None, while aggregated data are not provided.
+    Args:
+        data: Experimental data.
+        aggr_cols: Columns to aggregate.
+        variant_col: Variant column name.
 
-        Returns:
-            Experimental data as a dictionary of Aggregates.
-        """
-        if isinstance(data, pd.DataFrame):
-            con = ibis.pandas.connect()
-            table = con.create_table("data", data)
-        else:
-            table = data
+    Raises:
+        ValueError: variant_col is None, while aggregated data are not provided.
 
-        if isinstance(table, ibis.expr.types.Table):
-            if variant_col is None:
-                raise ValueError(
-                    "variant_col is None, but should be an instance of str.")
-            return tea_tasting.aggr.read_aggregates(
-                data=table,
-                group_col=variant_col,
-                **self.aggr_cols._asdict(),
-            )
+    Returns:
+        Experimental data as a dictionary of Aggregates.
+    """
+    if isinstance(data, pd.DataFrame):
+        con = ibis.pandas.connect()
+        table = con.create_table("data", data)
+    else:
+        table = data
 
-        if not isinstance(table, dict) or not all(  # type: ignore
-            isinstance(v, tea_tasting.aggr.Aggregates) for v in table.values()  # type: ignore
-        ):
-            raise TypeError(
-                f"data is a {type(data)}, but must be an instance of"
-                " DataFrame, Table, or a dictionary if Aggregates.",
-            )
+    if isinstance(table, ibis.expr.types.Table):
+        if variant_col is None:
+            raise ValueError(
+                "variant_col is None, but should be an instance of str.")
+        return tea_tasting.aggr.read_aggregates(
+            data=table,
+            group_col=variant_col,
+            **aggr_cols._asdict(),
+        )
 
-        return table
+    if not isinstance(table, dict) or not all(  # type: ignore
+        isinstance(v, tea_tasting.aggr.Aggregates) for v in table.values()  # type: ignore
+    ):
+        raise TypeError(
+            f"data is a {type(data)}, but must be an instance of"
+            " DataFrame, Table, or a dictionary if Aggregates.",
+        )
+
+    return table
 
 
 class MetricBaseGranular(MetricBase):
