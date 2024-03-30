@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING, NamedTuple, overload
+from typing import TYPE_CHECKING, Any, Generic, NamedTuple, TypeVar, Union, overload
 
 import ibis
 import ibis.expr.types
@@ -15,7 +15,10 @@ import tea_tasting.utils
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-    from typing import Any
+
+
+# The | operator doesn't work for NamedTuple, but Union works.
+R = TypeVar("R", bound=Union[NamedTuple, dict[str, Any]])  # noqa: UP007
 
 
 class AggrCols(NamedTuple):
@@ -66,8 +69,6 @@ class AggrCols(NamedTuple):
 
 class MetricBase(abc.ABC, tea_tasting.utils.ReprMixin):
     """Base class for metrics."""
-    use_raw_data: bool = False
-
     @abc.abstractmethod
     def analyze(
         self,
@@ -90,7 +91,7 @@ class MetricBase(abc.ABC, tea_tasting.utils.ReprMixin):
         ...
 
 
-class MetricBaseAggregated(MetricBase):
+class MetricBaseAggregated(MetricBase, Generic[R]):
     """Base class for metrics analyzed using aggregates."""
     @property
     @abc.abstractmethod
@@ -99,28 +100,25 @@ class MetricBaseAggregated(MetricBase):
         ...
 
     @overload
-    @abc.abstractmethod
     def analyze(
         self,
         data: dict[Any, tea_tasting.aggr.Aggregates],
         control: Any,
         treatment: Any,
         variant_col: None = None,
-    ) -> NamedTuple | dict[str, Any]:
+    ) -> R:
         ...
 
     @overload
-    @abc.abstractmethod
     def analyze(
         self,
         data: pd.DataFrame | ibis.expr.types.Table,
         control: Any,
         treatment: Any,
         variant_col: str,
-    ) -> NamedTuple | dict[str, Any]:
+    ) -> R:
         ...
 
-    @abc.abstractmethod
     def analyze(
         self,
         data: pd.DataFrame | ibis.expr.types.Table | dict[
@@ -128,7 +126,7 @@ class MetricBaseAggregated(MetricBase):
         control: Any,
         treatment: Any,
         variant_col: str | None = None,
-    ) -> NamedTuple | dict[str, Any]:
+    ) -> R:
         """Analyze metric in an experiment.
 
         Args:
@@ -136,6 +134,30 @@ class MetricBaseAggregated(MetricBase):
             control: Control variant.
             treatment: Treatment variant.
             variant_col: Variant column name.
+
+        Returns:
+            Experiment results for a metric.
+        """
+        return self.analyze_aggregates(
+            self.aggregate_by_variants(data, variant_col),
+            control=control,
+            treatment=treatment,
+        )
+
+
+    @abc.abstractmethod
+    def analyze_aggregates(
+        self,
+        data: dict[Any, tea_tasting.aggr.Aggregates],
+        control: Any,
+        treatment: Any,
+    ) -> R:
+        """Analyze metric in an experiment using aggregated statistics.
+
+        Args:
+            data: Experimental data.
+            control: Control variant.
+            treatment: Treatment variant.
 
         Returns:
             Experiment results for a metric.

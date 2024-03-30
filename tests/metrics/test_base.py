@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -10,10 +10,7 @@ import tea_tasting.metrics.base
 
 
 if TYPE_CHECKING:
-    from typing import Any, NamedTuple
-
     import ibis.expr.types
-    import pandas as pd
 
 
 def test_aggr_cols_or():
@@ -76,20 +73,10 @@ def correct_aggrs(
     )
 
 @pytest.fixture
-def aggr_metric() -> tea_tasting.metrics.base.MetricBaseAggregated:
-    class AggrMetric(tea_tasting.metrics.base.MetricBaseAggregated):
+def aggr_metric() -> tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]]:
+    class AggrMetric(tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]]):
         def __init__(self) -> None:
             return None
-
-        def analyze(
-            self,
-            data: pd.DataFrame | ibis.expr.types.Table | dict[  # noqa: ARG002
-                Any, tea_tasting.aggr.Aggregates],
-            control: Any,  # noqa: ARG002
-            treatment: Any,  # noqa: ARG002
-            variant_col: str | None = None,  # noqa: ARG002
-        ) -> NamedTuple | dict[str, Any]:
-            return {}
 
         @property
         def aggr_cols(
@@ -101,6 +88,14 @@ def aggr_metric() -> tea_tasting.metrics.base.MetricBaseAggregated:
                 var_cols=("orders", "revenue"),
                 cov_cols=(("visits", "revenue"),),
             )
+
+        def analyze_aggregates(
+            self,
+            data: dict[Any, tea_tasting.aggr.Aggregates],  # noqa: ARG002
+            control: Any,  # noqa: ARG002
+            treatment: Any,  # noqa: ARG002
+        ) -> dict[str, Any]:
+            return {}
 
     return AggrMetric()
 
@@ -120,7 +115,7 @@ def _compare_aggrs(
 
 
 def test_metric_base_aggregated_aggregate_by_variants_table(
-    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated,
+    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]],
     data: ibis.expr.types.Table,
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
@@ -128,7 +123,7 @@ def test_metric_base_aggregated_aggregate_by_variants_table(
     _compare_aggrs(aggrs, correct_aggrs)
 
 def test_metric_base_aggregated_aggregate_by_variants_df(
-    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated,
+    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]],
     data: ibis.expr.types.Table,
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
@@ -136,14 +131,14 @@ def test_metric_base_aggregated_aggregate_by_variants_df(
     _compare_aggrs(aggrs, correct_aggrs)
 
 def test_metric_base_aggregated_aggregate_by_variants_aggrs(
-    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated,
+    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]],
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
     aggrs = aggr_metric.aggregate_by_variants(correct_aggrs)
     _compare_aggrs(aggrs, correct_aggrs)
 
 def test_metric_base_aggregated_aggregate_by_variants_raises(
-    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated,
+    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]],
     data: ibis.expr.types.Table,
 ):
     with pytest.raises(ValueError, match="variant_col"):

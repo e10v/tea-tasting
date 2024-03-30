@@ -17,9 +17,6 @@ import tea_tasting.utils
 if TYPE_CHECKING:
     from typing import Any, Literal
 
-    import ibis.expr.types
-    import pandas as pd
-
 
 class MeansResult(NamedTuple):
     """Result of an analysis of metric means.
@@ -51,7 +48,7 @@ class MeansResult(NamedTuple):
     pvalue: float
 
 
-class RatioOfMeans(MetricBaseAggregated):
+class RatioOfMeans(MetricBaseAggregated[MeansResult]):
     """Compares ratios of metrics means between variants."""
 
     def __init__(  # noqa: PLR0913
@@ -134,26 +131,22 @@ class RatioOfMeans(MetricBaseAggregated):
         )
 
 
-    def analyze(
+    def analyze_aggregates(
         self,
-        data: pd.DataFrame | ibis.expr.types.Table | dict[
-            Any, tea_tasting.aggr.Aggregates],
+        data: dict[Any, tea_tasting.aggr.Aggregates],
         control: Any,
         treatment: Any,
-        variant_col: str | None = None,
     ) -> MeansResult:
-        """Analyze metric in an experiment.
+        """Analyze metric in an experiment using aggregated statistics.
 
         Args:
             data: Experimental data.
             control: Control variant.
             treatment: Treatment variant.
-            variant_col: Variant column name.
 
         Returns:
             Experiment result for a metric.
         """
-        data = self.aggregate_by_variants(data, variant_col=variant_col)
         contr = data[control]
         treat = data[treatment]
         total = contr + treat
