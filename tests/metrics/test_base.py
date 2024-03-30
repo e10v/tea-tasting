@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+import unittest.mock
 
+import pandas as pd
 import pytest
 
 import tea_tasting.aggr
@@ -10,10 +12,7 @@ import tea_tasting.metrics.base
 
 
 if TYPE_CHECKING:
-    from typing import Any, NamedTuple
-
     import ibis.expr.types
-    import pandas as pd
 
 
 def test_aggr_cols_or():
@@ -63,12 +62,8 @@ def data() -> ibis.expr.types.Table:
     return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
 
 @pytest.fixture
-def correct_aggrs(
-    data: ibis.expr.types.Table,
-) -> dict[Any, tea_tasting.aggr.Aggregates]:
-    return tea_tasting.aggr.read_aggregates(
-        data,
-        group_col="variant",
+def aggr_cols() -> tea_tasting.metrics.base.AggrCols:
+    return tea_tasting.metrics.base.AggrCols(
         has_count=True,
         mean_cols=("visits", "orders"),
         var_cols=("orders", "revenue"),
@@ -76,78 +71,245 @@ def correct_aggrs(
     )
 
 @pytest.fixture
-def aggr_metric() -> tea_tasting.metrics.base.MetricBaseAggregated:
-    class AggrMetric(tea_tasting.metrics.base.MetricBaseAggregated):
+def correct_aggrs(
+    data: ibis.expr.types.Table,
+    aggr_cols: tea_tasting.metrics.base.AggrCols,
+) -> dict[Any, tea_tasting.aggr.Aggregates]:
+    return tea_tasting.aggr.read_aggregates(
+        data,
+        group_col="variant",
+        **aggr_cols._asdict(),
+    )
+
+@pytest.fixture
+def cols() -> tuple[str, ...]:
+    return ("visits", "orders", "revenue")
+
+@pytest.fixture
+def correct_dfs(
+    data: ibis.expr.types.Table,
+    cols: tuple[str, ...],
+) -> dict[Any, pd.DataFrame]:
+    return dict(tuple(data.select(*cols, "variant").to_pandas().groupby("variant")))
+
+@pytest.fixture
+def aggr_metric(
+    aggr_cols: tea_tasting.metrics.base.AggrCols,
+) -> tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]]:
+    class AggrMetric(tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]]):
         def __init__(self) -> None:
             return None
 
-        def analyze(
-            self,
-            data: pd.DataFrame | ibis.expr.types.Table | dict[  # noqa: ARG002
-                Any, tea_tasting.aggr.Aggregates],
-            control: Any,  # noqa: ARG002
-            treatment: Any,  # noqa: ARG002
-            variant_col: str | None = None,  # noqa: ARG002
-        ) -> NamedTuple | dict[str, Any]:
-            return {}
-
         @property
-        def aggr_cols(
+        def aggr_cols(self) -> tea_tasting.metrics.base.AggrCols:
+            return aggr_cols
+
+        def analyze_aggregates(
             self,
-        ) -> tea_tasting.metrics.base.AggrCols:
-            return tea_tasting.metrics.base.AggrCols(
-                has_count=True,
-                mean_cols=("visits", "orders"),
-                var_cols=("orders", "revenue"),
-                cov_cols=(("visits", "revenue"),),
-            )
+            control: tea_tasting.aggr.Aggregates,  # noqa: ARG002
+            treatment: tea_tasting.aggr.Aggregates,  # noqa: ARG002
+        ) -> dict[str, Any]:
+            return {}
 
     return AggrMetric()
 
+@pytest.fixture
+def gran_metric(
+    cols: tuple[str, ...],
+) -> tea_tasting.metrics.base.MetricBaseGranular[dict[str, Any]]:
+    class GranMetric(tea_tasting.metrics.base.MetricBaseGranular[dict[str, Any]]):
+        def __init__(self) -> None:
+            return None
+
+        @property
+        def cols(self) -> tuple[str, ...]:
+            return cols
+
+        def analyze_dataframes(
+            self,
+            control: pd.DataFrame,  # noqa: ARG002
+            treatment: pd.DataFrame,  # noqa: ARG002
+        ) -> dict[str, Any]:
+            return {}
+
+    return GranMetric()
+
 
 def _compare_aggrs(
-    left: dict[Any, tea_tasting.aggr.Aggregates],
-    right: dict[Any, tea_tasting.aggr.Aggregates],
+    left: tea_tasting.aggr.Aggregates,
+    right: tea_tasting.aggr.Aggregates,
 ) -> None:
-    assert left.keys() == right.keys()
-    for variant in left:
-        l = left[variant]  # noqa: E741
-        r = right[variant]
-        assert l.count_ == r.count_
-        assert l.mean_ == r.mean_
-        assert l.var_ == r.var_
-        assert l.cov_ == r.cov_
+    assert left.count_ == right.count_
+    assert left.mean_ == right.mean_
+    assert left.var_ == right.var_
+    assert left.cov_ == right.cov_
 
 
-def test_metric_base_aggregated_aggregate_by_variants_table(
-    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated,
+def test_metric_base_aggregated_analyze_table(
+    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]],
     data: ibis.expr.types.Table,
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
-    aggrs = aggr_metric.aggregate_by_variants(data, variant_col="variant")
-    _compare_aggrs(aggrs, correct_aggrs)
+    aggr_metric.analyze_aggregates = unittest.mock.MagicMock()
+    aggr_metric.analyze(data, control=0, treatment=1, variant_col="variant")
+    aggr_metric.analyze_aggregates.assert_called_once()
+    kwargs = aggr_metric.analyze_aggregates.call_args.kwargs
+    _compare_aggrs(kwargs["control"], correct_aggrs[0])
+    _compare_aggrs(kwargs["treatment"], correct_aggrs[1])
 
-def test_metric_base_aggregated_aggregate_by_variants_df(
-    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated,
+def test_metric_base_aggregated_analyze_df(
+    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]],
     data: ibis.expr.types.Table,
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
-    aggrs = aggr_metric.aggregate_by_variants(data.to_pandas(), variant_col="variant")
-    _compare_aggrs(aggrs, correct_aggrs)
+    aggr_metric.analyze_aggregates = unittest.mock.MagicMock()
+    aggr_metric.analyze(data.to_pandas(), control=0, treatment=1, variant_col="variant")
+    aggr_metric.analyze_aggregates.assert_called_once()
+    kwargs = aggr_metric.analyze_aggregates.call_args.kwargs
+    _compare_aggrs(kwargs["control"], correct_aggrs[0])
+    _compare_aggrs(kwargs["treatment"], correct_aggrs[1])
 
-def test_metric_base_aggregated_aggregate_by_variants_aggrs(
-    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated,
+def test_metric_base_aggregated_analyze_aggrs(
+    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]],
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
-    aggrs = aggr_metric.aggregate_by_variants(correct_aggrs)
-    _compare_aggrs(aggrs, correct_aggrs)
+    aggr_metric.analyze_aggregates = unittest.mock.MagicMock()
+    aggr_metric.analyze(correct_aggrs, control=0, treatment=1)
+    aggr_metric.analyze_aggregates.assert_called_once()
+    kwargs = aggr_metric.analyze_aggregates.call_args.kwargs
+    _compare_aggrs(kwargs["control"], correct_aggrs[0])
+    _compare_aggrs(kwargs["treatment"], correct_aggrs[1])
 
-def test_metric_base_aggregated_aggregate_by_variants_raises(
-    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated,
+
+def test_aggregate_by_variants_table(
     data: ibis.expr.types.Table,
+    aggr_cols: tea_tasting.metrics.base.AggrCols,
+    correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
+):
+    aggrs = tea_tasting.metrics.base.aggregate_by_variants(
+        data,
+        aggr_cols=aggr_cols,
+        variant_col="variant",
+    )
+    _compare_aggrs(aggrs[0], correct_aggrs[0])
+    _compare_aggrs(aggrs[1], correct_aggrs[1])
+
+def test_aggregate_by_variants_df(
+    data: ibis.expr.types.Table,
+    aggr_cols: tea_tasting.metrics.base.AggrCols,
+    correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
+):
+    aggrs = tea_tasting.metrics.base.aggregate_by_variants(
+        data.to_pandas(),
+        aggr_cols=aggr_cols,
+        variant_col="variant",
+    )
+    _compare_aggrs(aggrs[0], correct_aggrs[0])
+    _compare_aggrs(aggrs[1], correct_aggrs[1])
+
+def test_aggregate_by_variants_aggrs(
+    aggr_cols: tea_tasting.metrics.base.AggrCols,
+    correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
+):
+    aggrs = tea_tasting.metrics.base.aggregate_by_variants(
+        correct_aggrs,
+        aggr_cols=aggr_cols,
+        variant_col="variant",
+    )
+    _compare_aggrs(aggrs[0], correct_aggrs[0])
+    _compare_aggrs(aggrs[1], correct_aggrs[1])
+
+def test_aggregate_by_variants_raises(
+    data: ibis.expr.types.Table,
+    aggr_cols: tea_tasting.metrics.base.AggrCols,
 ):
     with pytest.raises(ValueError, match="variant_col"):
-        aggr_metric.aggregate_by_variants(data)  # type: ignore
+        tea_tasting.metrics.base.aggregate_by_variants(data, aggr_cols=aggr_cols)
 
     with pytest.raises(TypeError):
-        aggr_metric.aggregate_by_variants(1)  # type: ignore
+        tea_tasting.metrics.base.aggregate_by_variants(1, aggr_cols=aggr_cols)  # type: ignore
+
+
+def test_metric_base_granular_table(
+    gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, Any]],
+    data: ibis.expr.types.Table,
+    correct_dfs: dict[Any, pd.DataFrame],
+):
+    gran_metric.analyze_dataframes = unittest.mock.MagicMock()
+    gran_metric.analyze(data, control=0, treatment=1, variant_col="variant")
+    gran_metric.analyze_dataframes.assert_called_once()
+    kwargs = gran_metric.analyze_dataframes.call_args.kwargs
+    pd.testing.assert_frame_equal(kwargs["control"], correct_dfs[0])
+    pd.testing.assert_frame_equal(kwargs["treatment"], correct_dfs[1])
+
+def test_metric_base_granular_df(
+    gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, Any]],
+    data: ibis.expr.types.Table,
+    correct_dfs: dict[Any, pd.DataFrame],
+):
+    gran_metric.analyze_dataframes = unittest.mock.MagicMock()
+    gran_metric.analyze(data.to_pandas(), control=0, treatment=1, variant_col="variant")
+    gran_metric.analyze_dataframes.assert_called_once()
+    kwargs = gran_metric.analyze_dataframes.call_args.kwargs
+    pd.testing.assert_frame_equal(kwargs["control"], correct_dfs[0])
+    pd.testing.assert_frame_equal(kwargs["treatment"], correct_dfs[1])
+
+def test_metric_base_granular_dfs(
+    gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, Any]],
+    correct_dfs: dict[Any, pd.DataFrame],
+):
+    gran_metric.analyze_dataframes = unittest.mock.MagicMock()
+    gran_metric.analyze(correct_dfs, control=0, treatment=1)
+    gran_metric.analyze_dataframes.assert_called_once()
+    kwargs = gran_metric.analyze_dataframes.call_args.kwargs
+    pd.testing.assert_frame_equal(kwargs["control"], correct_dfs[0])
+    pd.testing.assert_frame_equal(kwargs["treatment"], correct_dfs[1])
+
+
+def test_read_dataframes_table(
+    data: ibis.expr.types.Table,
+    cols: tuple[str, ...],
+    correct_dfs: dict[Any, pd.DataFrame],
+):
+    dfs = tea_tasting.metrics.base.read_dataframes(
+        data,
+        cols=cols,
+        variant_col="variant",
+    )
+    pd.testing.assert_frame_equal(dfs[0], correct_dfs[0])
+    pd.testing.assert_frame_equal(dfs[1], correct_dfs[1])
+
+def test_read_dataframes_df(
+    data: ibis.expr.types.Table,
+    cols: tuple[str, ...],
+    correct_dfs: dict[Any, pd.DataFrame],
+):
+    dfs = tea_tasting.metrics.base.read_dataframes(
+        data.to_pandas(),
+        cols=cols,
+        variant_col="variant",
+    )
+    pd.testing.assert_frame_equal(dfs[0], correct_dfs[0])
+    pd.testing.assert_frame_equal(dfs[1], correct_dfs[1])
+
+def test_read_dataframes_dfs(
+    cols: tuple[str, ...],
+    correct_dfs: dict[Any, pd.DataFrame],
+):
+    dfs = tea_tasting.metrics.base.read_dataframes(
+        correct_dfs,
+        cols=cols,
+        variant_col="variant",
+    )
+    pd.testing.assert_frame_equal(dfs[0], correct_dfs[0])
+    pd.testing.assert_frame_equal(dfs[1], correct_dfs[1])
+
+def test_read_dataframes_raises(
+    data: ibis.expr.types.Table,
+    cols: tuple[str, ...],
+):
+    with pytest.raises(ValueError, match="variant_col"):
+        tea_tasting.metrics.base.read_dataframes(data, cols=cols)
+
+    with pytest.raises(TypeError):
+        tea_tasting.metrics.base.read_dataframes(1, cols=cols, variant_col="variant")  # type: ignore

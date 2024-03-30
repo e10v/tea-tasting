@@ -15,14 +15,12 @@ class ExperimentResult(NamedTuple):
     """Experiment result for a pair of variants (control, treatment)."""
     result: dict[str, NamedTuple | dict[str, Any]]
 
-
     def to_dicts(self) -> tuple[dict[str, Any], ...]:
         """Return result as a sequence of dictionaries, one dictionary per metric."""
         return tuple(
             {"metric": k} | (v if isinstance(v, dict) else v._asdict())
             for k, v in self.result.items()
         )
-
 
     def to_pandas(self) -> pd.DataFrame:
         """Return result as a Pandas DataFrame, one row per metric."""
@@ -32,7 +30,6 @@ class ExperimentResult(NamedTuple):
 class ExperimentResults(NamedTuple):
     """Experiment results for all pairs of variants (control, treatment)."""
     results: dict[tuple[Any, Any], ExperimentResult]
-
 
     def get(
         self,
@@ -65,7 +62,6 @@ class ExperimentResults(NamedTuple):
 
         return self.results[(control, treatment)]
 
-
     def to_dicts(
         self,
         control: Any = None,
@@ -88,7 +84,6 @@ class ExperimentResults(NamedTuple):
             Experiment result as a sequence of dictionaries, one dictionary per metric.
         """
         return self.get(control, treatment).to_dicts()
-
 
     def to_pandas(
         self,

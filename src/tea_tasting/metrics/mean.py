@@ -15,10 +15,7 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from typing import Any, Literal
-
-    import ibis.expr.types
-    import pandas as pd
+    from typing import Literal
 
 
 class MeansResult(NamedTuple):
@@ -51,7 +48,7 @@ class MeansResult(NamedTuple):
     pvalue: float
 
 
-class RatioOfMeans(MetricBaseAggregated):
+class RatioOfMeans(MetricBaseAggregated[MeansResult]):
     """Compares ratios of metrics means between variants."""
 
     def __init__(  # noqa: PLR0913
@@ -134,43 +131,35 @@ class RatioOfMeans(MetricBaseAggregated):
         )
 
 
-    def analyze(
+    def analyze_aggregates(
         self,
-        data: pd.DataFrame | ibis.expr.types.Table | dict[
-            Any, tea_tasting.aggr.Aggregates],
-        control: Any,
-        treatment: Any,
-        variant_col: str | None = None,
+        control: tea_tasting.aggr.Aggregates,
+        treatment: tea_tasting.aggr.Aggregates,
     ) -> MeansResult:
-        """Analyze metric in an experiment.
+        """Analyze metric in an experiment using aggregated statistics.
 
         Args:
-            data: Experimental data.
-            control: Control variant.
-            treatment: Treatment variant.
-            variant_col: Variant column name.
+            control: Control data.
+            treatment: Treatment data.
 
         Returns:
             Experiment result for a metric.
         """
-        data = self.aggregate_by_variants(data, variant_col=variant_col)
-        contr = data[control]
-        treat = data[treatment]
-        total = contr + treat
+        total = control + treatment
         covariate_coef = self._covariate_coef(total)
         covariate_mean = total.mean(self.numer_covariate) / total.mean(
             self.denom_covariate)
-        return self._analyze_from_stats(
-            contr_mean=self._metric_mean(contr, covariate_coef, covariate_mean),
-            contr_var=self._metric_var(contr, covariate_coef),
-            contr_count=contr.count(),
-            treat_mean=self._metric_mean(treat, covariate_coef, covariate_mean),
-            treat_var=self._metric_var(treat, covariate_coef),
-            treat_count=treat.count(),
+        return self._analyze_stats(
+            contr_mean=self._metric_mean(control, covariate_coef, covariate_mean),
+            contr_var=self._metric_var(control, covariate_coef),
+            contr_count=control.count(),
+            treat_mean=self._metric_mean(treatment, covariate_coef, covariate_mean),
+            treat_var=self._metric_var(treatment, covariate_coef),
+            treat_count=treatment.count(),
         )
 
 
-    def _analyze_from_stats(
+    def _analyze_stats(
         self,
         contr_mean: float,
         contr_var: float,
