@@ -148,7 +148,6 @@ class MetricBaseAggregated(MetricBase, Generic[R]):
             treatment=aggr[treatment],
         )
 
-
     @abc.abstractmethod
     def analyze_aggregates(
         self,
@@ -183,6 +182,8 @@ def aggregate_by_variants(
 
     Raises:
         ValueError: variant_col is None, while aggregated data are not provided.
+        TypeError: data is not an instance of DataFrame, Table,
+            or a dictionary if Aggregates.
 
     Returns:
         Experimental data as a dictionary of Aggregates.
@@ -214,10 +215,117 @@ def aggregate_by_variants(
     return table
 
 
-class MetricBaseGranular(MetricBase):
+class MetricBaseGranular(MetricBase, Generic[R]):
     """Base class for metrics analyzed using granular data."""
     @property
     @abc.abstractmethod
     def cols(self) -> Sequence[str]:
         """Columns to be fetched for a metric analysis."""
         ...
+
+    @overload
+    def analyze(
+        self,
+        data: dict[Any, pd.DataFrame],
+        control: Any,
+        treatment: Any,
+        variant_col: None = None,
+    ) -> R:
+        ...
+
+    @overload
+    def analyze(
+        self,
+        data: pd.DataFrame | ibis.expr.types.Table,
+        control: Any,
+        treatment: Any,
+        variant_col: str,
+    ) -> R:
+        ...
+
+    def analyze(
+        self,
+        data: pd.DataFrame | ibis.expr.types.Table | dict[Any, pd.DataFrame],
+        control: Any,
+        treatment: Any,
+        variant_col: str | None = None,
+    ) -> R:
+        """Analyze metric in an experiment.
+
+        Args:
+            data: Experimental data.
+            control: Control variant.
+            treatment: Treatment variant.
+            variant_col: Variant column name.
+
+        Returns:
+            Experiment results for a metric.
+        """
+        dfs = read_dataframes(
+            data,
+            cols=self.cols,
+            variant_col=variant_col,
+        )
+        return self.analyze_dataframes(
+            control=dfs[control],
+            treatment=dfs[treatment],
+        )
+
+    @abc.abstractmethod
+    def analyze_dataframes(
+        self,
+        control: pd.DataFrame,
+        treatment: pd.DataFrame,
+    ) -> R:
+        """Analyze metric in an experiment using granular data.
+
+        Args:
+            control: Control data.
+            treatment: Treatment data.
+
+        Returns:
+            Experiment results for a metric.
+        """
+        ...
+
+
+def read_dataframes(
+    data: pd.DataFrame | ibis.expr.types.Table | dict[Any, pd.DataFrame],
+    cols: Sequence[str],
+    variant_col: str | None = None,
+) -> dict[Any, pd.DataFrame]:
+    """Validate granular experimental data.
+
+    Reads granular data if data is not a dictionary of DataFrames.
+
+    Args:
+        data: Experimental data.
+        cols: Columns to read.
+        variant_col: Variant column name.
+
+    Raises:
+        ValueError: variant_col is None, while aggregated data are not provided.
+        TypeError: data is not an instance of DataFrame, Table,
+            or a dictionary if DataFrames.
+
+    Returns:
+        Experimental data as a dictionary of DataFrames.
+    """
+    if isinstance(data, dict) and all(
+        isinstance(v, pd.DataFrame) for v in data.values()  # type: ignore
+    ):
+        return data
+
+    if variant_col is None:
+        raise ValueError("variant_col is None, but should be an instance of str.")
+
+    if isinstance(data, ibis.expr.types.Table):
+        data = data.select(*cols, variant_col).to_pandas()
+
+    if not isinstance(data, pd.DataFrame):
+        raise TypeError(
+            f"data is a {type(data)}, but must be an instance of"
+            " DataFrame, Table, or a dictionary if DataFrames.",
+        )
+
+    return dict(tuple(data.loc[:, [*cols, variant_col]].groupby(variant_col)))
