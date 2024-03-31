@@ -92,6 +92,14 @@ def test_experiment_result_to_pandas(result: tea_tasting.experiment.ExperimentRe
     )
 
 
+def test_experiment_results_keys(
+    results: tea_tasting.experiment.ExperimentResults,
+    results2: tea_tasting.experiment.ExperimentResults,
+):
+    assert results.keys() == ((0, 1),)
+    assert results2.keys() == ((0, 1), (0, 2))
+
+
 def test_experiment_results_get_default(
     results: tea_tasting.experiment.ExperimentResults,
 ):

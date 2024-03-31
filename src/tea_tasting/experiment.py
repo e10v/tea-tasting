@@ -31,6 +31,10 @@ class ExperimentResults(NamedTuple):
     """Experiment results for all pairs of variants (control, treatment)."""
     results: dict[tuple[Any, Any], ExperimentResult]
 
+    def keys(self) -> tuple[tuple[Any, Any], ...]:
+        """Returns a tuple of pairs of variants (control, treatment)."""
+        return tuple(self.results.keys())
+
     def get(
         self,
         control: Any = None,
