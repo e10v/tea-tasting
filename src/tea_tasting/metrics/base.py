@@ -17,8 +17,28 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-# The | operator doesn't work for NamedTuple, but Union works.
-R = TypeVar("R", bound=Union[NamedTuple, dict[str, Any]])  # noqa: UP007
+class MetricBase(abc.ABC, tea_tasting.utils.ReprMixin):
+    """Base class for metrics."""
+    @abc.abstractmethod
+    def analyze(
+        self,
+        data: pd.DataFrame | ibis.expr.types.Table,
+        control: Any,
+        treatment: Any,
+        variant_col: str,
+    ) -> NamedTuple | dict[str, Any]:
+        """Analyzes metric in an experiment.
+
+        Args:
+            data: Experimental data.
+            control: Control variant.
+            treatment: Treatment variant.
+            variant_col: Variant column.
+
+        Returns:
+            Experiment results for a metric.
+        """
+        ...
 
 
 class AggrCols(NamedTuple):
@@ -67,29 +87,8 @@ class AggrCols(NamedTuple):
         )
 
 
-class MetricBase(abc.ABC, tea_tasting.utils.ReprMixin):
-    """Base class for metrics."""
-    @abc.abstractmethod
-    def analyze(
-        self,
-        data: pd.DataFrame | ibis.expr.types.Table,
-        control: Any,
-        treatment: Any,
-        variant_col: str,
-    ) -> NamedTuple | dict[str, Any]:
-        """Analyzes metric in an experiment.
-
-        Args:
-            data: Experimental data.
-            control: Control variant.
-            treatment: Treatment variant.
-            variant_col: Variant column.
-
-        Returns:
-            Experiment results for a metric.
-        """
-        ...
-
+# The | operator doesn't work for NamedTuple, but Union works.
+R = TypeVar("R", bound=Union[NamedTuple, dict[str, Any]])  # noqa: UP007
 
 class MetricBaseAggregated(MetricBase, Generic[R]):
     """Base class for metrics analyzed using aggregates."""
