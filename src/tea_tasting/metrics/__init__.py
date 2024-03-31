@@ -6,5 +6,7 @@ from tea_tasting.metrics.base import (
     MetricBase,
     MetricBaseAggregated,
     MetricBaseGranular,
+    aggregate_by_variants,
+    read_dataframes,
 )
 from tea_tasting.metrics.mean import RatioOfMeans, SimpleMean

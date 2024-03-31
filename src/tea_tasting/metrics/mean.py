@@ -159,6 +159,49 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
         )
 
 
+    def _covariate_coef(self, aggr: tea_tasting.aggr.Aggregates) -> float:
+        covariate_var = aggr.ratio_var(self.numer_covariate, self.denom_covariate)
+        if covariate_var == 0:
+            return 0
+        return self._covariate_cov(aggr) / covariate_var
+
+
+    def _covariate_cov(self, aggr: tea_tasting.aggr.Aggregates) -> float:
+        return aggr.ratio_cov(
+            self.numer,
+            self.denom,
+            self.numer_covariate,
+            self.denom_covariate,
+        )
+
+
+    def _metric_mean(
+        self,
+        aggr: tea_tasting.aggr.Aggregates,
+        covariate_coef: float,
+        covariate_mean: float,
+    ) -> float:
+        return aggr.mean(self.numer)/aggr.mean(self.denom) - covariate_coef*(
+            aggr.mean(self.numer_covariate)/aggr.mean(self.denom_covariate)
+            - covariate_mean
+        )
+
+
+    def _metric_var(
+        self,
+        aggr: tea_tasting.aggr.Aggregates,
+        covariate_coef: float,
+    ) -> float:
+        var = aggr.ratio_var(self.numer, self.denom)
+        covariate_var = aggr.ratio_var(self.numer_covariate, self.denom_covariate)
+        covariate_cov = self._covariate_cov(aggr)
+        return (
+            var
+            + covariate_coef * covariate_coef * covariate_var
+            - 2 * covariate_coef * covariate_cov
+        )
+
+
     def _analyze_stats(
         self,
         contr_mean: float,
@@ -219,49 +262,6 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
             rel_effect_size_ci_lower=means_ratio_ci_lower - 1,
             rel_effect_size_ci_upper=means_ratio_ci_upper - 1,
             pvalue=pvalue,
-        )
-
-
-    def _covariate_coef(self, aggr: tea_tasting.aggr.Aggregates) -> float:
-        covariate_var = aggr.ratio_var(self.numer_covariate, self.denom_covariate)
-        if covariate_var == 0:
-            return 0
-        return self._covariate_cov(aggr) / covariate_var
-
-
-    def _covariate_cov(self, aggr: tea_tasting.aggr.Aggregates) -> float:
-        return aggr.ratio_cov(
-            self.numer,
-            self.denom,
-            self.numer_covariate,
-            self.denom_covariate,
-        )
-
-
-    def _metric_mean(
-        self,
-        aggr: tea_tasting.aggr.Aggregates,
-        covariate_coef: float,
-        covariate_mean: float,
-    ) -> float:
-        return aggr.mean(self.numer)/aggr.mean(self.denom) - covariate_coef*(
-            aggr.mean(self.numer_covariate)/aggr.mean(self.denom_covariate)
-            - covariate_mean
-        )
-
-
-    def _metric_var(
-        self,
-        aggr: tea_tasting.aggr.Aggregates,
-        covariate_coef: float,
-    ) -> float:
-        var = aggr.ratio_var(self.numer, self.denom)
-        covariate_var = aggr.ratio_var(self.numer_covariate, self.denom_covariate)
-        covariate_cov = self._covariate_cov(aggr)
-        return (
-            var
-            + covariate_coef * covariate_coef * covariate_var
-            - 2 * covariate_coef * covariate_cov
         )
 
 
