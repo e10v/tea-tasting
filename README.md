@@ -32,8 +32,8 @@ import tea_tasting as tt
 users_data = tt.sample_users_data(size=1000, seed=42)
 
 experiment = tt.Experiment({
-    "Visits per user": tt.SimpleMean("visits"),
-    "Orders per visits": tt.RatioOfMeans(numer="orders", denom="visits"),
+    "Sessions per user": tt.SimpleMean("sessions"),
+    "Orders per sessions": tt.RatioOfMeans(numer="orders", denom="sessions"),
     "Orders per user": tt.SimpleMean("orders"),
     "Revenue per user": tt.SimpleMean("revenue"),
 })
@@ -50,7 +50,7 @@ The `sample_users_data` function in **tea-tasting** creates synthetic data for d
 
 - `user_id`: The unique identifier for each user.
 - `variant`: The specific variant (e.g., A or B) assigned to the user in the A/B test.
-- `visits`: The total number of visits by the user.
+- `sessions`: The total number of sessions by the user.
 - `orders`: The total number of purchases made by the user.
 - `revenue`: The total revenue generated from the user's purchases.
 
@@ -83,8 +83,8 @@ data = users_data.with_columns(
 
 experiment = tt.Experiment(
     {
-        "Visits per user": tt.SimpleMean("visits"),
-        "Orders per visits": tt.RatioOfMeans(numer="orders", denom="visits"),
+        "Sessions per user": tt.SimpleMean("sessions"),
+        "Orders per sessions": tt.RatioOfMeans(numer="orders", denom="sessions"),
         "Orders per user": tt.SimpleMean("orders"),
         "Revenue per user": tt.SimpleMean("revenue"),
     },
@@ -113,9 +113,9 @@ You can customize the default values for `use_t`, `equal_var`, `alternative`, an
 
 ### Ratio metrics
 
-The `RatioOfMeans` class in **tea-tasting** is specifically designed for situations where the analysis unit differs from the randomization unit. This is common in cases where you need to compare ratios, such as orders per visit, where visits per user vary.
+The `RatioOfMeans` class in **tea-tasting** is specifically designed for situations where the analysis unit differs from the randomization unit. This is common in cases where you need to compare ratios, such as orders per session, where sessions per user vary.
 
-- Defining ratio metrics: `RatioOfMeans` calculates the ratio of averages, such as the average number of orders per average number of visits. It requires two parameters:
+- Defining ratio metrics: `RatioOfMeans` calculates the ratio of averages, such as the average number of orders per average number of sessions. It requires two parameters:
   - `numer`: The column name for the numerator of the ratio.
   - `denom`: The column name for the denominator of the ratio.
 - Statistical tests: Like `SimpleMean`, `RatioOfMeans` supports various statistical tests, including Welch's t-test, Student's t-test, and Z-test. The parameters are:
@@ -162,12 +162,12 @@ users_data = tt.sample_users_data(size=1000, seed=42, pre=True)
 
 experiment = tt.Experiment(
     {
-        "Visits per user": tt.SimpleMean("visits", covariate="pre_visits"),
-        "Orders per visits": tt.RatioOfMeans(
+        "Sessions per user": tt.SimpleMean("sessions", covariate="pre_sessions"),
+        "Orders per sessions": tt.RatioOfMeans(
             numer="orders",
-            denom="visits",
+            denom="sessions",
             numer_covariate="pre_orders",
-            denom_covariate="pre_visits",
+            denom_covariate="pre_sessions",
         ),
         "Orders per user": tt.SimpleMean("orders", covariate="pre_orders",),
         "Revenue per user": tt.SimpleMean("revenue", covariate="pre_revenue"),
@@ -179,7 +179,7 @@ experiment_result = experiment.analyze(users_data)
 
 The `sample_users_data` function's `pre` parameter controls the inclusion of pre-experimental data, useful for variance reduction. These data appear as additional columns:
 
-- `pre_visits`: User visits before the experiment.
+- `pre_sessions`: User sessions before the experiment.
 - `pre_orders`: User purchases before the experiment.
 - `pre_revenue`: User-generated revenue before the experiment.
 
@@ -196,8 +196,8 @@ Example usage:
 
 ```python
 experiment = tt.Experiment({
-    "Visits per user": tt.SimpleMean("visits"),
-    "Orders per visits": tt.RatioOfMeans(numer="orders", denom="visits"),
+    "Sessions per user": tt.SimpleMean("sessions"),
+    "Orders per sessions": tt.RatioOfMeans(numer="orders", denom="sessions"),
     "Orders per user": tt.SimpleMean("orders"),
     "Revenue per user": tt.SimpleMean("revenue"),
     "Sample ratio": tt.SampleRatio(),
@@ -471,7 +471,7 @@ It's important to note that **tea-tasting** does not adjust for multiple compari
 
 ### Group by units
 
-By default, **tea-tasting** assumes data are grouped by randomization units, such as users. But sometimes one might want to perform clustered error analysis, multilevel modelling, or other methods that rely on more detailed data, such as visits.
+By default, **tea-tasting** assumes data are grouped by randomization units, such as users. But sometimes one might want to perform clustered error analysis, multilevel modelling, or other methods that rely on more detailed data, such as sessions.
 
 Steps to analyze data grouped by different units:
 

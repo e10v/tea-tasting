@@ -160,11 +160,11 @@ def data() -> ibis.expr.types.Table:
 def ref_result(
     data: ibis.expr.types.Table,
 ) -> tea_tasting.experiment.ExperimentResults:
-    visits = _Metric("visits")
+    sessions = _Metric("sessions")
     orders = _MetricAggregated("orders")
     revenue = _MetricGranular("revenue")
     return tea_tasting.experiment.ExperimentResult({
-        "avg_visits": visits.analyze(data, 0, 1, "variant"),
+        "avg_sessions": sessions.analyze(data, 0, 1, "variant"),
         "avg_orders": orders.analyze(data, 0, 1, "variant"),
         "avg_revenue": revenue.analyze(data, 0, 1, "variant"),  # type: ignore
     })
@@ -288,7 +288,7 @@ def test_experiment_results_to_pandas_param(
 
 def test_experiment_init_default():
     metrics = {
-        "avg_visits": _Metric("visits"),
+        "avg_sessions": _Metric("sessions"),
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     }
@@ -299,7 +299,7 @@ def test_experiment_init_default():
 
 def test_experiment_init_custom():
     metrics = {
-        "avg_visits": _Metric("visits"),
+        "avg_sessions": _Metric("sessions"),
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     }
@@ -314,7 +314,7 @@ def test_experiment_analyze_default(
     ref_result: tea_tasting.experiment.ExperimentResult,
 ):
     experiment = tea_tasting.experiment.Experiment({
-        "avg_visits": _Metric("visits"),
+        "avg_sessions": _Metric("sessions"),
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     })
@@ -326,12 +326,12 @@ def test_experiment_analyze_base(
     ref_result: tea_tasting.experiment.ExperimentResult,
 ):
     experiment = tea_tasting.experiment.Experiment({
-        "avg_visits": _Metric("visits"),
+        "avg_sessions": _Metric("sessions"),
     })
     results = experiment.analyze(data)
     assert results == tea_tasting.experiment.ExperimentResults({
         (0, 1): tea_tasting.experiment.ExperimentResult(
-            {"avg_visits": ref_result.get("avg_visits")}),
+            {"avg_sessions": ref_result.get("avg_sessions")}),
     })
 
 def test_experiment_analyze_base_pandas(
@@ -339,12 +339,12 @@ def test_experiment_analyze_base_pandas(
     ref_result: tea_tasting.experiment.ExperimentResult,
 ):
     experiment = tea_tasting.experiment.Experiment({
-        "avg_visits": _Metric("visits"),
+        "avg_sessions": _Metric("sessions"),
     })
     results = experiment.analyze(data.to_pandas())
     assert results == tea_tasting.experiment.ExperimentResults({
         (0, 1): tea_tasting.experiment.ExperimentResult(
-            {"avg_visits": ref_result.get("avg_visits")}),
+            {"avg_sessions": ref_result.get("avg_sessions")}),
     })
 
 def test_experiment_analyze_aggr(
@@ -383,7 +383,7 @@ def test_experiment_analyze_all_pairs(
             .mutate(variant=ibis.literal(2, data.schema().fields["variant"])),
     )
     experiment = tea_tasting.experiment.Experiment({
-        "avg_visits": _Metric("visits"),
+        "avg_sessions": _Metric("sessions"),
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     })
@@ -403,7 +403,7 @@ def test_experiment_analyze_two_treatments(
     )
     experiment = tea_tasting.experiment.Experiment(
         {
-            "avg_visits": _Metric("visits"),
+            "avg_sessions": _Metric("sessions"),
             "avg_orders": _MetricAggregated("orders"),
             "avg_revenue": _MetricGranular("revenue"),
         },

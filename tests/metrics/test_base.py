@@ -65,9 +65,9 @@ def data() -> ibis.expr.types.Table:
 def aggr_cols() -> tea_tasting.metrics.base.AggrCols:
     return tea_tasting.metrics.base.AggrCols(
         has_count=True,
-        mean_cols=("visits", "orders"),
+        mean_cols=("sessions", "orders"),
         var_cols=("orders", "revenue"),
-        cov_cols=(("visits", "revenue"),),
+        cov_cols=(("sessions", "revenue"),),
     )
 
 @pytest.fixture
@@ -83,7 +83,7 @@ def correct_aggrs(
 
 @pytest.fixture
 def cols() -> tuple[str, ...]:
-    return ("visits", "orders", "revenue")
+    return ("sessions", "orders", "revenue")
 
 @pytest.fixture
 def correct_dfs(
