@@ -74,11 +74,22 @@ def results2(
     })
 
 
+def test_experiment_result_keys(result: tea_tasting.experiment.ExperimentResult):
+    assert result.keys() == ("metric_tuple", "metric_dict")
+
+
+def test_experiment_result_get(result: tea_tasting.experiment.ExperimentResult):
+    assert result.get("metric_tuple") == _MetricResultTuple(10, 11, 1)
+    assert result.get("metric_dict") == _MetricResultDict(
+        control=20, treatment=22, effect_size=2)
+
+
 def test_experiment_result_to_dicts(result: tea_tasting.experiment.ExperimentResult):
     assert result.to_dicts() == (
         {"metric": "metric_tuple", "control": 10, "treatment": 11, "effect_size": 1},
         {"metric": "metric_dict", "control": 20, "treatment": 22, "effect_size": 2},
     )
+
 
 def test_experiment_result_to_pandas(result: tea_tasting.experiment.ExperimentResult):
     pd.testing.assert_frame_equal(
@@ -150,7 +161,6 @@ def test_experiment_results_to_dicts_param(
         {"metric": "metric_tuple", "control": 10, "treatment": 11, "effect_size": 1},
         {"metric": "metric_dict", "control": 30, "treatment": 33, "effect_size": 3},
     )
-
 
 
 def test_experiment_results_to_pandas_default(

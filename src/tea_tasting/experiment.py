@@ -21,15 +21,23 @@ class ExperimentResult(NamedTuple):
     """Experiment result for a pair of variants."""
     result: dict[str, NamedTuple | dict[str, Any]]
 
+    def keys(self) -> tuple[str, ...]:
+        """Get a tuple of metric names."""
+        return tuple(self.result.keys())
+
+    def get(self, metric_name: str) -> NamedTuple | dict[str, Any]:
+        """Get a metric by it's name."""
+        return self.result[metric_name]
+
     def to_dicts(self) -> tuple[dict[str, Any], ...]:
-        """Return result as a sequence of dictionaries, one dictionary per metric."""
+        """Convert the result to a sequence of dictionaries."""
         return tuple(
             {"metric": k} | (v if isinstance(v, dict) else v._asdict())
             for k, v in self.result.items()
         )
 
     def to_pandas(self) -> pd.DataFrame:
-        """Return result as a Pandas DataFrame, one row per metric."""
+        """Convert the result to a Pandas DataFrame."""
         return pd.DataFrame.from_records(self.to_dicts())
 
 
@@ -38,7 +46,7 @@ class ExperimentResults(NamedTuple):
     results: dict[tuple[Any, Any], ExperimentResult]
 
     def keys(self) -> tuple[tuple[Any, Any], ...]:
-        """Returns a tuple of pairs of variants (control, treatment)."""
+        """Get a tuple of pairs of variants (control, treatment)."""
         return tuple(self.results.keys())
 
     def get(
@@ -46,7 +54,7 @@ class ExperimentResults(NamedTuple):
         control: Any = None,
         treatment: Any = None,
     ) -> ExperimentResult:
-        """Return result for a pair of variants (control, treatment).
+        """Get the result for a pair of variants (control, treatment).
 
         Both the control and the treatment can be None if there are two variants
         in the experiment.
@@ -77,7 +85,7 @@ class ExperimentResults(NamedTuple):
         control: Any = None,
         treatment: Any = None,
     ) -> tuple[dict[str, Any], ...]:
-        """Return result for a pair of variants (control, treatment).
+        """Convert the result to a sequence of dictionaries for a pair of variants.
 
         Both the control and the treatment can be None if there are two variants
         in the experiment.
@@ -100,7 +108,7 @@ class ExperimentResults(NamedTuple):
         control: Any = None,
         treatment: Any = None,
     ) -> pd.DataFrame:
-        """Return result for a pair of variants (control, treatment).
+        """Convert the result to a Pandas DataFrame for a pair of variants.
 
         Both the control and the treatment can be None if there are two variants
         in the experiment.
