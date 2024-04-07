@@ -13,7 +13,7 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from typing import Literal
+    from typing import Any, Literal
 
     import ibis.expr.types  # noqa: TCH004
     import numpy.typing as npt
@@ -290,7 +290,7 @@ def _make_data(
 
     data = pd.DataFrame({
         "user": user,
-        "variant": variant[user],
+        "variant": variant[user].astype(np.uint8),
         "visits": visits,
         "orders": orders,
         "revenue": revenue,
@@ -367,9 +367,9 @@ def _check_params(
 
 
 def _avg_by_groups(
-    values: npt.ArrayLike,
-    groups: npt.ArrayLike,
-) -> npt.ArrayLike:
+    values: npt.NDArray[np.number[Any]],
+    groups: npt.NDArray[np.number[Any]],
+) -> npt.NDArray[np.number[Any]]:
     return np.concatenate([
         np.full(v.shape, v.mean())
         for v in np.split(values, np.unique(groups, return_index=True)[1])
