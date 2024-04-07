@@ -17,7 +17,11 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-class MetricBase(abc.ABC, tea_tasting.utils.ReprMixin):
+# The | operator doesn't work for NamedTuple, but Union works.
+R = TypeVar("R", bound=Union[NamedTuple, dict[str, Any]])  # noqa: UP007
+
+
+class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
     """Base class for metrics."""
     @abc.abstractmethod
     def analyze(
@@ -26,7 +30,7 @@ class MetricBase(abc.ABC, tea_tasting.utils.ReprMixin):
         control: Any,
         treatment: Any,
         variant_col: str,
-    ) -> NamedTuple | dict[str, Any]:
+    ) -> R:
         """Analyzes metric in an experiment.
 
         Args:
@@ -87,10 +91,7 @@ class AggrCols(NamedTuple):
         )
 
 
-# The | operator doesn't work for NamedTuple, but Union works.
-R = TypeVar("R", bound=Union[NamedTuple, dict[str, Any]])  # noqa: UP007
-
-class MetricBaseAggregated(MetricBase, Generic[R]):
+class MetricBaseAggregated(MetricBase[R]):
     """Base class for metrics analyzed using aggregates."""
     @property
     @abc.abstractmethod
@@ -214,7 +215,7 @@ def aggregate_by_variants(
     return table
 
 
-class MetricBaseGranular(MetricBase, Generic[R]):
+class MetricBaseGranular(MetricBase[R]):
     """Base class for metrics analyzed using granular data."""
     @property
     @abc.abstractmethod
