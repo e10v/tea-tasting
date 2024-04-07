@@ -27,8 +27,8 @@ def dataframe(table: ibis.expr.types.Table) -> pd.DataFrame:
 @pytest.fixture
 def data(table: ibis.expr.types.Table) -> dict[str, tea_tasting.aggr.Aggregates]:
     cols = (
-        "visits", "orders", "revenue",
-        "visits_covariate", "orders_covariate", "revenue_covariate",
+        "sessions", "orders", "revenue",
+        "sessions_covariate", "orders_covariate", "revenue_covariate",
     )
     return tea_tasting.aggr.read_aggregates(
         table,
@@ -116,7 +116,7 @@ def test_ratio_of_means_analyze_table(table: ibis.expr.types.Table):
 def test_ratio_of_means_analyze_df(dataframe: pd.DataFrame):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
-        denom="visits",
+        denom="sessions",
     )
     result = metric.analyze(dataframe, 0, 1, variant_col="variant")
     assert isinstance(result, tea_tasting.metrics.mean.MeansResult)
@@ -140,7 +140,7 @@ def test_ratio_of_means_analyze_ratio_greater_equal_var(
 ):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
-        denom="visits",
+        denom="sessions",
         alternative="greater",
         equal_var=True,
     )
@@ -161,9 +161,9 @@ def test_ratio_of_means_analyze_ratio_less_use_norm(
 ):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
-        denom="visits",
+        denom="sessions",
         numer_covariate="orders_covariate",
-        denom_covariate="visits_covariate",
+        denom_covariate="sessions_covariate",
         alternative="less",
         use_t=False,
     )

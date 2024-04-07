@@ -85,16 +85,16 @@ def test_aggregates_add(data: ibis.expr.types.Table):
     d = data.to_pandas()
     aggr = tea_tasting.aggr.Aggregates(
         count_=len(d),
-        mean_={"visits": d["visits"].mean(), "orders": d["orders"].mean()},  # type: ignore
-        var_={"visits": d["visits"].var(), "orders": d["orders"].var()},  # type: ignore
-        cov_={("visits", "orders"): d["visits"].cov(d["orders"])},  # type: ignore
+        mean_={"sessions": d["sessions"].mean(), "orders": d["orders"].mean()},  # type: ignore
+        var_={"sessions": d["sessions"].var(), "orders": d["orders"].var()},  # type: ignore
+        cov_={("sessions", "orders"): d["sessions"].cov(d["orders"])},  # type: ignore
     )
     aggrs = tuple(
         tea_tasting.aggr.Aggregates(
             count_=len(d),
-            mean_={"visits": d["visits"].mean(), "orders": d["orders"].mean()},  # type: ignore
-            var_={"visits": d["visits"].var(), "orders": d["orders"].var()},  # type: ignore
-            cov_={("visits", "orders"): d["visits"].cov(d["orders"])},  # type: ignore
+            mean_={"sessions": d["sessions"].mean(), "orders": d["orders"].mean()},  # type: ignore
+            var_={"sessions": d["sessions"].var(), "orders": d["orders"].var()},  # type: ignore
+            cov_={("sessions", "orders"): d["sessions"].cov(d["orders"])},  # type: ignore
         )
         for _, d in d.groupby("variant")
     )
@@ -109,9 +109,9 @@ def test_read_aggregates_groups(data: ibis.expr.types.Table):
     correct_aggrs = {
         v: tea_tasting.aggr.Aggregates(
             count_=len(d),
-            mean_={"visits": d["visits"].mean(), "orders": d["orders"].mean()},  # type: ignore
-            var_={"visits": d["visits"].var(), "orders": d["orders"].var()},  # type: ignore
-            cov_={("orders", "visits"): d["visits"].cov(d["orders"])},  # type: ignore
+            mean_={"sessions": d["sessions"].mean(), "orders": d["orders"].mean()},  # type: ignore
+            var_={"sessions": d["sessions"].var(), "orders": d["orders"].var()},  # type: ignore
+            cov_={("orders", "sessions"): d["sessions"].cov(d["orders"])},  # type: ignore
         )
         for v, d in data.to_pandas().groupby("variant")
     }
@@ -119,9 +119,9 @@ def test_read_aggregates_groups(data: ibis.expr.types.Table):
         data,
         group_col="variant",
         has_count=True,
-        mean_cols=("visits", "orders"),
-        var_cols=("visits", "orders"),
-        cov_cols=(("visits", "orders"),),
+        mean_cols=("sessions", "orders"),
+        var_cols=("sessions", "orders"),
+        cov_cols=(("sessions", "orders"),),
     )
     for i in (0, 1):
         assert aggrs[i].count_ == pytest.approx(correct_aggrs[i].count_)
@@ -133,17 +133,17 @@ def test_read_aggregates_no_groups(data: ibis.expr.types.Table):
     d = data.to_pandas()
     correct_aggr = tea_tasting.aggr.Aggregates(
         count_=len(d),
-        mean_={"visits": d["visits"].mean(), "orders": d["orders"].mean()},  # type: ignore
-        var_={"visits": d["visits"].var(), "orders": d["orders"].var()},  # type: ignore
-        cov_={("orders", "visits"): d["visits"].cov(d["orders"])},  # type: ignore
+        mean_={"sessions": d["sessions"].mean(), "orders": d["orders"].mean()},  # type: ignore
+        var_={"sessions": d["sessions"].var(), "orders": d["orders"].var()},  # type: ignore
+        cov_={("orders", "sessions"): d["sessions"].cov(d["orders"])},  # type: ignore
     )
     aggr = tea_tasting.aggr.read_aggregates(
         data,
         group_col=None,
         has_count=True,
-        mean_cols=("visits", "orders"),
-        var_cols=("visits", "orders"),
-        cov_cols=(("visits", "orders"),),
+        mean_cols=("sessions", "orders"),
+        var_cols=("sessions", "orders"),
+        cov_cols=(("sessions", "orders"),),
     )
     assert aggr.count_ == pytest.approx(correct_aggr.count_)
     assert aggr.mean_ == pytest.approx(correct_aggr.mean_)
@@ -155,7 +155,7 @@ def test_read_aggregates_no_count(data: ibis.expr.types.Table):
         data,
         group_col=None,
         has_count=False,
-        mean_cols=("visits", "orders"),
+        mean_cols=("sessions", "orders"),
         var_cols=(),
         cov_cols=(),
     )
