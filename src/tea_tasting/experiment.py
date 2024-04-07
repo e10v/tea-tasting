@@ -132,7 +132,7 @@ class Experiment(tea_tasting.utils.ReprMixin):
 
     def __init__(
         self,
-        metrics: dict[str, tea_tasting.metrics.MetricBase],
+        metrics: dict[str, tea_tasting.metrics.MetricBase[Any]],
         variant_col: str = "variant",
         control: Any = None,
     ) -> None:
@@ -193,10 +193,10 @@ class Experiment(tea_tasting.utils.ReprMixin):
             result: dict[str, NamedTuple | dict[str, Any]] = {}
             for name, metric in self.metrics.items():
                 result |= {name: self._analyze_metric(
+                    metric=metric,
                     data=data,
                     aggr_data=aggregated_data,
                     granular_data=granular_data,
-                    metric=metric,
                     control=control,
                     treatment=treatment,
                 )}
@@ -207,10 +207,10 @@ class Experiment(tea_tasting.utils.ReprMixin):
 
     def _analyze_metric(
         self,
+        metric: tea_tasting.metrics.MetricBase[Any],
         data: pd.DataFrame | ibis.expr.types.Table,
         aggr_data: dict[Any, tea_tasting.aggr.Aggregates] | None,
         granular_data: dict[Any, pd.DataFrame] | None,
-        metric: tea_tasting.metrics.MetricBase,
         control: Any,
         treatment: Any,
     ) -> NamedTuple | dict[str, Any]:

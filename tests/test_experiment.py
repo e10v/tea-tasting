@@ -28,7 +28,7 @@ class _MetricResultDict(TypedDict):
     effect_size: float
 
 
-class _Metric(tea_tasting.metrics.MetricBase):
+class _Metric(tea_tasting.metrics.MetricBase[_MetricResultTuple]):
     def __init__(self, value: str) -> None:
         self.value = value
 
