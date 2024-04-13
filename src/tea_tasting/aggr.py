@@ -5,15 +5,15 @@ from __future__ import annotations
 import itertools
 from typing import TYPE_CHECKING, overload
 
+import ibis.expr.types
+import pandas as pd
+
 import tea_tasting.utils
 
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from typing import Any
-
-    import ibis.expr.types
-    import pandas as pd
 
 
 _COUNT = "_count"
@@ -241,7 +241,7 @@ def _add_cov(left: Aggregates, right: Aggregates, cols: tuple[str, str]) -> floa
 
 @overload
 def read_aggregates(
-    data: ibis.expr.types.Table,
+    data: ibis.expr.types.Table | pd.DataFrame,
     group_col: str,
     has_count: bool,
     mean_cols: Sequence[str],
@@ -252,7 +252,7 @@ def read_aggregates(
 
 @overload
 def read_aggregates(
-    data: ibis.expr.types.Table,
+    data: ibis.expr.types.Table | pd.DataFrame,
     group_col: None,
     has_count: bool,
     mean_cols: Sequence[str],
@@ -262,7 +262,7 @@ def read_aggregates(
     ...
 
 def read_aggregates(
-    data: ibis.expr.types.Table,
+    data: ibis.expr.types.Table | pd.DataFrame,
     group_col: str | None,
     has_count: bool,
     mean_cols: Sequence[str],
@@ -282,6 +282,10 @@ def read_aggregates(
     Returns:
         Aggregated statistics from the Ibis Table.
     """
+    if isinstance(data, pd.DataFrame):
+        con = ibis.pandas.connect()
+        data = con.create_table("data", data)
+
     mean_cols, var_cols, cov_cols = _validate_aggr_cols(mean_cols, var_cols, cov_cols)
 
     demean_cols = tuple({*var_cols, *itertools.chain(*cov_cols)})

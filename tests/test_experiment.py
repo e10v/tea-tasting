@@ -37,13 +37,13 @@ class _Metric(tea_tasting.metrics.MetricBase[_MetricResultTuple]):
         data: pd.DataFrame | ibis.expr.types.Table,
         control: int,
         treatment: int,
-        variant_col: str,
+        variant: str,
     ) -> _MetricResultTuple:
         if isinstance(data, pd.DataFrame):
             con = ibis.pandas.connect()
             data = con.create_table("data", data)
         agg_data = (
-            data.group_by(variant_col)
+            data.group_by(variant)
             .agg(mean=data[self.value].mean())  # type: ignore
             .to_pandas()
         )
@@ -109,14 +109,14 @@ def get_result() -> Callable[
         x: tuple[float, float, float],
         y: tuple[float, float, float],
     ) -> tea_tasting.experiment.ExperimentResult:
-        return tea_tasting.experiment.ExperimentResult({
-            "metric_tuple": _MetricResultTuple(*x),
-            "metric_dict": _MetricResultDict(
+        return tea_tasting.experiment.ExperimentResult(
+            metric_tuple=_MetricResultTuple(*x),
+            metric_dict=_MetricResultDict(
                 control=y[0],
                 treatment=y[1],
                 effect_size=y[2],
             ),  # type: ignore
-        })
+        )
 
     return _get_result
 
@@ -163,21 +163,11 @@ def ref_result(
     sessions = _Metric("sessions")
     orders = _MetricAggregated("orders")
     revenue = _MetricGranular("revenue")
-    return tea_tasting.experiment.ExperimentResult({
-        "avg_sessions": sessions.analyze(data, 0, 1, "variant"),
-        "avg_orders": orders.analyze(data, 0, 1, "variant"),
-        "avg_revenue": revenue.analyze(data, 0, 1, "variant"),  # type: ignore
-    })
-
-
-def test_experiment_result_keys(result: tea_tasting.experiment.ExperimentResult):
-    assert result.keys() == ("metric_tuple", "metric_dict")
-
-
-def test_experiment_result_get(result: tea_tasting.experiment.ExperimentResult):
-    assert result.get("metric_tuple") == _MetricResultTuple(10, 11, 1)
-    assert result.get("metric_dict") == _MetricResultDict(
-        control=20, treatment=22, effect_size=2)
+    return tea_tasting.experiment.ExperimentResult(
+        avg_sessions=sessions.analyze(data, 0, 1, "variant"),
+        avg_orders=orders.analyze(data, 0, 1, "variant"),
+        avg_revenue=revenue.analyze(data, 0, 1, "variant"),  # type: ignore
+    )
 
 
 def test_experiment_result_to_dicts(result: tea_tasting.experiment.ExperimentResult):
@@ -199,47 +189,39 @@ def test_experiment_result_to_pandas(result: tea_tasting.experiment.ExperimentRe
     )
 
 
-def test_experiment_results_keys(
-    results: tea_tasting.experiment.ExperimentResults,
-    results2: tea_tasting.experiment.ExperimentResults,
-):
-    assert results.keys() == ((0, 1),)
-    assert results2.keys() == ((0, 1), (0, 2))
-
-
-def test_experiment_results_get_default(
+def test_experiment_results_getitem_default(
     results: tea_tasting.experiment.ExperimentResults,
 ):
-    result = results.get()
+    result = results[None, None]
     assert isinstance(result, tea_tasting.experiment.ExperimentResult)
-    assert result.result == {
-        "metric_tuple": _MetricResultTuple(10, 11, 1),
-        "metric_dict": _MetricResultDict(
+    assert result == tea_tasting.experiment.ExperimentResult(
+        metric_tuple=_MetricResultTuple(10, 11, 1),
+        metric_dict=_MetricResultDict(
             control=20,
             treatment=22,
             effect_size=2,
         ),  # type: ignore
-    }
+    )
 
-def test_experiment_results_get_param(
+def test_experiment_results_getitem_param(
     results2: tea_tasting.experiment.ExperimentResults,
 ):
-    result = results2.get(0, 2)
+    result = results2[0, 2]
     assert isinstance(result, tea_tasting.experiment.ExperimentResult)
-    assert result.result == {
-        "metric_tuple": _MetricResultTuple(10, 11, 1),
-        "metric_dict": _MetricResultDict(
+    assert result == tea_tasting.experiment.ExperimentResult(
+        metric_tuple=_MetricResultTuple(10, 11, 1),
+        metric_dict=_MetricResultDict(
             control=30,
             treatment=33,
             effect_size=3,
         ),  # type: ignore
-    }
+    )
 
-def test_experiment_results_get_raises(
+def test_experiment_results_getitem_raises(
     results2: tea_tasting.experiment.ExperimentResults,
 ):
     with pytest.raises(ValueError, match="not None"):
-        results2.get()
+        results2[None, None]
 
 
 def test_experiment_results_to_dicts_default(
@@ -292,10 +274,9 @@ def test_experiment_init_default():
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     }
-    experiment = tea_tasting.experiment.Experiment(metrics) # type: ignore
+    experiment = tea_tasting.experiment.Experiment(metrics)  # type: ignore
     assert experiment.metrics == metrics
-    assert experiment.variant_col == "variant"
-    assert experiment.control is None
+    assert experiment.variant == "variant"
 
 def test_experiment_init_custom():
     metrics = {
@@ -303,10 +284,9 @@ def test_experiment_init_custom():
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     }
-    experiment = tea_tasting.experiment.Experiment(metrics, "group", 0) # type: ignore
+    experiment = tea_tasting.experiment.Experiment(metrics, "group")  # type: ignore
     assert experiment.metrics == metrics
-    assert experiment.variant_col == "group"
-    assert experiment.control == 0
+    assert experiment.variant == "group"
 
 
 def test_experiment_analyze_default(
@@ -329,10 +309,9 @@ def test_experiment_analyze_base(
         "avg_sessions": _Metric("sessions"),
     })
     results = experiment.analyze(data)
-    assert results == tea_tasting.experiment.ExperimentResults({
-        (0, 1): tea_tasting.experiment.ExperimentResult(
-            {"avg_sessions": ref_result.get("avg_sessions")}),
-    })
+    result = tea_tasting.experiment.ExperimentResult(
+        avg_sessions=ref_result["avg_sessions"])
+    assert results == tea_tasting.experiment.ExperimentResults({(0, 1): result})
 
 def test_experiment_analyze_base_pandas(
     data: ibis.expr.types.Table,
@@ -342,10 +321,9 @@ def test_experiment_analyze_base_pandas(
         "avg_sessions": _Metric("sessions"),
     })
     results = experiment.analyze(data.to_pandas())
-    assert results == tea_tasting.experiment.ExperimentResults({
-        (0, 1): tea_tasting.experiment.ExperimentResult(
-            {"avg_sessions": ref_result.get("avg_sessions")}),
-    })
+    result = tea_tasting.experiment.ExperimentResult(
+        avg_sessions=ref_result["avg_sessions"])
+    assert results == tea_tasting.experiment.ExperimentResults({(0, 1): result})
 
 def test_experiment_analyze_aggr(
     data: ibis.expr.types.Table,
@@ -355,10 +333,9 @@ def test_experiment_analyze_aggr(
         "avg_orders": _MetricAggregated("orders"),
     })
     results = experiment.analyze(data)
-    assert results == tea_tasting.experiment.ExperimentResults({
-        (0, 1): tea_tasting.experiment.ExperimentResult(
-            {"avg_orders": ref_result.get("avg_orders")}),
-    })
+    result = tea_tasting.experiment.ExperimentResult(
+        avg_orders=ref_result["avg_orders"])
+    assert results == tea_tasting.experiment.ExperimentResults({(0, 1): result})
 
 def test_experiment_analyze_gran(
     data: ibis.expr.types.Table,
@@ -368,10 +345,9 @@ def test_experiment_analyze_gran(
         "avg_revenue": _MetricGranular("revenue"),
     })
     results = experiment.analyze(data)
-    assert results == tea_tasting.experiment.ExperimentResults({
-        (0, 1): tea_tasting.experiment.ExperimentResult(
-            {"avg_revenue": ref_result.get("avg_revenue")}),
-    })
+    result = tea_tasting.experiment.ExperimentResult(
+        avg_revenue=ref_result["avg_revenue"])
+    assert results == tea_tasting.experiment.ExperimentResults({(0, 1): result})
 
 def test_experiment_analyze_all_pairs(
     data: ibis.expr.types.Table,
@@ -389,8 +365,8 @@ def test_experiment_analyze_all_pairs(
     })
     results = experiment.analyze(data)
     assert set(results.keys()) == {(0, 1), (0, 2), (1, 2)}
-    assert results.get(0, 1) == ref_result
-    assert results.get(0, 2) == ref_result
+    assert results[0, 1] == ref_result
+    assert results[0, 2] == ref_result
 
 def test_experiment_analyze_two_treatments(
     data: ibis.expr.types.Table,
@@ -407,9 +383,8 @@ def test_experiment_analyze_two_treatments(
             "avg_orders": _MetricAggregated("orders"),
             "avg_revenue": _MetricGranular("revenue"),
         },
-        control=0,
     )
-    results = experiment.analyze(data)
+    results = experiment.analyze(data, control=0)
     assert results == tea_tasting.experiment.ExperimentResults({
         (0, 1): ref_result,
         (0, 2): ref_result,
