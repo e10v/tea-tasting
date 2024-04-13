@@ -227,7 +227,8 @@ def test_aggregate_by_variants_raises(
         tea_tasting.metrics.base.aggregate_by_variants(data, aggr_cols=aggr_cols)
 
     with pytest.raises(TypeError):
-        tea_tasting.metrics.base.aggregate_by_variants(1, aggr_cols=aggr_cols)  # type: ignore
+        tea_tasting.metrics.base.aggregate_by_variants(
+            1, aggr_cols=aggr_cols, variant="variant")  # type: ignore
 
 
 def test_metric_base_granular_table(

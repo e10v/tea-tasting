@@ -190,31 +190,25 @@ def aggregate_by_variants(
     Returns:
         Experimental data as a dictionary of Aggregates.
     """
-    if isinstance(data, pd.DataFrame):
-        con = ibis.pandas.connect()
-        table = con.create_table("data", data)
-    else:
-        table = data
-
-    if isinstance(table, ibis.expr.types.Table):
-        if variant is None:
-            raise ValueError(
-                "variant is None, but should be an instance of str.")
-        return tea_tasting.aggr.read_aggregates(
-            data=table,
-            group_col=variant,
-            **aggr_cols._asdict(),
-        )
-
-    if not isinstance(table, dict) or not all(  # type: ignore
-        isinstance(v, tea_tasting.aggr.Aggregates) for v in table.values()  # type: ignore
+    if isinstance(data, dict) and all(
+        isinstance(v, tea_tasting.aggr.Aggregates) for v in data.values()  # type: ignore
     ):
+        return data
+
+    if variant is None:
+        raise ValueError("variant is None, but should be an instance of str.")
+
+    if not isinstance(data, pd.DataFrame | ibis.expr.types.Table):
         raise TypeError(
             f"data is a {type(data)}, but must be an instance of"
             " DataFrame, Table, or a dictionary if Aggregates.",
         )
 
-    return table
+    return tea_tasting.aggr.read_aggregates(
+        data=data,
+        group_col=variant,
+        **aggr_cols._asdict(),
+    )
 
 
 class MetricBaseGranular(MetricBase[R]):
