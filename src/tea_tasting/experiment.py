@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NamedTuple
+from collections import UserDict
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 
@@ -12,28 +13,17 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from typing import Any
-
     import ibis.expr.types
 
 
-class ExperimentResult(NamedTuple):
+class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResultBase]):
     """Experiment result for a pair of variants."""
-    result: dict[str, NamedTuple | dict[str, Any]]
-
-    def keys(self) -> tuple[str, ...]:
-        """Get a tuple of metric names."""
-        return tuple(self.result.keys())
-
-    def get(self, metric_name: str) -> NamedTuple | dict[str, Any]:
-        """Get a metric by it's name."""
-        return self.result[metric_name]
 
     def to_dicts(self) -> tuple[dict[str, Any], ...]:
         """Convert the result to a sequence of dictionaries."""
         return tuple(
             {"metric": k} | (v if isinstance(v, dict) else v._asdict())
-            for k, v in self.result.items()
+            for k, v in self.items()
         )
 
     def to_pandas(self) -> pd.DataFrame:
@@ -41,44 +31,20 @@ class ExperimentResult(NamedTuple):
         return pd.DataFrame.from_records(self.to_dicts())
 
 
-class ExperimentResults(NamedTuple):
+class ExperimentResults(UserDict[tuple[Any, Any], ExperimentResult]):
     """Experiment results for all pairs of variants (control, treatment)."""
-    results: dict[tuple[Any, Any], ExperimentResult]
 
-    def keys(self) -> tuple[tuple[Any, Any], ...]:
-        """Get a tuple of pairs of variants (control, treatment)."""
-        return tuple(self.results.keys())
-
-    def get(
-        self,
-        control: Any = None,
-        treatment: Any = None,
-    ) -> ExperimentResult:
+    def __getitem__(self, key: tuple[Any, Any]) -> ExperimentResult:
         """Get the result for a pair of variants (control, treatment).
 
         Both the control and the treatment can be None if there are two variants
         in the experiment.
-
-        Args:
-            control: Control variant.
-            treatment: Treatment variant.
-
-        Raises:
-            ValueError: Either control or treatment is None while
-                there are more than two variants in the experiment.
-
-        Returns:
-            Experiment result.
         """
-        if control is None or treatment is None:
-            if len(self.results) != 1:
-                raise ValueError(
-                    f"control is {control}, treatment is {treatment},"
-                    " both must be not None.",
-                )
-            return next(iter(self.results.values()))
-
-        return self.results[(control, treatment)]
+        if key[0] is None or key[1] is None:
+            if len(self.data) != 1:
+                raise ValueError("Key values must be not None.")
+            return next(iter(self.data.values()))
+        return super().__getitem__(key)
 
     def to_dicts(
         self,
@@ -101,7 +67,7 @@ class ExperimentResults(NamedTuple):
         Returns:
             Experiment result as a sequence of dictionaries, one dictionary per metric.
         """
-        return self.get(control, treatment).to_dicts()
+        return self[control, treatment].to_dicts()
 
     def to_pandas(
         self,
@@ -124,7 +90,7 @@ class ExperimentResults(NamedTuple):
         Returns:
             Experiment result as a Pandas DataFrame, one row per metric.
         """
-        return self.get(control, treatment).to_pandas()
+        return self[control, treatment].to_pandas()
 
 
 class Experiment(tea_tasting.utils.ReprMixin):
@@ -188,9 +154,9 @@ class Experiment(tea_tasting.utils.ReprMixin):
                 if control < treatment
             )
 
-        results: dict[tuple[Any, Any], ExperimentResult] = {}
+        results = ExperimentResults()
         for control, treatment in variant_pairs:
-            result: dict[str, NamedTuple | dict[str, Any]] = {}
+            result = ExperimentResult()
             for name, metric in self.metrics.items():
                 result |= {name: self._analyze_metric(
                     metric=metric,
@@ -200,9 +166,9 @@ class Experiment(tea_tasting.utils.ReprMixin):
                     control=control,
                     treatment=treatment,
                 )}
-            results |= {(control, treatment): ExperimentResult(result)}
+            results |= {(control, treatment): result}
 
-        return ExperimentResults(results)
+        return results
 
 
     def _analyze_metric(
@@ -213,7 +179,7 @@ class Experiment(tea_tasting.utils.ReprMixin):
         granular_data: dict[Any, pd.DataFrame] | None,
         control: Any,
         treatment: Any,
-    ) -> NamedTuple | dict[str, Any]:
+    ) -> tea_tasting.metrics.MetricResultBase:
         if (
             isinstance(metric, tea_tasting.metrics.MetricBaseAggregated)
             and aggr_data is not None
