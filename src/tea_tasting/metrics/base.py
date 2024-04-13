@@ -107,7 +107,7 @@ class MetricBaseAggregated(MetricBase[R]):
         data: dict[Any, tea_tasting.aggr.Aggregates],
         control: Any,
         treatment: Any,
-        variant: None = None,
+        variant: str | None = None,
     ) -> R:
         ...
 
@@ -225,7 +225,7 @@ class MetricBaseGranular(MetricBase[R]):
         data: dict[Any, pd.DataFrame],
         control: Any,
         treatment: Any,
-        variant: None = None,
+        variant: str | None = None,
     ) -> R:
         ...
 
