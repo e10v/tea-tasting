@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     import ibis.expr.types
 
 
-class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResultBase]):
+class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
     """Experiment result for a pair of variants."""
 
     def to_dicts(self) -> tuple[dict[str, Any], ...]:
@@ -181,7 +181,7 @@ class Experiment(tea_tasting.utils.ReprMixin):
         granular_data: dict[Any, pd.DataFrame] | None,
         control: Any,
         treatment: Any,
-    ) -> tea_tasting.metrics.MetricResultBase:
+    ) -> tea_tasting.metrics.MetricResult:
         if (
             isinstance(metric, tea_tasting.metrics.MetricBaseAggregated)
             and aggr_data is not None

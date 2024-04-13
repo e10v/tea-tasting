@@ -18,9 +18,9 @@ if TYPE_CHECKING:
 
 
 # The | operator doesn't work for NamedTuple, but Union works.
-MetricResultBase = Union[NamedTuple, dict[str, Any]]  # noqa: UP007
+MetricResult = Union[NamedTuple, dict[str, Any]]  # noqa: UP007
 
-R = TypeVar("R", bound=MetricResultBase)
+R = TypeVar("R", bound=MetricResult)
 
 
 class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
