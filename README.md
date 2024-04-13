@@ -2,18 +2,31 @@
 
 **tea-tasting** is a Python package for statistical analysis of A/B tests that features:
 
-- Student's t-test, Z-test, and Bootstrap out of the box.
+- Student's t-test and Z-test out of the box.
 - Extensible API: Define and use statistical tests of your choice.
 - [Delta method](https://alexdeng.github.io/public/files/kdd2018-dm.pdf) for ratio metrics.
 - Variance reduction with [CUPED](https://exp-platform.com/Documents/2013-02-CUPED-ImprovingSensitivityOfControlledExperiments.pdf)/[CUPAC](https://doordash.engineering/2020/06/08/improving-experimental-power-through-control-using-predictions-as-covariate-cupac/) (also in combination with delta method for ratio metrics).
-- [Fieller's confidence interval](https://en.wikipedia.org/wiki/Fieller%27s_theorem) for percent change.
+- Confidence interval for both absolute and percent change.
+
+**tea-tasting** calculates statistics on the data backend side: BigQuery, ClickHouse, PostgreSQL, Snowflake, Spark, and other backends supported by [Ibis](https://ibis-project.org/). There is no need to fetch granular data into a Python program. Pandas DataFrames are supported as well.
+
+**tea-tasting** is still in alpha, but already includes all the features listed above. The following features are coming soon:
+
 - Sample ratio mismatch check.
+- More statistical tests:
+  - Asymptotic and exact tests for frequency data (Boschloo's, Fisher's, G-test, Pearson's chi-squared),
+  - Bootstrap,
+  - Mann–Whitney U test.
+- Documentation on how to define metrics with custom statistical tests.
 - Power analysis.
-- A/A tests.
+- A/A tests and simulations.
 
-Currently, **tea-tasting** is in the planning stage, and I'm starting with a README that outlines the proposed API — an approach known as Readme Driven Development (RDD).
-
-Check out my [blog post](https://e10v.me/tea-tasting-rdd) where I explain the motivation for creating this package and the benefits of the RDD approach.
+[![CI](https://github.com/e10v/tea-tasting/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/e10v/tea-tasting/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/github/e10v/tea-tasting/coverage.svg?branch=main)](https://codecov.io/gh/e10v/tea-tasting)
+[![License](https://img.shields.io/github/license/e10v/tea-tasting)](https://github.com/e10v/tea-tasting/blob/main/LICENSE)
+[![Version](https://img.shields.io/pypi/v/tea-tasting.svg)](https://pypi.org/project/tea-tasting/)
+[![Package Status](https://img.shields.io/pypi/status/tea-tasting.svg)](https://pypi.org/project/tea-tasting/)
+[![PyPI Python Versions](https://img.shields.io/pypi/pyversions/tea-tasting.svg)](https://pypi.org/project/tea-tasting/)
 
 ## Installation
 
@@ -29,46 +42,44 @@ Begin with this simple example to understand the basic functionality:
 import tea_tasting as tt
 
 
-users_data = tt.sample_users_data(size=1000, seed=42)
+users_data = tt.make_users_data(seed=42)
 
 experiment = tt.Experiment({
-    "Sessions per user": tt.SimpleMean("sessions"),
-    "Orders per sessions": tt.RatioOfMeans(numer="orders", denom="sessions"),
-    "Orders per user": tt.SimpleMean("orders"),
-    "Revenue per user": tt.SimpleMean("revenue"),
+    "sessions per user": tt.SimpleMean("sessions"),
+    "orders per sessions": tt.RatioOfMeans(numer="orders", denom="sessions"),
+    "orders per user": tt.SimpleMean("orders"),
+    "revenue per user": tt.SimpleMean("revenue"),
 })
 
-experiment_result = experiment.analyze(users_data)
-experiment_result.to_polars()
+experiment_results = experiment.analyze(users_data)
+experiment_results.to_pandas()
 ```
 
 In the following sections, each step of this process will be explained in detail.
 
 ### Input data
 
-The `sample_users_data` function in **tea-tasting** creates synthetic data for demonstration purposes. This data mimics what you might encounter in an A/B test for an online store, structured as a Polars DataFrame. Each row in this DataFrame represents an individual user, with the following columns:
+The `make_users_data` function creates synthetic data for demonstration purposes. This data mimics what you might encounter in an A/B test for an online store. Each row represents an individual user, with the following columns:
 
-- `user_id`: The unique identifier for each user.
-- `variant`: The specific variant (e.g., A or B) assigned to the user in the A/B test.
+- `user`: The unique identifier for each user.
+- `variant`: The specific variant (e.g., 0 or 1) assigned to the user in the A/B test.
 - `sessions`: The total number of sessions by the user.
 - `orders`: The total number of purchases made by the user.
 - `revenue`: The total revenue generated from the user's purchases.
 
-**tea-tasting** is designed to work with DataFrames in various formats, including:
+**tea-tasting** accepts data as either a Pandas DataFrame or an Ibis Table. [Ibis](https://ibis-project.org/) is a Python package which serves as a DataFrame API to various data backends. It supports 20+ backends including BigQuery, ClickHouse, DuckDB, Polars, PostgreSQL, Snowflake, Spark etc. You can write an SQL-query, wrap it as an Ibis Table and pass it to **tea-tasting**.
 
-- Polars DataFrames.
-- Pandas DataFrames.
-- Any object that adheres to the [Python DataFrame Interchange Protocol](https://data-apis.org/dataframe-protocol/latest/index.html).
+Many statistical tests, like Student's t-test or Z-test, don't need granular data for analysis. For such tests, **tea-tasting** will query aggregated statistics, like mean and variance, instead of downloading all the detailed data.
 
-By default, **tea-tasting** assumes that:
+**tea-tasting** assumes that:
 
 - The data is grouped by randomization units, such as individual users.
-- There is at least one column indicating the variant of the A/B test (typically labeled as A, B, etc.).
-- All necessary columns for metric calculations (like the number of orders, revenue, etc.) are included in the DataFrame.
+- There is a column indicating the variant of the A/B test (typically labeled as A, B, etc.).
+- All necessary columns for metric calculations (like the number of orders, revenue, etc.) are included in the table.
 
 ### A/B test definition
 
-The `Experiment` class in **tea-tasting** is used to define the parameters of an A/B test. The key aspects of this definition include:
+The `Experiment` class is used to define the parameters of an A/B test. The key aspects of this definition include:
 
 - Metrics: Specified using the `metrics` parameter, which is a dictionary. Here, metric names are the keys, and their corresponding definitions are the values. These definitions determine how each metric is calculated and analyzed.
 - Variant column: If your data uses a different column name to denote the variant (other than the default `"variant")`, specify this using the `variant` parameter. The default is `"variant"`.
