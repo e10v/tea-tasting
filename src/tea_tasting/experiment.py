@@ -100,15 +100,12 @@ class Experiment(tea_tasting.utils.ReprMixin):
         self,
         metrics: dict[str, tea_tasting.metrics.MetricBase[Any]],
         variant_col: str = "variant",
-        control: Any = None,
     ) -> None:
         """Define an experiment.
 
         Args:
             metrics: A dictionary  metrics with metric names as keys.
             variant_col: Variant column name.
-            control: Control variant. If None, all pairs of variants are analyzed,
-                with variant with the minimal ID as the control.
         """
         tea_tasting.utils.check_scalar(metrics, "metrics", typ=dict)
         for name, metric in metrics.items():
@@ -119,14 +116,19 @@ class Experiment(tea_tasting.utils.ReprMixin):
         self.metrics = metrics
         self.variant_col = tea_tasting.utils.check_scalar(
             variant_col, "variant_col", typ=str)
-        self.control = control
 
 
-    def analyze(self, data: pd.DataFrame | ibis.expr.types.Table) -> ExperimentResults:
+    def analyze(
+        self,
+        data: pd.DataFrame | ibis.expr.types.Table,
+        control: Any = None,
+    ) -> ExperimentResults:
         """Analyze the experiment.
 
         Args:
             data: Experimental data.
+            control: Control variant. If None, all pairs of variants are analyzed,
+                with variant with the minimal ID as the control.
 
         Returns:
             Experiment results.
@@ -140,11 +142,11 @@ class Experiment(tea_tasting.utils.ReprMixin):
         else:
             variants = self._read_variants(data)
 
-        if self.control is not None:
+        if control is not None:
             variant_pairs = (
-                (self.control, treatment)
+                (control, treatment)
                 for treatment in variants
-                if treatment != self.control
+                if treatment != control
             )
         else:
             variant_pairs = (

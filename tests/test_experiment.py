@@ -274,10 +274,9 @@ def test_experiment_init_default():
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     }
-    experiment = tea_tasting.experiment.Experiment(metrics) # type: ignore
+    experiment = tea_tasting.experiment.Experiment(metrics)  # type: ignore
     assert experiment.metrics == metrics
     assert experiment.variant_col == "variant"
-    assert experiment.control is None
 
 def test_experiment_init_custom():
     metrics = {
@@ -285,10 +284,9 @@ def test_experiment_init_custom():
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     }
-    experiment = tea_tasting.experiment.Experiment(metrics, "group", 0) # type: ignore
+    experiment = tea_tasting.experiment.Experiment(metrics, "group")  # type: ignore
     assert experiment.metrics == metrics
     assert experiment.variant_col == "group"
-    assert experiment.control == 0
 
 
 def test_experiment_analyze_default(
@@ -385,9 +383,8 @@ def test_experiment_analyze_two_treatments(
             "avg_orders": _MetricAggregated("orders"),
             "avg_revenue": _MetricGranular("revenue"),
         },
-        control=0,
     )
-    results = experiment.analyze(data)
+    results = experiment.analyze(data, control=0)
     assert results == tea_tasting.experiment.ExperimentResults({
         (0, 1): ref_result,
         (0, 2): ref_result,
