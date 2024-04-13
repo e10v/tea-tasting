@@ -37,13 +37,13 @@ class _Metric(tea_tasting.metrics.MetricBase[_MetricResultTuple]):
         data: pd.DataFrame | ibis.expr.types.Table,
         control: int,
         treatment: int,
-        variant_col: str,
+        variant: str,
     ) -> _MetricResultTuple:
         if isinstance(data, pd.DataFrame):
             con = ibis.pandas.connect()
             data = con.create_table("data", data)
         agg_data = (
-            data.group_by(variant_col)
+            data.group_by(variant)
             .agg(mean=data[self.value].mean())  # type: ignore
             .to_pandas()
         )
@@ -276,7 +276,7 @@ def test_experiment_init_default():
     }
     experiment = tea_tasting.experiment.Experiment(metrics)  # type: ignore
     assert experiment.metrics == metrics
-    assert experiment.variant_col == "variant"
+    assert experiment.variant == "variant"
 
 def test_experiment_init_custom():
     metrics = {
@@ -286,7 +286,7 @@ def test_experiment_init_custom():
     }
     experiment = tea_tasting.experiment.Experiment(metrics, "group")  # type: ignore
     assert experiment.metrics == metrics
-    assert experiment.variant_col == "group"
+    assert experiment.variant == "group"
 
 
 def test_experiment_analyze_default(

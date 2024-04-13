@@ -31,7 +31,7 @@ class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
         data: pd.DataFrame | ibis.expr.types.Table,
         control: Any,
         treatment: Any,
-        variant_col: str,
+        variant: str,
     ) -> R:
         """Analyzes metric in an experiment.
 
@@ -39,7 +39,7 @@ class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
             data: Experimental data.
             control: Control variant.
             treatment: Treatment variant.
-            variant_col: Variant column.
+            variant: Variant column.
 
         Returns:
             Experiment results for a metric.
@@ -107,7 +107,7 @@ class MetricBaseAggregated(MetricBase[R]):
         data: dict[Any, tea_tasting.aggr.Aggregates],
         control: Any,
         treatment: Any,
-        variant_col: None = None,
+        variant: None = None,
     ) -> R:
         ...
 
@@ -117,7 +117,7 @@ class MetricBaseAggregated(MetricBase[R]):
         data: pd.DataFrame | ibis.expr.types.Table,
         control: Any,
         treatment: Any,
-        variant_col: str,
+        variant: str,
     ) -> R:
         ...
 
@@ -127,7 +127,7 @@ class MetricBaseAggregated(MetricBase[R]):
             Any, tea_tasting.aggr.Aggregates],
         control: Any,
         treatment: Any,
-        variant_col: str | None = None,
+        variant: str | None = None,
     ) -> R:
         """Analyze metric in an experiment.
 
@@ -135,7 +135,7 @@ class MetricBaseAggregated(MetricBase[R]):
             data: Experimental data.
             control: Control variant.
             treatment: Treatment variant.
-            variant_col: Variant column name.
+            variant: Variant column name.
 
         Returns:
             Experiment results for a metric.
@@ -143,7 +143,7 @@ class MetricBaseAggregated(MetricBase[R]):
         aggr = aggregate_by_variants(
             data,
             aggr_cols=self.aggr_cols,
-            variant_col=variant_col,
+            variant=variant,
         )
         return self.analyze_aggregates(
             control=aggr[control],
@@ -171,7 +171,7 @@ class MetricBaseAggregated(MetricBase[R]):
 def aggregate_by_variants(
     data: pd.DataFrame | ibis.expr.types.Table | dict[Any, tea_tasting.aggr.Aggregates],
     aggr_cols: AggrCols,
-    variant_col: str | None = None,
+    variant: str | None = None,
 ) ->  dict[Any, tea_tasting.aggr.Aggregates]:
     """Validate aggregated experimental data.
 
@@ -180,10 +180,10 @@ def aggregate_by_variants(
     Args:
         data: Experimental data.
         aggr_cols: Columns to aggregate.
-        variant_col: Variant column name.
+        variant: Variant column name.
 
     Raises:
-        ValueError: variant_col is None, while aggregated data are not provided.
+        ValueError: variant is None, while aggregated data are not provided.
         TypeError: data is not an instance of DataFrame, Table,
             or a dictionary if Aggregates.
 
@@ -197,12 +197,12 @@ def aggregate_by_variants(
         table = data
 
     if isinstance(table, ibis.expr.types.Table):
-        if variant_col is None:
+        if variant is None:
             raise ValueError(
-                "variant_col is None, but should be an instance of str.")
+                "variant is None, but should be an instance of str.")
         return tea_tasting.aggr.read_aggregates(
             data=table,
-            group_col=variant_col,
+            group_col=variant,
             **aggr_cols._asdict(),
         )
 
@@ -231,7 +231,7 @@ class MetricBaseGranular(MetricBase[R]):
         data: dict[Any, pd.DataFrame],
         control: Any,
         treatment: Any,
-        variant_col: None = None,
+        variant: None = None,
     ) -> R:
         ...
 
@@ -241,7 +241,7 @@ class MetricBaseGranular(MetricBase[R]):
         data: pd.DataFrame | ibis.expr.types.Table,
         control: Any,
         treatment: Any,
-        variant_col: str,
+        variant: str,
     ) -> R:
         ...
 
@@ -250,7 +250,7 @@ class MetricBaseGranular(MetricBase[R]):
         data: pd.DataFrame | ibis.expr.types.Table | dict[Any, pd.DataFrame],
         control: Any,
         treatment: Any,
-        variant_col: str | None = None,
+        variant: str | None = None,
     ) -> R:
         """Analyze metric in an experiment.
 
@@ -258,7 +258,7 @@ class MetricBaseGranular(MetricBase[R]):
             data: Experimental data.
             control: Control variant.
             treatment: Treatment variant.
-            variant_col: Variant column name.
+            variant: Variant column name.
 
         Returns:
             Experiment results for a metric.
@@ -266,7 +266,7 @@ class MetricBaseGranular(MetricBase[R]):
         dfs = read_dataframes(
             data,
             cols=self.cols,
-            variant_col=variant_col,
+            variant=variant,
         )
         return self.analyze_dataframes(
             control=dfs[control],
@@ -294,7 +294,7 @@ class MetricBaseGranular(MetricBase[R]):
 def read_dataframes(
     data: pd.DataFrame | ibis.expr.types.Table | dict[Any, pd.DataFrame],
     cols: Sequence[str],
-    variant_col: str | None = None,
+    variant: str | None = None,
 ) -> dict[Any, pd.DataFrame]:
     """Validate granular experimental data.
 
@@ -303,10 +303,10 @@ def read_dataframes(
     Args:
         data: Experimental data.
         cols: Columns to read.
-        variant_col: Variant column name.
+        variant: Variant column name.
 
     Raises:
-        ValueError: variant_col is None, while aggregated data are not provided.
+        ValueError: variant is None, while aggregated data are not provided.
         TypeError: data is not an instance of DataFrame, Table,
             or a dictionary if DataFrames.
 
@@ -318,11 +318,11 @@ def read_dataframes(
     ):
         return data
 
-    if variant_col is None:
-        raise ValueError("variant_col is None, but should be an instance of str.")
+    if variant is None:
+        raise ValueError("variant is None, but should be an instance of str.")
 
     if isinstance(data, ibis.expr.types.Table):
-        data = data.select(*cols, variant_col).to_pandas()
+        data = data.select(*cols, variant).to_pandas()
 
     if not isinstance(data, pd.DataFrame):
         raise TypeError(
@@ -330,4 +330,4 @@ def read_dataframes(
             " DataFrame, Table, or a dictionary if DataFrames.",
         )
 
-    return dict(tuple(data.loc[:, [*cols, variant_col]].groupby(variant_col)))
+    return dict(tuple(data.loc[:, [*cols, variant]].groupby(variant)))

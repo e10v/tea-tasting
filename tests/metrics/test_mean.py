@@ -110,7 +110,7 @@ def test_ratio_of_means_analyze_table(table: ibis.expr.types.Table):
         numer="orders",
         numer_covariate="orders_covariate",
     )
-    result = metric.analyze(table, 0, 1, variant_col="variant")
+    result = metric.analyze(table, 0, 1, variant="variant")
     assert isinstance(result, tea_tasting.metrics.mean.MeansResult)
 
 def test_ratio_of_means_analyze_df(dataframe: pd.DataFrame):
@@ -118,7 +118,7 @@ def test_ratio_of_means_analyze_df(dataframe: pd.DataFrame):
         numer="orders",
         denom="sessions",
     )
-    result = metric.analyze(dataframe, 0, 1, variant_col="variant")
+    result = metric.analyze(dataframe, 0, 1, variant="variant")
     assert isinstance(result, tea_tasting.metrics.mean.MeansResult)
 
 def test_ratio_of_means_analyze_basic(data: dict[str, tea_tasting.aggr.Aggregates]):

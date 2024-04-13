@@ -99,13 +99,13 @@ class Experiment(tea_tasting.utils.ReprMixin):
     def __init__(
         self,
         metrics: dict[str, tea_tasting.metrics.MetricBase[Any]],
-        variant_col: str = "variant",
+        variant: str = "variant",
     ) -> None:
         """Define an experiment.
 
         Args:
             metrics: A dictionary  metrics with metric names as keys.
-            variant_col: Variant column name.
+            variant: Variant column name.
         """
         tea_tasting.utils.check_scalar(metrics, "metrics", typ=dict)
         for name, metric in metrics.items():
@@ -114,8 +114,8 @@ class Experiment(tea_tasting.utils.ReprMixin):
                 metric, "metric", typ=tea_tasting.metrics.MetricBase)
 
         self.metrics = metrics
-        self.variant_col = tea_tasting.utils.check_scalar(
-            variant_col, "variant_col", typ=str)
+        self.variant = tea_tasting.utils.check_scalar(
+            variant, "variant", typ=str)
 
 
     def analyze(
@@ -194,7 +194,7 @@ class Experiment(tea_tasting.utils.ReprMixin):
         ):
             return metric.analyze(granular_data, control, treatment)
 
-        return metric.analyze(data, control, treatment, self.variant_col)
+        return metric.analyze(data, control, treatment, self.variant)
 
 
     def _read_data(self, data: pd.DataFrame | ibis.expr.types.Table) -> tuple[
@@ -212,13 +212,13 @@ class Experiment(tea_tasting.utils.ReprMixin):
         aggregated_data = tea_tasting.metrics.aggregate_by_variants(
             data,
             aggr_cols=aggr_cols,
-            variant_col=self.variant_col,
+            variant=self.variant,
         ) if len(aggr_cols) > 0 else None
 
         granular_data = tea_tasting.metrics.read_dataframes(
             data,
             cols=tuple(gran_cols),
-            variant_col=self.variant_col,
+            variant=self.variant,
         ) if len(gran_cols) > 0 else None
 
         return aggregated_data, granular_data
@@ -229,11 +229,11 @@ class Experiment(tea_tasting.utils.ReprMixin):
         data: pd.DataFrame | ibis.expr.types.Table,
     ) -> pd.Series[Any]:  # type: ignore
         if isinstance(data, pd.DataFrame):
-            return data.loc[:, self.variant_col].drop_duplicates()
+            return data.loc[:, self.variant].drop_duplicates()
 
         return (
-            data.select(self.variant_col)
+            data.select(self.variant)
             .distinct()
             .to_pandas()
-            .loc[:, self.variant_col]
+            .loc[:, self.variant]
         )
