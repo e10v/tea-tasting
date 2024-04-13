@@ -150,6 +150,30 @@ def test_read_aggregates_no_groups(data: ibis.expr.types.Table):
     assert aggr.var_ == pytest.approx(correct_aggr.var_)
     assert aggr.cov_ == pytest.approx(correct_aggr.cov_)
 
+def test_read_aggregates_pandas(data: ibis.expr.types.Table):
+    correct_aggrs = {
+        v: tea_tasting.aggr.Aggregates(
+            count_=len(d),
+            mean_={"sessions": d["sessions"].mean(), "orders": d["orders"].mean()},  # type: ignore
+            var_={"sessions": d["sessions"].var(), "orders": d["orders"].var()},  # type: ignore
+            cov_={("orders", "sessions"): d["sessions"].cov(d["orders"])},  # type: ignore
+        )
+        for v, d in data.to_pandas().groupby("variant")
+    }
+    aggrs = tea_tasting.aggr.read_aggregates(
+        data.to_pandas(),
+        group_col="variant",
+        has_count=True,
+        mean_cols=("sessions", "orders"),
+        var_cols=("sessions", "orders"),
+        cov_cols=(("sessions", "orders"),),
+    )
+    for i in (0, 1):
+        assert aggrs[i].count_ == pytest.approx(correct_aggrs[i].count_)
+        assert aggrs[i].mean_ == pytest.approx(correct_aggrs[i].mean_)
+        assert aggrs[i].var_ == pytest.approx(correct_aggrs[i].var_)
+        assert aggrs[i].cov_ == pytest.approx(correct_aggrs[i].cov_)
+
 def test_read_aggregates_no_count(data: ibis.expr.types.Table):
     aggr = tea_tasting.aggr.read_aggregates(
         data,
