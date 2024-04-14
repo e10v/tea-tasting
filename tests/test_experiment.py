@@ -199,6 +199,16 @@ def test_experiment_init_default():
     assert experiment.metrics == metrics
     assert experiment.variant == "variant"
 
+def test_experiment_init_kwargs():
+    metrics = {
+        "avg_sessions": _Metric("sessions"),
+        "avg_orders": _MetricAggregated("orders"),
+        "avg_revenue": _MetricGranular("revenue"),
+    }
+    experiment = tea_tasting.experiment.Experiment(**metrics)  # type: ignore
+    assert experiment.metrics == metrics
+    assert experiment.variant == "variant"
+
 def test_experiment_init_custom():
     metrics = {
         "avg_sessions": _Metric("sessions"),

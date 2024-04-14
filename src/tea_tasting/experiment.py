@@ -41,20 +41,27 @@ class Experiment(tea_tasting.utils.ReprMixin):
 
     def __init__(
         self,
-        metrics: dict[str, tea_tasting.metrics.MetricBase[Any]],
+        metrics: dict[str, tea_tasting.metrics.MetricBase[Any]] | None = None,
         variant: str = "variant",
+        **kw_metrics: tea_tasting.metrics.MetricBase[Any],
     ) -> None:
         """Define an experiment.
 
         Args:
-            metrics: A dictionary  metrics with metric names as keys.
+            metrics: A dictionary of metrics with metric names as keys.
             variant: Variant column name.
+            kw_metrics: Metrics with metric names as keywords.
         """
+        if metrics is None:
+            metrics = {}
+        metrics = metrics | kw_metrics
+
         tea_tasting.utils.check_scalar(metrics, "metrics", typ=dict)
+        tea_tasting.utils.check_scalar(len(metrics), "len(metrics)", gt=0)
         for name, metric in metrics.items():
             tea_tasting.utils.check_scalar(name, "metric_name", typ=str)
             tea_tasting.utils.check_scalar(
-                metric, "metric", typ=tea_tasting.metrics.MetricBase)
+                metric, name, typ=tea_tasting.metrics.MetricBase)
 
         self.metrics = metrics
         self.variant = tea_tasting.utils.check_scalar(
