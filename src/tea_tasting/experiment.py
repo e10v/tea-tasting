@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import UserDict
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, overload
 
 import pandas as pd
 
@@ -13,6 +13,8 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
+    from typing import Literal
+
     import ibis.expr.types
 
 
@@ -31,66 +33,7 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
         return pd.DataFrame.from_records(self.to_dicts())
 
 
-class ExperimentResults(UserDict[tuple[Any, Any], ExperimentResult]):
-    """Experiment results for all pairs of variants (control, treatment)."""
-
-    def __getitem__(self, key: tuple[Any, Any]) -> ExperimentResult:
-        """Get the result for a pair of variants (control, treatment).
-
-        Both the control and the treatment can be None if there are two variants
-        in the experiment.
-        """
-        if key[0] is None or key[1] is None:
-            if len(self.data) != 1:
-                raise ValueError("Key values must be not None.")
-            return next(iter(self.data.values()))
-        return super().__getitem__(key)
-
-    def to_dicts(
-        self,
-        control: Any = None,
-        treatment: Any = None,
-    ) -> tuple[dict[str, Any], ...]:
-        """Convert the result to a sequence of dictionaries for a pair of variants.
-
-        Both the control and the treatment can be None if there are two variants
-        in the experiment.
-
-        Args:
-            control: Control variant.
-            treatment: Treatment variant.
-
-        Raises:
-            ValueError: Either control or treatment is None while
-                there are more than two variants in the experiment.
-
-        Returns:
-            Experiment result as a sequence of dictionaries, one dictionary per metric.
-        """
-        return self[control, treatment].to_dicts()
-
-    def to_pandas(
-        self,
-        control: Any = None,
-        treatment: Any = None,
-    ) -> pd.DataFrame:
-        """Convert the result to a Pandas DataFrame for a pair of variants.
-
-        Both the control and the treatment can be None if there are two variants
-        in the experiment.
-
-        Args:
-            control: Control variant.
-            treatment: Treatment variant.
-
-        Raises:
-            ValueError: Either control or treatment is None while
-                there are more than two variants in the experiment.
-
-        Returns:
-            Experiment result as a Pandas DataFrame, one row per metric.
-        """
-        return self[control, treatment].to_pandas()
+ExperimentResults = dict[tuple[Any, Any], ExperimentResult]
 
 
 class Experiment(tea_tasting.utils.ReprMixin):
@@ -118,17 +61,38 @@ class Experiment(tea_tasting.utils.ReprMixin):
             variant, "variant", typ=str)
 
 
+    @overload
     def analyze(
         self,
         data: pd.DataFrame | ibis.expr.types.Table,
         control: Any = None,
+        all_variants: Literal[False] = False,
+    ) -> ExperimentResult:
+        ...
+
+    @overload
+    def analyze(
+        self,
+        data: pd.DataFrame | ibis.expr.types.Table,
+        control: Any = None,
+        all_variants: Literal[True] = True,
     ) -> ExperimentResults:
+        ...
+
+    def analyze(
+        self,
+        data: pd.DataFrame | ibis.expr.types.Table,
+        control: Any = None,
+        all_variants: bool = False,
+    ) -> ExperimentResult | ExperimentResults:
         """Analyze the experiment.
 
         Args:
             data: Experimental data.
-            control: Control variant. If None, all pairs of variants are analyzed,
-                with variant with the minimal ID as the control.
+            control: Control variant. If None, the variant with the minimal ID
+                is used as a control.
+            all_variants: If True, analyze all pairs of variants. Otherwise,
+                analyze only one pair of variants.
 
         Returns:
             Experiment results.
@@ -143,18 +107,22 @@ class Experiment(tea_tasting.utils.ReprMixin):
             variants = self._read_variants(data)
 
         if control is not None:
-            variant_pairs = (
+            variant_pairs = tuple(
                 (control, treatment)
                 for treatment in variants
                 if treatment != control
             )
         else:
-            variant_pairs = (
+            variant_pairs = tuple(
                 (control, treatment)
                 for control in variants
                 for treatment in variants
                 if control < treatment
             )
+
+        if len(variant_pairs) != 1 and not all_variants:
+            raise ValueError(
+                "all_variants is False, but there are more than one pair of variants.")
 
         results = ExperimentResults()
         for control, treatment in variant_pairs:
@@ -168,6 +136,10 @@ class Experiment(tea_tasting.utils.ReprMixin):
                     control=control,
                     treatment=treatment,
                 )}
+
+            if not all_variants:
+                return result
+
             results |= {(control, treatment): result}
 
         return results
