@@ -47,12 +47,12 @@ import tea_tasting as tt
 
 users_data = tt.make_users_data(seed=42)
 
-experiment = tt.Experiment({
-    "sessions per user": tt.SimpleMean("sessions"),
-    "orders per sessions": tt.RatioOfMeans(numer="orders", denom="sessions"),
-    "orders per user": tt.SimpleMean("orders"),
-    "revenue per user": tt.SimpleMean("revenue"),
-})
+experiment = tt.Experiment(
+    sessions_per_user=tt.SimpleMean("sessions"),
+    orders_per_sessions=tt.RatioOfMeans("orders", "sessions"),
+    orders_per_user=tt.SimpleMean("orders"),
+    revenue_per_user=tt.SimpleMean("revenue"),
+)
 
 experiment_results = experiment.analyze(users_data)
 print(experiment_results.to_pandas())
