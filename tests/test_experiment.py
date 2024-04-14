@@ -189,85 +189,6 @@ def test_experiment_result_to_pandas(result: tea_tasting.experiment.ExperimentRe
     )
 
 
-def test_experiment_results_getitem_default(
-    results: tea_tasting.experiment.ExperimentResults,
-):
-    result = results[None, None]
-    assert isinstance(result, tea_tasting.experiment.ExperimentResult)
-    assert result == tea_tasting.experiment.ExperimentResult(
-        metric_tuple=_MetricResultTuple(10, 11, 1),
-        metric_dict=_MetricResultDict(
-            control=20,
-            treatment=22,
-            effect_size=2,
-        ),  # type: ignore
-    )
-
-def test_experiment_results_getitem_param(
-    results2: tea_tasting.experiment.ExperimentResults,
-):
-    result = results2[0, 2]
-    assert isinstance(result, tea_tasting.experiment.ExperimentResult)
-    assert result == tea_tasting.experiment.ExperimentResult(
-        metric_tuple=_MetricResultTuple(10, 11, 1),
-        metric_dict=_MetricResultDict(
-            control=30,
-            treatment=33,
-            effect_size=3,
-        ),  # type: ignore
-    )
-
-def test_experiment_results_getitem_raises(
-    results2: tea_tasting.experiment.ExperimentResults,
-):
-    with pytest.raises(ValueError, match="not None"):
-        results2[None, None]
-
-
-def test_experiment_results_to_dicts_default(
-    results: tea_tasting.experiment.ExperimentResults,
-):
-    assert results.to_dicts() == (
-        {"metric": "metric_tuple", "control": 10, "treatment": 11, "effect_size": 1},
-        {"metric": "metric_dict", "control": 20, "treatment": 22, "effect_size": 2},
-    )
-
-def test_experiment_results_to_dicts_param(
-    results2: tea_tasting.experiment.ExperimentResults,
-):
-    assert results2.to_dicts(0, 2) == (
-        {"metric": "metric_tuple", "control": 10, "treatment": 11, "effect_size": 1},
-        {"metric": "metric_dict", "control": 30, "treatment": 33, "effect_size": 3},
-    )
-
-
-def test_experiment_results_to_pandas_default(
-    results: tea_tasting.experiment.ExperimentResults,
-):
-    pd.testing.assert_frame_equal(
-        results.to_pandas(),
-        pd.DataFrame({
-            "metric": ("metric_tuple", "metric_dict"),
-            "control": (10, 20),
-            "treatment": (11, 22),
-            "effect_size": (1, 2),
-        }),
-    )
-
-def test_experiment_results_to_pandas_param(
-    results2: tea_tasting.experiment.ExperimentResults,
-):
-    pd.testing.assert_frame_equal(
-        results2.to_pandas(0, 2),
-        pd.DataFrame({
-            "metric": ("metric_tuple", "metric_dict"),
-            "control": (10, 30),
-            "treatment": (11, 33),
-            "effect_size": (1, 3),
-        }),
-    )
-
-
 def test_experiment_init_default():
     metrics = {
         "avg_sessions": _Metric("sessions"),
@@ -298,8 +219,7 @@ def test_experiment_analyze_default(
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     })
-    results = experiment.analyze(data)
-    assert results == tea_tasting.experiment.ExperimentResults({(0, 1): ref_result})
+    assert experiment.analyze(data) == ref_result
 
 def test_experiment_analyze_base(
     data: ibis.expr.types.Table,
@@ -308,10 +228,8 @@ def test_experiment_analyze_base(
     experiment = tea_tasting.experiment.Experiment({
         "avg_sessions": _Metric("sessions"),
     })
-    results = experiment.analyze(data)
-    result = tea_tasting.experiment.ExperimentResult(
+    assert experiment.analyze(data) == tea_tasting.experiment.ExperimentResult(
         avg_sessions=ref_result["avg_sessions"])
-    assert results == tea_tasting.experiment.ExperimentResults({(0, 1): result})
 
 def test_experiment_analyze_base_pandas(
     data: ibis.expr.types.Table,
@@ -320,10 +238,9 @@ def test_experiment_analyze_base_pandas(
     experiment = tea_tasting.experiment.Experiment({
         "avg_sessions": _Metric("sessions"),
     })
-    results = experiment.analyze(data.to_pandas())
-    result = tea_tasting.experiment.ExperimentResult(
+    result = experiment.analyze(data.to_pandas())
+    assert result == tea_tasting.experiment.ExperimentResult(
         avg_sessions=ref_result["avg_sessions"])
-    assert results == tea_tasting.experiment.ExperimentResults({(0, 1): result})
 
 def test_experiment_analyze_aggr(
     data: ibis.expr.types.Table,
@@ -332,10 +249,8 @@ def test_experiment_analyze_aggr(
     experiment = tea_tasting.experiment.Experiment({
         "avg_orders": _MetricAggregated("orders"),
     })
-    results = experiment.analyze(data)
-    result = tea_tasting.experiment.ExperimentResult(
+    assert experiment.analyze(data) == tea_tasting.experiment.ExperimentResult(
         avg_orders=ref_result["avg_orders"])
-    assert results == tea_tasting.experiment.ExperimentResults({(0, 1): result})
 
 def test_experiment_analyze_gran(
     data: ibis.expr.types.Table,
@@ -344,10 +259,8 @@ def test_experiment_analyze_gran(
     experiment = tea_tasting.experiment.Experiment({
         "avg_revenue": _MetricGranular("revenue"),
     })
-    results = experiment.analyze(data)
-    result = tea_tasting.experiment.ExperimentResult(
+    assert experiment.analyze(data) == tea_tasting.experiment.ExperimentResult(
         avg_revenue=ref_result["avg_revenue"])
-    assert results == tea_tasting.experiment.ExperimentResults({(0, 1): result})
 
 def test_experiment_analyze_all_pairs(
     data: ibis.expr.types.Table,
@@ -363,10 +276,24 @@ def test_experiment_analyze_all_pairs(
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     })
-    results = experiment.analyze(data)
+    results = experiment.analyze(data, all_variants=True)
     assert set(results.keys()) == {(0, 1), (0, 2), (1, 2)}
     assert results[0, 1] == ref_result
     assert results[0, 2] == ref_result
+
+def test_experiment_analyze_all_pairs_raises(data: ibis.expr.types.Table):
+    data = ibis.union(
+        data,
+        data.filter(data["variant"] == 1)  # type: ignore
+            .mutate(variant=ibis.literal(2, data.schema().fields["variant"])),
+    )
+    experiment = tea_tasting.experiment.Experiment({
+        "avg_sessions": _Metric("sessions"),
+        "avg_orders": _MetricAggregated("orders"),
+        "avg_revenue": _MetricGranular("revenue"),
+    })
+    with pytest.raises(ValueError, match="all_variants"):
+        experiment.analyze(data)
 
 def test_experiment_analyze_two_treatments(
     data: ibis.expr.types.Table,
@@ -384,7 +311,7 @@ def test_experiment_analyze_two_treatments(
             "avg_revenue": _MetricGranular("revenue"),
         },
     )
-    results = experiment.analyze(data, control=0)
+    results = experiment.analyze(data, control=0, all_variants=True)
     assert results == tea_tasting.experiment.ExperimentResults({
         (0, 1): ref_result,
         (0, 2): ref_result,

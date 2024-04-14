@@ -56,7 +56,7 @@ def test_aggregates_calls(aggr: tea_tasting.aggr.Aggregates):
     assert aggr.mean("y") == MEAN["y"]
     assert aggr.var("x") == VAR["x"]
     assert aggr.mean("y") == MEAN["y"]
-    assert aggr.cov("x", "y") == COV[("x", "y")]
+    assert aggr.cov("x", "y") == COV["x", "y"]
 
 def test_aggregates_count_raises():
     aggr = tea_tasting.aggr.Aggregates(count_=None, mean_={}, var_={}, cov_={})
