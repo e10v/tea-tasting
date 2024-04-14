@@ -34,8 +34,9 @@ class MeansResult(NamedTuple):
         rel_effect_size_ci_lower: Lower bound of the relative effect size
             confidence interval.
         rel_effect_size_ci_upper: Upper bound of the relative effect size
-            confidence P-value.
-        pvalue: float
+            confidence interval.
+        pvalue: P-value
+        statistic: Statistic.
     """
     control: float
     treatment: float
@@ -46,6 +47,7 @@ class MeansResult(NamedTuple):
     rel_effect_size_ci_lower: float
     rel_effect_size_ci_upper: float
     pvalue: float
+    statistic: float
 
 
 class RatioOfMeans(MetricBaseAggregated[MeansResult]):
@@ -226,20 +228,20 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
 
         means_ratio = treat_mean / contr_mean
         effect_size = treat_mean - contr_mean
-        std_effect_size = effect_size / scale
+        statistic = effect_size / scale
 
         if self.alternative == "greater":
             q = self.confidence_level
             effect_size_ci_lower = effect_size + scale*distr.isf(q)
             means_ratio_ci_lower = means_ratio * np.exp(log_scale * log_distr.isf(q))
             effect_size_ci_upper = means_ratio_ci_upper = float("+inf")
-            pvalue = distr.sf(std_effect_size)
+            pvalue = distr.sf(statistic)
         elif self.alternative == "less":
             q = self.confidence_level
             effect_size_ci_lower = means_ratio_ci_lower = float("-inf")
             effect_size_ci_upper = effect_size + scale*distr.ppf(q)
             means_ratio_ci_upper = means_ratio * np.exp(log_scale * log_distr.ppf(q))
-            pvalue = distr.cdf(std_effect_size)
+            pvalue = distr.cdf(statistic)
         else:  # two-sided
             q = (1 + self.confidence_level) / 2
             half_ci = scale * distr.ppf(q)
@@ -250,7 +252,7 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
             means_ratio_ci_lower = means_ratio / rel_half_ci
             means_ratio_ci_upper = means_ratio * rel_half_ci
 
-            pvalue = 2 * distr.sf(np.abs(std_effect_size))
+            pvalue = 2 * distr.sf(np.abs(statistic))
 
         return MeansResult(
             control=contr_mean,
@@ -262,6 +264,7 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
             rel_effect_size_ci_lower=means_ratio_ci_lower - 1,
             rel_effect_size_ci_upper=means_ratio_ci_upper - 1,
             pvalue=pvalue,
+            statistic=statistic,
         )
 
 
