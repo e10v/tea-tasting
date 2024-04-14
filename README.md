@@ -14,12 +14,15 @@
 
 - Sample ratio mismatch check.
 - More statistical tests:
-  - Asymptotic and exact tests for frequency data (Boschloo's, Fisher's, G-test, Pearson's chi-squared),
+  - Asymptotic and exact tests for frequency data,
   - Bootstrap,
+  - Quantile test (based on Bootstrap),
   - Mann–Whitney U test.
-- Documentation on how to define metrics with custom statistical tests.
 - Power analysis.
 - A/A tests and simulations.
+- Documentation on how to define metrics with custom statistical tests.
+- Documentation with MkDocs and Material for MkDocs.
+- Notebooks with examples.
 
 [![CI](https://github.com/e10v/tea-tasting/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/e10v/tea-tasting/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/github/e10v/tea-tasting/coverage.svg?branch=main)](https://codecov.io/gh/e10v/tea-tasting)
@@ -52,7 +55,7 @@ experiment = tt.Experiment({
 })
 
 experiment_results = experiment.analyze(users_data)
-experiment_results.to_pandas()
+print(experiment_results.to_pandas())
 ```
 
 In the following sections, each step of this process will be explained in detail.
