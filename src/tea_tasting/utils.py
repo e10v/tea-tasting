@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
     from typing import Any, TypeVar
 
     R = TypeVar("R")
@@ -78,17 +79,17 @@ class ReprMixin:
     Representation string is generated based on parameters values saved in attributes.
     """
     @classmethod
-    def _get_param_names(cls) -> tuple[str, ...]:
+    def _get_param_names(cls) -> Iterator[str]:
         if cls.__init__ is object.__init__:
-            return ()
+            return
         init_signature = inspect.signature(cls.__init__)
-        params = tuple(
-            p for p in init_signature.parameters.values() if p.name != "self")
-        for p in params:
+
+        for p in init_signature.parameters.values():
             if p.kind == p.VAR_POSITIONAL:
                 raise RuntimeError(
                     "There should not be positional arguments in the __init__.")
-        return tuple(p.name for p in params)
+            if p.name != "self" and p.kind != p.VAR_KEYWORD:
+                yield p.name
 
     def __repr__(self) -> str:
         """Object representation."""
