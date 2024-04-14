@@ -22,7 +22,6 @@ if TYPE_CHECKING:
 @overload
 def make_users_data(
     *,
-    to_pandas: Literal[False] = False,
     covariates: bool = False,
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
@@ -33,13 +32,13 @@ def make_users_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-) -> ibis.expr.types.Table:
+    to_ibis: Literal[False] = False,
+) -> pd.DataFrame:
     ...
 
 @overload
 def make_users_data(
     *,
-    to_pandas: Literal[True] = True,
     covariates: bool = False,
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
@@ -50,12 +49,12 @@ def make_users_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-) -> pd.DataFrame:
+    to_ibis: Literal[True] = True,
+) -> ibis.expr.types.Table:
     ...
 
 def make_users_data(
     *,
-    to_pandas: bool = False,
     covariates: bool = False,
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
@@ -66,6 +65,7 @@ def make_users_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
+    to_ibis: bool = False,
 ) -> ibis.expr.types.Table | pd.DataFrame:
     """Generates a sample of data for examples.
 
@@ -82,7 +82,6 @@ def make_users_data(
     Optionally, pre-experimental data can be generated as well.
 
     Args:
-        to_pandas: If True, return Pandas DataFrame instead if Ibis Table.
         covariates: If True, generates pre-experimental data as the covariates
             in addition to default columns.
         seed: Random seed.
@@ -95,6 +94,7 @@ def make_users_data(
         avg_orders_per_session: Average number of orders per session.
             Should be less than 1.
         avg_revenue_per_order: Average revenue per order.
+        to_ibis: If True, return Ibis Table instead if Pandas DataFrame.
 
     Returns:
         An Ibis Table or a Pandas DataFrame with the following columns:
@@ -108,7 +108,6 @@ def make_users_data(
             revenue_covariate (optional): Revenue before the experiment.
     """
     return _make_data(
-        to_pandas=to_pandas,
         covariates=covariates,
         seed=seed,
         n_users=n_users,
@@ -119,6 +118,7 @@ def make_users_data(
         avg_sessions=avg_sessions,
         avg_orders_per_session=avg_orders_per_session,
         avg_revenue_per_order=avg_revenue_per_order,
+        to_ibis=to_ibis,
         explode_sessions=False,
     )
 
@@ -126,7 +126,6 @@ def make_users_data(
 @overload
 def make_sessions_data(
     *,
-    to_pandas: Literal[False] = False,
     covariates: bool = False,
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
@@ -137,13 +136,13 @@ def make_sessions_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-) -> ibis.expr.types.Table:
+    to_ibis: Literal[False] = False,
+) -> pd.DataFrame:
     ...
 
 @overload
 def make_sessions_data(
     *,
-    to_pandas: Literal[True] = True,
     covariates: bool = False,
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
@@ -154,12 +153,12 @@ def make_sessions_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-) -> pd.DataFrame:
+    to_ibis: Literal[True] = True,
+) -> ibis.expr.types.Table:
     ...
 
 def make_sessions_data(
     *,
-    to_pandas: bool = False,
     covariates: bool = False,
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
@@ -170,6 +169,7 @@ def make_sessions_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
+    to_ibis: bool = False,
 ) -> ibis.expr.types.Table | pd.DataFrame:
     """Generates a sample of data for examples.
 
@@ -186,7 +186,6 @@ def make_sessions_data(
     Optionally, pre-experimental data can be generated as well.
 
     Args:
-        to_pandas: If True, return Pandas DataFrame instead if Ibis Table.
         covariates: If True, generates pre-experimental data as the covariates
             in addition to default columns.
         seed: Random seed.
@@ -199,9 +198,10 @@ def make_sessions_data(
         avg_orders_per_session: Average number of orders per session.
             Should be less than 1.
         avg_revenue_per_order: Average revenue per order.
+        to_ibis: If True, return Ibis Table instead if Pandas DataFrame.
 
     Returns:
-        An Ibis Table with the following columns:
+        An Ibis Table or a Pandas DataFrame with the following columns:
             user: User identifier.
             variant: Variant of the test. 0 is control, 1 is treatment.
             sessions: Number of sessions.
@@ -212,7 +212,6 @@ def make_sessions_data(
             revenue_covariate (optional): Revenue before the experiment.
     """
     return _make_data(
-        to_pandas=to_pandas,
         covariates=covariates,
         seed=seed,
         n_users=n_users,
@@ -223,12 +222,12 @@ def make_sessions_data(
         avg_sessions=avg_sessions,
         avg_orders_per_session=avg_orders_per_session,
         avg_revenue_per_order=avg_revenue_per_order,
+        to_ibis=to_ibis,
         explode_sessions=True,
     )
 
 
 def _make_data(
-    to_pandas: bool = False,
     covariates: bool = False,
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
@@ -239,6 +238,7 @@ def _make_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
+    to_ibis: bool = False,
     explode_sessions: bool = False,
 ) -> ibis.expr.types.Table | pd.DataFrame:
     _check_params(
@@ -331,11 +331,11 @@ def _make_data(
             revenue_covariate=revenue_covariate,
         )
 
-    if to_pandas:
-        return data
+    if to_ibis:
+        con = ibis.pandas.connect()
+        return con.create_table("users_data", data)
 
-    con = ibis.pandas.connect()
-    return con.create_table("users_data", data)
+    return data
 
 
 def _check_params(

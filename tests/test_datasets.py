@@ -8,11 +8,10 @@ import tea_tasting.datasets
 
 def test_make_users_data_default():
     n_users = 100
-    users_data = tea_tasting.datasets.make_users_data(seed=42, n_users=n_users)
-    assert isinstance(users_data, ibis.expr.types.Table)
-    assert users_data.columns == ["user", "variant", "sessions", "orders", "revenue"]
-
-    data = users_data.to_pandas()
+    data = tea_tasting.datasets.make_users_data(seed=42, n_users=n_users)
+    assert isinstance(data, pd.DataFrame)
+    assert data.columns.to_list() == [
+        "user", "variant", "sessions", "orders", "revenue"]
     assert len(data) == n_users
     assert data["user"].drop_duplicates().count() == n_users
     assert data["variant"].drop_duplicates().count() == 2
@@ -25,15 +24,13 @@ def test_make_users_data_default():
 
 def test_make_users_data_covariates():
     n_users = 100
-    users_data = tea_tasting.datasets.make_users_data(
+    data = tea_tasting.datasets.make_users_data(
         seed=42, covariates=True, n_users=n_users)
-    assert isinstance(users_data, ibis.expr.types.Table)
-    assert users_data.columns == [
+    assert isinstance(data, pd.DataFrame)
+    assert data.columns.to_list() == [
         "user", "variant", "sessions", "orders", "revenue",
         "sessions_covariate", "orders_covariate", "revenue_covariate",
     ]
-
-    data = users_data.to_pandas()
     assert data["sessions_covariate"].min() >= 0
     assert data["orders_covariate"].min() >= 0
     assert data["orders_covariate"].sub(data["sessions_covariate"]).min() <= 0
@@ -45,22 +42,19 @@ def test_make_users_data_covariates():
     ) == 1
 
 
-def test_make_users_data_pandas():
+def test_make_users_data_ibis():
     n_users = 100
-    data = tea_tasting.datasets.make_users_data(
-        to_pandas=True, seed=42, n_users=n_users)
-    assert isinstance(data, pd.DataFrame)
-    assert data.columns.to_list() == [
-        "user", "variant", "sessions", "orders", "revenue"]
+    data = tea_tasting.datasets.make_users_data(seed=42, n_users=n_users, to_ibis=True)
+    assert isinstance(data, ibis.expr.types.Table)
+    assert data.columns == ["user", "variant", "sessions", "orders", "revenue"]
 
 
 def test_make_sessions_data_default():
     n_users = 100
-    sessions_data = tea_tasting.datasets.make_sessions_data(seed=42, n_users=n_users)
-    assert isinstance(sessions_data, ibis.expr.types.Table)
-    assert sessions_data.columns == ["user", "variant", "sessions", "orders", "revenue"]
-
-    data = sessions_data.to_pandas()
+    data = tea_tasting.datasets.make_sessions_data(seed=42, n_users=n_users)
+    assert isinstance(data, pd.DataFrame)
+    assert data.columns.to_list() == [
+        "user", "variant", "sessions", "orders", "revenue"]
     assert len(data) > n_users
     assert data["user"].drop_duplicates().count() == n_users
     assert data["variant"].drop_duplicates().count() == 2
@@ -74,15 +68,13 @@ def test_make_sessions_data_default():
 
 def test_make_sessions_data_covariates():
     n_users = 100
-    sessions_data = tea_tasting.datasets.make_sessions_data(
+    data = tea_tasting.datasets.make_sessions_data(
         seed=42, covariates=True, n_users=n_users)
-    assert isinstance(sessions_data, ibis.expr.types.Table)
-    assert sessions_data.columns == [
+    assert isinstance(data, pd.DataFrame)
+    assert data.columns.to_list() == [
         "user", "variant", "sessions", "orders", "revenue",
         "sessions_covariate", "orders_covariate", "revenue_covariate",
     ]
-
-    data = sessions_data.to_pandas()
     assert data["sessions_covariate"].min() >= 0
     assert data["orders_covariate"].min() >= 0
     assert data["orders_covariate"].sub(data["sessions_covariate"]).min() <= 0
@@ -94,10 +86,9 @@ def test_make_sessions_data_covariates():
     ) == 1
 
 
-def test_make_sessions_data_pandas():
+def test_make_sessions_data_ibis():
     n_users = 100
     data = tea_tasting.datasets.make_sessions_data(
-        to_pandas=True, seed=42, n_users=n_users)
-    assert isinstance(data, pd.DataFrame)
-    assert data.columns.to_list() == [
-        "user", "variant", "sessions", "orders", "revenue"]
+        seed=42, n_users=n_users, to_ibis=True)
+    assert isinstance(data, ibis.expr.types.Table)
+    assert data.columns == ["user", "variant", "sessions", "orders", "revenue"]

@@ -153,7 +153,7 @@ def results2(
 
 @pytest.fixture
 def data() -> ibis.expr.types.Table:
-    return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
+    return tea_tasting.datasets.make_users_data(n_users=100, seed=42, to_ibis=True)
 
 
 @pytest.fixture
