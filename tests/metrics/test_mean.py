@@ -135,6 +135,7 @@ def test_ratio_of_means_analyze_basic(data: dict[str, tea_tasting.aggr.Aggregate
     assert result.rel_effect_size_ci_lower == pytest.approx(-0.6593351111187646)
     assert result.rel_effect_size_ci_upper == pytest.approx(0.34378920945924096)
     assert result.pvalue == pytest.approx(0.2551230546709908)
+    assert result.statistic == pytest.approx(-1.1447678040118034)
 
 def test_ratio_of_means_analyze_ratio_greater_equal_var(
     data: dict[str, tea_tasting.aggr.Aggregates],
@@ -156,6 +157,7 @@ def test_ratio_of_means_analyze_ratio_greater_equal_var(
     assert result.rel_effect_size_ci_lower == pytest.approx(-0.5852384654309937)
     assert result.rel_effect_size_ci_upper == float("inf")
     assert result.pvalue == pytest.approx(0.8584716347525132)
+    assert result.statistic == pytest.approx(-1.0794048813446926)
 
 def test_ratio_of_means_analyze_ratio_less_use_norm(
     data: dict[str, tea_tasting.aggr.Aggregates],
@@ -179,6 +181,7 @@ def test_ratio_of_means_analyze_ratio_less_use_norm(
     assert result.rel_effect_size_ci_lower == float("-inf")
     assert result.rel_effect_size_ci_upper == pytest.approx(0.34578466493619153)
     assert result.pvalue == pytest.approx(0.3604265417728255)
+    assert result.statistic == pytest.approx(-0.3573188986307722)
 
 
 def test_simple_mean(data: dict[str, tea_tasting.aggr.Aggregates]):
@@ -218,3 +221,4 @@ def _compare_results(
     assert left.rel_effect_size_ci_upper == pytest.approx(
         right.rel_effect_size_ci_upper)
     assert left.pvalue == pytest.approx(right.pvalue)
+    assert left.statistic == pytest.approx(right.statistic)
