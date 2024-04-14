@@ -27,6 +27,7 @@
   - Mann–Whitney U test.
 - Power analysis.
 - A/A tests and simulations.
+- Pretty output for experiment results (round etc.).
 - Documentation on how to define metrics with custom statistical tests.
 - Documentation with MkDocs and Material for MkDocs.
 - Notebooks with examples.
