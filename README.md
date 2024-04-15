@@ -261,17 +261,12 @@ In **tea-tasting**, it's possible to analyze experiments with more than two vari
 
 How variant pairs are determined:
 
-- Default control variant: When the `control` parameter is set to `None`, **tea-tasting** automatically compares each variant pair. The variant with the lowest ID in each pair acts as the control.
+- Default control variant: When the `control` parameter of the `analyze` method is set to `None`, **tea-tasting** automatically compares each variant pair. The variant with the lowest ID in each pair is a control.
 - Specified control variant: If a specific variant is set as `control`, it is then compared against each of the other variants.
 
-To access the results, use one of the following methods and specify both control and treatment variant IDs:
+The result of the analysis is a dictionary of `ExperimentResult` objects with tuples (control, treatment) as keys.
 
-- `to_pandas()`,
-- `to_polars()`,
-- `to_dicts()`,
-- `to_html()`.
-
-It's important to note that **tea-tasting** does not adjust for multiple comparisons. When dealing with multiple variant pairs, additional steps may be necessary to account for this, depending on your analysis needs.
+Keep in mind that **tea-tasting** does not adjust for multiple comparisons. When dealing with multiple variant pairs, additional steps may be necessary to account for this, depending on your analysis needs.
 
 ## Package name
 
