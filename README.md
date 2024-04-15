@@ -30,7 +30,7 @@
 - Pretty output for experiment results (round etc.).
 - Documentation on how to define metrics with custom statistical tests.
 - Documentation with MkDocs and Material for MkDocs.
-- Notebooks with examples.
+- More examples.
 
 ## Installation
 
@@ -114,7 +114,7 @@ Use the `RatioOfMeans` class to compare ratios of metrics averages between varia
 
 Use the following parameters of `Mean` and `RatioOfMeans` to customize the analysis:
 
-- `alternative`: Alternative hypothesis. The following options available:
+- `alternative`: Alternative hypothesis. The following options are available:
   - `two-sided` (default): the means are unequal.
   - `greater`: the mean in the treatment variant is greater than the mean in the control variant.
   - `less`: the mean in the treatment variant is less than the mean in the control variant.
@@ -135,56 +135,49 @@ experiment = tt.Experiment(
 
 You can change the default values of these four parameters using global settings (see details below).
 
-### Simple metrics
-
-The `Mean` class in **tea-tasting** facilitates the comparison of simple metric averages. Utilize this class to perform statistical tests on the average values of different metrics. Key aspects include:
-
-- Metric column: Specify the column containing metric values using the `value` parameter.
-- Statistical tests: Based on the parameters, `Mean` can perform different types of tests:
-  - `use_t` (default `True`): Set to `True` to use the Student's t-distribution or `False` for the Normal distribution in p-value and confidence interval calculations.
-  - `equal_var` (default `False`): When `True`, a standard independent Student's t-test assuming equal population variances is used. If `False`, Welch’s t-test is used, which does not assume equal population variance. This parameter is ignored if `use_t` is set to `False`.
-- Alternative hypothesis: The `alternative` parameter specifies the nature of the hypothesis test:
-  - `"two-sided"` (default): Tests if the means of the two distributions are unequal.
-  - `"less"`: Tests if the mean of the treatment distribution is less than that of the control.
-  - `"greater"`: Tests if the mean of the treatment distribution is greater than that of the control.
-- Confidence level: The `confidence_level` parameter, defaulting to `0.95`, sets the confidence level for the confidence interval of the test.
-
-You can customize the default values for `use_t`, `equal_var`, `alternative`, and `confidence_level` in the global settings for consistent application across your analyses.
-
-### Ratio metrics
-
-The `RatioOfMeans` class in **tea-tasting** is specifically designed for situations where the analysis unit differs from the randomization unit. This is common in cases where you need to compare ratios, such as orders per session, where sessions per user vary.
-
-- Defining ratio metrics: `RatioOfMeans` calculates the ratio of averages, such as the average number of orders per average number of sessions. It requires two parameters:
-  - `numer`: The column name for the numerator of the ratio.
-  - `denom`: The column name for the denominator of the ratio.
-- Statistical tests: Like `Mean`, `RatioOfMeans` supports various statistical tests, including Welch's t-test, Student's t-test, and Z-test. The parameters are:
-  - `use_t` (default `True`): Choose between Student's t-distribution (`True`) and Normal distribution (`False`).
-  - `equal_var` (default `False`): Used to determine the type of t-test (standard or Welch’s). Irrelevant if `use_t` is `False`.
-  - `alternative`: Specifies the nature of the hypothesis test (`"two-sided"`, `"less"`, or `"greater"`).
-- `confidence_level` (default `0.95`): Sets the confidence level for the test.
-
 ### Analyzing and retrieving experiment results
 
-After defining an experiment with the `Experiment` class, you can analyze the data and obtain results using the `analyze` method. This method takes your experiment data as input and returns an `ExperimentResult` object containing detailed outcomes for each defined metric.
+After defining an experiment and metrics, you can analyze the data using the `analyze` method of the `Experiment` class. This method takes experiment data as an input and returns an `ExperimentResult` object with experiment result.
 
-The `ExperimentResult` object offers several methods to serialize and view the experiment results in different formats:
+```python
+experiment_results = experiment.analyze(users_data)
+```
 
-- `to_polars()`: Returns a Polars DataFrame with each row representing a metric.
-- `to_pandas()`: Converts the results into a Pandas DataFrame, again with each row for a metric.
-- `to_dicts()`: Provides a sequence of dictionaries, each corresponding to a metric.
-- `to_html()`: Generates an HTML table for an easily readable web format.
+By default, **tea-tasting** assumes that the variant with the lowest ID is a control. Change the default behavior using the `control` parameter:
 
-The fields in the result vary based on the metric. For metrics defined using `Mean` and `RatioOfMeans`, the fields include:
+```python
+experiment_results = experiment.analyze(users_data, control=0)
+```
 
-- `metric`: The name of the metric.
-- `variant_{control_variant_id}`: The mean value for the control variant.
-- `variant_{treatment_variant_id}`: The mean value for the treatment variant.
-- `diff`: The difference in means between the treatment and control.
-- `diff_conf_int_lower` and `diff_conf_int_upper`: The lower and upper bounds of the confidence interval for the difference in means.
-- `rel_diff`: The relative difference between means.
-- `rel_diff_conf_int_lower` and `rel_diff_conf_int_upper`: The confidence interval bounds for the relative difference.
-- `pvalue`: The p-value from the statistical test.
+`ExperimentResult` is a mapping. Get a metric's analysis result using metric name as a key.
+
+```python
+print(experiment_results["sessions_per_user"])
+```
+
+`ExperimentResult` provides two methods to serialize and view the experiment result (and more to come):
+
+- `to_dicts()`: Return a sequence of dictionaries, each corresponding to a metric.
+- `to_pandas()`: Return a Pandas DataFrame, each row corresponding to a metric.
+
+```python
+print(experiment_results.to_dicts())
+print(experiment_results.to_pandas())
+```
+
+The fields in the result depend on metrics. For `Mean` and `RatioOfMeans`, the fields include:
+
+- `metric`: Metric name.
+- `control`: Mean or ratio of means in the control variant.
+- `treatment`: Mean or ratio of means in the treatment variant.
+- `effect_size`: Absolute effect size. Difference between two means.
+- `effect_size_ci_lower`: Lower bound of the absolute effect size confidence interval.
+- `effect_size_ci_upper`: Upper bound of the absolute effect size confidence interval.
+- `rel_effect_size`: Relative effect size. Difference between two means, divided by the control mean.
+- `rel_effect_size_ci_lower`: Lower bound of the relative effect size confidence interval.
+- `rel_effect_size_ci_upper`: Upper bound of the relative effect size confidence interval.
+- `pvalue`: P-value
+- `statistic`: Statistic.
 
 ## More features
 
