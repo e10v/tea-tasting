@@ -57,7 +57,8 @@ def set_config(
             the Normal distribution (False) by default. Default is True.
         kwargs: User-defined global parameters.
     """
-    for name, value in locals().items():
+    params = {k: v for k, v in locals().items() if k != "kwargs"} | kwargs
+    for name, value in params.items():
         if value is not None:
             _global_config[name] = tea_tasting.utils.auto_check(value, name)
 
