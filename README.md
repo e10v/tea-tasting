@@ -187,38 +187,34 @@ The fields in the result depend on metrics. For `Mean` and `RatioOfMeans`, the f
 Example usage:
 
 ```python
-import tea_tasting as tt
-
-
-users_data = tt.sample_users_data(size=1000, seed=42, pre=True)
+users_data = tt.make_users_data(seed=42, covariates=True)
 
 experiment = tt.Experiment(
-    {
-        "Sessions per user": tt.Mean("sessions", covariate="pre_sessions"),
-        "Orders per sessions": tt.RatioOfMeans(
-            numer="orders",
-            denom="sessions",
-            numer_covariate="pre_orders",
-            denom_covariate="pre_sessions",
-        ),
-        "Orders per user": tt.Mean("orders", covariate="pre_orders",),
-        "Revenue per user": tt.Mean("revenue", covariate="pre_revenue"),
-    },
+    sessions_per_user=tt.Mean("sessions", "sessions_covariate"),
+    orders_per_session=tt.RatioOfMeans(
+        numer="orders",
+        denom="sessions",
+        numer_covariate="orders_covariate",
+        denom_covariate="sessions_covariate",
+    ),
+    orders_per_user=tt.Mean("orders", "orders_covariate"),
+    revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
 )
 
-experiment_result = experiment.analyze(users_data)
+experiment_results = experiment.analyze(users_data)
+print(experiment_results.to_pandas())
 ```
 
-The `sample_users_data` function's `pre` parameter controls the inclusion of pre-experimental data, useful for variance reduction. These data appear as additional columns:
+Set the `covariates` parameter of the `make_users_data` functions to `True` to add the following columns with pre-experimental data:
 
-- `pre_sessions`: User sessions before the experiment.
-- `pre_orders`: User purchases before the experiment.
-- `pre_revenue`: User-generated revenue before the experiment.
+- `sessions_covariate`: Number of sessions before the experiment.
+- `orders_covariate`: Number of orders before the experiment.
+- `revenue_covariate`: Revenue before the experiment.
 
-Defining covariates:
+Define the metrics' covariates:
 
-- In `Mean`, use the `covariate` parameter to specify the pre-experimental metric.
-- In `RatioOfMeans`, `numer_covariate` and `denom_covariate` define covariates for the numerator and denominator, respectively.
+- In `Mean`, specify the covariate using the `covariate` parameter.
+- In `RatioOfMeans`, specify the covariates for the numerator and denominator using the parameters `numer_covariate` and `denom_covariate`, respectively.
 
 ### Global settings
 
