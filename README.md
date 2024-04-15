@@ -49,10 +49,10 @@ import tea_tasting as tt
 users_data = tt.make_users_data(seed=42)
 
 experiment = tt.Experiment(
-    sessions_per_user=tt.SimpleMean("sessions"),
+    sessions_per_user=tt.Mean("sessions"),
     orders_per_session=tt.RatioOfMeans("orders", "sessions"),
-    orders_per_user=tt.SimpleMean("orders"),
-    revenue_per_user=tt.SimpleMean("revenue"),
+    orders_per_user=tt.Mean("orders"),
+    revenue_per_user=tt.Mean("revenue"),
 )
 
 experiment_results = experiment.analyze(users_data)
@@ -88,8 +88,6 @@ The `Experiment` class defines the parameters of an A/B test: metrics and a vari
 - Using keyword parameters, with metric names as parameter names and metric definitions as parameter values, as in example above.
 - Using the first argument `metrics` which accepts metrics if a form of dictionary with metric names as keys and metric definitions as values.
 
-Metric definitions are instances of metric classes which define how metrics are calculated and analyzed.
-
 By default, **tea-testing** assumes that A/B test variant is stored in a column named `"variant"`. You can change it using the `variant` parameter of the `Experiment` class.
 
 Example usage:
@@ -97,10 +95,10 @@ Example usage:
 ```python
 experiment = tt.Experiment(
     {
-        "sessions per user": tt.SimpleMean("sessions"),
+        "sessions per user": tt.Mean("sessions"),
         "orders per session": tt.RatioOfMeans("orders", "sessions"),
-        "orders per user": tt.SimpleMean("orders"),
-        "revenue per user": tt.SimpleMean("revenue"),
+        "orders per user": tt.Mean("orders"),
+        "revenue per user": tt.Mean("revenue"),
     },
     variant="variant",
 )
@@ -108,14 +106,41 @@ experiment = tt.Experiment(
 
 ### Metrics
 
+Metrics are instances of metric classes which define how metrics are calculated. Those calculations include calculation of effect size, confidence interval, p-value and other statistics.
 
+Use the `Mean` class to compare metric averages between variants of an A/B test. For example, average number of orders per user, where user is a randomization unit of an experiment. Specify the column containing the metric values using the first parameter `value`.
+
+Use the `RatioOfMeans` class to compare ratios of metrics averages between variants of an A/B test. For example, average number of orders per average number of sessions. Specify the columns containing the numerator and denominator values using the parameters `numer` and `denom`.
+
+Use the following parameters of `Mean` and `RatioOfMeans` to customize the analysis:
+
+- `alternative`: Alternative hypothesis. The following options available:
+  - `two-sided` (default): the means are unequal.
+  - `greater`: the mean in the treatment variant is greater than the mean in the control variant.
+  - `less`: the mean in the treatment variant is less than the mean in the control variant.
+- `confidence_level`: Confidence level of the confidence interval. Default is `0.95`.
+- `equal_var`: If `False` (default), assume unequal population variances in calculation of the standard deviation and the number of degrees of freedom. Otherwise, assume equal population variance and calculated pooled standard deviation.
+- `use_t`: If `True` (default), use Student's t-distribution in p-value and confidence interval calculations. Otherwise use Normal distribution.
+
+Example usage:
+
+```python
+experiment = tt.Experiment(
+    sessions_per_user=tt.Mean("sessions", alternative="greater"),
+    orders_per_session=tt.RatioOfMeans("orders", "sessions", confidence_level=0.9),
+    orders_per_user=tt.Mean("orders", equal_var=True),
+    revenue_per_user=tt.Mean("revenue", use_t=False),
+)
+```
+
+You can change the default values of these four parameters using global settings (see details below).
 
 ### Simple metrics
 
-The `SimpleMean` class in **tea-tasting** facilitates the comparison of simple metric averages. Utilize this class to perform statistical tests on the average values of different metrics. Key aspects include:
+The `Mean` class in **tea-tasting** facilitates the comparison of simple metric averages. Utilize this class to perform statistical tests on the average values of different metrics. Key aspects include:
 
 - Metric column: Specify the column containing metric values using the `value` parameter.
-- Statistical tests: Based on the parameters, `SimpleMean` can perform different types of tests:
+- Statistical tests: Based on the parameters, `Mean` can perform different types of tests:
   - `use_t` (default `True`): Set to `True` to use the Student's t-distribution or `False` for the Normal distribution in p-value and confidence interval calculations.
   - `equal_var` (default `False`): When `True`, a standard independent Student's t-test assuming equal population variances is used. If `False`, Welch’s t-test is used, which does not assume equal population variance. This parameter is ignored if `use_t` is set to `False`.
 - Alternative hypothesis: The `alternative` parameter specifies the nature of the hypothesis test:
@@ -133,7 +158,7 @@ The `RatioOfMeans` class in **tea-tasting** is specifically designed for situati
 - Defining ratio metrics: `RatioOfMeans` calculates the ratio of averages, such as the average number of orders per average number of sessions. It requires two parameters:
   - `numer`: The column name for the numerator of the ratio.
   - `denom`: The column name for the denominator of the ratio.
-- Statistical tests: Like `SimpleMean`, `RatioOfMeans` supports various statistical tests, including Welch's t-test, Student's t-test, and Z-test. The parameters are:
+- Statistical tests: Like `Mean`, `RatioOfMeans` supports various statistical tests, including Welch's t-test, Student's t-test, and Z-test. The parameters are:
   - `use_t` (default `True`): Choose between Student's t-distribution (`True`) and Normal distribution (`False`).
   - `equal_var` (default `False`): Used to determine the type of t-test (standard or Welch’s). Irrelevant if `use_t` is `False`.
   - `alternative`: Specifies the nature of the hypothesis test (`"two-sided"`, `"less"`, or `"greater"`).
@@ -150,7 +175,7 @@ The `ExperimentResult` object offers several methods to serialize and view the e
 - `to_dicts()`: Provides a sequence of dictionaries, each corresponding to a metric.
 - `to_html()`: Generates an HTML table for an easily readable web format.
 
-The fields in the result vary based on the metric. For metrics defined using `SimpleMean` and `RatioOfMeans`, the fields include:
+The fields in the result vary based on the metric. For metrics defined using `Mean` and `RatioOfMeans`, the fields include:
 
 - `metric`: The name of the metric.
 - `variant_{control_variant_id}`: The mean value for the control variant.
@@ -165,7 +190,7 @@ The fields in the result vary based on the metric. For metrics defined using `Si
 
 ### Variance reduction with CUPED/CUPAC
 
-**tea-tasting** supports variance reduction with CUPED/CUPAC, within both `SimpleMean` and `RatioOfMeans` classes.
+**tea-tasting** supports variance reduction with CUPED/CUPAC, within both `Mean` and `RatioOfMeans` classes.
 
 Example usage:
 
@@ -177,15 +202,15 @@ users_data = tt.sample_users_data(size=1000, seed=42, pre=True)
 
 experiment = tt.Experiment(
     {
-        "Sessions per user": tt.SimpleMean("sessions", covariate="pre_sessions"),
+        "Sessions per user": tt.Mean("sessions", covariate="pre_sessions"),
         "Orders per sessions": tt.RatioOfMeans(
             numer="orders",
             denom="sessions",
             numer_covariate="pre_orders",
             denom_covariate="pre_sessions",
         ),
-        "Orders per user": tt.SimpleMean("orders", covariate="pre_orders",),
-        "Revenue per user": tt.SimpleMean("revenue", covariate="pre_revenue"),
+        "Orders per user": tt.Mean("orders", covariate="pre_orders",),
+        "Revenue per user": tt.Mean("revenue", covariate="pre_revenue"),
     },
 )
 
@@ -200,7 +225,7 @@ The `sample_users_data` function's `pre` parameter controls the inclusion of pre
 
 Defining covariates:
 
-- In `SimpleMean`, use the `covariate` parameter to specify the pre-experimental metric.
+- In `Mean`, use the `covariate` parameter to specify the pre-experimental metric.
 - In `RatioOfMeans`, `numer_covariate` and `denom_covariate` define covariates for the numerator and denominator, respectively.
 
 ### Checking for sample ratio mismatch
@@ -211,10 +236,10 @@ Example usage:
 
 ```python
 experiment = tt.Experiment({
-    "Sessions per user": tt.SimpleMean("sessions"),
+    "Sessions per user": tt.Mean("sessions"),
     "Orders per sessions": tt.RatioOfMeans(numer="orders", denom="sessions"),
-    "Orders per user": tt.SimpleMean("orders"),
-    "Revenue per user": tt.SimpleMean("revenue"),
+    "Orders per user": tt.Mean("orders"),
+    "Revenue per user": tt.Mean("revenue"),
     "Sample ratio": tt.SampleRatio(),
 })
 ```
@@ -280,7 +305,7 @@ The `Bootstrap` class provides a detailed result output, including:
 
 ### Power analysis
 
-Both the `SimpleMean` and `RatioOfMeans` classes in **tea-tasting** offer two methods for conducting power analysis:
+Both the `Mean` and `RatioOfMeans` classes in **tea-tasting** offer two methods for conducting power analysis:
 
 - `power()`: Calculates the statistical power of the test.
 - `solve_power()`: Solves for a specific power analysis parameter, such as the minimum detectable effect.
@@ -288,7 +313,7 @@ Both the `SimpleMean` and `RatioOfMeans` classes in **tea-tasting** offer two me
 Example usage:
 
 ```python
-orders_per_user = SimpleMean("orders")
+orders_per_user = Mean("orders")
 orders_power = orders_per_user.power(users_data, rel_diff=0.05)
 orders_mde = orders_per_user.solve_power(users_data, parameter="rel_diff")
 ```
@@ -508,7 +533,7 @@ How **tea-tasting** manages this data:
 
 **tea-tasting** facilitates analysis using aggregated statistics, particularly beneficial for statistical tests like Z-test or Student's t-test, where full datasets are not necessary. This method is often more computationally efficient, especially when these aggregated statistics can be calculated directly within a database.
 
-The `experiment.analyze_from_stats` method is specifically designed for this type of analysis. It works with metrics like `SimpleMean`, `RatioOfMeans`, and `SampleRatio` that support analysis based on aggregated statistics.
+The `experiment.analyze_from_stats` method is specifically designed for this type of analysis. It works with metrics like `Mean`, `RatioOfMeans`, and `SampleRatio` that support analysis based on aggregated statistics.
 
 This method requires a dictionary where each key is a variant ID, and the corresponding value is an instance of the `Stats` class, representing aggregated statistics for that variant.
 
