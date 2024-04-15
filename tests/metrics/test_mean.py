@@ -184,8 +184,8 @@ def test_ratio_of_means_analyze_ratio_less_use_norm(
     assert result.statistic == pytest.approx(-0.3573188986307722)
 
 
-def test_simple_mean(data: dict[str, tea_tasting.aggr.Aggregates]):
-    metric = tea_tasting.metrics.mean.SimpleMean(
+def test_mean(data: dict[str, tea_tasting.aggr.Aggregates]):
+    metric = tea_tasting.metrics.mean.Mean(
         "orders",
         covariate="orders_covariate",
         alternative="greater",
