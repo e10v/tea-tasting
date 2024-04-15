@@ -300,7 +300,7 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
         return scale, distr
 
 
-class SimpleMean(RatioOfMeans):
+class Mean(RatioOfMeans):
     """Compares metrics means between variants."""
     def __init__(
         self,
