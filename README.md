@@ -15,7 +15,7 @@
 - Variance reduction with [CUPED](https://exp-platform.com/Documents/2013-02-CUPED-ImprovingSensitivityOfControlledExperiments.pdf)/[CUPAC](https://doordash.engineering/2020/06/08/improving-experimental-power-through-control-using-predictions-as-covariate-cupac/) (also in combination with delta method for ratio metrics).
 - Confidence interval for both absolute and percent change.
 
-**tea-tasting** calculates statistics on the data backend side: BigQuery, ClickHouse, PostgreSQL, Snowflake, Spark, and other backends supported by [Ibis](https://ibis-project.org/). There is no need to fetch granular data into a Python program. Pandas DataFrames are supported as well.
+**tea-tasting** calculates statistics on the data backend side: BigQuery, ClickHouse, PostgreSQL, Snowflake, Spark, and other of 20+ backends supported by [Ibis](https://ibis-project.org/). There is no need to fetch granular data into a Python program. Pandas DataFrames are supported as well.
 
 **tea-tasting** is still in alpha, but already includes all the features listed above. The following features are coming soon:
 
@@ -23,7 +23,7 @@
 - More statistical tests:
   - Asymptotic and exact tests for frequency data,
   - Bootstrap,
-  - Quantile test (based on Bootstrap),
+  - Quantile test (using Bootstrap),
   - Mann–Whitney U test.
 - Power analysis.
 - A/A tests and simulations.
@@ -50,7 +50,7 @@ users_data = tt.make_users_data(seed=42)
 
 experiment = tt.Experiment(
     sessions_per_user=tt.SimpleMean("sessions"),
-    orders_per_sessions=tt.RatioOfMeans("orders", "sessions"),
+    orders_per_session=tt.RatioOfMeans("orders", "sessions"),
     orders_per_user=tt.SimpleMean("orders"),
     revenue_per_user=tt.SimpleMean("revenue"),
 )
@@ -83,32 +83,32 @@ Many statistical tests, like Student's t-test or Z-test, don't need granular dat
 
 ### A/B test definition
 
-The `Experiment` class is used to define the parameters of an A/B test. The key aspects of this definition include:
+The `Experiment` class defines the parameters of an A/B test: metrics and a variant column name. There are two ways to define metrics:
 
-- Metrics: Specified using the `metrics` parameter, which is a dictionary. Here, metric names are the keys, and their corresponding definitions are the values. These definitions determine how each metric is calculated and analyzed.
-- Variant column: If your data uses a different column name to denote the variant (other than the default `"variant")`, specify this using the `variant` parameter. The default is `"variant"`.
-- Control variant: To define a specific control group variant, use the `control` parameter. By default, this is set to `None`, meaning the variant with the minimal ID is automatically considered the control group.
+- Using keyword parameters, with metric names as parameter names and metric definitions as parameter values, as in example above.
+- Using the first argument `metrics` which accepts metrics if a form of dictionary with metric names as keys and metric definitions as values.
+
+Metric definitions are instances of metric classes which define how metrics are calculated and analyzed.
+
+By default, **tea-testing** assumes that A/B test variant is stored in a column named `"variant"`. You can change it using the `variant` parameter of the `Experiment` class.
 
 Example usage:
 
 ```python
-data = users_data.with_columns(
-    pl.col("variant").replace({0: "A", 1: "B"}).alias("variant_id"),
-)
-
 experiment = tt.Experiment(
     {
-        "Sessions per user": tt.SimpleMean("sessions"),
-        "Orders per sessions": tt.RatioOfMeans(numer="orders", denom="sessions"),
-        "Orders per user": tt.SimpleMean("orders"),
-        "Revenue per user": tt.SimpleMean("revenue"),
+        "sessions per user": tt.SimpleMean("sessions"),
+        "orders per session": tt.RatioOfMeans("orders", "sessions"),
+        "orders per user": tt.SimpleMean("orders"),
+        "revenue per user": tt.SimpleMean("revenue"),
     },
-    variant="variant_id",
-    control="A",
+    variant="variant",
 )
-
-experiment_result = experiment.analyze(data)
 ```
+
+### Metrics
+
+
 
 ### Simple metrics
 
