@@ -10,4 +10,4 @@ from tea_tasting.metrics.base import (
     aggregate_by_variants,
     read_dataframes,
 )
-from tea_tasting.metrics.mean import RatioOfMeans, SimpleMean
+from tea_tasting.metrics.mean import Mean, RatioOfMeans
