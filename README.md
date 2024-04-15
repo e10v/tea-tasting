@@ -214,35 +214,33 @@ Set the `covariates` parameter of the `make_users_data` functions to `True` to a
 Define the metrics' covariates:
 
 - In `Mean`, specify the covariate using the `covariate` parameter.
-- In `RatioOfMeans`, specify the covariates for the numerator and denominator using the parameters `numer_covariate` and `denom_covariate`, respectively.
+- In `RatioOfMeans`, specify the covariates for the numerator and denominator using the `numer_covariate` and `denom_covariate` parameters, respectively.
 
 ### Global settings
 
-In **tea-tasting**, global settings allow you to manage default values for various parameters across all metrics.
+In **tea-tasting**, you can change defaults for the following parameters:
 
-You can globally set defaults for the following parameters:
-
-- `alpha`: Significance level for statistical tests.
-- `alternative`: Specifies the alternative hypothesis in testing.
-- `confidence_level`: Sets the confidence level for intervals.
-- `equal_var`: Determines the assumption of equal variances in tests.
-- `n_resamples`: Number of resamples for bootstrap methods.
-- `ratio`: Default ratio of treatment to control observations.
-- `use_t`: Chooses between the Student's t-distribution and the Normal distribution.
-
-Additionally, custom parameter defaults can also be defined.
+- `alternative`: Alternative hypothesis.
+- `confidence_level`: Confidence level of the confidence interval.
+- `equal_var`: If False, assume unequal population variances in calculation of the standard deviation and the number of degrees of freedom. Otherwise, assume equal population variance and calculated pooled standard deviation.
+- `use_t`: If True, use Student's t-distribution in p-value and confidence interval calculations. Otherwise use Normal distribution.
 
 Use `set_config` to set a global option value:
 
 ```python
-tt.set_config(confidence_level=0.98, some_custom_parameter=1)
+tt.set_config(confidence_level=0.9)
 ```
 
 Use `config_context` to temporarily set a global option value within a context:
 
 ```python
-with tt.config_context(confidence_level=0.98, some_custom_parameter=1):
-    # Define the experiment and the metrics here.
+with tt.config_context(confidence_level=0.9):
+    experiment = tt.Experiment(
+        sessions_per_user=tt.Mean("sessions"),
+        orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+        orders_per_user=tt.Mean("orders"),
+        revenue_per_user=tt.Mean("revenue"),
+    )
 ```
 
 Use `get_config` with the option name as a parameter to get a global option value:
