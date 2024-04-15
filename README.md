@@ -15,15 +15,15 @@
 - Variance reduction with [CUPED](https://exp-platform.com/Documents/2013-02-CUPED-ImprovingSensitivityOfControlledExperiments.pdf)/[CUPAC](https://doordash.engineering/2020/06/08/improving-experimental-power-through-control-using-predictions-as-covariate-cupac/) (also in combination with delta method for ratio metrics).
 - Confidence interval for both absolute and percent change.
 
-**tea-tasting** calculates statistics on the data backend side: BigQuery, ClickHouse, PostgreSQL, Snowflake, Spark, and other of 20+ backends supported by [Ibis](https://ibis-project.org/). There is no need to fetch granular data into a Python program. Pandas DataFrames are supported as well.
+**tea-tasting** calculates statistics within data backends such as BigQuery, ClickHouse, PostgreSQL, Snowflake, Spark, and other of 20+ backends supported by [Ibis](https://ibis-project.org/). This approach eliminates the need to import granular data into a Python environment, though Pandas DataFrames are also supported.
 
 **tea-tasting** is still in alpha, but already includes all the features listed above. The following features are coming soon:
 
 - Sample ratio mismatch check.
 - More statistical tests:
-  - Asymptotic and exact tests for frequency data,
-  - Bootstrap,
-  - Quantile test (using Bootstrap),
+  - Asymptotic and exact tests for frequency data.
+  - Bootstrap.
+  - Quantile test (using Bootstrap).
   - Mann–Whitney U test.
 - Power analysis.
 - A/A tests and simulations.
