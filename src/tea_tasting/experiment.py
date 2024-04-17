@@ -138,7 +138,7 @@ class Experiment(tea_tasting.utils.ReprMixin):
                 result |= {name: self._analyze_metric(
                     metric=metric,
                     data=data,
-                    aggr_data=aggregated_data,
+                    aggregated_data=aggregated_data,
                     granular_data=granular_data,
                     control=control,
                     treatment=treatment,
@@ -156,16 +156,16 @@ class Experiment(tea_tasting.utils.ReprMixin):
         self,
         metric: tea_tasting.metrics.MetricBase[Any],
         data: pd.DataFrame | ibis.expr.types.Table,
-        aggr_data: dict[Any, tea_tasting.aggr.Aggregates] | None,
+        aggregated_data: dict[Any, tea_tasting.aggr.Aggregates] | None,
         granular_data: dict[Any, pd.DataFrame] | None,
         control: Any,
         treatment: Any,
     ) -> tea_tasting.metrics.MetricResult:
         if (
             isinstance(metric, tea_tasting.metrics.MetricBaseAggregated)
-            and aggr_data is not None
+            and aggregated_data is not None
         ):
-            return metric.analyze(aggr_data, control, treatment)
+            return metric.analyze(aggregated_data, control, treatment)
 
         if (
             isinstance(metric, tea_tasting.metrics.MetricBaseGranular)
