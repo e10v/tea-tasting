@@ -38,18 +38,6 @@ def test_aggregates_init(aggr: tea_tasting.aggr.Aggregates):
     assert aggr.var_ == VAR
     assert aggr.cov_ == COV
 
-def test_aggregates_filter(aggr: tea_tasting.aggr.Aggregates):
-    filtered_aggr = aggr.filter(
-        has_count=False,
-        mean_cols=("x", "x"),
-        var_cols=("x",),
-        cov_cols=(),
-    )
-    assert filtered_aggr.count_ is None
-    assert filtered_aggr.mean_ == {"x": MEAN["x"]}
-    assert filtered_aggr.var_ == {"x": VAR["x"]}
-    assert filtered_aggr.cov_ == {}
-
 def test_aggregates_calls(aggr: tea_tasting.aggr.Aggregates):
     assert aggr.count() == COUNT
     assert aggr.mean("x") == MEAN["x"]

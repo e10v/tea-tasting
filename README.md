@@ -71,7 +71,7 @@ The `make_users_data` function creates synthetic data for demonstration purposes
 - `orders`: The total number of purchases made by the user.
 - `revenue`: The total revenue generated from the user's purchases.
 
-**tea-tasting** accepts data as either a Pandas DataFrame or an Ibis Table. [Ibis](https://ibis-project.org/) is a Python package which serves as a DataFrame API to various data backends. It supports 20+ backends including BigQuery, ClickHouse, DuckDB, Polars, PostgreSQL, Snowflake, Spark etc. You can write an SQL-query, wrap it as an Ibis Table and pass it to **tea-tasting**.
+**tea-tasting** accepts data as either a Pandas DataFrame or an Ibis Table. [Ibis](https://ibis-project.org/) is a Python package which serves as a DataFrame API to various data backends. It supports 20+ backends including BigQuery, ClickHouse, DuckDB, Polars, PostgreSQL, Snowflake, Spark etc. You can write an SQL-query, [wrap](https://ibis-project.org/how-to/extending/sql#backend.sql) it as an Ibis Table and pass it to **tea-tasting**.
 
 Many statistical tests, like Student's t-test or Z-test, don't need granular data for analysis. For such tests, **tea-tasting** will query aggregated statistics, like mean and variance, instead of downloading all the detailed data.
 
@@ -119,7 +119,7 @@ Use the following parameters of `Mean` and `RatioOfMeans` to customize the analy
   - `greater`: the mean in the treatment variant is greater than the mean in the control variant.
   - `less`: the mean in the treatment variant is less than the mean in the control variant.
 - `confidence_level`: Confidence level of the confidence interval. Default is `0.95`.
-- `equal_var`: If `False` (default), assume unequal population variances in calculation of the standard deviation and the number of degrees of freedom. Otherwise, assume equal population variance and calculated pooled standard deviation.
+- `equal_var`: If `False` (default), assume unequal population variances in calculation of the standard deviation and the number of degrees of freedom. Otherwise, assume equal population variance and calculate pooled standard deviation.
 - `use_t`: If `True` (default), use Student's t-distribution in p-value and confidence interval calculations. Otherwise use Normal distribution.
 
 Example usage:
@@ -222,7 +222,7 @@ In **tea-tasting**, you can change defaults for the following parameters:
 
 - `alternative`: Alternative hypothesis.
 - `confidence_level`: Confidence level of the confidence interval.
-- `equal_var`: If False, assume unequal population variances in calculation of the standard deviation and the number of degrees of freedom. Otherwise, assume equal population variance and calculated pooled standard deviation.
+- `equal_var`: If False, assume unequal population variances in calculation of the standard deviation and the number of degrees of freedom. Otherwise, assume equal population variance and calculate pooled standard deviation.
 - `use_t`: If True, use Student's t-distribution in p-value and confidence interval calculations. Otherwise use Normal distribution.
 
 Use `set_config` to set a global option value:

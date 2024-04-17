@@ -53,34 +53,6 @@ class Aggregates(tea_tasting.utils.ReprMixin):
             for (left, right), value in cov_.items()
         }
 
-    def filter(
-        self,
-        has_count: bool,
-        mean_cols: Sequence[str],
-        var_cols: Sequence[str],
-        cov_cols: Sequence[tuple[str, str]],
-    ) -> Aggregates:
-        """Filter aggregated statistics.
-
-        Args:
-            has_count: If True, keep sample size in the resulting object.
-            mean_cols: Sample means variable names.
-            var_cols: Sample variances variable names.
-            cov_cols: Sample covariances variable names.
-
-        Returns:
-            Filtered aggregated statistics.
-        """
-        mean_cols, var_cols, cov_cols = _validate_aggr_cols(
-            mean_cols, var_cols, cov_cols)
-
-        return Aggregates(
-            count_=self.count() if has_count else None,
-            mean_={col: self.mean(col) for col in mean_cols},
-            var_={col: self.var(col) for col in var_cols},
-            cov_={cols: self.cov(*cols) for cols in cov_cols},
-        )
-
     def count(self) -> int:
         """Sample size.
 
