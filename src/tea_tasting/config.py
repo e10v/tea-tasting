@@ -85,7 +85,7 @@ def config_context(
             the Normal distribution (False) by default. Default is True.
         kwargs: User-defined global parameters.
     """
-    new_config = locals()
+    new_config = {k: v for k, v in locals().items() if k != "kwargs"} | kwargs
     old_config = get_config()
     set_config(**new_config)
 
