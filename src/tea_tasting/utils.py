@@ -1,4 +1,5 @@
 """Useful functions and classes."""
+# ruff: noqa: SIM114
 
 from __future__ import annotations
 
@@ -68,7 +69,13 @@ def auto_check(value: R, name: str) -> R:
         check_scalar(value, name, typ=str, is_in={"two-sided", "greater", "less"})
     elif name == "confidence_level":
         check_scalar(value, name, typ=float, gt=0, lt=1)
-    elif name in {"equal_var", "use_t"}:
+    elif name == "correction":
+        check_scalar(value, name, typ=bool)
+    elif name == "equal_var":
+        check_scalar(value, name, typ=bool)
+    elif name == "ratio":
+        check_scalar(value, name, typ=float | int, gt=0)
+    elif name == "use_t":
         check_scalar(value, name, typ=bool)
     return value
 
