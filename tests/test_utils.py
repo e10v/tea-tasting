@@ -52,10 +52,22 @@ def test_auto_check_confidence_level():
     with pytest.raises(ValueError, match="must be <"):
         tea_tasting.utils.auto_check(1.0, "confidence_level")
 
+def test_auto_check_correction():
+    assert tea_tasting.utils.auto_check(True, "correction") is True
+    with pytest.raises(TypeError):
+        tea_tasting.utils.auto_check(0, "correction")
+
 def test_auto_check_equal_var():
     assert tea_tasting.utils.auto_check(True, "equal_var") is True
     with pytest.raises(TypeError):
         tea_tasting.utils.auto_check(0, "equal_var")
+
+def test_auto_check_ratio():
+    assert tea_tasting.utils.auto_check(1.5, "ratio") == 1.5
+    with pytest.raises(TypeError):
+        tea_tasting.utils.auto_check("str", "ratio")
+    with pytest.raises(ValueError, match="must be >"):
+        tea_tasting.utils.auto_check(0.0, "ratio")
 
 def test_auto_check_use_t():
     assert tea_tasting.utils.auto_check(False, "use_t") is False
