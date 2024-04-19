@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
-MAX_EXACT_THRESHOLD = 1000
+_MAX_EXACT_THRESHOLD = 1000
 
 
 class SampleRatioResult(NamedTuple):
@@ -117,7 +117,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
 
         if (
             self.method == "binom" or
-            (self.method == "auto" and n < MAX_EXACT_THRESHOLD)
+            (self.method == "auto" and n < _MAX_EXACT_THRESHOLD)
         ):
             pvalue = scipy.stats.binomtest(k=k, n=n, p=p).pvalue
         else:  # norm
@@ -132,3 +132,12 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
             treatment=k,
             pvalue=pvalue,  # type: ignore
         )
+
+
+    def analyze_aggregates(
+        self,
+        control: tea_tasting.aggr.Aggregates,
+        treatment: tea_tasting.aggr.Aggregates,
+    ) -> SampleRatioResult:
+        """Method stub."""
+        raise NotImplementedError
