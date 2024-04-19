@@ -12,6 +12,8 @@ import tea_tasting.metrics.mean
 
 
 if TYPE_CHECKING:
+    from typing import Any
+
     import ibis.expr.types
     import pandas as pd
 
@@ -26,7 +28,7 @@ def dataframe(table: ibis.expr.types.Table) -> pd.DataFrame:
     return table.to_pandas()
 
 @pytest.fixture
-def data(table: ibis.expr.types.Table) -> dict[str, tea_tasting.aggr.Aggregates]:
+def data(table: ibis.expr.types.Table) -> dict[Any, tea_tasting.aggr.Aggregates]:
     cols = (
         "sessions", "orders", "revenue",
         "sessions_covariate", "orders_covariate", "revenue_covariate",
