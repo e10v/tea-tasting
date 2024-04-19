@@ -28,10 +28,6 @@ class SampleRatioResult(NamedTuple):
     control: float
     treatment: float
     pvalue: float
-    null_ratio: float
-    ratio: float
-    ratio_ci_lower: float
-    ratio_ci_upper: float
 
 
 class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
@@ -40,9 +36,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
         ratio: float | int | dict[Any, float | int] = 1,
         *,
         method: Literal["auto", "binom", "norm"] = "auto",
-        binom_ci_method: Literal["exact", "wilson", "wilsoncc"] = "exact",
         correction: bool = True,
-        confidence_level: float | None = None,
     ) -> None:
         if isinstance(ratio, dict):
             for val in ratio.values():
@@ -53,18 +47,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
 
         self.method = tea_tasting.utils.check_scalar(
             method, "method", typ=str, is_in={"auto", "binom", "norm"})
-        self.binom_ci_method = tea_tasting.utils.check_scalar(
-            binom_ci_method,
-            "binom_ci_method",
-            typ=str,
-            is_in={"exact", "wilson", "wilsoncc"},
-        )
         self.correction = tea_tasting.utils.auto_check(correction, "correction")
-        self.confidence_level = (
-            tea_tasting.utils.auto_check(confidence_level, "confidence_level")
-            if confidence_level is not None
-            else tea_tasting.config.get_config("confidence_level")
-        )
 
 
     @property
@@ -102,30 +85,16 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
             self.method == "binom" or
             (self.method == "auto" and n < MAX_EXACT_THRESHOLD)
         ):
-            binom_result = scipy.stats.binomtest(k=k, n=n, p=p)
-            pvalue = binom_result.pvalue
-            prop_ci_lower, prop_ci_upper = binom_result.proportion_ci(
-                confidence_level=self.confidence_level,
-                method=self.binom_ci_method,
-            )
+            pvalue = scipy.stats.binomtest(k=k, n=n, p=p).pvalue
         else:  # norm
             d = k - n*p
             if self.correction and d != 0:
                 d = min(d + 0.5, 0) if d < 0 else max(d - 0.5, 0)
             z = d / np.sqrt(n * p * (1 - p))
             pvalue = 2 * scipy.stats.norm.sf(np.abs(z))
-            s = np.sqrt(k * (n - k) / n) / n
-            prop_half_ci = s * scipy.stats.norm.ppf((1 + self.confidence_level) / 2)
-            prop = k / n
-            prop_ci_lower = prop - prop_half_ci
-            prop_ci_upper = prop + prop_half_ci
 
         return SampleRatioResult(
             control=n - k,
             treatment=k,
             pvalue=pvalue,  # type: ignore
-            null_ratio=r,
-            ratio=k / (n - k),
-            ratio_ci_lower=prop_ci_lower / (1 - prop_ci_lower),
-            ratio_ci_upper=prop_ci_upper / (1 - prop_ci_upper),
         )
