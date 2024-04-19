@@ -25,12 +25,21 @@ MAX_EXACT_THRESHOLD = 1000
 
 
 class SampleRatioResult(NamedTuple):
+    """Result of the sample ratio mismatch check.
+
+    Attributes:
+        control: Number of observations in control.
+        treatment: Number of observations in treatment.
+        pvalue: P-value
+    """
     control: float
     treatment: float
     pvalue: float
 
 
 class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
+    """Sample ratio mismatch check."""
+
     def __init__(
         self,
         ratio: float | int | dict[Any, float | int] = 1,
@@ -38,6 +47,19 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
         method: Literal["auto", "binom", "norm"] = "auto",
         correction: bool = True,
     ) -> None:
+        """Define sample ration mismatch check parameters.
+
+        Args:
+            ratio: Expected ration of the number of observation in treatment
+                relative to control.
+            method: Statistical test used for calculation of p-value. Options:
+                "auto": Apply exact binomial test if the total number of observations
+                    is < 1000, or normal approximation otherwise.
+                "binom": Apply exact binomial test.
+                "norm": Apply normal approximation of the binomial distribution.
+            correction: If True, add continuity correction.
+                Only for normal approximation.
+        """
         if isinstance(ratio, dict):
             for val in ratio.values():
                 tea_tasting.utils.auto_check(val, "ratio")
@@ -52,6 +74,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
 
     @property
     def aggr_cols(self) -> AggrCols:
+        """Columns to be aggregated for a metric analysis."""
         return AggrCols(has_count=True)
 
 
@@ -63,6 +86,17 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
         treatment: Any,
         variant: str | None = None,
     ) -> SampleRatioResult:
+        """Perform ratio mismatch check.
+
+        Args:
+            data: Experimental data.
+            control: Control variant.
+            treatment: Treatment variant.
+            variant: Variant column name.
+
+        Returns:
+            Experiment results for a metric.
+        """
         aggr = tea_tasting.metrics.aggregate_by_variants(
             data,
             aggr_cols=self.aggr_cols,
