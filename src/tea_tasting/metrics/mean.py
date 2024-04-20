@@ -12,7 +12,6 @@ import tea_tasting.aggr
 import tea_tasting.config
 from tea_tasting.metrics.base import AggrCols, MetricBaseAggregated
 import tea_tasting.utils
-from tea_tasting.utils import div
 
 
 if TYPE_CHECKING:
@@ -148,12 +147,12 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
         Returns:
             Experiment result for a metric.
         """
+        control = control.with_zero_div()
+        treatment = treatment.with_zero_div()
         total = control + treatment
         covariate_coef = self._covariate_coef(total)
-        covariate_mean = div(
-            total.mean(self.numer_covariate),
-            total.mean(self.denom_covariate),
-        )
+        covariate_mean = total.mean(self.numer_covariate) / total.mean(
+            self.denom_covariate)
         return self._analyze_stats(
             contr_mean=self._metric_mean(control, covariate_coef, covariate_mean),
             contr_var=self._metric_var(control, covariate_coef),
@@ -166,7 +165,9 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
 
     def _covariate_coef(self, aggr: tea_tasting.aggr.Aggregates) -> float:
         covariate_var = aggr.ratio_var(self.numer_covariate, self.denom_covariate)
-        return div(self._covariate_cov(aggr), covariate_var, 0)
+        if covariate_var == 0:
+            return 0
+        return self._covariate_cov(aggr) / covariate_var
 
 
     def _covariate_cov(self, aggr: tea_tasting.aggr.Aggregates) -> float:
@@ -184,9 +185,9 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
         covariate_coef: float,
         covariate_mean: float,
     ) -> float:
-        value = div(aggr.mean(self.numer), aggr.mean(self.denom))
-        covar = div(aggr.mean(self.numer_covariate), aggr.mean(self.denom_covariate))
-        return value - covariate_coef*(covar - covariate_mean)
+        value = aggr.mean(self.numer) / aggr.mean(self.denom)
+        covariate = aggr.mean(self.numer_covariate) / aggr.mean(self.denom_covariate)
+        return value - covariate_coef*(covariate - covariate_mean)
 
 
     def _metric_var(
@@ -220,15 +221,15 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
             treat_count=treat_count,
         )
         log_scale, log_distr = self._scale_and_distr(
-            contr_var=div(contr_var, contr_mean * contr_mean),
+            contr_var=contr_var / contr_mean / contr_mean,
             contr_count=contr_count,
-            treat_var=div(treat_var, treat_mean * treat_mean),
+            treat_var=treat_var / treat_mean / treat_mean,
             treat_count=treat_count,
         )
 
-        means_ratio = div(treat_mean, contr_mean)
+        means_ratio = treat_mean / contr_mean
         effect_size = treat_mean - contr_mean
-        statistic = div(effect_size, scale)
+        statistic = effect_size / scale
 
         if self.alternative == "greater":
             q = self.confidence_level
@@ -276,24 +277,22 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
         treat_count: int,
     ) -> tuple[float, scipy.stats.rv_frozen]:
         if self.equal_var:
-            pooled_var = div(
-                (contr_count - 1)*contr_var + (treat_count - 1)*treat_var,
-                contr_count + treat_count - 2,
-            )
-            scale = np.sqrt(div(pooled_var, contr_count) + div(pooled_var, treat_count))
+            pooled_var = (
+                (contr_count - 1)*contr_var + (treat_count - 1)*treat_var
+            ) / (contr_count + treat_count - 2)
+            scale = np.sqrt(pooled_var/contr_count + pooled_var/treat_count)
         else:
-            scale = np.sqrt(div(contr_var, contr_count) + div(treat_var, treat_count))
+            scale = np.sqrt(contr_var/contr_count + treat_var/treat_count)
 
         if self.use_t:
             if self.equal_var:
                 df = contr_count + treat_count - 2
             else:
-                contr_mean_var = div(contr_var, contr_count)
-                treat_mean_var = div(treat_var, treat_count)
-                df = div(
-                    (contr_mean_var + treat_mean_var)**2,
-                    div(contr_mean_var**2, contr_count - 1)
-                        + div(treat_mean_var**2, treat_count - 1),
+                contr_mean_var = contr_var / contr_count
+                treat_mean_var = treat_var / treat_count
+                df = (contr_mean_var + treat_mean_var)**2 / (
+                    contr_mean_var**2 / (contr_count - 1)
+                    + treat_mean_var**2 / (treat_count - 1)
                 )
             distr = scipy.stats.t(df=df)
         else:

@@ -85,6 +85,72 @@ def test_div():
     assert tea_tasting.utils.div(-1, 0) == float("-inf")
 
 
+def test_float():
+    cls = tea_tasting.utils.Float
+    assert cls(1) + 2 == cls(3)
+    assert 1 + cls(2) == cls(3)
+    assert cls(1) - 2 == cls(-1)
+    assert 1 - cls(2) == cls(-1)
+    assert cls(1) / 2 == tea_tasting.utils.Float(0.5)
+    assert 1 / cls(2) == tea_tasting.utils.Float(0.5)
+    assert math.isnan(cls(0) / 0)
+    assert math.isnan(0 / cls(0))
+    assert cls(1) / 0 == tea_tasting.utils.Float("inf")
+    assert 1 / cls(0) == tea_tasting.utils.Float("inf")
+    assert cls(-1) / 0 == tea_tasting.utils.Float("-inf")
+    assert -1 / cls(0) == tea_tasting.utils.Float("-inf")
+    assert cls(5) // 2 == cls(2)
+    assert 5 // cls(2) == cls(2)
+    assert cls(5) % 2 == cls(1)
+    assert 5 % cls(2) == cls(1)
+    assert divmod(cls(5), 2) == (cls(2), cls(1))
+    assert divmod(5, cls(2)) == (cls(2), cls(1))
+    assert cls(2) ** 3 == cls(8)
+    assert 2 ** cls(3) == cls(8)
+    assert -cls(1) == cls(-1)
+    assert +cls(1) == cls(1)
+    assert abs(cls(-1)) == cls(1)
+    assert int(cls(1.0)) == 1
+    assert float(cls(1.0)) == 1.0
+    assert round(cls(11), -1) == cls(10)
+    assert math.trunc(cls(1.2)) == cls(1)
+    assert math.floor(cls(1.2)) == cls(1)
+    assert math.ceil(cls(1.2)) == cls(2)
+
+
+def test_int():
+    cls = tea_tasting.utils.Int
+    assert cls(1) + 2 == cls(3)
+    assert 1 + cls(2) == cls(3)
+    assert cls(1) - 2 == cls(-1)
+    assert 1 - cls(2) == cls(-1)
+    assert cls(1) / 2 == tea_tasting.utils.Float(0.5)
+    assert 1 / cls(2) == tea_tasting.utils.Float(0.5)
+    assert math.isnan(cls(0) / 0)
+    assert math.isnan(0 / cls(0))
+    assert cls(1) / 0 == tea_tasting.utils.Float("inf")
+    assert 1 / cls(0) == tea_tasting.utils.Float("inf")
+    assert cls(-1) / 0 == tea_tasting.utils.Float("-inf")
+    assert -1 / cls(0) == tea_tasting.utils.Float("-inf")
+    assert cls(5) // 2 == cls(2)
+    assert 5 // cls(2) == cls(2)
+    assert cls(5) % 2 == cls(1)
+    assert 5 % cls(2) == cls(1)
+    assert divmod(cls(5), 2) == (cls(2), cls(1))
+    assert divmod(5, cls(2)) == (cls(2), cls(1))
+    assert cls(2) ** 3 == cls(8)
+    assert 2 ** cls(3) == cls(8)
+    assert -cls(1) == cls(-1)
+    assert +cls(1) == cls(1)
+    assert abs(cls(-1)) == cls(1)
+    assert int(cls(1.0)) == 1
+    assert float(cls(1.0)) == 1.0
+    assert round(cls(11), -1) == cls(10)
+    assert math.trunc(cls(1.2)) == cls(1)
+    assert math.floor(cls(1.2)) == cls(1)
+    assert math.ceil(cls(1.2)) == cls(1)
+
+
 def test_repr_mixin_repr():
     class Repr(tea_tasting.utils.ReprMixin):
         def __init__(self, a: int, b: bool, c: str) -> None:
