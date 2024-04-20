@@ -9,7 +9,6 @@ import ibis.expr.types
 import pandas as pd
 
 import tea_tasting.utils
-from tea_tasting.utils import div
 
 
 if TYPE_CHECKING:
@@ -49,10 +48,16 @@ class Aggregates(tea_tasting.utils.ReprMixin):
         self.count_ = count_
         self.mean_ = mean_
         self.var_ = var_
-        self.cov_ = {
-            _sorted_tuple(left, right): value
-            for (left, right), value in cov_.items()
-        }
+        self.cov_ = {_sorted_tuple(*k): v for k, v in cov_.items()}
+
+    def with_zero_div(self) -> Aggregates:
+        """Return aggregates with values which can be divided by zero without error."""
+        return Aggregates(
+            count_=None if self.count_ is None else tea_tasting.utils.Int(self.count_),
+            mean_={k: tea_tasting.utils.Float(v) for k, v in self.mean_.items()},
+            var_={k: tea_tasting.utils.Float(v) for k, v in self.var_.items()},
+            cov_={k: tea_tasting.utils.Float(v) for k, v in self.cov_.items()},
+        )
 
     def count(self) -> int:
         """Sample size.
@@ -127,12 +132,11 @@ class Aggregates(tea_tasting.utils.ReprMixin):
         """
         numer_mean_sq = self.mean(numer) * self.mean(numer)
         denom_mean_sq = self.mean(denom) * self.mean(denom)
-        return div(
+        return (
             self.var(numer)
-                - 2 * div(self.cov(numer, denom) * self.mean(numer), self.mean(denom))
-                + div(self.var(denom) * numer_mean_sq, denom_mean_sq),
-            denom_mean_sq,
-        )
+            - 2 * self.cov(numer, denom) * self.mean(numer) / self.mean(denom)
+            + self.var(denom) * numer_mean_sq / denom_mean_sq
+        ) / denom_mean_sq
 
     def ratio_cov(
         self,
@@ -156,16 +160,15 @@ class Aggregates(tea_tasting.utils.ReprMixin):
         Returns:
             Sample covariance of the ratios of variables.
         """
-        left_ratio_of_means = div(self.mean(left_numer), self.mean(left_denom))
-        right_ratio_of_means = div(self.mean(right_numer), self.mean(right_denom))
-        return div(
+        left_ratio_of_means = self.mean(left_numer) / self.mean(left_denom)
+        right_ratio_of_means = self.mean(right_numer) / self.mean(right_denom)
+        return (
             self.cov(left_numer, right_numer)
-                - self.cov(left_numer, right_denom) * right_ratio_of_means
-                - self.cov(left_denom, right_numer) * left_ratio_of_means
-                + self.cov(left_denom, right_denom)
-                    * left_ratio_of_means * right_ratio_of_means,
-            self.mean(left_denom) * self.mean(right_denom),
-        )
+            - self.cov(left_numer, right_denom) * right_ratio_of_means
+            - self.cov(left_denom, right_numer) * left_ratio_of_means
+            + self.cov(left_denom, right_denom)
+                * left_ratio_of_means * right_ratio_of_means
+        ) / self.mean(left_denom) / self.mean(right_denom)
 
     def __add__(self, other: Aggregates) -> Aggregates:
         """Calculate aggregated statistics of the concatenation of two samples.
@@ -189,19 +192,18 @@ class Aggregates(tea_tasting.utils.ReprMixin):
 def _add_mean(left: Aggregates, right: Aggregates, col: str) -> float | int:
     sum_ = left.count()*left.mean(col) + right.count()*right.mean(col)
     count = left.count() + right.count()
-    return div(sum_, count)
+    return sum_ / count
 
 def _add_var(left: Aggregates, right: Aggregates, col: str) -> float | int:
     left_n = left.count()
     right_n = right.count()
     total_n = left_n + right_n
     diff_of_means = left.mean(col) - right.mean(col)
-    return div(
+    return (
         left.var(col) * (left_n - 1)
-            + right.var(col) * (right_n - 1)
-            + diff_of_means * diff_of_means * left_n * right_n / total_n,
-        total_n - 1,
-    )
+        + right.var(col) * (right_n - 1)
+        + diff_of_means * diff_of_means * left_n * right_n / total_n
+    ) / (total_n - 1)
 
 def _add_cov(left: Aggregates, right: Aggregates, cols: tuple[str, str]) -> float | int:
     left_n = left.count()
@@ -209,12 +211,11 @@ def _add_cov(left: Aggregates, right: Aggregates, cols: tuple[str, str]) -> floa
     total_n = left_n + right_n
     diff_of_means0 = left.mean(cols[0]) - right.mean(cols[0])
     diff_of_means1 = left.mean(cols[1]) - right.mean(cols[1])
-    return div(
+    return (
         left.cov(*cols) * (left_n - 1)
-            + right.cov(*cols) * (right_n - 1)
-            + diff_of_means0 * diff_of_means1 * left_n * right_n / total_n,
-        total_n - 1,
-    )
+        + right.cov(*cols) * (right_n - 1)
+        + diff_of_means0 * diff_of_means1 * left_n * right_n / total_n
+    ) / (total_n - 1)
 
 
 @overload

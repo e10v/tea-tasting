@@ -4,12 +4,15 @@
 from __future__ import annotations
 
 import inspect
+import math
 from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
     from typing import Any, Literal, TypeVar
+
+    from typing_extensions import Self
 
     R = TypeVar("R")
 
@@ -105,6 +108,136 @@ def div(
     if numer == 0:
         return float("nan")
     return float("inf") if numer > 0 else float("-inf")
+
+
+class _Numeric:
+    value: Any
+    zero_div: float | int | Literal["auto"] = "auto"
+
+    def __add__(self, other: Any) -> Self:
+        x, y = self.value, getattr(other, "value", other)
+        return type(self)(x + y, self.zero_div)
+
+    def __sub__(self, other: Any) -> Self:
+        x, y = self.value, getattr(other, "value", other)
+        return type(self)(x - y, self.zero_div)
+
+    def __mul__(self, other: Any) -> Float:
+        x, y = self.value, getattr(other, "value", other)
+        return Float(x * y, self.zero_div)
+
+    def __truediv__(self, other: Any) -> Float:
+        x, y = self.value, getattr(other, "value", other)
+        return Float(div(x, y, self.zero_div), self.zero_div)
+
+    def __floordiv__(self, other: Any) -> Self:
+        x, y = self.value, getattr(other, "value", other)
+        return type(self)(x // y, self.zero_div)
+
+    def __mod__(self, other: Any) -> Self:
+        x, y = self.value, getattr(other, "value", other)
+        return type(self)(x % y, self.zero_div)
+
+    def __divmod__(self, other: Any) -> tuple[Self, Self]:
+        x, y = self.value, getattr(other, "value", other)
+        d, m = divmod(x, y)
+        typ = type(self)
+        return typ(d, self.zero_div), typ(m, self.zero_div)
+
+    def __pow__(self, other: Any, mod: Any = None) -> Float:
+        x, y = self.value, getattr(other, "value", other)
+        z = getattr(mod, "value", mod)
+        return Float(pow(x, y, z), self.zero_div)
+
+    def __radd__(self, other: Any) -> Self:
+        y, x = self.value, getattr(other, "value", other)
+        return type(self)(x + y, self.zero_div)
+
+    def __rsub__(self, other: Any) -> Self:
+        y, x = self.value, getattr(other, "value", other)
+        return type(self)(x - y, self.zero_div)
+
+    def __rmul__(self, other: Any) -> Float:
+        y, x = self.value, getattr(other, "value", other)
+        return Float(x * y, self.zero_div)
+
+    def __rtruediv__(self, other: Any) -> Float:
+        y, x = self.value, getattr(other, "value", other)
+        return Float(div(x, y, self.zero_div), self.zero_div)
+
+    def __rfloordiv__(self, other: Any) -> Self:
+        y, x = self.value, getattr(other, "value", other)
+        return type(self)(x // y, self.zero_div)
+
+    def __rmod__(self, other: Any) -> Self:
+        y, x = self.value, getattr(other, "value", other)
+        return type(self)(x % y, self.zero_div)
+
+    def __rdivmod__(self, other: Any) -> tuple[Self, Self]:
+        y, x = self.value, getattr(other, "value", other)
+        d, m = divmod(x, y)
+        typ = type(self)
+        return typ(d, self.zero_div), typ(m, self.zero_div)
+
+    def __rpow__(self, other: Any, mod: Any = None) -> Float:
+        y, x = self.value, getattr(other, "value", other)
+        z = getattr(mod, "value", mod)
+        return Float(pow(x, y, z), self.zero_div)
+
+    def __neg__(self) -> Self:
+        return type(self)(-self.value, self.zero_div)
+
+    def __pos__(self) -> Self:
+        return self
+
+    def __abs__(self) -> Self:
+        return type(self)(abs(self.value), self.zero_div)
+
+    def __int__(self) -> int:
+        return int(self.value)
+
+    def __float__(self) -> float:
+        return float(self.value)
+
+    def __round__(self, ndigits: int | None = None) -> Self:
+        return type(self)(round(self.value, ndigits), self.zero_div)
+
+    def __trunc__(self) -> Self:
+        return type(self)(math.trunc(self.value), self.zero_div)
+
+    def __floor__(self) -> Self:
+        return type(self)(math.floor(self.value), self.zero_div)
+
+    def __ceil__(self) -> Self:
+        return type(self)(math.ceil(self.value), self.zero_div)
+
+
+class Float(_Numeric, float):
+    """Float with division by zero without error."""
+    def __new__(
+        cls,
+        value: Any,
+        zero_div: float | int | Literal["auto"] = "auto",
+    ) -> Float:
+        """Float with division by zero without error."""
+        instance = float.__new__(cls, value)
+        instance.value = float(value)
+        instance.zero_div = zero_div
+        return instance
+
+
+class Int(_Numeric, int):
+    """Integer with division by zero without error."""
+    def __new__(
+        cls,
+        value: Any,
+        zero_div: float | int | Literal["auto"] = "auto",
+    ) -> Int:
+        """Integer with division by zero without error."""
+        instance = int.__new__(cls, value)
+        instance.value = int(value)
+        instance.zero_div = zero_div
+        return instance
 
 
 class ReprMixin:
