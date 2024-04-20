@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
-    from typing import Any, TypeVar
+    from typing import Any, Literal, TypeVar
 
     R = TypeVar("R")
 
@@ -78,6 +78,33 @@ def auto_check(value: R, name: str) -> R:
     elif name == "use_t":
         check_scalar(value, name, typ=bool)
     return value
+
+
+def div(
+    numer: float | int,
+    denom: float | int,
+    zero_div: float | int | Literal["auto"] = "auto",
+) -> float |int:
+    """Handle zero division.
+
+    Args:
+        numer: Numerator.
+        denom: Denominator.
+        zero_div: Return result if denominator is zero. If "auto", return:
+            0 if numer == 0,
+            float("inf") if numer > 0,
+            float("-inf") if numer < 0.
+
+    Returns:
+        Result of the division.
+    """
+    if denom != 0:
+        return numer / denom
+    if zero_div != "auto":
+        return zero_div
+    if numer == 0:
+        return float("nan")
+    return float("inf") if numer > 0 else float("-inf")
 
 
 class ReprMixin:
