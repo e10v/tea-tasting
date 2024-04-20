@@ -122,13 +122,13 @@ class _Numeric:
         x, y = self.value, getattr(other, "value", other)
         return type(self)(x - y, self.zero_div)
 
-    def __mul__(self, other: Any) -> Float:
+    def __mul__(self, other: Any) -> Float | Int:
         x, y = self.value, getattr(other, "value", other)
-        return Float(x * y, self.zero_div)
+        return _numeric(x * y, self.zero_div)
 
-    def __truediv__(self, other: Any) -> Float:
+    def __truediv__(self, other: Any) -> Float | Int:
         x, y = self.value, getattr(other, "value", other)
-        return Float(div(x, y, self.zero_div), self.zero_div)
+        return _numeric(div(x, y, self.zero_div), self.zero_div)
 
     def __floordiv__(self, other: Any) -> Self:
         x, y = self.value, getattr(other, "value", other)
@@ -144,10 +144,10 @@ class _Numeric:
         typ = type(self)
         return typ(d, self.zero_div), typ(m, self.zero_div)
 
-    def __pow__(self, other: Any, mod: Any = None) -> Float:
+    def __pow__(self, other: Any, mod: Any = None) -> Float | Int:
         x, y = self.value, getattr(other, "value", other)
         z = getattr(mod, "value", mod)
-        return Float(pow(x, y, z), self.zero_div)
+        return _numeric(pow(x, y, z), self.zero_div)
 
     def __radd__(self, other: Any) -> Self:
         y, x = self.value, getattr(other, "value", other)
@@ -157,13 +157,13 @@ class _Numeric:
         y, x = self.value, getattr(other, "value", other)
         return type(self)(x - y, self.zero_div)
 
-    def __rmul__(self, other: Any) -> Float:
+    def __rmul__(self, other: Any) -> Float | Int:
         y, x = self.value, getattr(other, "value", other)
-        return Float(x * y, self.zero_div)
+        return _numeric(x * y, self.zero_div)
 
-    def __rtruediv__(self, other: Any) -> Float:
+    def __rtruediv__(self, other: Any) -> Float | Int:
         y, x = self.value, getattr(other, "value", other)
-        return Float(div(x, y, self.zero_div), self.zero_div)
+        return _numeric(div(x, y, self.zero_div), self.zero_div)
 
     def __rfloordiv__(self, other: Any) -> Self:
         y, x = self.value, getattr(other, "value", other)
@@ -179,10 +179,10 @@ class _Numeric:
         typ = type(self)
         return typ(d, self.zero_div), typ(m, self.zero_div)
 
-    def __rpow__(self, other: Any, mod: Any = None) -> Float:
+    def __rpow__(self, other: Any, mod: Any = None) -> Float | Int:
         y, x = self.value, getattr(other, "value", other)
         z = getattr(mod, "value", mod)
-        return Float(pow(x, y, z), self.zero_div)
+        return _numeric(pow(x, y, z), self.zero_div)
 
     def __neg__(self) -> Self:
         return type(self)(-self.value, self.zero_div)
@@ -238,6 +238,15 @@ class Int(_Numeric, int):
         instance.value = int(value)
         instance.zero_div = zero_div
         return instance
+
+
+def _numeric(
+    value: Any,
+    zero_div: float | int | Literal["auto"] = "auto",
+) -> Float | Int:
+    if isinstance(value, int):
+        return Int(value, zero_div)
+    return Float(value, zero_div)
 
 
 class ReprMixin:
