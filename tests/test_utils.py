@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 import pytest
 
 import tea_tasting.utils
@@ -73,6 +75,14 @@ def test_auto_check_use_t():
     assert tea_tasting.utils.auto_check(False, "use_t") is False
     with pytest.raises(TypeError):
         tea_tasting.utils.auto_check(0, "use_t")
+
+
+def test_div():
+    assert tea_tasting.utils.div(1, 2) == 0.5
+    assert tea_tasting.utils.div(1, 0, 3) == 3
+    assert math.isnan(tea_tasting.utils.div(0, 0))
+    assert tea_tasting.utils.div(1, 0) == float("inf")
+    assert tea_tasting.utils.div(-1, 0) == float("-inf")
 
 
 def test_repr_mixin_repr():
