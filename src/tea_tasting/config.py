@@ -1,4 +1,4 @@
-"""Global config."""
+"""Global configuration."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ def get_config(option: str | None = None) -> Any:
         option: The option name.
 
     Returns:
-        The value of the option if it's not None,
+        The option value if its name is not None,
         or a dictionary with all options otherwise.
     """
     if option is not None:

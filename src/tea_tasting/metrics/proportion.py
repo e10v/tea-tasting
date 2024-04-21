@@ -1,10 +1,10 @@
-"""Analysis of frequency metrics."""
+"""Analysis of proportions."""
 
 from __future__ import annotations
 
+import math
 from typing import TYPE_CHECKING, NamedTuple
 
-import numpy as np
 import scipy.stats
 
 import tea_tasting.aggr
@@ -47,10 +47,10 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
         method: Literal["auto", "binom", "norm"] = "auto",
         correction: bool = True,
     ) -> None:
-        """Define sample ration mismatch check parameters.
+        """Sample ratio mismatch check.
 
         Args:
-            ratio: Expected ration of the number of observation in treatment
+            ratio: Expected ratio of the number of observation in treatment
                 relative to control.
             method: Statistical test used for calculation of p-value. Options:
                 "auto": Apply exact binomial test if the total number of observations
@@ -74,7 +74,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
 
     @property
     def aggr_cols(self) -> AggrCols:
-        """Columns to be aggregated for a metric analysis."""
+        """Columns to aggregate for a metric analysis."""
         return AggrCols(has_count=True)
 
 
@@ -86,7 +86,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
         treatment: Any,
         variant: str | None = None,
     ) -> SampleRatioResult:
-        """Perform ratio mismatch check.
+        """Perform sample ratio mismatch check.
 
         Args:
             data: Experimental data.
@@ -95,7 +95,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
             variant: Variant column name.
 
         Returns:
-            Experiment results for a metric.
+            Analysis result.
         """
         aggr = tea_tasting.metrics.aggregate_by_variants(
             data,
@@ -105,8 +105,6 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
 
         k = aggr[treatment].count()
         n = k + aggr[control].count()
-        tea_tasting.utils.check_scalar(n - k, "number of observations in control", gt=0)
-        tea_tasting.utils.check_scalar(k, "number of observations in treatment", gt=0)
 
         r = (
             self.ratio
@@ -124,8 +122,8 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
             d = k - n*p
             if self.correction and d != 0:
                 d = min(d + 0.5, 0) if d < 0 else max(d - 0.5, 0)
-            z = d / np.sqrt(n * p * (1 - p))
-            pvalue = 2 * scipy.stats.norm.sf(np.abs(z))
+            z = d / math.sqrt(n * p * (1 - p))
+            pvalue = 2 * scipy.stats.norm.sf(abs(z))
 
         return SampleRatioResult(
             control=n - k,
@@ -139,5 +137,5 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
         control: tea_tasting.aggr.Aggregates,
         treatment: tea_tasting.aggr.Aggregates,
     ) -> SampleRatioResult:
-        """Method stub."""
+        """Method stub for compatibility with the base class."""
         raise NotImplementedError

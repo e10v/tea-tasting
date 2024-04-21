@@ -1,4 +1,4 @@
-"""Metrics base classes."""
+"""Base classes for metrics."""
 
 from __future__ import annotations
 
@@ -33,22 +33,22 @@ class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
         treatment: Any,
         variant: str,
     ) -> R:
-        """Analyzes metric in an experiment.
+        """Analyze metric in an experiment.
 
         Args:
             data: Experimental data.
             control: Control variant.
             treatment: Treatment variant.
-            variant: Variant column.
+            variant: Variant column name.
 
         Returns:
-            Experiment results for a metric.
+            Analysis result.
         """
         ...
 
 
 class AggrCols(NamedTuple):
-    """Columns to be aggregated for a metric analysis.
+    """Columns to aggregate for a metric analysis.
 
     Attributes:
         has_count: If True, include the sample size.
@@ -62,13 +62,13 @@ class AggrCols(NamedTuple):
     cov_cols: Sequence[tuple[str, str]] = ()
 
     def __or__(self, other: AggrCols) -> AggrCols:
-        """Combine columns. Exclude duplicates.
+        """Combine columns, exclude duplicates.
 
         Args:
-            other: Second objects with columns to be aggregated for a metric analysis.
+            other: Second objects.
 
         Returns:
-            Combined columns to be aggregated for a metric analysis.
+            Combined columns.
         """
         return AggrCols(
             has_count=self.has_count or other.has_count,
@@ -83,7 +83,7 @@ class AggrCols(NamedTuple):
     def __len__(self) -> int:
         """Total length of all object attributes.
 
-        If has_count is True then its value is 1, otherwise 0.
+        If has_count is True then its value is 1, or 0 otherwise.
         """
         return (
             int(self.has_count)
@@ -94,11 +94,11 @@ class AggrCols(NamedTuple):
 
 
 class MetricBaseAggregated(MetricBase[R]):
-    """Base class for metrics analyzed using aggregates."""
+    """Base class for metrics, which are analyzed using aggregated statistics."""
     @property
     @abc.abstractmethod
     def aggr_cols(self) -> AggrCols:
-        """Columns to be aggregated for a metric analysis."""
+        """Columns to aggregate for a metric analysis."""
         ...
 
     @overload
@@ -138,7 +138,7 @@ class MetricBaseAggregated(MetricBase[R]):
             variant: Variant column name.
 
         Returns:
-            Experiment results for a metric.
+            Analysis result.
         """
         aggr = aggregate_by_variants(
             data,
@@ -163,7 +163,7 @@ class MetricBaseAggregated(MetricBase[R]):
             treatment: Treatment data.
 
         Returns:
-            Experiment results for a metric.
+            Analysis result.
         """
         ...
 
@@ -173,9 +173,7 @@ def aggregate_by_variants(
     aggr_cols: AggrCols,
     variant: str | None = None,
 ) ->  dict[Any, tea_tasting.aggr.Aggregates]:
-    """Validate aggregated experimental data.
-
-    Reads aggregates if data is not a dictionary of Aggregates.
+    """Aggregate experimental data by variants.
 
     Args:
         data: Experimental data.
@@ -212,11 +210,11 @@ def aggregate_by_variants(
 
 
 class MetricBaseGranular(MetricBase[R]):
-    """Base class for metrics analyzed using granular data."""
+    """Base class for metrics, which are analyzed using granular data."""
     @property
     @abc.abstractmethod
     def cols(self) -> Sequence[str]:
-        """Columns to be fetched for a metric analysis."""
+        """Columns to fetch for a metric analysis."""
         ...
 
     @overload
@@ -255,7 +253,7 @@ class MetricBaseGranular(MetricBase[R]):
             variant: Variant column name.
 
         Returns:
-            Experiment results for a metric.
+            Analysis result.
         """
         dfs = read_dataframes(
             data,
@@ -280,7 +278,7 @@ class MetricBaseGranular(MetricBase[R]):
             treatment: Treatment data.
 
         Returns:
-            Experiment results for a metric.
+            Analysis result.
         """
         ...
 
@@ -290,9 +288,7 @@ def read_dataframes(
     cols: Sequence[str],
     variant: str | None = None,
 ) -> dict[Any, pd.DataFrame]:
-    """Validate granular experimental data.
-
-    Reads granular data if data is not a dictionary of DataFrames.
+    """Read granular experimental data.
 
     Args:
         data: Experimental data.
@@ -300,7 +296,7 @@ def read_dataframes(
         variant: Variant column name.
 
     Raises:
-        ValueError: variant is None, while aggregated data are not provided.
+        ValueError: variant is None, while granular data are not provided.
         TypeError: data is not an instance of DataFrame, Table,
             or a dictionary if DataFrames.
 
