@@ -105,8 +105,6 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
 
         k = aggr[treatment].count()
         n = k + aggr[control].count()
-        tea_tasting.utils.check_scalar(n - k, "number of observations in control", gt=0)
-        tea_tasting.utils.check_scalar(k, "number of observations in treatment", gt=0)
 
         r = (
             self.ratio
