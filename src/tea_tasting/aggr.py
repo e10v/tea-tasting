@@ -51,12 +51,18 @@ class Aggregates(tea_tasting.utils.ReprMixin):
         self.cov_ = {_sorted_tuple(*k): v for k, v in cov_.items()}
 
     def with_zero_div(self) -> Aggregates:
-        """Return aggregates with values which can be divided by zero without error."""
+        """Return aggregates with values which can be divided by zero without error.
+
+        Division by zero returns:
+            nan if numerator == 0,
+            inf if numerator > 0,
+            -inf if numerator < 0.
+        """
         return Aggregates(
             count_=None if self.count_ is None else tea_tasting.utils.Int(self.count_),
-            mean_={k: tea_tasting.utils.Float(v) for k, v in self.mean_.items()},
-            var_={k: tea_tasting.utils.Float(v) for k, v in self.var_.items()},
-            cov_={k: tea_tasting.utils.Float(v) for k, v in self.cov_.items()},
+            mean_={k: tea_tasting.utils.numeric(v) for k, v in self.mean_.items()},
+            var_={k: tea_tasting.utils.numeric(v) for k, v in self.var_.items()},
+            cov_={k: tea_tasting.utils.numeric(v) for k, v in self.cov_.items()},
         )
 
     def count(self) -> int:
