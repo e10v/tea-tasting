@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import math
 from typing import TYPE_CHECKING, NamedTuple
 
-import numpy as np
 import scipy.stats
 
 import tea_tasting.aggr
@@ -124,8 +124,8 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
             d = k - n*p
             if self.correction and d != 0:
                 d = min(d + 0.5, 0) if d < 0 else max(d - 0.5, 0)
-            z = d / np.sqrt(n * p * (1 - p))
-            pvalue = 2 * scipy.stats.norm.sf(np.abs(z))
+            z = d / math.sqrt(n * p * (1 - p))
+            pvalue = 2 * scipy.stats.norm.sf(abs(z))
 
         return SampleRatioResult(
             control=n - k,

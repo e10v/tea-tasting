@@ -3,9 +3,9 @@
 
 from __future__ import annotations
 
+import math
 from typing import TYPE_CHECKING, NamedTuple
 
-import numpy as np
 import scipy.stats
 
 import tea_tasting.aggr
@@ -234,14 +234,14 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
         if self.alternative == "greater":
             q = self.confidence_level
             effect_size_ci_lower = effect_size + scale*distr.isf(q)
-            means_ratio_ci_lower = means_ratio * np.exp(log_scale * log_distr.isf(q))
+            means_ratio_ci_lower = means_ratio * math.exp(log_scale * log_distr.isf(q))
             effect_size_ci_upper = means_ratio_ci_upper = float("+inf")
             pvalue = distr.sf(statistic)
         elif self.alternative == "less":
             q = self.confidence_level
             effect_size_ci_lower = means_ratio_ci_lower = float("-inf")
             effect_size_ci_upper = effect_size + scale*distr.ppf(q)
-            means_ratio_ci_upper = means_ratio * np.exp(log_scale * log_distr.ppf(q))
+            means_ratio_ci_upper = means_ratio * math.exp(log_scale * log_distr.ppf(q))
             pvalue = distr.cdf(statistic)
         else:  # two-sided
             q = (1 + self.confidence_level) / 2
@@ -249,11 +249,11 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
             effect_size_ci_lower = effect_size - half_ci
             effect_size_ci_upper = effect_size + half_ci
 
-            rel_half_ci = np.exp(log_scale * log_distr.ppf(q))
+            rel_half_ci = math.exp(log_scale * log_distr.ppf(q))
             means_ratio_ci_lower = means_ratio / rel_half_ci
             means_ratio_ci_upper = means_ratio * rel_half_ci
 
-            pvalue = 2 * distr.sf(np.abs(statistic))
+            pvalue = 2 * distr.sf(abs(statistic))
 
         return MeansResult(
             control=contr_mean,
@@ -280,9 +280,9 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
             pooled_var = (
                 (contr_count - 1)*contr_var + (treat_count - 1)*treat_var
             ) / (contr_count + treat_count - 2)
-            scale = np.sqrt(pooled_var/contr_count + pooled_var/treat_count)
+            scale = math.sqrt(pooled_var/contr_count + pooled_var/treat_count)
         else:
-            scale = np.sqrt(contr_var/contr_count + treat_var/treat_count)
+            scale = math.sqrt(contr_var/contr_count + treat_var/treat_count)
 
         if self.use_t:
             if self.equal_var:
