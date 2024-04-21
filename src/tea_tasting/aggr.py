@@ -37,13 +37,13 @@ class Aggregates(tea_tasting.utils.ReprMixin):
         var_: dict[str, float | int] = {},  # noqa: B006
         cov_: dict[tuple[str, str], float | int] = {},  # noqa: B006
     ) -> None:
-        """Create an object with aggregated statistics.
+        """Aggregated statistics.
 
         Args:
-            count_: Sample size.
-            mean_: Variables sample means.
-            var_: Variables sample variances.
-            cov_: Pairs of variables sample covariances.
+            count_: Sample size (number of observations).
+            mean_: Dictionary of sample means with variable names as keys.
+            var_: Dictionary of sample variances with variable names as keys.
+            cov_: Dictionary of sample covariances with pairs of variable names as keys.
         """
         self.count_ = count_
         self.mean_ = mean_
@@ -51,7 +51,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):
         self.cov_ = {_sorted_tuple(*k): v for k, v in cov_.items()}
 
     def with_zero_div(self) -> Aggregates:
-        """Return aggregates with values which can be divided by zero without error.
+        """Return aggregates, which don't raise an error on division by zero.
 
         Division by zero returns:
             nan if numerator == 0,
@@ -66,43 +66,43 @@ class Aggregates(tea_tasting.utils.ReprMixin):
         )
 
     def count(self) -> int:
-        """Sample size.
+        """Sample size (number of observations).
 
         Raises:
             RuntimeError: Count is None (it wasn't defined at init).
 
         Returns:
-            Number of observations.
+            Sample size (number of observations).
         """
         if self.count_ is None:
             raise RuntimeError("Count is None.")
         return self.count_
 
-    def mean(self, key: str | None) -> float | int:
+    def mean(self, name: str | None) -> float | int:
         """Sample mean.
 
         Args:
-            key: Variable name.
+            name: Variable name.
 
         Returns:
             Sample mean.
         """
-        if key is None:
+        if name is None:
             return 1
-        return self.mean_[key]
+        return self.mean_[name]
 
-    def var(self, key: str | None) -> float | int:
+    def var(self, name: str | None) -> float | int:
         """Sample variance.
 
         Args:
-            key: Variable name.
+            name: Variable name.
 
         Returns:
             Sample variance.
         """
-        if key is None:
+        if name is None:
             return 0
-        return self.var_[key]
+        return self.var_[name]
 
     def cov(self, left: str | None, right: str | None) -> float | int:
         """Sample covariance.
@@ -254,18 +254,19 @@ def read_aggregates(
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
 ) -> dict[Any, Aggregates] | Aggregates:
-    """Read aggregated statistics from an Ibis Table.
+    """Read aggregated statistics from an Ibis Table or a Pandas DataFrame.
 
     Args:
-        data: Ibis Table.
+        data: Granular data.
         group_col: Column name to group by before aggregation.
+            If None, total aggregates are calculated.
         has_count: If True, calculate the sample size.
         mean_cols: Column names for calculation of sample means.
         var_cols: Column names for calculation of sample variances.
         cov_cols: Pairs of column names for calculation of sample covariances.
 
     Returns:
-        Aggregated statistics from the Ibis Table.
+        Aggregated statistics.
     """
     if isinstance(data, pd.DataFrame):
         con = ibis.pandas.connect()

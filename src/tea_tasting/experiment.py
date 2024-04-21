@@ -1,4 +1,4 @@
-"""Experiments and experiment results."""
+"""Experiments."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ ExperimentResults = dict[tuple[Any, Any], ExperimentResult]
 
 
 class Experiment(tea_tasting.utils.ReprMixin):
-    """Defines and analyzes the experiment."""
+    """Experiment."""
 
     def __init__(
         self,
@@ -45,12 +45,12 @@ class Experiment(tea_tasting.utils.ReprMixin):
         variant: str = "variant",
         **kw_metrics: tea_tasting.metrics.MetricBase[Any],
     ) -> None:
-        """Define an experiment.
+        """Experiment.
 
         Args:
-            metrics: A dictionary of metrics with metric names as keys.
+            metrics: Dictionary of metrics with metric names as keys.
             variant: Variant column name.
-            kw_metrics: Metrics with metric names as keywords.
+            kw_metrics: Metrics with metric names as parameter names.
         """
         if metrics is None:
             metrics = {}
@@ -102,7 +102,7 @@ class Experiment(tea_tasting.utils.ReprMixin):
                 analyze only one pair of variants.
 
         Returns:
-            Experiment results.
+            Experiment result.
         """
         aggregated_data, granular_data = self._read_data(data)
 

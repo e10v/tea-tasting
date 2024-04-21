@@ -1,4 +1,4 @@
-"""Analysis of means of two independent samples."""
+"""Analysis of means."""
 # ruff: noqa: PD901
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 
 class MeansResult(NamedTuple):
-    """Result of an analysis of metric means.
+    """Result of an analysis of means.
 
     Attributes:
         control: Control mean.
@@ -36,7 +36,7 @@ class MeansResult(NamedTuple):
         rel_effect_size_ci_upper: Upper bound of the relative effect size
             confidence interval.
         pvalue: P-value
-        statistic: Statistic.
+        statistic: Statistic (standardized effect size).
     """
     control: float
     treatment: float
@@ -51,7 +51,7 @@ class MeansResult(NamedTuple):
 
 
 class RatioOfMeans(MetricBaseAggregated[MeansResult]):
-    """Compares ratios of metrics means between variants."""
+    """Ratio of means."""
 
     def __init__(  # noqa: PLR0913
         self,
@@ -65,15 +65,20 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
         equal_var: bool | None = None,
         use_t: bool | None = None,
     ) -> None:
-        """Create a ratio metric.
+        """Ratio of means.
 
         Args:
             numer: Numerator column name.
             denom: Denominator column name.
             numer_covariate: Covariate numerator column name.
             denom_covariate: Covariate denominator column name.
-            alternative: Default alternative hypothesis.
-            confidence_level: Default confidence level for the confidence interval.
+            alternative: Alternative hypothesis. Options:
+                "two-sided": the means are unequal.
+                "greater": the mean in the treatment variant is greater than the mean
+                    in the control variant.
+                "less": the mean in the treatment variant is less than the mean
+                    in the control variant.
+            confidence_level: Confidence level for the confidence interval.
             equal_var: Defines whether equal variance is assumed. If True,
                 pooled variance is used for the calculation of the standard error
                 of the difference between two means.
@@ -110,7 +115,7 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
 
     @property
     def aggr_cols(self) -> AggrCols:
-        """Columns to be aggregated for a metric analysis."""
+        """Columns to aggregate for a metric analysis."""
         cols = tuple(
             col for col in (
                 self.numer,
@@ -145,7 +150,7 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
             treatment: Treatment data.
 
         Returns:
-            Experiment result for a metric.
+            Analysis result.
         """
         control = control.with_zero_div()
         treatment = treatment.with_zero_div()
@@ -302,7 +307,7 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
 
 
 class Mean(RatioOfMeans):
-    """Compares metrics means between variants."""
+    """Value mean."""
     def __init__(
         self,
         value: str,
@@ -313,13 +318,18 @@ class Mean(RatioOfMeans):
         equal_var: bool | None = None,
         use_t: bool | None = None,
     ) -> None:
-        """Create a simple metric.
+        """Value mean.
 
         Args:
-            value: Metric column name.
-            covariate: Covariate column name.
-            alternative: Default alternative hypothesis.
-            confidence_level: Default confidence level for the confidence interval.
+            value: Metric value column name.
+            covariate: Metric covariate column name.
+            alternative: Alternative hypothesis. Options:
+                "two-sided": the means are unequal.
+                "greater": the mean in the treatment variant is greater than the mean
+                    in the control variant.
+                "less": the mean in the treatment variant is less than the mean
+                    in the control variant.
+            confidence_level: Confidence level for the confidence interval.
             equal_var: Defines whether equal variance is assumed. If True,
                 pooled variance is used for the calculation of the standard error
                 of the difference between two means.

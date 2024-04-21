@@ -1,4 +1,4 @@
-"""Analysis of frequency metrics."""
+"""Analysis of proportions."""
 
 from __future__ import annotations
 
@@ -47,10 +47,10 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
         method: Literal["auto", "binom", "norm"] = "auto",
         correction: bool = True,
     ) -> None:
-        """Define sample ration mismatch check parameters.
+        """Sample ratio mismatch check.
 
         Args:
-            ratio: Expected ration of the number of observation in treatment
+            ratio: Expected ratio of the number of observation in treatment
                 relative to control.
             method: Statistical test used for calculation of p-value. Options:
                 "auto": Apply exact binomial test if the total number of observations
@@ -74,7 +74,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
 
     @property
     def aggr_cols(self) -> AggrCols:
-        """Columns to be aggregated for a metric analysis."""
+        """Columns to aggregate for a metric analysis."""
         return AggrCols(has_count=True)
 
 
@@ -86,7 +86,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
         treatment: Any,
         variant: str | None = None,
     ) -> SampleRatioResult:
-        """Perform ratio mismatch check.
+        """Perform sample ratio mismatch check.
 
         Args:
             data: Experimental data.
@@ -95,7 +95,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
             variant: Variant column name.
 
         Returns:
-            Experiment results for a metric.
+            Analysis result.
         """
         aggr = tea_tasting.metrics.aggregate_by_variants(
             data,
@@ -137,5 +137,5 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
         control: tea_tasting.aggr.Aggregates,
         treatment: tea_tasting.aggr.Aggregates,
     ) -> SampleRatioResult:
-        """Method stub."""
+        """Method stub for compatibility with the base class."""
         raise NotImplementedError

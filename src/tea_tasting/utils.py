@@ -33,9 +33,9 @@ def check_scalar(
         name: Parameter name.
         typ: Acceptable data types.
         ge: If not None, check that the parameter value is greater than or equal to ge.
-        gt: If not None, check that the parameter value is greater than to gt.
+        gt: If not None, check that the parameter value is greater than gt.
         le: If not None, check that the parameter value is less than or equal to le.
-        lt: If not None, check that the parameter value is less than to gt.
+        lt: If not None, check that the parameter value is less than gt.
         is_in: If not None, check that the parameter value is in is_in.
 
     Returns:
@@ -86,7 +86,7 @@ def div(
     denom: float | int,
     zero_div: float | int | Literal["auto"] = "auto",
 ) -> float |int:
-    """Handle zero division.
+    """Handle division by zero.
 
     Args:
         numer: Numerator.
@@ -209,26 +209,26 @@ class _NumericBase:
 
 
 class Float(_NumericBase, float):
-    """Float with division by zero without error."""
+    """Float, which doesn't raise an error on division by zero."""
     def __new__(
         cls,
         value: Any,
         zero_div: float | int | Literal["auto"] = "auto",
     ) -> Float:
-        """Float with division by zero without error."""
+        """Float, which doesn't raise an error on division by zero."""
         instance = float.__new__(cls, value)
         instance.value = float(value)
         instance.zero_div = zero_div
         return instance
 
 class Int(_NumericBase, int):
-    """Integer with division by zero without error."""
+    """Integer, which doesn't raise an error on division by zero."""
     def __new__(
         cls,
         value: Any,
         zero_div: float | int | Literal["auto"] = "auto",
     ) -> Int:
-        """Integer with division by zero without error."""
+        """Integer, which doesn't raise an error on division by zero."""
         instance = int.__new__(cls, value)
         instance.value = int(value)
         instance.zero_div = zero_div
@@ -241,7 +241,7 @@ def numeric(
     value: Any,
     zero_div: float | int | Literal["auto"] = "auto",
 ) -> Numeric:
-    """Float or integer with division by zero without error."""
+    """Float or integer, which doesn't raise an error on division by zero."""
     if isinstance(value, int):
         return Int(value, zero_div)
     if isinstance(value, float):
