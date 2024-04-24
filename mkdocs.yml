@@ -8,7 +8,7 @@ repo_url: https://github.com/e10v/tea-tasting
 
 nav:
   - index.md
-  - getting_started.md
+  - getting-started.md
 
 theme:
   name: material
