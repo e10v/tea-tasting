@@ -16,10 +16,10 @@
 **tea-tasting** is still in alpha, but already includes all the features listed above. The following features are coming soon:
 
 - More statistical tests:
-  - Bootstrap.
-  - Quantile test (using Bootstrap).
-  - Asymptotic and exact tests for frequency data.
-  - Mann–Whitney U test.
+    - Bootstrap.
+    - Quantile test (using Bootstrap).
+    - Asymptotic and exact tests for frequency data.
+    - Mann–Whitney U test.
 - Power analysis.
 - A/A tests and simulations.
 - Pretty output for experiment results (round etc.).
