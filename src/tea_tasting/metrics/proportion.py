@@ -37,9 +37,7 @@ class SampleRatioResult(NamedTuple):
     pvalue: float
 
 
-class SampleRatio(MetricBaseAggregated[SampleRatioResult]):
-    """Sample ratio mismatch check."""
-
+class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
     def __init__(
         self,
         ratio: float | int | dict[Any, float | int] = 1,

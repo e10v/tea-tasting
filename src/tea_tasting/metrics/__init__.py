@@ -1,4 +1,4 @@
-"""Metrics."""
+"""Built-in metrics."""
 # pyright: reportUnusedImport=false
 
 from tea_tasting.metrics.base import (

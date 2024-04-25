@@ -23,8 +23,7 @@ _COV = "_cov__{}__{}"
 _DEMEAN = "_demean__{}"
 
 
-class Aggregates(tea_tasting.utils.ReprMixin):
-    """Aggregated statistics."""
+class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
     count_: int | None
     mean_: dict[str, float | int]
     var_: dict[str, float | int]

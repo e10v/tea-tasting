@@ -1,4 +1,4 @@
-"""A Python package for statistical analysis of A/B tests."""
+"""Auto-generated API reference."""
 # pyright: reportUnusedImport=false
 
 from tea_tasting.config import config_context, get_config, set_config
