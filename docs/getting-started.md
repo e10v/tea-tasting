@@ -83,9 +83,9 @@ Use the `RatioOfMeans` class to compare ratios of averages between variants of a
 Use the following parameters of `Mean` and `RatioOfMeans` to customize the analysis:
 
 - `alternative`: Alternative hypothesis. The following options are available:
-  - `"two-sided"` (default): the means are unequal.
-  - `"greater"`: the mean in the treatment variant is greater than the mean in the control variant.
-  - `"less"`: the mean in the treatment variant is less than the mean in the control variant.
+    - `"two-sided"` (default): the means are unequal.
+    - `"greater"`: the mean in the treatment variant is greater than the mean in the control variant.
+    - `"less"`: the mean in the treatment variant is less than the mean in the control variant.
 - `confidence_level`: Confidence level of the confidence interval. Default is `0.95`.
 - `equal_var`: Defines whether equal variance is assumed. If `True`, pooled variance is used for the calculation of the standard error of the difference between two means. Default is `False`.
 - `use_t`: Defines whether to use the Student's t-distribution (`True`) or the Normal distribution (`False`). Default is `True`.

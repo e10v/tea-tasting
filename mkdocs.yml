@@ -36,6 +36,7 @@ theme:
   icon:
     repo: fontawesome/brands/github
   features:
+    - content.code.copy
     - navigation.expand
     - navigation.instant
     - navigation.instant.progress
@@ -48,3 +49,14 @@ theme:
   
 plugins:
   - search
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - toc:
+      permalink: "#"
