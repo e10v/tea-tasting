@@ -50,9 +50,7 @@ class MeansResult(NamedTuple):
     statistic: float
 
 
-class RatioOfMeans(MetricBaseAggregated[MeansResult]):
-    """Ratio of means."""
-
+class RatioOfMeans(MetricBaseAggregated[MeansResult]):  # noqa: D101
     def __init__(  # noqa: PLR0913
         self,
         numer: str,
@@ -306,8 +304,7 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):
         return scale, distr
 
 
-class Mean(RatioOfMeans):
-    """Value mean."""
+class Mean(RatioOfMeans):  # noqa: D101
     def __init__(
         self,
         value: str,

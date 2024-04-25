@@ -36,9 +36,7 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
 ExperimentResults = dict[tuple[Any, Any], ExperimentResult]
 
 
-class Experiment(tea_tasting.utils.ReprMixin):
-    """Experiment."""
-
+class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     def __init__(
         self,
         metrics: dict[str, tea_tasting.metrics.MetricBase[Any]] | None = None,
