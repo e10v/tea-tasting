@@ -7,8 +7,20 @@ repo_name: e10v/tea-tasting
 repo_url: https://github.com/e10v/tea-tasting
 
 nav:
-  - index.md
-  - getting-started.md
+  - Overview: index.md
+  - Getting started: getting-started.md
+  - API reference:
+    - api/index.md
+    - Metrics:
+      - api/metrics/index.md
+      - Base: api/metrics/base.md
+      - Mean: api/metrics/mean.md
+      - Proportion: api/metrics/proportion.md
+    - Experiment: api/experiment.md
+    - Datasets: api/datasets.md
+    - Global configuration: api/config.md
+    - Aggregates: api/aggr.md
+    - Utilities: api/utils.md
 
 theme:
   name: material
@@ -37,10 +49,9 @@ theme:
     repo: fontawesome/brands/github
   features:
     - content.code.copy
-    - navigation.expand
+    - navigation.indexes
     - navigation.instant
     - navigation.instant.progress
-    - navigation.sections
     - navigation.top
     - navigation.tracking
     - search.highlight
@@ -48,6 +59,17 @@ theme:
     - toc.follow
   
 plugins:
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            filters: ["!^_"]
+            heading_level: 1
+            inherited_members: true
+            members_order: source
+            merge_init_into_class: true
+            show_root_heading: true
   - search
 
 markdown_extensions:
