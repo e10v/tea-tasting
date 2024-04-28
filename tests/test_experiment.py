@@ -132,6 +132,34 @@ def result(
 
 
 @pytest.fixture
+def result2() -> tea_tasting.experiment.ExperimentResult:
+    class MetricResultTuple(NamedTuple):
+        control: float
+        treatment: float
+        rel_effect_size: float
+        rel_effect_size_ci_lower: float
+        rel_effect_size_ci_upper: float
+        pvalue: float
+
+    return tea_tasting.experiment.ExperimentResult(
+        metric_tuple=MetricResultTuple(
+            control=4.4444,
+            treatment=5.5555,
+            rel_effect_size=0.2,
+            rel_effect_size_ci_lower=0.12345,
+            rel_effect_size_ci_upper=float("inf"),
+            pvalue=0.23456,
+        ),
+        metric_dict={
+            "control": 9.9999,
+            "treatment": 11.111,
+            "rel_effect_size": 0.11111,
+            "rel_effect_size_ci_lower": 0,
+        },
+    )
+
+
+@pytest.fixture
 def results(
     result: tea_tasting.experiment.ExperimentResult,
 ) -> tea_tasting.experiment.ExperimentResults:
@@ -187,6 +215,72 @@ def test_experiment_result_to_pandas(result: tea_tasting.experiment.ExperimentRe
             "effect_size": (1, 2),
         }),
     )
+
+
+def test_experiment_result_to_pretty(result2: tea_tasting.experiment.ExperimentResult):
+    pd.testing.assert_frame_equal(
+        result2.to_pretty(),
+        pd.DataFrame((
+            {
+                "metric": "metric_tuple",
+                "control": "4.44",
+                "treatment": "5.56",
+                "rel_effect_size": "20%",
+                "rel_effect_size_ci": "[12%, ∞]",
+                "pvalue": "0.235",
+            },
+            {
+                "metric": "metric_dict",
+                "control": "10.0",
+                "treatment": "11.1",
+                "rel_effect_size": "11%",
+                "rel_effect_size_ci": "[0.0%, -]",
+                "pvalue": "-",
+            },
+        )),
+    )
+
+
+def test_experiment_result_to_string(result2: tea_tasting.experiment.ExperimentResult):
+    assert result2.to_string() == pd.DataFrame((
+        {
+            "metric": "metric_tuple",
+            "control": "4.44",
+            "treatment": "5.56",
+            "rel_effect_size": "20%",
+            "rel_effect_size_ci": "[12%, ∞]",
+            "pvalue": "0.235",
+        },
+        {
+            "metric": "metric_dict",
+            "control": "10.0",
+            "treatment": "11.1",
+            "rel_effect_size": "11%",
+            "rel_effect_size_ci": "[0.0%, -]",
+            "pvalue": "-",
+        },
+    )).to_string(index=False)
+
+
+def test_experiment_result_str(result2: tea_tasting.experiment.ExperimentResult):
+    assert str(result2) == pd.DataFrame((
+        {
+            "metric": "metric_tuple",
+            "control": "4.44",
+            "treatment": "5.56",
+            "rel_effect_size": "20%",
+            "rel_effect_size_ci": "[12%, ∞]",
+            "pvalue": "0.235",
+        },
+        {
+            "metric": "metric_dict",
+            "control": "10.0",
+            "treatment": "11.1",
+            "rel_effect_size": "11%",
+            "rel_effect_size_ci": "[0.0%, -]",
+            "pvalue": "-",
+        },
+    )).to_string(index=False)
 
 
 def test_experiment_init_default():

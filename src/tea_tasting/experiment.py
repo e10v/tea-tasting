@@ -13,9 +13,20 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Sequence
     from typing import Literal
 
     import ibis.expr.types
+
+
+def _default_formatter(data: dict[str, Any], name: str) -> str:
+    if name.endswith("_ci"):
+        ci_lower = _default_formatter(data, name + "_lower")
+        ci_upper = _default_formatter(data, name + "_upper")
+        return f"[{ci_lower}, {ci_upper}]"
+
+    sig, pct = (2, True) if name.startswith("rel_") else (3, False)
+    return tea_tasting.utils.format_num(data.get(name), sig=sig, pct=pct)
 
 
 class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
@@ -31,6 +42,69 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
     def to_pandas(self) -> pd.DataFrame:
         """Convert the result to a Pandas DataFrame."""
         return pd.DataFrame.from_records(self.to_dicts())
+
+    def to_pretty(
+        self,
+        names: Sequence[str] = (
+            "control",
+            "treatment",
+            "rel_effect_size",
+            "rel_effect_size_ci",
+            "pvalue",
+        ),
+        formatter: Callable[[dict[str, Any], str], str] = _default_formatter,
+    ) -> pd.DataFrame:
+        """Convert the result to a Pandas Dataframe with formatted values.
+
+        Metric result attribute values are converted to strings in a "pretty" format.
+
+        Args:
+            names: Metric attribute  attribute names. If an attribute is not defined
+                for a metric it's assumed to be None.
+            formatter: Custom formatter function. It should accept a dictionary
+                of metric result attributes and an attribute name, and return
+                a formatted attribute value.
+
+        Returns:
+            Pandas Dataframe with formatted values.
+        """
+        records: list[dict[str, Any]] = []
+        for key, val in self.items():
+            data = val if isinstance(val, dict) else val._asdict()
+            formatted_values = {name: formatter(data, name) for name in names}
+            records.append({"metric": key} | formatted_values)
+        return pd.DataFrame.from_records(records)
+
+    def to_string(
+        self,
+        names: Sequence[str] = (
+            "control",
+            "treatment",
+            "rel_effect_size",
+            "rel_effect_size_ci",
+            "pvalue",
+        ),
+        formatter: Callable[[dict[str, Any], str], str] = _default_formatter,
+    ) -> str:
+        """Convert the result to a string.
+
+        Metric result attribute values are converted to strings in a "pretty" format.
+
+        Args:
+            names: Metric attribute  attribute names. If an attribute is not defined
+                for a metric it's assumed to be None.
+            formatter: Custom formatter function. It should accept a dictionary
+                of metric result attributes and an attribute name, and return
+                a formatted attribute value.
+
+        Returns:
+            A string with formatted values.
+        """
+        return self.to_pretty(names=names, formatter=formatter).to_string(index=False)
+
+    def __str__(self) -> str:
+        """Result string representation."""
+        return self.to_string()
 
 
 ExperimentResults = dict[tuple[Any, Any], ExperimentResult]
