@@ -134,7 +134,7 @@ def format_num(
         result = result.replace("_", thousands_sep)
 
     if decimal_point is None:
-        decimal_point = locale.localeconv().get("decimal_point", "_")  # type: ignore
+        decimal_point = locale.localeconv().get("decimal_point", ".")  # type: ignore
     if decimal_point is not None and decimal_point != ".":
         result = result.replace(".", decimal_point)
 
