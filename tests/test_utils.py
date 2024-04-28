@@ -77,6 +77,21 @@ def test_auto_check_use_t():
         tea_tasting.utils.auto_check(0, "use_t")
 
 
+def test_format_num():
+    assert tea_tasting.utils.format_num(1.2345) == "1.23"
+    assert tea_tasting.utils.format_num(0.9999) == "1.00"
+    assert tea_tasting.utils.format_num(1.2345, sig=2) == "1.2"
+    assert tea_tasting.utils.format_num(0.12345, pct=True) == "12.3%"
+    assert tea_tasting.utils.format_num(None) == "-"
+    assert tea_tasting.utils.format_num(float("nan")) == "-"
+    assert tea_tasting.utils.format_num(float("inf")) == "∞"
+    assert tea_tasting.utils.format_num(float("-inf")) == "-∞"
+    assert tea_tasting.utils.format_num(0.00012345) == "1.23e-04"
+    assert tea_tasting.utils.format_num(0.00099999) == "1.00e-03"
+    assert tea_tasting.utils.format_num(12345, thousands_sep=" ") == "12 345"
+    assert tea_tasting.utils.format_num(1.2345, decimal_point=",") == "1,23"
+
+
 def test_div():
     assert tea_tasting.utils.div(1, 2) == 0.5
     assert tea_tasting.utils.div(1, 0, 3) == 3

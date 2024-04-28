@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import inspect
+import locale
 import math
 from typing import TYPE_CHECKING
 
@@ -79,6 +80,68 @@ def auto_check(value: R, name: str) -> R:
     elif name == "use_t":
         check_scalar(value, name, typ=bool)
     return value
+
+
+def format_num(
+    val: float | int | None,
+    sig: int = 3,
+    pct: bool = False,
+    nan: str = "-",
+    inf: str = "∞",
+    fixed_point_limit: float = 0.001,
+    thousands_sep: str | None = None,
+    decimal_point: str | None = None,
+) -> str:
+    """Format number.
+
+    Args:
+        val: Number to format.
+        sig: Number of significant digits.
+        pct: If True, format as a percentage.
+        nan: Replacement for None and NaN values.
+        inf: Replacement for infinite values.
+        fixed_point_limit: Limit, below which number is formatted as exponential.
+        thousands_sep: Thousands separator. If None, the value from locales is used.
+        decimal_point: Decimal point symbol. If None, the value from locales is used.
+
+    Returns:
+        Formatted number.
+    """
+    if val is None or math.isnan(val):
+        return nan
+
+    if math.isinf(val):
+        return inf if val > 0 else "-" + inf
+
+    if pct:
+        val = val * 100
+
+    if abs(val) < fixed_point_limit:
+        precision = max(0, sig - 1)
+        typ = "e"
+    else:
+        precision = max(0, sig - 1 - int(math.floor(math.log10(abs(val)))))
+        val = round(val, precision)
+        # Repeat in order to format 99.999 as "100", not "100.0".
+        precision = max(0, sig - 1 - int(math.floor(math.log10(abs(val)))))
+        typ = "f"
+
+    result = format(val, f"_.{precision}{typ}")
+
+    if thousands_sep is None:
+        thousands_sep = locale.localeconv().get("thousands_sep", "_")  # type: ignore
+    if thousands_sep is not None and thousands_sep != "_":
+        result = result.replace("_", thousands_sep)
+
+    if decimal_point is None:
+        decimal_point = locale.localeconv().get("decimal_point", "_")  # type: ignore
+    if decimal_point is not None and decimal_point != ".":
+        result = result.replace(".", decimal_point)
+
+    if pct:
+        return result + "%"
+
+    return result
 
 
 def div(
