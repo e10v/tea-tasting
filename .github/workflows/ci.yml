@@ -9,26 +9,18 @@ on:
   workflow_dispatch:
 jobs:
   test:
-    runs-on: ${{ matrix.config.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        config:
-          - {os: ubuntu-latest, python-version: "3.10", architecture: "x64"}
-          - {os: ubuntu-latest, python-version: "3.11", architecture: "x64"}
-          - {os: ubuntu-latest, python-version: "3.12", architecture: "x64"}
-          - {os: macos-latest, python-version: "3.10", architecture: "x64"}
-          - {os: macos-latest, python-version: "3.11", architecture: "x64"}
-          - {os: macos-latest, python-version: "3.12", architecture: "x64"}
-          - {os: windows-latest, python-version: "3.10", architecture: "x64"}
-          - {os: windows-latest, python-version: "3.11", architecture: "x64"}
-          - {os: windows-latest, python-version: "3.12", architecture: "x64"}
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10", "3.11", "3.12"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up PDM
         uses: pdm-project/setup-pdm@v4
         with:
-          python-version: ${{ matrix.config.python-version }}
+          python-version: ${{ matrix.python-version }}
           cache: true
       - name: Install dependencies
         run: pdm sync -G test
