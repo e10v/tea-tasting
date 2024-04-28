@@ -118,7 +118,7 @@ def format_num(
 
     if abs(val) < fixed_point_limit:
         precision = max(0, sig - 1)
-        typ = "e"
+        typ = "e" if val != 0 else "f"
     else:
         precision = max(0, sig - 1 - int(math.floor(math.log10(abs(val)))))
         val = round(val, precision)
