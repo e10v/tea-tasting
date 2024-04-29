@@ -50,7 +50,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
         self.cov_ = {_sorted_tuple(*k): v for k, v in cov_.items()}
 
     def with_zero_div(self) -> Aggregates:
-        """Return aggregates, which don't raise an error on division by zero.
+        """Return aggregates that do not raise an error on division by zero.
 
         Division by zero returns:
             nan if numerator == 0,
@@ -80,6 +80,9 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
     def mean(self, name: str | None) -> float | int:
         """Sample mean.
 
+        If a variable name is None it's assumed, that the variable is a constant
+        equal to 1.
+
         Args:
             name: Variable name.
 
@@ -93,6 +96,8 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
     def var(self, name: str | None) -> float | int:
         """Sample variance.
 
+        If a variable name is None it's assumed, that the variable is a constant.
+
         Args:
             name: Variable name.
 
@@ -105,6 +110,8 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
 
     def cov(self, left: str | None, right: str | None) -> float | int:
         """Sample covariance.
+
+        If a variable name is None it's assumed that the variable is a constant.
 
         Args:
             left: First variable name.
@@ -124,16 +131,16 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
     ) -> float | int:
         """Sample variance of the ratio of two variables using the Delta method.
 
-        References:
-            [Delta method](https://en.wikipedia.org/wiki/Delta_method).
-            [Taylor expansions for the moments of functions of random variables](https://en.wikipedia.org/wiki/Taylor_expansions_for_the_moments_of_functions_of_random_variables).
-
         Args:
             numer: Numerator variable name.
             denom: Denominator variable name.
 
         Returns:
             Sample variance of the ratio of two variables.
+
+        References:
+            [Delta method](https://en.wikipedia.org/wiki/Delta_method).
+            [Taylor expansions for the moments of functions of random variables](https://en.wikipedia.org/wiki/Taylor_expansions_for_the_moments_of_functions_of_random_variables).
         """
         numer_mean_sq = self.mean(numer) * self.mean(numer)
         denom_mean_sq = self.mean(denom) * self.mean(denom)
@@ -152,10 +159,6 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
     ) -> float | int:
         """Sample covariance of the ratios of variables using the Delta method.
 
-        References:
-            [Delta method](https://en.wikipedia.org/wiki/Delta_method).
-            [Taylor expansions for the moments of functions of random variables](https://en.wikipedia.org/wiki/Taylor_expansions_for_the_moments_of_functions_of_random_variables).
-
         Args:
             left_numer: First numerator variable name.
             left_denom: First denominator variable name.
@@ -164,6 +167,10 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
 
         Returns:
             Sample covariance of the ratios of variables.
+
+        References:
+            [Delta method](https://en.wikipedia.org/wiki/Delta_method).
+            [Taylor expansions for the moments of functions of random variables](https://en.wikipedia.org/wiki/Taylor_expansions_for_the_moments_of_functions_of_random_variables).
         """
         left_ratio_of_means = self.mean(left_numer) / self.mean(left_denom)
         right_ratio_of_means = self.mean(right_numer) / self.mean(right_denom)

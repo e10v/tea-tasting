@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from typing import Literal
 
 
-class MeansResult(NamedTuple):
+class MeanResult(NamedTuple):
     """Result of an analysis of means.
 
     Attributes:
@@ -50,7 +50,7 @@ class MeansResult(NamedTuple):
     statistic: float
 
 
-class RatioOfMeans(MetricBaseAggregated[MeansResult]):  # noqa: D101
+class RatioOfMeans(MetricBaseAggregated[MeanResult]):  # noqa: D101
     def __init__(  # noqa: PLR0913
         self,
         numer: str,
@@ -140,7 +140,7 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):  # noqa: D101
         self,
         control: tea_tasting.aggr.Aggregates,
         treatment: tea_tasting.aggr.Aggregates,
-    ) -> MeansResult:
+    ) -> MeanResult:
         """Analyze metric in an experiment using aggregated statistics.
 
         Args:
@@ -216,7 +216,7 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):  # noqa: D101
         treat_mean: float,
         treat_var: float,
         treat_count: int,
-    ) -> MeansResult:
+    ) -> MeanResult:
         scale, distr = self._scale_and_distr(
             contr_var=contr_var,
             contr_count=contr_count,
@@ -258,7 +258,7 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):  # noqa: D101
 
             pvalue = 2 * distr.sf(abs(statistic))
 
-        return MeansResult(
+        return MeanResult(
             control=contr_mean,
             treatment=treat_mean,
             effect_size=effect_size,

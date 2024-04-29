@@ -67,7 +67,7 @@ def make_users_data(
     avg_revenue_per_order: float | int = 10,
     to_ibis: bool = False,
 ) -> ibis.expr.types.Table | pd.DataFrame:
-    """Generates a sample of data for examples.
+    """Generate simulated user data for A/B testing scenarios.
 
     Data mimics what you might encounter in an A/B test for an online store,
     with user-level randomization. Each row represents an individual user
@@ -86,7 +86,7 @@ def make_users_data(
             in addition to default columns.
         seed: Random seed.
         n_users: Number of users.
-        ratio: Ratio of the number of observation in treatment relative to control.
+        ratio: Ratio of the number of users in treatment relative to control.
         sessions_uplift: Sessions uplift in the treatment variant, relative to control.
         orders_uplift: Orders uplift in the treatment variant, relative to control.
         revenue_uplift: Revenue uplift in the treatment variant, relative to control.
@@ -173,7 +173,7 @@ def make_sessions_data(
     avg_revenue_per_order: float | int = 10,
     to_ibis: bool = False,
 ) -> ibis.expr.types.Table | pd.DataFrame:
-    """Generates a sample of data for examples.
+    """Generates simulated user data for A/B testing scenarios.
 
     Data mimics what you might encounter in an A/B test for an online store,
     with user-level randomization. Each row represents a user's session
@@ -192,7 +192,7 @@ def make_sessions_data(
             in addition to default columns.
         seed: Random seed.
         n_users: Number of users.
-        ratio: Ratio of the number of observation in treatment relative to control.
+        ratio: Ratio of the number of users in treatment relative to control.
         sessions_uplift: Sessions uplift in the treatment variant, relative to control.
         orders_uplift: Orders uplift in the treatment variant, relative to control.
         revenue_uplift: Revenue uplift in the treatment variant, relative to control.
