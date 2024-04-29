@@ -70,7 +70,7 @@ def make_users_data(
     """Generate simulated user data for A/B testing scenarios.
 
     Data mimics what you might encounter in an A/B test for an online store,
-    with user-level randomization. Each row represents an individual user
+    with a user-level randomization. Each row represents an individual user
     with information about:
 
     - user identifier,
@@ -94,7 +94,8 @@ def make_users_data(
         avg_orders_per_session: Average number of orders per session.
             Should be less than 1.
         avg_revenue_per_order: Average revenue per order.
-        to_ibis: If True, return an Ibis Table instead of a Pandas DataFrame.
+        to_ibis: If set to True, returns an Ibis Table; otherwise,
+            returns a Pandas DataFrame.
 
     Returns:
         An Ibis Table or a Pandas DataFrame with the following columns:
@@ -173,10 +174,10 @@ def make_sessions_data(
     avg_revenue_per_order: float | int = 10,
     to_ibis: bool = False,
 ) -> ibis.expr.types.Table | pd.DataFrame:
-    """Generates simulated user data for A/B testing scenarios.
+    """Generate simulated user data for A/B testing scenarios.
 
     Data mimics what you might encounter in an A/B test for an online store,
-    with user-level randomization. Each row represents a user's session
+    with a user-level randomization. Each row represents a user's session
     with information about:
 
     - user identifier,
@@ -200,7 +201,8 @@ def make_sessions_data(
         avg_orders_per_session: Average number of orders per session.
             Should be less than 1.
         avg_revenue_per_order: Average revenue per order.
-        to_ibis: If True, return an Ibis Table instead of a Pandas DataFrame.
+        to_ibis: If set to True, returns an Ibis Table; otherwise,
+            returns a Pandas DataFrame.
 
     Returns:
         An Ibis Table or a Pandas DataFrame with the following columns:

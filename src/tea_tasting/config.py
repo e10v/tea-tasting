@@ -22,14 +22,14 @@ _global_config = {
 
 
 def get_config(option: str | None = None) -> Any:
-    """Get global configuration.
+    """Retrieve the current settings of the global configuration.
 
     Args:
         option: The option name.
 
     Returns:
-        The option value if its name is not None,
-        or a dictionary with all options otherwise.
+        The specified option value if its name is provided,
+        or a dictionary containing all options otherwise.
     """
     if option is not None:
         return _global_config[option]
@@ -44,7 +44,7 @@ def set_config(
     use_t: bool | None = None,
     **kwargs: Any,
 ) -> None:
-    """Set global configuration.
+    """Update the global configuration with specified settings.
 
     Args:
         alternative: Default alternative hypothesis. Default is "two-sided".
@@ -72,7 +72,7 @@ def config_context(
     use_t: bool | None = None,
     **kwargs: Any,
 ) -> Generator[None, Any, None]:
-    """Context manager for configuration.
+    """A context manager that temporarily modifies the global configuration.
 
     Args:
         alternative: Default alternative hypothesis. Default is "two-sided".

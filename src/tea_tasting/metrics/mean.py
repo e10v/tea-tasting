@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 
 class MeanResult(NamedTuple):
-    """Result of an analysis of means.
+    """Result of the analysis of means.
 
     Attributes:
         control: Control mean.
@@ -71,9 +71,9 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult]):  # noqa: D101
             numer_covariate: Covariate numerator column name.
             denom_covariate: Covariate denominator column name.
             alternative: Alternative hypothesis. Options:
-                "two-sided": the means are unequal.
+                "two-sided": the means are unequal,
                 "greater": the mean in the treatment variant is greater than the mean
-                    in the control variant.
+                    in the control variant,
                 "less": the mean in the treatment variant is less than the mean
                     in the control variant.
             confidence_level: Confidence level for the confidence interval.
@@ -113,7 +113,7 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult]):  # noqa: D101
 
     @property
     def aggr_cols(self) -> AggrCols:
-        """Columns to aggregate for a metric analysis."""
+        """Columns to be aggregated for a metric analysis."""
         cols = tuple(
             col for col in (
                 self.numer,
@@ -141,7 +141,7 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult]):  # noqa: D101
         control: tea_tasting.aggr.Aggregates,
         treatment: tea_tasting.aggr.Aggregates,
     ) -> MeanResult:
-        """Analyze metric in an experiment using aggregated statistics.
+        """Analyze a metric in an experiment using aggregated statistics.
 
         Args:
             control: Control data.
@@ -321,9 +321,9 @@ class Mean(RatioOfMeans):  # noqa: D101
             value: Metric value column name.
             covariate: Metric covariate column name.
             alternative: Alternative hypothesis. Options:
-                "two-sided": the means are unequal.
+                "two-sided": the means are unequal,
                 "greater": the mean in the treatment variant is greater than the mean
-                    in the control variant.
+                    in the control variant,
                 "less": the mean in the treatment variant is less than the mean
                     in the control variant.
             confidence_level: Confidence level for the confidence interval.

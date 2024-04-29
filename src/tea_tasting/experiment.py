@@ -59,7 +59,7 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
         Metric result attribute values are converted to strings in a "pretty" format.
 
         Args:
-            names: Metric attribute  attribute names. If an attribute is not defined
+            names: Metric attribute names. If an attribute is not defined
                 for a metric it's assumed to be None.
             formatter: Custom formatter function. It should accept a dictionary
                 of metric result attributes and an attribute name, and return
@@ -91,7 +91,7 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
         Metric result attribute values are converted to strings in a "pretty" format.
 
         Args:
-            names: Metric attribute  attribute names. If an attribute is not defined
+            names: Metric attribute names. If an attribute is not defined
                 for a metric it's assumed to be None.
             formatter: Custom formatter function. It should accept a dictionary
                 of metric result attributes and an attribute name, and return
@@ -113,12 +113,12 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
         ),
         formatter: Callable[[dict[str, Any], str], str] = _default_formatter,
     ) -> str:
-        """Convert the result to an HTML.
+        """Convert the result to HTML.
 
         Metric result attribute values are converted to strings in a "pretty" format.
 
         Args:
-            names: Metric attribute  attribute names. If an attribute is not defined
+            names: Metric attribute names. If an attribute is not defined
                 for a metric it's assumed to be None.
             formatter: Custom formatter function. It should accept a dictionary
                 of metric result attributes and an attribute name, and return

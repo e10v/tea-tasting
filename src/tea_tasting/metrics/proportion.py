@@ -48,11 +48,11 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
         """Sample ratio mismatch check.
 
         Args:
-            ratio: Expected ratio of the number of observation in treatment
-                relative to control.
+            ratio: Expected ratio of the number of observations in the treatment
+                relative to the control.
             method: Statistical test used for calculation of p-value. Options:
                 "auto": Apply exact binomial test if the total number of observations
-                    is < 1000, or normal approximation otherwise.
+                    is < 1000; or normal approximation otherwise.
                 "binom": Apply exact binomial test.
                 "norm": Apply normal approximation of the binomial distribution.
             correction: If True, add continuity correction.
@@ -72,7 +72,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
 
     @property
     def aggr_cols(self) -> AggrCols:
-        """Columns to aggregate for a metric analysis."""
+        """Columns to be aggregated for a metric analysis."""
         return AggrCols(has_count=True)
 
 
@@ -84,7 +84,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
         treatment: Any,
         variant: str | None = None,
     ) -> SampleRatioResult:
-        """Perform sample ratio mismatch check.
+        """Perform a sample ratio mismatch check.
 
         Args:
             data: Experimental data.
@@ -135,5 +135,5 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
         control: tea_tasting.aggr.Aggregates,
         treatment: tea_tasting.aggr.Aggregates,
     ) -> SampleRatioResult:
-        """Method stub for compatibility with the base class."""
+        """Stub method for compatibility with the base class."""
         raise NotImplementedError

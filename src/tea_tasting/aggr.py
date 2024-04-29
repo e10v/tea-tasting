@@ -68,7 +68,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
         """Sample size (number of observations).
 
         Raises:
-            RuntimeError: Count is None (it wasn't defined at init).
+            RuntimeError: Count is None (if it was not defined during initialization).
 
         Returns:
             Sample size (number of observations).
@@ -80,8 +80,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
     def mean(self, name: str | None) -> float | int:
         """Sample mean.
 
-        If a variable name is None it's assumed, that the variable is a constant
-        equal to 1.
+        Assume the variable is a constant 1 if the variable name is None.
 
         Args:
             name: Variable name.
@@ -96,7 +95,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
     def var(self, name: str | None) -> float | int:
         """Sample variance.
 
-        If a variable name is None it's assumed, that the variable is a constant.
+        Assume the variable is a constant if the variable name is None.
 
         Args:
             name: Variable name.
@@ -111,7 +110,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
     def cov(self, left: str | None, right: str | None) -> float | int:
         """Sample covariance.
 
-        If a variable name is None it's assumed that the variable is a constant.
+        Assume the variable is a constant if the variable name is None.
 
         Args:
             left: First variable name.
@@ -183,7 +182,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
         ) / self.mean(left_denom) / self.mean(right_denom)
 
     def __add__(self, other: Aggregates) -> Aggregates:
-        """Calculate aggregated statistics of the concatenation of two samples.
+        """Calculate the aggregated statistics of the concatenation of two samples.
 
         Samples are assumed to be independent.
 
@@ -260,7 +259,7 @@ def read_aggregates(
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
 ) -> dict[Any, Aggregates] | Aggregates:
-    """Read aggregated statistics from an Ibis Table or a Pandas DataFrame.
+    """Extract aggregated statistics from an Ibis Table or a Pandas DataFrame.
 
     Args:
         data: Granular data.

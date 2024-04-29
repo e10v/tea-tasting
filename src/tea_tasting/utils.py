@@ -27,7 +27,7 @@ def check_scalar(
     lt: Any = None,
     in_: Any = None,
 ) -> R:
-    """Check scalar parameter's type and value.
+    """Check if a scalar parameter meets specified type and value constraints.
 
     Args:
         value: Parameter value.
@@ -58,7 +58,7 @@ def check_scalar(
 
 
 def auto_check(value: R, name: str) -> R:
-    """Check parameter's type and value based in it's name.
+    """Automatically check a parameter's type and value based on its name.
 
     Args:
         value: Parameter value.
@@ -92,7 +92,7 @@ def format_num(
     thousands_sep: str | None = None,
     decimal_point: str | None = None,
 ) -> str:
-    """Formats a number according to specified formatting rules.
+    """Format a number according to specified formatting rules.
 
     Args:
         val: Number to format.
@@ -149,7 +149,7 @@ def div(
     denom: float | int,
     fill_zero_div: float | int | Literal["auto"] = "auto",
 ) -> float |int:
-    """Perform division and handle division by zero.
+    """Perform division, providing specified results for cases of division by zero.
 
     Args:
         numer: Numerator.
@@ -272,26 +272,26 @@ class _NumericBase:
 
 
 class Float(_NumericBase, float):
-    """Float, which doesn't raise an error on division by zero."""
+    """Float that gracefully handles division by zero errors."""
     def __new__(
         cls,
         value: Any,
         fill_zero_div: float | int | Literal["auto"] = "auto",
     ) -> Float:
-        """Float, which doesn't raise an error on division by zero."""
+        """Float that gracefully handles division by zero errors."""
         instance = float.__new__(cls, value)
         instance.value = float(value)
         instance.fill_zero_div = fill_zero_div
         return instance
 
 class Int(_NumericBase, int):
-    """Integer, which doesn't raise an error on division by zero."""
+    """Integer that gracefully handles division by zero errors."""
     def __new__(
         cls,
         value: Any,
         fill_zero_div: float | int | Literal["auto"] = "auto",
     ) -> Int:
-        """Integer, which doesn't raise an error on division by zero."""
+        """Integer that gracefully handles division by zero errors."""
         instance = int.__new__(cls, value)
         instance.value = int(value)
         instance.fill_zero_div = fill_zero_div
@@ -304,13 +304,7 @@ def numeric(
     value: Any,
     fill_zero_div: float | int | Literal["auto"] = "auto",
 ) -> Numeric:
-    """Float or integer, which doesn't raise an error on division by zero.
-
-    The result type depends on input type:
-
-    - int -> Int,
-    - float -> Float.
-    """
+    """Float or integer that gracefully handles division by zero errors."""
     if isinstance(value, int):
         return Int(value, fill_zero_div)
     if isinstance(value, float):
@@ -322,7 +316,7 @@ def numeric(
 
 
 class ReprMixin:
-    """Mixin class for object representation.
+    """A mixin class that provides a method for generating a string representation.
 
     Representation string is generated based on parameters values saved in attributes.
     """
