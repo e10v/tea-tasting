@@ -102,9 +102,40 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
         """
         return self.to_pretty(names=names, formatter=formatter).to_string(index=False)
 
+    def to_html(
+        self,
+        names: Sequence[str] = (
+            "control",
+            "treatment",
+            "rel_effect_size",
+            "rel_effect_size_ci",
+            "pvalue",
+        ),
+        formatter: Callable[[dict[str, Any], str], str] = _default_formatter,
+    ) -> str:
+        """Convert the result to an HTML.
+
+        Metric result attribute values are converted to strings in a "pretty" format.
+
+        Args:
+            names: Metric attribute  attribute names. If an attribute is not defined
+                for a metric it's assumed to be None.
+            formatter: Custom formatter function. It should accept a dictionary
+                of metric result attributes and an attribute name, and return
+                a formatted attribute value.
+
+        Returns:
+            A table with results rendered as HTML.
+        """
+        return self.to_pretty(names=names, formatter=formatter).to_html(index=False)
+
     def __str__(self) -> str:
         """Result string representation."""
         return self.to_string()
+
+    def _repr_html_(self) -> str:
+        """Result HTML representation."""
+        return self.to_html()
 
 
 ExperimentResults = dict[tuple[Any, Any], ExperimentResult]
