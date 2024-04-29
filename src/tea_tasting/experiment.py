@@ -1,4 +1,4 @@
-"""Experiments."""
+"""Experiment and experiment result."""
 
 from __future__ import annotations
 
