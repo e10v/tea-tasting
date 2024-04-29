@@ -66,7 +66,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
         self.ratio = ratio
 
         self.method = tea_tasting.utils.check_scalar(
-            method, "method", typ=str, is_in={"auto", "binom", "norm"})
+            method, "method", typ=str, in_={"auto", "binom", "norm"})
         self.correction = tea_tasting.utils.auto_check(correction, "correction")
 
 
