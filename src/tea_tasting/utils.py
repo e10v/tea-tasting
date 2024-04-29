@@ -25,7 +25,7 @@ def check_scalar(
     gt: Any = None,
     le: Any = None,
     lt: Any = None,
-    is_in: Any = None,
+    in_: Any = None,
 ) -> R:
     """Check scalar parameter's type and value.
 
@@ -37,7 +37,7 @@ def check_scalar(
         gt: If not None, check that the parameter value is greater than gt.
         le: If not None, check that the parameter value is less than or equal to le.
         lt: If not None, check that the parameter value is less than gt.
-        is_in: If not None, check that the parameter value is in is_in.
+        in_: If not None, check that the parameter value is in in_.
 
     Returns:
         Parameter value.
@@ -52,8 +52,8 @@ def check_scalar(
         raise ValueError(f"{name} == {value}, must be <= {le}.")
     if lt is not None and value >= lt:
         raise ValueError(f"{name} == {value}, must be < {lt}.")
-    if is_in is not None and value not in is_in:
-        raise ValueError(f"{name} == {value}, must be in {is_in}.")
+    if in_ is not None and value not in in_:
+        raise ValueError(f"{name} == {value}, must be in {in_}.")
     return value
 
 
@@ -68,7 +68,7 @@ def auto_check(value: R, name: str) -> R:
         Parameter value.
     """
     if name == "alternative":
-        check_scalar(value, name, typ=str, is_in={"two-sided", "greater", "less"})
+        check_scalar(value, name, typ=str, in_={"two-sided", "greater", "less"})
     elif name == "confidence_level":
         check_scalar(value, name, typ=float, gt=0, lt=1)
     elif name == "correction":

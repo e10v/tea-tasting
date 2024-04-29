@@ -33,9 +33,9 @@ def test_check_scalar_lt():
         tea_tasting.utils.check_scalar(1, lt=1)
 
 def test_check_scalar_is_in():
-    assert tea_tasting.utils.check_scalar(1, is_in={0, 1}) == 1
+    assert tea_tasting.utils.check_scalar(1, in_={0, 1}) == 1
     with pytest.raises(ValueError, match="must be in"):
-        tea_tasting.utils.check_scalar(1, is_in={0, 2})
+        tea_tasting.utils.check_scalar(1, in_={0, 2})
 
 
 def test_auto_check_alternative():
