@@ -10,9 +10,9 @@ nav:
   - Overview: index.md
   - Getting started: getting-started.md
   - API reference:
-    - api/index.md
+    - API reference: api/index.md
     - Metrics:
-      - api/metrics/index.md
+      - Metrics: api/metrics/index.md
       - Base: api/metrics/base.md
       - Mean: api/metrics/mean.md
       - Proportion: api/metrics/proportion.md
