@@ -1,4 +1,4 @@
-"""Analysis of proportions."""
+"""Metrics for the analysis of proportions."""
 
 from __future__ import annotations
 

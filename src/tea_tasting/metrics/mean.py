@@ -1,4 +1,4 @@
-"""Analysis of means."""
+"""Metrics for the analysis of means."""
 # ruff: noqa: PD901
 
 from __future__ import annotations
