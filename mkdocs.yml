@@ -44,7 +44,7 @@ theme:
         icon: material/brightness-4
         name: Switch to system preference
   logo: assets/tea-cup-white.svg
-  favicon: assets/tea-cup-black.svg
+  favicon: assets/tea-cup-white-on-black.svg
   icon:
     repo: fontawesome/brands/github
   features:
