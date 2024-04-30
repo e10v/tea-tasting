@@ -1,8 +1,12 @@
-"""API reference is auto-generated based on docstrings.
+"""A Python package for statistical analysis of A/B tests.
 
 All classes and functions for the analysis of the experiments can be imported
-from the root `tea_tasting` module. For convenience, the API reference is provided
-by submodules of `tea_tasting`:
+from the root `tea_tasting` module.
+
+There are functions and classes for advanced use cases such as defining custom metrics.
+They can be imported from submodules of `tea_tasting`.
+
+For convenience, the API reference is provided by submodules:
 
 - `tea_tasting.metrics`: Built-in metrics.
 - `tea_tasting.experiment`: Experiment and experiment result.
