@@ -67,7 +67,7 @@ plugins:
             filters: ["!^_"]
             heading_level: 1
             inherited_members: true
-            members_order: source
+            # members_order: source
             merge_init_into_class: true
             show_root_heading: true
   - search
