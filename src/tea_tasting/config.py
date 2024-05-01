@@ -30,6 +30,15 @@ def get_config(option: str | None = None) -> Any:
     Returns:
         The specified option value if its name is provided,
             or a dictionary containing all options otherwise.
+
+    Examples:
+        ```python
+        import tea_tasting as tt
+
+
+        tt.get_config("equal_var")
+        #> False
+        ```
     """
     if option is not None:
         return _global_config[option]
@@ -63,6 +72,25 @@ def set_config(
             in the control variant,
         - `"less"`: the mean in the treatment variant is less than the mean
             in the control variant.
+
+    Examples:
+        ```python
+        import tea_tasting as tt
+
+
+        tt.set_config(equal_var=True, use_t=False)
+
+        experiment = tt.Experiment(
+            sessions_per_user=tt.Mean("sessions"),
+            orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+            orders_per_user=tt.Mean("orders"),
+            revenue_per_user=tt.Mean("revenue"),
+        )
+
+        experiment.metrics["orders_per_user"]
+        #> Mean(value='orders', covariate=None, alternative='two-sided',
+        #> confidence_level=0.95, equal_var=True, use_t=False)
+        ```
     """
     params = {k: v for k, v in locals().items() if k != "kwargs"} | kwargs
     for name, value in params.items():
@@ -98,6 +126,24 @@ def config_context(
             in the control variant,
         - `"less"`: the mean in the treatment variant is less than the mean
             in the control variant.
+
+    Examples:
+        ```python
+        import tea_tasting as tt
+
+
+        with tt.config_context(equal_var=True, use_t=False):
+            experiment = tt.Experiment(
+                sessions_per_user=tt.Mean("sessions"),
+                orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+                orders_per_user=tt.Mean("orders"),
+                revenue_per_user=tt.Mean("revenue"),
+            )
+
+        experiment.metrics["orders_per_user"]
+        #> Mean(value='orders', covariate=None, alternative='two-sided',
+        #> confidence_level=0.95, equal_var=True, use_t=False)
+        ```
     """
     new_config = {k: v for k, v in locals().items() if k != "kwargs"} | kwargs
     old_config = get_config()

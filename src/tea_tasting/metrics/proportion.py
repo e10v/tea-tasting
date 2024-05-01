@@ -59,6 +59,39 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
                 is < 1000; or normal approximation otherwise.
             - `"binom"`: Apply exact binomial test.
             - `"norm"`: Apply normal approximation of the binomial distribution.
+
+        Examples:
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                sample_ratio=tt.SampleRatio(),
+            )
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            print(result.to_string(("control", "treatment", "pvalue")))
+            #>       metric control treatment pvalue
+            #> sample_ratio    2023      1977  0.477
+            ```
+
+            Different expected ratio:
+
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                sample_ratio=tt.SampleRatio(0.5),
+            )
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            print(result.to_string(("control", "treatment", "pvalue")))
+            #>       metric control treatment    pvalue
+            #> sample_ratio    2023      1977 3.26e-103
+            ```
         """
         if isinstance(ratio, dict):
             for val in ratio.values():

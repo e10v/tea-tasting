@@ -105,7 +105,51 @@ def make_users_data(
 
     Returns:
         Simulated data for A/B testing scenarios.
-    """
+
+    Examples:
+        ```python
+        import tea_tasting as tt
+
+
+        data = tt.make_users_data(seed=42)
+        data
+        #>       user  variant  sessions  orders    revenue
+        #> 0        0        1         2       1   9.166147
+        #> 1        1        0         2       1   6.434079
+        #> 2        2        1         2       1   7.943873
+        #> 3        3        1         2       1  15.928675
+        #> 4        4        0         1       1   7.136917
+        #> ...    ...      ...       ...     ...        ...
+        #> 3995  3995        0         2       0   0.000000
+        #> 3996  3996        0         2       0   0.000000
+        #> 3997  3997        0         3       0   0.000000
+        #> 3998  3998        0         1       0   0.000000
+        #> 3999  3999        0         5       2  17.162459
+        #>
+        #> [4000 rows x 5 columns]
+        ```
+
+        With covariates:
+
+        ```python
+        data = tt.make_users_data(seed=42, covariates=True)
+        data
+        #>       user  variant  sessions  orders    revenue  sessions_covariate  orders_covariate  revenue_covariate
+        #> 0        0        1         2       1   9.166147                   3                 2          19.191712
+        #> 1        1        0         2       1   6.434079                   4                 1           2.770749
+        #> 2        2        1         2       1   7.943873                   4                 2          22.568422
+        #> 3        3        1         2       1  15.928675                   1                 0           0.000000
+        #> 4        4        0         1       1   7.136917                   1                 1          13.683796
+        #> ...    ...      ...       ...     ...        ...                 ...               ...                ...
+        #> 3995  3995        0         2       0   0.000000                   1                 0           0.000000
+        #> 3996  3996        0         2       0   0.000000                   3                 1          13.517967
+        #> 3997  3997        0         3       0   0.000000                   2                 0           0.000000
+        #> 3998  3998        0         1       0   0.000000                   1                 0           0.000000
+        #> 3999  3999        0         5       2  17.162459                   5                 0           0.000000
+        #>
+        #> [4000 rows x 8 columns]
+        ```
+    """  # noqa: E501
     return _make_data(
         covariates=covariates,
         seed=seed,
@@ -208,7 +252,51 @@ def make_sessions_data(
 
     Returns:
         Simulated data for A/B testing scenarios.
-    """
+
+    Examples:
+        ```python
+        import tea_tasting as tt
+
+
+        data = tt.make_sessions_data(seed=42)
+        data
+        #>       user  variant  sessions  orders    revenue
+        #> 0        0        1         1       1   5.887178
+        #> 1        0        1         1       1   6.131080
+        #> 2        1        0         1       1   2.614675
+        #> 3        1        0         1       1  12.296075
+        #> 4        2        1         1       1  11.573409
+        #> ...    ...      ...       ...     ...        ...
+        #> 7953  3999        0         1       1  23.634941
+        #> 7954  3999        0         1       0   0.000000
+        #> 7955  3999        0         1       1   2.396078
+        #> 7956  3999        0         1       1  24.538111
+        #> 7957  3999        0         1       0   0.000000
+        #>
+        #> [7958 rows x 5 columns]
+        ```
+
+        With covariates:
+
+        ```python
+        data = tt.make_sessions_data(seed=42, covariates=True)
+        data
+        #>       user  variant  sessions  orders    revenue  sessions_covariate  orders_covariate  revenue_covariate
+        #> 0        0        1         1       1   5.887178                 1.5               0.5           1.236732
+        #> 1        0        1         1       1   6.131080                 1.5               0.5           1.236732
+        #> 2        1        0         1       1   2.614675                 0.0               0.0           0.000000
+        #> 3        1        0         1       1  12.296075                 0.0               0.0           0.000000
+        #> 4        2        1         1       1  11.573409                 1.5               1.5          12.324434
+        #> ...    ...      ...       ...     ...        ...                 ...               ...                ...
+        #> 7953  3999        0         1       1  23.634941                 0.2               0.0           0.000000
+        #> 7954  3999        0         1       0   0.000000                 0.2               0.0           0.000000
+        #> 7955  3999        0         1       1   2.396078                 0.2               0.0           0.000000
+        #> 7956  3999        0         1       1  24.538111                 0.2               0.0           0.000000
+        #> 7957  3999        0         1       0   0.000000                 0.2               0.0           0.000000
+        #>
+        #> [7958 rows x 8 columns]
+        ```
+    """  # noqa: E501
     return _make_data(
         covariates=covariates,
         seed=seed,

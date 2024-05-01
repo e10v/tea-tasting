@@ -30,17 +30,105 @@ def _default_formatter(data: dict[str, Any], name: str) -> str:
 
 
 class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
-    """Experiment result for a pair of variants."""
+    """Experiment result for a pair of variants.
+
+    Examples:
+        ```python
+        import tea_tasting as tt
+
+
+        experiment = tt.Experiment(
+            sessions_per_user=tt.Mean("sessions"),
+            orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+            orders_per_user=tt.Mean("orders"),
+            revenue_per_user=tt.Mean("revenue"),
+        )
+
+        data = tt.make_users_data(seed=42)
+        result = experiment.analyze(data)
+        print(result)
+        #>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
+        #>  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+        #> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+        #>    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+        #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+        ```
+    """  # noqa: E501
 
     def to_dicts(self) -> tuple[dict[str, Any], ...]:
-        """Convert the result to a sequence of dictionaries."""
+        """Convert the result to a sequence of dictionaries.
+
+        Examples:
+            ```python
+            import pprint
+
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                orders_per_user=tt.Mean("orders"),
+                revenue_per_user=tt.Mean("revenue"),
+            )
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            pprint.pprint(result.to_dicts())
+            #> ({'control': 0.5304003954522986,
+            #>   'effect_size': 0.04269014577177832,
+            #>   'effect_size_ci_lower': -0.010800201598205564,
+            #>   'effect_size_ci_upper': 0.0961804931417622,
+            #>   'metric': 'orders_per_user',
+            #>   'pvalue': 0.11773177998716244,
+            #>   'rel_effect_size': 0.08048664016431273,
+            #>   'rel_effect_size_ci_lower': -0.019515294044062048,
+            #>   'rel_effect_size_ci_upper': 0.19068800612788883,
+            #>   'statistic': 1.5647028839586694,
+            #>   'treatment': 0.5730905412240769},
+            #>  {'control': 5.2410786458606005,
+            #>   'effect_size': 0.4890530110046889,
+            #>   'effect_size_ci_lower': -0.13265634499246826,
+            #>   'effect_size_ci_upper': 1.110762367001846,
+            #>   'metric': 'revenue_per_user',
+            #>   'pvalue': 0.123097417367404,
+            #>   'rel_effect_size': 0.09331151925967429,
+            #>   'rel_effect_size_ci_lower': -0.023744208691729107,
+            #>   'rel_effect_size_ci_upper': 0.22440254776265856,
+            #>   'statistic': 1.5422307220453677,
+            #>   'treatment': 5.730131656865289})
+            ```
+        """
         return tuple(
             {"metric": k} | (v if isinstance(v, dict) else v._asdict())
             for k, v in self.items()
         )
 
     def to_pandas(self) -> pd.DataFrame:
-        """Convert the result to a Pandas DataFrame."""
+        """Convert the result to a Pandas DataFrame.
+
+        Examples:
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                sessions_per_user=tt.Mean("sessions"),
+                orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+                orders_per_user=tt.Mean("orders"),
+                revenue_per_user=tt.Mean("revenue"),
+            )
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            print(result.to_pandas())
+            #>                metric   control  ...    pvalue  statistic
+            #> 0   sessions_per_user  1.996045  ...  0.674021  -0.420667
+            #> 1  orders_per_session  0.265726  ...  0.076238   1.773406
+            #> 2     orders_per_user  0.530400  ...  0.117732   1.564703
+            #> 3    revenue_per_user  5.241079  ...  0.123097   1.542231
+            #>
+            #> [4 rows x 11 columns]
+            ```
+        """
         return pd.DataFrame.from_records(self.to_dicts())
 
     def to_pretty(
@@ -77,6 +165,33 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
             - If a name ends with `"_ci"`, consider it a confidence interval.
                 Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
                 and format the interval as `"[{lower_bound}, {lower_bound}]"`.
+
+        Examples:
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                sessions_per_user=tt.Mean("sessions"),
+                orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+                orders_per_user=tt.Mean("orders"),
+                revenue_per_user=tt.Mean("revenue"),
+            )
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            print(result.to_pretty(names=(
+                "control",
+                "treatment",
+                "effect_size",
+                "effect_size_ci",
+            )))
+            #>                metric control treatment effect_size      effect_size_ci
+            #> 0   sessions_per_user    2.00      1.98     -0.0132   [-0.0750, 0.0485]
+            #> 1  orders_per_session   0.266     0.289      0.0233  [-0.00246, 0.0491]
+            #> 2     orders_per_user   0.530     0.573      0.0427   [-0.0108, 0.0962]
+            #> 3    revenue_per_user    5.24      5.73       0.489      [-0.133, 1.11]
+            ```
         """
         records: list[dict[str, Any]] = []
         for key, val in self.items():
@@ -119,6 +234,33 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
             - If a name ends with `"_ci"`, consider it a confidence interval.
                 Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
                 and format the interval as `"[{lower_bound}, {lower_bound}]"`.
+
+        Examples:
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                sessions_per_user=tt.Mean("sessions"),
+                orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+                orders_per_user=tt.Mean("orders"),
+                revenue_per_user=tt.Mean("revenue"),
+            )
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            print(result.to_string(names=(
+                "control",
+                "treatment",
+                "effect_size",
+                "effect_size_ci",
+            )))
+            #>             metric control treatment effect_size     effect_size_ci
+            #>  sessions_per_user    2.00      1.98     -0.0132  [-0.0750, 0.0485]
+            #> orders_per_session   0.266     0.289      0.0233 [-0.00246, 0.0491]
+            #>    orders_per_user   0.530     0.573      0.0427  [-0.0108, 0.0962]
+            #>   revenue_per_user    5.24      5.73       0.489     [-0.133, 1.11]
+            ```
         """
         return self.to_pretty(names=names, formatter=formatter).to_string(index=False)
 
@@ -156,6 +298,51 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
             - If a name ends with `"_ci"`, consider it a confidence interval.
                 Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
                 and format the interval as `"[{lower_bound}, {lower_bound}]"`.
+
+        Examples:
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                orders_per_user=tt.Mean("orders"),
+                revenue_per_user=tt.Mean("revenue"),
+            )
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            print(result.to_html())
+            #> <table border="1" class="dataframe">
+            #>   <thead>
+            #>     <tr style="text-align: right;">
+            #>       <th>metric</th>
+            #>       <th>control</th>
+            #>       <th>treatment</th>
+            #>       <th>rel_effect_size</th>
+            #>       <th>rel_effect_size_ci</th>
+            #>       <th>pvalue</th>
+            #>     </tr>
+            #>   </thead>
+            #>   <tbody>
+            #>     <tr>
+            #>       <td>orders_per_user</td>
+            #>       <td>0.530</td>
+            #>       <td>0.573</td>
+            #>       <td>8.0%</td>
+            #>       <td>[-2.0%, 19%]</td>
+            #>       <td>0.118</td>
+            #>     </tr>
+            #>     <tr>
+            #>       <td>revenue_per_user</td>
+            #>       <td>5.24</td>
+            #>       <td>5.73</td>
+            #>       <td>9.3%</td>
+            #>       <td>[-2.4%, 22%]</td>
+            #>       <td>0.123</td>
+            #>     </tr>
+            #>   </tbody>
+            #> </table>
+            ```
         """
         return self.to_pretty(names=names, formatter=formatter).to_html(index=False)
 
@@ -184,7 +371,29 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             metrics: Dictionary of metrics with metric names as keys.
             variant: Variant column name.
             kw_metrics: Metrics with metric names as parameter names.
-        """
+
+        Examples:
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                sessions_per_user=tt.Mean("sessions"),
+                orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+                orders_per_user=tt.Mean("orders"),
+                revenue_per_user=tt.Mean("revenue"),
+            )
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            print(result)
+            #>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            #>  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+            #> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+            #>    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+            #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+            ```
+        """  # noqa: E501
         if metrics is None:
             metrics = {}
         metrics = metrics | kw_metrics
@@ -236,7 +445,29 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
         Returns:
             Experiment result.
-        """
+
+        Examples:
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                sessions_per_user=tt.Mean("sessions"),
+                orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+                orders_per_user=tt.Mean("orders"),
+                revenue_per_user=tt.Mean("revenue"),
+            )
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            print(result)
+            #>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            #>  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+            #> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+            #>    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+            #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+            ```
+        """  # noqa: E501
         aggregated_data, granular_data = self._read_data(data)
 
         if aggregated_data is not None:

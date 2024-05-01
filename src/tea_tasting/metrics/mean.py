@@ -84,7 +84,42 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult]):  # noqa: D101
                 in the control variant,
             - `"less"`: the mean in the treatment variant is less than the mean
                 in the control variant.
-        """
+
+        Examples:
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+            )
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            print(result)
+            #>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            #> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+            ```
+
+            With CUPED:
+
+            ```python
+            experiment = tt.Experiment(
+                orders_per_session=tt.RatioOfMeans(
+                    "orders",
+                    "sessions",
+                    "orders_covariate",
+                    "sessions_covariate",
+                ),
+            )
+
+            data = tt.make_users_data(seed=42, covariates=True)
+            result = experiment.analyze(data)
+            print(result)
+            #>             metric control treatment rel_effect_size rel_effect_size_ci  pvalue
+            #> orders_per_session   0.262     0.293             12%        [4.2%, 21%] 0.00229
+            ```
+        """  # noqa: E501
         self.numer = tea_tasting.utils.check_scalar(numer, "numer", typ=str)
         self.denom = tea_tasting.utils.check_scalar(denom, "denom", typ=str | None)
         self.numer_covariate = tea_tasting.utils.check_scalar(
@@ -336,7 +371,44 @@ class Mean(RatioOfMeans):  # noqa: D101
                 in the control variant,
             - `"less"`: the mean in the treatment variant is less than the mean
                 in the control variant.
-        """
+
+        Examples:
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                orders_per_user=tt.Mean("orders"),
+                revenue_per_user=tt.Mean("revenue"),
+            )
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            print(result)
+            #>           metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            #>  orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+            #> revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+            ```
+
+            With CUPED:
+
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                orders_per_user=tt.Mean("orders", "orders_covariate"),
+                revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
+            )
+
+            data = tt.make_users_data(seed=42, covariates=True)
+            result = experiment.analyze(data)
+            print(result)
+            #>           metric control treatment rel_effect_size rel_effect_size_ci  pvalue
+            #>  orders_per_user   0.523     0.581             11%        [2.9%, 20%] 0.00733
+            #> revenue_per_user    5.12      5.85             14%        [3.8%, 26%] 0.00675
+            ```
+        """  # noqa: E501
         super().__init__(
             numer=value,
             denom=None,
