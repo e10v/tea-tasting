@@ -51,7 +51,7 @@ class AggrCols(NamedTuple):
     """Columns to be aggregated for a metric analysis.
 
     Attributes:
-        has_count: If True, include the sample size.
+        has_count: If `True`, include the sample size.
         mean_cols: Column names for calculation of sample means.
         var_cols: Column names for calculation of sample variances.
         cov_cols: Pairs of column names for calculation of sample covariances.

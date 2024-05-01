@@ -33,11 +33,12 @@ def check_scalar(
         value: Parameter value.
         name: Parameter name.
         typ: Acceptable data types.
-        ge: If not None, check that the parameter value is greater than or equal to ge.
-        gt: If not None, check that the parameter value is greater than gt.
-        le: If not None, check that the parameter value is less than or equal to le.
-        lt: If not None, check that the parameter value is less than lt.
-        in_: If not None, check that the parameter value is in in_.
+        ge: If not `None`, check that the parameter value is greater than
+            or equal to `ge`.
+        gt: If not `None`, check that the parameter value is greater than `gt`.
+        le: If not `None`, check that the parameter value is less than or equal to `le`.
+        lt: If not `None`, check that the parameter value is less than `lt`.
+        in_: If not `None`, check that the parameter value is in `in_`.
 
     Returns:
         Parameter value.
@@ -97,12 +98,12 @@ def format_num(
     Args:
         val: Number to format.
         sig: Number of significant digits.
-        pct: If True, format as a percentage.
-        nan: Replacement for None and NaN values.
+        pct: If `True`, format as a percentage.
+        nan: Replacement for `None` and `nan` values.
         inf: Replacement for infinite values.
         fixed_point_limit: Limit, below which number is formatted as exponential.
-        thousands_sep: Thousands separator. If None, the value from locales is used.
-        decimal_point: Decimal point symbol. If None, the value from locales is used.
+        thousands_sep: Thousands separator. If `None`, the value from locales is used.
+        decimal_point: Decimal point symbol. If `None`, the value from locales is used.
 
     Returns:
         Formatted number.
@@ -154,13 +155,16 @@ def div(
     Args:
         numer: Numerator.
         denom: Denominator.
-        fill_zero_div: Result if denominator is zero. If "auto", return:
-            nan if numer == 0,
-            inf if numer > 0,
-            -inf if numer < 0.
+        fill_zero_div: Result if denominator is zero.
 
     Returns:
         Result of the division.
+
+    If `fill_zero_div` is equal `"auto"`, return:
+
+    - `nan` if numerator is equal to `0`,
+    - `inf` if numerator is greater than `0`,
+    - `-inf` if numerator is less than `0`.
     """
     if denom != 0:
         return numer / denom

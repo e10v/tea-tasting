@@ -63,25 +63,27 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult]):  # noqa: D101
         equal_var: bool | None = None,
         use_t: bool | None = None,
     ) -> None:
-        """Ratio of means.
+        """Metric for the analysis of ratios of means.
 
         Args:
             numer: Numerator column name.
             denom: Denominator column name.
             numer_covariate: Covariate numerator column name.
             denom_covariate: Covariate denominator column name.
-            alternative: Alternative hypothesis. Options:
-                "two-sided": the means are unequal,
-                "greater": the mean in the treatment variant is greater than the mean
-                    in the control variant,
-                "less": the mean in the treatment variant is less than the mean
-                    in the control variant.
+            alternative: Alternative hypothesis.
             confidence_level: Confidence level for the confidence interval.
-            equal_var: Defines whether equal variance is assumed. If True,
+            equal_var: Defines whether equal variance is assumed. If `True`,
                 pooled variance is used for the calculation of the standard error
                 of the difference between two means.
-            use_t: Defines whether to use the Student's t-distribution (True) or
-                the Normal distribution (False).
+            use_t: Defines whether to use the Student's t-distribution (`True`) or
+                the Normal distribution (`False`).
+
+        Alternative hypothesis options:
+            - `"two-sided"`: the means are unequal,
+            - `"greater"`: the mean in the treatment variant is greater than the mean
+                in the control variant,
+            - `"less"`: the mean in the treatment variant is less than the mean
+                in the control variant.
         """
         self.numer = tea_tasting.utils.check_scalar(numer, "numer", typ=str)
         self.denom = tea_tasting.utils.check_scalar(denom, "denom", typ=str | None)
@@ -315,23 +317,25 @@ class Mean(RatioOfMeans):  # noqa: D101
         equal_var: bool | None = None,
         use_t: bool | None = None,
     ) -> None:
-        """Value mean.
+        """Metric for the analysis of means.
 
         Args:
             value: Metric value column name.
             covariate: Metric covariate column name.
-            alternative: Alternative hypothesis. Options:
-                "two-sided": the means are unequal,
-                "greater": the mean in the treatment variant is greater than the mean
-                    in the control variant,
-                "less": the mean in the treatment variant is less than the mean
-                    in the control variant.
+            alternative: Alternative hypothesis.
             confidence_level: Confidence level for the confidence interval.
-            equal_var: Defines whether equal variance is assumed. If True,
+            equal_var: Defines whether equal variance is assumed. If `True`,
                 pooled variance is used for the calculation of the standard error
                 of the difference between two means.
-            use_t: Defines whether to use the Student's t-distribution (True) or
-                the Normal distribution (False).
+            use_t: Defines whether to use the Student's t-distribution (`True`) or
+                the Normal distribution (`False`).
+
+        Alternative hypothesis options:
+            - `"two-sided"`: the means are unequal,
+            - `"greater"`: the mean in the treatment variant is greater than the mean
+                in the control variant,
+            - `"less"`: the mean in the treatment variant is less than the mean
+                in the control variant.
         """
         super().__init__(
             numer=value,

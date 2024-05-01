@@ -53,9 +53,9 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
         """Return aggregates that do not raise an error on division by zero.
 
         Division by zero returns:
-            nan if numerator == 0,
-            inf if numerator > 0,
-            -inf if numerator < 0.
+            - `nan` if numerator is equal to `0`,
+            - `inf` if numerator is greater than `0`,
+            - `-inf` if numerator is less than `0`.
         """
         return Aggregates(
             count_=None if self.count_ is None else tea_tasting.utils.Int(self.count_),
@@ -68,7 +68,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
         """Sample size (number of observations).
 
         Raises:
-            RuntimeError: Count is None (if it was not defined during initialization).
+            RuntimeError: Count is `None` (if it was not defined during initialization).
 
         Returns:
             Sample size (number of observations).
@@ -80,7 +80,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
     def mean(self, name: str | None) -> float | int:
         """Sample mean.
 
-        Assume the variable is a constant 1 if the variable name is None.
+        Assume the variable is a constant `1` if the variable name is `None`.
 
         Args:
             name: Variable name.
@@ -95,7 +95,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
     def var(self, name: str | None) -> float | int:
         """Sample variance.
 
-        Assume the variable is a constant if the variable name is None.
+        Assume the variable is a constant if the variable name is `None`.
 
         Args:
             name: Variable name.
@@ -110,7 +110,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
     def cov(self, left: str | None, right: str | None) -> float | int:
         """Sample covariance.
 
-        Assume the variable is a constant if the variable name is None.
+        Assume the variable is a constant if the variable name is `None`.
 
         Args:
             left: First variable name.
@@ -138,8 +138,8 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
             Sample variance of the ratio of two variables.
 
         References:
-            [Delta method](https://en.wikipedia.org/wiki/Delta_method).
-            [Taylor expansions for the moments of functions of random variables](https://en.wikipedia.org/wiki/Taylor_expansions_for_the_moments_of_functions_of_random_variables).
+            - [Delta method](https://en.wikipedia.org/wiki/Delta_method).
+            - [Taylor expansions for the moments of functions of random variables](https://en.wikipedia.org/wiki/Taylor_expansions_for_the_moments_of_functions_of_random_variables).
         """
         numer_mean_sq = self.mean(numer) * self.mean(numer)
         denom_mean_sq = self.mean(denom) * self.mean(denom)
@@ -168,8 +168,8 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
             Sample covariance of the ratios of variables.
 
         References:
-            [Delta method](https://en.wikipedia.org/wiki/Delta_method).
-            [Taylor expansions for the moments of functions of random variables](https://en.wikipedia.org/wiki/Taylor_expansions_for_the_moments_of_functions_of_random_variables).
+            - [Delta method](https://en.wikipedia.org/wiki/Delta_method).
+            - [Taylor expansions for the moments of functions of random variables](https://en.wikipedia.org/wiki/Taylor_expansions_for_the_moments_of_functions_of_random_variables).
         """
         left_ratio_of_means = self.mean(left_numer) / self.mean(left_denom)
         right_ratio_of_means = self.mean(right_numer) / self.mean(right_denom)
@@ -264,8 +264,8 @@ def read_aggregates(
     Args:
         data: Granular data.
         group_col: Column name to group by before aggregation.
-            If None, total aggregates are calculated.
-        has_count: If True, calculate the sample size.
+            If `None`, total aggregates are calculated.
+        has_count: If `True`, calculate the sample size.
         mean_cols: Column names for calculation of sample means.
         var_cols: Column names for calculation of sample variances.
         cov_cols: Pairs of column names for calculation of sample covariances.

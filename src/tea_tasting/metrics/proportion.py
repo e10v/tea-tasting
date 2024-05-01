@@ -45,18 +45,20 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
         method: Literal["auto", "binom", "norm"] = "auto",
         correction: bool = True,
     ) -> None:
-        """Sample ratio mismatch check.
+        """Metric for sample ratio mismatch check.
 
         Args:
             ratio: Expected ratio of the number of observations in the treatment
                 relative to the control.
-            method: Statistical test used for calculation of p-value. Options:
-                "auto": Apply exact binomial test if the total number of observations
-                    is < 1000; or normal approximation otherwise.
-                "binom": Apply exact binomial test.
-                "norm": Apply normal approximation of the binomial distribution.
-            correction: If True, add continuity correction.
+            method: Statistical test used for calculation of p-value.
+            correction: If `True`, add continuity correction.
                 Only for normal approximation.
+
+        Method options:
+            - `"auto"`: Apply exact binomial test if the total number of observations
+                is < 1000; or normal approximation otherwise.
+            - `"binom"`: Apply exact binomial test.
+            - `"norm"`: Apply normal approximation of the binomial distribution.
         """
         if isinstance(ratio, dict):
             for val in ratio.values():

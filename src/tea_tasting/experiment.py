@@ -60,13 +60,23 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
 
         Args:
             names: Metric attribute names. If an attribute is not defined
-                for a metric it's assumed to be None.
+                for a metric it's assumed to be `None`.
             formatter: Custom formatter function. It should accept a dictionary
                 of metric result attributes and an attribute name, and return
                 a formatted attribute value.
 
         Returns:
             Pandas Dataframe with formatted values.
+
+        Default formatting rules:
+            - If a name starts with `"rel_"` consider it a percentage value.
+                Round percentage values to 2 significant digits, multiply by `100`
+                and add `"%"`.
+            - Round other values to 3 significant values.
+            - If value is less than `0.001`, format it in exponential presentation.
+            - If a name ends with `"_ci"`, consider it a confidence interval.
+                Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
+                and format the interval as `"[{lower_bound}, {lower_bound}]"`.
         """
         records: list[dict[str, Any]] = []
         for key, val in self.items():
@@ -92,13 +102,23 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
 
         Args:
             names: Metric attribute names. If an attribute is not defined
-                for a metric it's assumed to be None.
+                for a metric it's assumed to be `None`.
             formatter: Custom formatter function. It should accept a dictionary
                 of metric result attributes and an attribute name, and return
                 a formatted attribute value.
 
         Returns:
             A string with formatted values.
+
+        Default formatting rules:
+            - If a name starts with `"rel_"` consider it a percentage value.
+                Round percentage values to 2 significant digits, multiply by `100`
+                and add `"%"`.
+            - Round other values to 3 significant values.
+            - If value is less than `0.001`, format it in exponential presentation.
+            - If a name ends with `"_ci"`, consider it a confidence interval.
+                Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
+                and format the interval as `"[{lower_bound}, {lower_bound}]"`.
         """
         return self.to_pretty(names=names, formatter=formatter).to_string(index=False)
 
@@ -119,13 +139,23 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
 
         Args:
             names: Metric attribute names. If an attribute is not defined
-                for a metric it's assumed to be None.
+                for a metric it's assumed to be `None`.
             formatter: Custom formatter function. It should accept a dictionary
                 of metric result attributes and an attribute name, and return
                 a formatted attribute value.
 
         Returns:
             A table with results rendered as HTML.
+
+        Default formatting rules:
+            - If a name starts with `"rel_"` consider it a percentage value.
+                Round percentage values to 2 significant digits, multiply by `100`
+                and add `"%"`.
+            - Round other values to 3 significant values.
+            - If value is less than `0.001`, format it in exponential presentation.
+            - If a name ends with `"_ci"`, consider it a confidence interval.
+                Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
+                and format the interval as `"[{lower_bound}, {lower_bound}]"`.
         """
         return self.to_pretty(names=names, formatter=formatter).to_html(index=False)
 
@@ -148,7 +178,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         variant: str = "variant",
         **kw_metrics: tea_tasting.metrics.MetricBase[Any],
     ) -> None:
-        """Experiment.
+        """Experiment definition: metrics and variant column.
 
         Args:
             metrics: Dictionary of metrics with metric names as keys.
@@ -199,9 +229,9 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
         Args:
             data: Experimental data.
-            control: Control variant. If None, the variant with the minimal ID
+            control: Control variant. If `None`, the variant with the minimal ID
                 is used as a control.
-            all_variants: If True, analyze all pairs of variants. Otherwise,
+            all_variants: If `True`, analyze all pairs of variants. Otherwise,
                 analyze only one pair of variants.
 
         Returns:
