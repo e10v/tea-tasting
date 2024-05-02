@@ -8,11 +8,11 @@ repo_url: https://github.com/e10v/tea-tasting
 
 nav:
   - Overview: index.md
-  - Getting started: getting-started.md
+  - User guide: user-guide.md
   - API reference:
-    - api/index.md
+    - API reference: api/index.md
     - Metrics:
-      - api/metrics/index.md
+      - Metrics: api/metrics/index.md
       - Base: api/metrics/base.md
       - Mean: api/metrics/mean.md
       - Proportion: api/metrics/proportion.md
@@ -44,7 +44,7 @@ theme:
         icon: material/brightness-4
         name: Switch to system preference
   logo: assets/tea-cup-white.svg
-  favicon: assets/tea-cup-black.svg
+  favicon: assets/tea-cup-white-on-black.svg
   icon:
     repo: fontawesome/brands/github
   features:
@@ -67,7 +67,6 @@ plugins:
             filters: ["!^_"]
             heading_level: 1
             inherited_members: true
-            members_order: source
             merge_init_into_class: true
             show_root_heading: true
   - search

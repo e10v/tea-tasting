@@ -114,7 +114,7 @@ def test_ratio_of_means_analyze_table(table: ibis.expr.types.Table):
         numer_covariate="orders_covariate",
     )
     result = metric.analyze(table, 0, 1, variant="variant")
-    assert isinstance(result, tea_tasting.metrics.mean.MeansResult)
+    assert isinstance(result, tea_tasting.metrics.mean.MeanResult)
 
 def test_ratio_of_means_analyze_df(dataframe: pd.DataFrame):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
@@ -122,12 +122,12 @@ def test_ratio_of_means_analyze_df(dataframe: pd.DataFrame):
         denom="sessions",
     )
     result = metric.analyze(dataframe, 0, 1, variant="variant")
-    assert isinstance(result, tea_tasting.metrics.mean.MeansResult)
+    assert isinstance(result, tea_tasting.metrics.mean.MeanResult)
 
 def test_ratio_of_means_analyze_basic(data: dict[str, tea_tasting.aggr.Aggregates]):
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders")
     result = metric.analyze(data, 0, 1)
-    assert isinstance(result, tea_tasting.metrics.mean.MeansResult)
+    assert isinstance(result, tea_tasting.metrics.mean.MeanResult)
     assert result.control == pytest.approx(0.5660377358490566)
     assert result.treatment == pytest.approx(0.3829787234042553)
     assert result.effect_size == pytest.approx(-0.18305901244480127)
@@ -149,7 +149,7 @@ def test_ratio_of_means_analyze_ratio_greater_equal_var(
         equal_var=True,
     )
     result = metric.analyze(data, 0, 1)
-    assert isinstance(result, tea_tasting.metrics.mean.MeansResult)
+    assert isinstance(result, tea_tasting.metrics.mean.MeanResult)
     assert result.control == pytest.approx(0.2857142857142857)
     assert result.treatment == pytest.approx(0.20224719101123595)
     assert result.effect_size == pytest.approx(-0.08346709470304975)
@@ -173,7 +173,7 @@ def test_ratio_of_means_analyze_ratio_less_use_norm(
         use_t=False,
     )
     result = metric.analyze(data, 0, 1)
-    assert isinstance(result, tea_tasting.metrics.mean.MeansResult)
+    assert isinstance(result, tea_tasting.metrics.mean.MeanResult)
     assert result.control == pytest.approx(0.25572348175909004)
     assert result.treatment == pytest.approx(0.23549786496156158)
     assert result.effect_size == pytest.approx(-0.020225616797528462)
@@ -207,11 +207,11 @@ def test_mean(data: dict[str, tea_tasting.aggr.Aggregates]):
 
 
 def _compare_results(
-    left: tea_tasting.metrics.mean.MeansResult,
-    right: tea_tasting.metrics.mean.MeansResult,
+    left: tea_tasting.metrics.mean.MeanResult,
+    right: tea_tasting.metrics.mean.MeanResult,
 ) -> None:
-    assert isinstance(left, tea_tasting.metrics.mean.MeansResult)
-    assert isinstance(right, tea_tasting.metrics.mean.MeansResult)
+    assert isinstance(left, tea_tasting.metrics.mean.MeanResult)
+    assert isinstance(right, tea_tasting.metrics.mean.MeanResult)
     assert left.control == pytest.approx(right.control)
     assert left.treatment == pytest.approx(right.treatment)
     assert left.effect_size == pytest.approx(right.effect_size)

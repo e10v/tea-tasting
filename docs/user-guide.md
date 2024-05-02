@@ -14,7 +14,7 @@ Begin with this simple example to understand the basic functionality:
 import tea_tasting as tt
 
 
-users_data = tt.make_users_data(seed=42)
+data = tt.make_users_data(seed=42)
 
 experiment = tt.Experiment(
     sessions_per_user=tt.Mean("sessions"),
@@ -23,8 +23,13 @@ experiment = tt.Experiment(
     revenue_per_user=tt.Mean("revenue"),
 )
 
-experiment_results = experiment.analyze(users_data)
-print(experiment_results.to_pandas())
+result = experiment.analyze(data)
+print(result)
+#>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
+#>  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+#> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+#>    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+#>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 ```
 
 In the following sections, each step of this process will be explained in detail.
@@ -108,28 +113,25 @@ You can change the default values of these four parameters using global settings
 After defining an experiment and metrics, you can analyze the experiment data using the `analyze` method of the `Experiment` class. This method takes data as an input and returns an `ExperimentResult` object with experiment result.
 
 ```python
-experiment_results = experiment.analyze(users_data)
+result = experiment.analyze(data)
 ```
 
 By default, **tea-tasting** assumes that the variant with the lowest ID is a control. Change the default behavior using the `control` parameter:
 
 ```python
-experiment_results = experiment.analyze(users_data, control=0)
+result = experiment.analyze(data, control=0)
 ```
 
 `ExperimentResult` is a mapping. Get a metric's analysis result using metric name as a key.
 
 ```python
-print(experiment_results["sessions_per_user"])
-```
-
-`ExperimentResult` provides two methods to serialize and view the experiment result (and more to come):
-
-- `to_dicts()`: Return a sequence of dictionaries, each corresponding to a metric.
-- `to_pandas()`: Return a Pandas DataFrame, each row corresponding to a metric.
-
-```python
-print(experiment_results.to_pandas())
+print(result["orders_per_user"])
+#> MeanResult(control=0.5304003954522986, treatment=0.5730905412240769,
+#> effect_size=0.04269014577177832, effect_size_ci_lower=-0.010800201598205564,
+#> effect_size_ci_upper=0.0961804931417622, rel_effect_size=0.08048664016431273,
+#> rel_effect_size_ci_lower=-0.019515294044062048,
+#> rel_effect_size_ci_upper=0.19068800612788883, pvalue=0.11773177998716244,
+#> statistic=1.5647028839586694)
 ```
 
 The fields in the result depend on metrics. For `Mean` and `RatioOfMeans`, the fields include:
@@ -146,6 +148,43 @@ The fields in the result depend on metrics. For `Mean` and `RatioOfMeans`, the f
 - `pvalue`: P-value
 - `statistic`: Statistic (standardized effect size).
 
+`ExperimentResult` provides the following methods to serialize and view the experiment result:
+
+- `to_dicts`: Convert the result to a sequence of dictionaries.
+- `to_pandas`: Convert the result to a Pandas DataFrame.
+- `to_pretty`: Convert the result to a Pandas Dataframe with formatted values (as strings).
+- `to_string`: Convert the result to a string.
+- `to_html`: Convert the result to HTML.
+
+`print(result)` is the same as `print(result.to_string())`.
+
+```python
+print(result)
+#>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
+#>  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+#> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+#>    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+#>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+```
+
+By default, methods `to_pretty`, `to_string`, and `to_html` return a predefined list of attributes. This list can be customized:
+
+```python
+print(result.to_string(names=(
+    "control",
+    "treatment",
+    "effect_size",
+    "effect_size_ci",
+)))
+#>             metric control treatment effect_size     effect_size_ci
+#>  sessions_per_user    2.00      1.98     -0.0132  [-0.0750, 0.0485]
+#> orders_per_session   0.266     0.289      0.0233 [-0.00246, 0.0491]
+#>    orders_per_user   0.530     0.573      0.0427  [-0.0108, 0.0962]
+#>   revenue_per_user    5.24      5.73       0.489     [-0.133, 1.11]
+```
+
+In Jupyter and IPython, the output of the line `result` will be a rendered HTML table.
+
 ## More features
 
 ### Variance reduction with CUPED/CUPAC
@@ -155,7 +194,10 @@ The fields in the result depend on metrics. For `Mean` and `RatioOfMeans`, the f
 Example usage:
 
 ```python
-users_data = tt.make_users_data(seed=42, covariates=True)
+import tea_tasting as tt
+
+
+data = tt.make_users_data(seed=42, covariates=True)
 
 experiment = tt.Experiment(
     sessions_per_user=tt.Mean("sessions", "sessions_covariate"),
@@ -169,8 +211,13 @@ experiment = tt.Experiment(
     revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
 )
 
-experiment_results = experiment.analyze(users_data)
-print(experiment_results.to_pandas())
+result = experiment.analyze(data)
+print(result)
+#>             metric control treatment rel_effect_size rel_effect_size_ci  pvalue
+#>  sessions_per_user    2.00      1.98          -0.68%      [-3.2%, 1.9%]   0.603
+#> orders_per_session   0.262     0.293             12%        [4.2%, 21%] 0.00229
+#>    orders_per_user   0.523     0.581             11%        [2.9%, 20%] 0.00733
+#>   revenue_per_user    5.12      5.85             14%        [3.8%, 26%] 0.00675
 ```
 
 Set the `covariates` parameter of the `make_users_data` functions to `True` to add the following columns with pre-experimental data:
@@ -191,13 +238,18 @@ The `SampleRatio` class in **tea-tasting** detects mismatches in the sample rati
 Example usage:
 
 ```python
+import tea_tasting as tt
+
+
 experiment = tt.Experiment(
-    sessions_per_user=tt.Mean("sessions"),
-    orders_per_session=tt.RatioOfMeans("orders", "sessions"),
-    orders_per_user=tt.Mean("orders"),
-    revenue_per_user=tt.Mean("revenue"),
     sample_ratio=tt.SampleRatio(),
 )
+
+data = tt.make_users_data(seed=42)
+result = experiment.analyze(data)
+print(result.to_string(("control", "treatment", "pvalue")))
+#>       metric control treatment pvalue
+#> sample_ratio    2023      1977  0.477
 ```
 
 By default, `SampleRatio` expects equal number of observations across all variants. To specify a different ratio, use the `ratio` parameter. It accepts two types of values:
@@ -227,34 +279,53 @@ In **tea-tasting**, you can change defaults for the following parameters:
 - `equal_var`: If `False`, assume unequal population variances in calculation of the standard deviation and the number of degrees of freedom. Otherwise, assume equal population variance and calculate pooled standard deviation.
 - `use_t`: If `True`, use Student's t-distribution in p-value and confidence interval calculations. Otherwise use Normal distribution.
 
-Use `set_config` to set a global option value:
-
-```python
-tt.set_config(confidence_level=0.9)
-```
-
-Use `config_context` to temporarily set a global option value within a context:
-
-```python
-with tt.config_context(confidence_level=0.9):
-    experiment = tt.Experiment(
-        sessions_per_user=tt.Mean("sessions"),
-        orders_per_session=tt.RatioOfMeans("orders", "sessions"),
-        orders_per_user=tt.Mean("orders"),
-        revenue_per_user=tt.Mean("revenue"),
-    )
-```
-
 Use `get_config` with the option name as a parameter to get a global option value:
 
 ```python
-default_pvalue = tt.get_config("confidence_level")
+import tea_tasting as tt
+
+
+tt.get_config("equal_var")
+#> False
 ```
 
 Use `get_config` without parameters to get a dictionary of global options:
 
 ```python
 global_config = tt.get_config()
+```
+
+Use `set_config` to set a global option value:
+
+```python
+tt.set_config(equal_var=True, use_t=False)
+
+experiment = tt.Experiment(
+    sessions_per_user=tt.Mean("sessions"),
+    orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+    orders_per_user=tt.Mean("orders"),
+    revenue_per_user=tt.Mean("revenue"),
+)
+
+experiment.metrics["orders_per_user"]
+#> Mean(value='orders', covariate=None, alternative='two-sided',
+#> confidence_level=0.95, equal_var=True, use_t=False)
+```
+
+Use `config_context` to temporarily set a global option value within a context:
+
+```python
+with tt.config_context(equal_var=True, use_t=False):
+    experiment = tt.Experiment(
+        sessions_per_user=tt.Mean("sessions"),
+        orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+        orders_per_user=tt.Mean("orders"),
+        revenue_per_user=tt.Mean("revenue"),
+    )
+
+experiment.metrics["orders_per_user"]
+#> Mean(value='orders', covariate=None, alternative='two-sided',
+#> confidence_level=0.95, equal_var=True, use_t=False)
 ```
 
 ### More than two variants

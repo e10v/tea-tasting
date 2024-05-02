@@ -1,4 +1,4 @@
-"""Analysis of proportions."""
+"""Metrics for the analysis of proportions."""
 
 from __future__ import annotations
 
@@ -45,18 +45,53 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
         method: Literal["auto", "binom", "norm"] = "auto",
         correction: bool = True,
     ) -> None:
-        """Sample ratio mismatch check.
+        """Metric for sample ratio mismatch check.
 
         Args:
-            ratio: Expected ratio of the number of observation in treatment
-                relative to control.
-            method: Statistical test used for calculation of p-value. Options:
-                "auto": Apply exact binomial test if the total number of observations
-                    is < 1000, or normal approximation otherwise.
-                "binom": Apply exact binomial test.
-                "norm": Apply normal approximation of the binomial distribution.
-            correction: If True, add continuity correction.
+            ratio: Expected ratio of the number of observations in the treatment
+                relative to the control.
+            method: Statistical test used for calculation of p-value.
+            correction: If `True`, add continuity correction.
                 Only for normal approximation.
+
+        Method options:
+            - `"auto"`: Apply exact binomial test if the total number of observations
+                is < 1000; or normal approximation otherwise.
+            - `"binom"`: Apply exact binomial test.
+            - `"norm"`: Apply normal approximation of the binomial distribution.
+
+        Examples:
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                sample_ratio=tt.SampleRatio(),
+            )
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            print(result.to_string(("control", "treatment", "pvalue")))
+            #>       metric control treatment pvalue
+            #> sample_ratio    2023      1977  0.477
+            ```
+
+            Different expected ratio:
+
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                sample_ratio=tt.SampleRatio(0.5),
+            )
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            print(result.to_string(("control", "treatment", "pvalue")))
+            #>       metric control treatment    pvalue
+            #> sample_ratio    2023      1977 3.26e-103
+            ```
         """
         if isinstance(ratio, dict):
             for val in ratio.values():
@@ -72,7 +107,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
 
     @property
     def aggr_cols(self) -> AggrCols:
-        """Columns to aggregate for a metric analysis."""
+        """Columns to be aggregated for a metric analysis."""
         return AggrCols(has_count=True)
 
 
@@ -84,7 +119,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
         treatment: Any,
         variant: str | None = None,
     ) -> SampleRatioResult:
-        """Perform sample ratio mismatch check.
+        """Perform a sample ratio mismatch check.
 
         Args:
             data: Experimental data.
@@ -135,5 +170,5 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
         control: tea_tasting.aggr.Aggregates,
         treatment: tea_tasting.aggr.Aggregates,
     ) -> SampleRatioResult:
-        """Method stub for compatibility with the base class."""
+        """Stub method for compatibility with the base class."""
         raise NotImplementedError

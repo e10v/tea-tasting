@@ -33,7 +33,7 @@ class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
         treatment: Any,
         variant: str,
     ) -> R:
-        """Analyze metric in an experiment.
+        """Analyze a metric in an experiment.
 
         Args:
             data: Experimental data.
@@ -48,10 +48,10 @@ class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
 
 
 class AggrCols(NamedTuple):
-    """Columns to aggregate for a metric analysis.
+    """Columns to be aggregated for a metric analysis.
 
     Attributes:
-        has_count: If True, include the sample size.
+        has_count: If `True`, include the sample size.
         mean_cols: Column names for calculation of sample means.
         var_cols: Column names for calculation of sample variances.
         cov_cols: Pairs of column names for calculation of sample covariances.
@@ -62,13 +62,13 @@ class AggrCols(NamedTuple):
     cov_cols: Sequence[tuple[str, str]] = ()
 
     def __or__(self, other: AggrCols) -> AggrCols:
-        """Combine columns, exclude duplicates.
+        """Merge two aggregation column specifications.
 
         Args:
             other: Second objects.
 
         Returns:
-            Combined columns.
+            Merged column specifications.
         """
         return AggrCols(
             has_count=self.has_count or other.has_count,
@@ -98,7 +98,7 @@ class MetricBaseAggregated(MetricBase[R]):
     @property
     @abc.abstractmethod
     def aggr_cols(self) -> AggrCols:
-        """Columns to aggregate for a metric analysis."""
+        """Columns to be aggregated for a metric analysis."""
         ...
 
     @overload
@@ -129,7 +129,7 @@ class MetricBaseAggregated(MetricBase[R]):
         treatment: Any,
         variant: str | None = None,
     ) -> R:
-        """Analyze metric in an experiment.
+        """Analyze a metric in an experiment.
 
         Args:
             data: Experimental data.
@@ -177,13 +177,13 @@ def aggregate_by_variants(
 
     Args:
         data: Experimental data.
-        aggr_cols: Columns to aggregate.
+        aggr_cols: Columns to be aggregated.
         variant: Variant column name.
 
     Raises:
-        ValueError: variant is None, while aggregated data are not provided.
+        ValueError: The variant parameter is required but was not provided.
         TypeError: data is not an instance of DataFrame, Table,
-            or a dictionary if Aggregates.
+            or a dictionary of Aggregates.
 
     Returns:
         Experimental data as a dictionary of Aggregates.
@@ -194,12 +194,12 @@ def aggregate_by_variants(
         return data
 
     if variant is None:
-        raise ValueError("variant is None, but should be an instance of str.")
+        raise ValueError("The variant parameter is required but was not provided.")
 
     if not isinstance(data, pd.DataFrame | ibis.expr.types.Table):
         raise TypeError(
             f"data is a {type(data)}, but must be an instance of"
-            " DataFrame, Table, or a dictionary if Aggregates.",
+            " DataFrame, Table, or a dictionary of Aggregates.",
         )
 
     return tea_tasting.aggr.read_aggregates(
@@ -214,7 +214,7 @@ class MetricBaseGranular(MetricBase[R]):
     @property
     @abc.abstractmethod
     def cols(self) -> Sequence[str]:
-        """Columns to fetch for a metric analysis."""
+        """Columns to be fetched for a metric analysis."""
         ...
 
     @overload
@@ -244,7 +244,7 @@ class MetricBaseGranular(MetricBase[R]):
         treatment: Any,
         variant: str | None = None,
     ) -> R:
-        """Analyze metric in an experiment.
+        """Analyze a metric in an experiment.
 
         Args:
             data: Experimental data.
@@ -296,7 +296,7 @@ def read_dataframes(
         variant: Variant column name.
 
     Raises:
-        ValueError: variant is None, while granular data are not provided.
+        ValueError: The variant parameter is required but was not provided.
         TypeError: data is not an instance of DataFrame, Table,
             or a dictionary if DataFrames.
 
@@ -309,7 +309,7 @@ def read_dataframes(
         return data
 
     if variant is None:
-        raise ValueError("variant is None, but should be an instance of str.")
+        raise ValueError("The variant parameter is required but was not provided.")
 
     if isinstance(data, ibis.expr.types.Table):
         data = data.select(*cols, variant).to_pandas()

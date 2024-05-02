@@ -50,12 +50,12 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
         self.cov_ = {_sorted_tuple(*k): v for k, v in cov_.items()}
 
     def with_zero_div(self) -> Aggregates:
-        """Return aggregates, which don't raise an error on division by zero.
+        """Return aggregates that do not raise an error on division by zero.
 
         Division by zero returns:
-            nan if numerator == 0,
-            inf if numerator > 0,
-            -inf if numerator < 0.
+            - `nan` if numerator is equal to `0`,
+            - `inf` if numerator is greater than `0`,
+            - `-inf` if numerator is less than `0`.
         """
         return Aggregates(
             count_=None if self.count_ is None else tea_tasting.utils.Int(self.count_),
@@ -68,7 +68,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
         """Sample size (number of observations).
 
         Raises:
-            RuntimeError: Count is None (it wasn't defined at init).
+            RuntimeError: Count is `None` (if it was not defined during initialization).
 
         Returns:
             Sample size (number of observations).
@@ -79,6 +79,8 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
 
     def mean(self, name: str | None) -> float | int:
         """Sample mean.
+
+        Assume the variable is a constant `1` if the variable name is `None`.
 
         Args:
             name: Variable name.
@@ -93,6 +95,8 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
     def var(self, name: str | None) -> float | int:
         """Sample variance.
 
+        Assume the variable is a constant if the variable name is `None`.
+
         Args:
             name: Variable name.
 
@@ -105,6 +109,8 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
 
     def cov(self, left: str | None, right: str | None) -> float | int:
         """Sample covariance.
+
+        Assume the variable is a constant if the variable name is `None`.
 
         Args:
             left: First variable name.
@@ -124,16 +130,16 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
     ) -> float | int:
         """Sample variance of the ratio of two variables using the Delta method.
 
-        References:
-            [Delta method](https://en.wikipedia.org/wiki/Delta_method).
-            [Taylor expansions for the moments of functions of random variables](https://en.wikipedia.org/wiki/Taylor_expansions_for_the_moments_of_functions_of_random_variables).
-
         Args:
             numer: Numerator variable name.
             denom: Denominator variable name.
 
         Returns:
             Sample variance of the ratio of two variables.
+
+        References:
+            - [Delta method](https://en.wikipedia.org/wiki/Delta_method).
+            - [Taylor expansions for the moments of functions of random variables](https://en.wikipedia.org/wiki/Taylor_expansions_for_the_moments_of_functions_of_random_variables).
         """
         numer_mean_sq = self.mean(numer) * self.mean(numer)
         denom_mean_sq = self.mean(denom) * self.mean(denom)
@@ -152,10 +158,6 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
     ) -> float | int:
         """Sample covariance of the ratios of variables using the Delta method.
 
-        References:
-            [Delta method](https://en.wikipedia.org/wiki/Delta_method).
-            [Taylor expansions for the moments of functions of random variables](https://en.wikipedia.org/wiki/Taylor_expansions_for_the_moments_of_functions_of_random_variables).
-
         Args:
             left_numer: First numerator variable name.
             left_denom: First denominator variable name.
@@ -164,6 +166,10 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
 
         Returns:
             Sample covariance of the ratios of variables.
+
+        References:
+            - [Delta method](https://en.wikipedia.org/wiki/Delta_method).
+            - [Taylor expansions for the moments of functions of random variables](https://en.wikipedia.org/wiki/Taylor_expansions_for_the_moments_of_functions_of_random_variables).
         """
         left_ratio_of_means = self.mean(left_numer) / self.mean(left_denom)
         right_ratio_of_means = self.mean(right_numer) / self.mean(right_denom)
@@ -176,7 +182,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
         ) / self.mean(left_denom) / self.mean(right_denom)
 
     def __add__(self, other: Aggregates) -> Aggregates:
-        """Calculate aggregated statistics of the concatenation of two samples.
+        """Calculate the aggregated statistics of the concatenation of two samples.
 
         Samples are assumed to be independent.
 
@@ -253,13 +259,13 @@ def read_aggregates(
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
 ) -> dict[Any, Aggregates] | Aggregates:
-    """Read aggregated statistics from an Ibis Table or a Pandas DataFrame.
+    """Extract aggregated statistics from an Ibis Table or a Pandas DataFrame.
 
     Args:
         data: Granular data.
         group_col: Column name to group by before aggregation.
-            If None, total aggregates are calculated.
-        has_count: If True, calculate the sample size.
+            If `None`, total aggregates are calculated.
+        has_count: If `True`, calculate the sample size.
         mean_cols: Column names for calculation of sample means.
         var_cols: Column names for calculation of sample variances.
         cov_cols: Pairs of column names for calculation of sample covariances.

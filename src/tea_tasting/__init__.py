@@ -1,4 +1,20 @@
-"""Auto-generated API reference."""
+"""A Python package for statistical analysis of A/B tests.
+
+All classes and functions for the analysis of the experiments can be imported
+from the root `tea_tasting` module.
+
+There are functions and classes for advanced use cases such as defining custom metrics.
+They can be imported from submodules of `tea_tasting`.
+
+For convenience, the API reference is provided by submodules:
+
+- `tea_tasting.metrics`: Built-in metrics.
+- `tea_tasting.experiment`: Experiment and experiment result.
+- `tea_tasting.datasets`: Example datasets.
+- `tea_tasting.config`: Global configuration.
+- `tea_tasting.aggr`: Module for working with aggregated statistics.
+- `tea_tasting.utils`: Useful functions and classes.
+"""
 # pyright: reportUnusedImport=false
 
 from tea_tasting.config import config_context, get_config, set_config

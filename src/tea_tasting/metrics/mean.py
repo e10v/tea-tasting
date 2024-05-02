@@ -1,4 +1,4 @@
-"""Analysis of means."""
+"""Metrics for the analysis of means."""
 # ruff: noqa: PD901
 
 from __future__ import annotations
@@ -18,8 +18,8 @@ if TYPE_CHECKING:
     from typing import Literal
 
 
-class MeansResult(NamedTuple):
-    """Result of an analysis of means.
+class MeanResult(NamedTuple):
+    """Result of the analysis of means.
 
     Attributes:
         control: Control mean.
@@ -50,7 +50,7 @@ class MeansResult(NamedTuple):
     statistic: float
 
 
-class RatioOfMeans(MetricBaseAggregated[MeansResult]):  # noqa: D101
+class RatioOfMeans(MetricBaseAggregated[MeanResult]):  # noqa: D101
     def __init__(  # noqa: PLR0913
         self,
         numer: str,
@@ -63,26 +63,63 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):  # noqa: D101
         equal_var: bool | None = None,
         use_t: bool | None = None,
     ) -> None:
-        """Ratio of means.
+        """Metric for the analysis of ratios of means.
 
         Args:
             numer: Numerator column name.
             denom: Denominator column name.
             numer_covariate: Covariate numerator column name.
             denom_covariate: Covariate denominator column name.
-            alternative: Alternative hypothesis. Options:
-                "two-sided": the means are unequal.
-                "greater": the mean in the treatment variant is greater than the mean
-                    in the control variant.
-                "less": the mean in the treatment variant is less than the mean
-                    in the control variant.
+            alternative: Alternative hypothesis.
             confidence_level: Confidence level for the confidence interval.
-            equal_var: Defines whether equal variance is assumed. If True,
+            equal_var: Defines whether equal variance is assumed. If `True`,
                 pooled variance is used for the calculation of the standard error
                 of the difference between two means.
-            use_t: Defines whether to use the Student's t-distribution (True) or
-                the Normal distribution (False).
-        """
+            use_t: Defines whether to use the Student's t-distribution (`True`) or
+                the Normal distribution (`False`).
+
+        Alternative hypothesis options:
+            - `"two-sided"`: the means are unequal,
+            - `"greater"`: the mean in the treatment variant is greater than the mean
+                in the control variant,
+            - `"less"`: the mean in the treatment variant is less than the mean
+                in the control variant.
+
+        Examples:
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+            )
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            print(result)
+            #>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            #> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+            ```
+
+            With CUPED:
+
+            ```python
+            experiment = tt.Experiment(
+                orders_per_session=tt.RatioOfMeans(
+                    "orders",
+                    "sessions",
+                    "orders_covariate",
+                    "sessions_covariate",
+                ),
+            )
+
+            data = tt.make_users_data(seed=42, covariates=True)
+            result = experiment.analyze(data)
+            print(result)
+            #>             metric control treatment rel_effect_size rel_effect_size_ci  pvalue
+            #> orders_per_session   0.262     0.293             12%        [4.2%, 21%] 0.00229
+            ```
+        """  # noqa: E501
         self.numer = tea_tasting.utils.check_scalar(numer, "numer", typ=str)
         self.denom = tea_tasting.utils.check_scalar(denom, "denom", typ=str | None)
         self.numer_covariate = tea_tasting.utils.check_scalar(
@@ -113,7 +150,7 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):  # noqa: D101
 
     @property
     def aggr_cols(self) -> AggrCols:
-        """Columns to aggregate for a metric analysis."""
+        """Columns to be aggregated for a metric analysis."""
         cols = tuple(
             col for col in (
                 self.numer,
@@ -140,8 +177,8 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):  # noqa: D101
         self,
         control: tea_tasting.aggr.Aggregates,
         treatment: tea_tasting.aggr.Aggregates,
-    ) -> MeansResult:
-        """Analyze metric in an experiment using aggregated statistics.
+    ) -> MeanResult:
+        """Analyze a metric in an experiment using aggregated statistics.
 
         Args:
             control: Control data.
@@ -216,7 +253,7 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):  # noqa: D101
         treat_mean: float,
         treat_var: float,
         treat_count: int,
-    ) -> MeansResult:
+    ) -> MeanResult:
         scale, distr = self._scale_and_distr(
             contr_var=contr_var,
             contr_count=contr_count,
@@ -258,7 +295,7 @@ class RatioOfMeans(MetricBaseAggregated[MeansResult]):  # noqa: D101
 
             pvalue = 2 * distr.sf(abs(statistic))
 
-        return MeansResult(
+        return MeanResult(
             control=contr_mean,
             treatment=treat_mean,
             effect_size=effect_size,
@@ -315,24 +352,63 @@ class Mean(RatioOfMeans):  # noqa: D101
         equal_var: bool | None = None,
         use_t: bool | None = None,
     ) -> None:
-        """Value mean.
+        """Metric for the analysis of means.
 
         Args:
             value: Metric value column name.
             covariate: Metric covariate column name.
-            alternative: Alternative hypothesis. Options:
-                "two-sided": the means are unequal.
-                "greater": the mean in the treatment variant is greater than the mean
-                    in the control variant.
-                "less": the mean in the treatment variant is less than the mean
-                    in the control variant.
+            alternative: Alternative hypothesis.
             confidence_level: Confidence level for the confidence interval.
-            equal_var: Defines whether equal variance is assumed. If True,
+            equal_var: Defines whether equal variance is assumed. If `True`,
                 pooled variance is used for the calculation of the standard error
                 of the difference between two means.
-            use_t: Defines whether to use the Student's t-distribution (True) or
-                the Normal distribution (False).
-        """
+            use_t: Defines whether to use the Student's t-distribution (`True`) or
+                the Normal distribution (`False`).
+
+        Alternative hypothesis options:
+            - `"two-sided"`: the means are unequal,
+            - `"greater"`: the mean in the treatment variant is greater than the mean
+                in the control variant,
+            - `"less"`: the mean in the treatment variant is less than the mean
+                in the control variant.
+
+        Examples:
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                orders_per_user=tt.Mean("orders"),
+                revenue_per_user=tt.Mean("revenue"),
+            )
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            print(result)
+            #>           metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            #>  orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+            #> revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+            ```
+
+            With CUPED:
+
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                orders_per_user=tt.Mean("orders", "orders_covariate"),
+                revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
+            )
+
+            data = tt.make_users_data(seed=42, covariates=True)
+            result = experiment.analyze(data)
+            print(result)
+            #>           metric control treatment rel_effect_size rel_effect_size_ci  pvalue
+            #>  orders_per_user   0.523     0.581             11%        [2.9%, 20%] 0.00733
+            #> revenue_per_user    5.12      5.85             14%        [3.8%, 26%] 0.00675
+            ```
+        """  # noqa: E501
         super().__init__(
             numer=value,
             denom=None,
