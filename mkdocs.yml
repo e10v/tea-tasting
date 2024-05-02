@@ -8,7 +8,7 @@ repo_url: https://github.com/e10v/tea-tasting
 
 nav:
   - Overview: index.md
-  - Getting started: getting-started.md
+  - User guide: user-guide.md
   - API reference:
     - API reference: api/index.md
     - Metrics:
