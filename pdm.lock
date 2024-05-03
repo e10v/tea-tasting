@@ -5,7 +5,7 @@
 groups = ["default", "docs", "lint", "test"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:221f8d15faad19e5ae0603f468babf682d4ad4456d8ddd16f04791a496d15f38"
+content_hash = "sha256:6e2aedd3284c4e07b985f8b40ba0091e5001792d63ee31eb8ffc78149d494dd9"
 
 [[package]]
 name = "atpublic"
@@ -260,45 +260,45 @@ files = [
 
 [[package]]
 name = "ibis-framework"
-version = "8.0.0"
-requires_python = ">=3.9,<4.0"
-summary = "Productivity-centric Python Big Data Framework"
+version = "9.0.0"
+requires_python = "<4.0,>=3.9"
+summary = "The portable Python dataframe library"
 groups = ["default"]
 dependencies = [
     "atpublic<5,>=2.3",
     "bidict<1,>=0.22.1",
-    "multipledispatch<2,>=0.6",
-    "numpy<2,>=1",
-    "pandas<3,>=1.2.5",
+    "numpy<2,>=1.23.2",
+    "pandas<3,>=1.5.3",
     "parsy<3,>=2",
     "pyarrow-hotfix<1,>=0.4",
-    "pyarrow<16,>=2",
+    "pyarrow<17,>=10.0.1",
     "python-dateutil<3,>=2.8.2",
     "pytz>=2022.7",
     "rich<14,>=12.4.4",
-    "sqlglot<=20.11,>=18.12.0",
+    "sqlglot<23.13,>=23.4",
     "toolz<1,>=0.11",
     "typing-extensions<5,>=4.3.0",
 ]
 files = [
-    {file = "ibis_framework-8.0.0-py3-none-any.whl", hash = "sha256:9f54678ec58a8654338e31cc0b0960f2555d245c6a6249cc7748e5fd8f3a70fb"},
-    {file = "ibis_framework-8.0.0.tar.gz", hash = "sha256:20e74a0cdbd5fc03c96955fdb80ad4cc6d16518c28339e24a2b0f930bc40eeb6"},
+    {file = "ibis_framework-9.0.0-py3-none-any.whl", hash = "sha256:9ed9cb4f68fb528d2f5be2879937aa186ce54305eaf40112aa97b2ce4159bdae"},
+    {file = "ibis_framework-9.0.0.tar.gz", hash = "sha256:464c4f14febbc54625be80915df3b307bc0adc89b498ec2481b6c13358db321e"},
 ]
 
 [[package]]
 name = "ibis-framework"
-version = "8.0.0"
+version = "9.0.0"
 extras = ["pandas"]
-requires_python = ">=3.9,<4.0"
-summary = "Productivity-centric Python Big Data Framework"
+requires_python = "<4.0,>=3.9"
+summary = "The portable Python dataframe library"
 groups = ["default"]
 dependencies = [
-    "ibis-framework==8.0.0",
+    "ibis-framework==9.0.0",
+    "packaging<25,>=21.3",
     "regex>=2021.7.6",
 ]
 files = [
-    {file = "ibis_framework-8.0.0-py3-none-any.whl", hash = "sha256:9f54678ec58a8654338e31cc0b0960f2555d245c6a6249cc7748e5fd8f3a70fb"},
-    {file = "ibis_framework-8.0.0.tar.gz", hash = "sha256:20e74a0cdbd5fc03c96955fdb80ad4cc6d16518c28339e24a2b0f930bc40eeb6"},
+    {file = "ibis_framework-9.0.0-py3-none-any.whl", hash = "sha256:9ed9cb4f68fb528d2f5be2879937aa186ce54305eaf40112aa97b2ce4159bdae"},
+    {file = "ibis_framework-9.0.0.tar.gz", hash = "sha256:464c4f14febbc54625be80915df3b307bc0adc89b498ec2481b6c13358db321e"},
 ]
 
 [[package]]
@@ -498,7 +498,7 @@ files = [
 
 [[package]]
 name = "mkdocs-material"
-version = "9.5.19"
+version = "9.5.20"
 requires_python = ">=3.8"
 summary = "Documentation that simply works"
 groups = ["docs"]
@@ -516,8 +516,8 @@ dependencies = [
     "requests~=2.26",
 ]
 files = [
-    {file = "mkdocs_material-9.5.19-py3-none-any.whl", hash = "sha256:ea96e150b6c95f5e4ffe47d78bb712c7bacdd91d2a0bec47f46b6fa0705a86ec"},
-    {file = "mkdocs_material-9.5.19.tar.gz", hash = "sha256:7473e06e17e23af608a30ef583fdde8f36389dd3ef56b1d503eed54c89c9618c"},
+    {file = "mkdocs_material-9.5.20-py3-none-any.whl", hash = "sha256:ad0094a7597bcb5d0cc3e8e543a10927c2581f7f647b9bb4861600f583180f9b"},
+    {file = "mkdocs_material-9.5.20.tar.gz", hash = "sha256:986eef0250d22f70fb06ce0f4eac64cc92bd797a589ec3892ce31fad976fe3da"},
 ]
 
 [[package]]
@@ -603,16 +603,6 @@ files = [
 ]
 
 [[package]]
-name = "multipledispatch"
-version = "1.0.0"
-summary = "Multiple dispatch"
-groups = ["default"]
-files = [
-    {file = "multipledispatch-1.0.0-py3-none-any.whl", hash = "sha256:0c53cd8b077546da4e48869f49b13164bebafd0c2a5afceb6bb6a316e7fb46e4"},
-    {file = "multipledispatch-1.0.0.tar.gz", hash = "sha256:5c839915465c68206c3e9c473357908216c28383b425361e5d144594bf85a7e0"},
-]
-
-[[package]]
 name = "nodeenv"
 version = "1.8.0"
 requires_python = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*"
@@ -668,7 +658,7 @@ name = "packaging"
 version = "24.0"
 requires_python = ">=3.7"
 summary = "Core utilities for Python packages"
-groups = ["docs", "test"]
+groups = ["default", "docs", "test"]
 files = [
     {file = "packaging-24.0-py3-none-any.whl", hash = "sha256:2ddfb553fdf02fb784c234c7ba6ccc288296ceabec964ad2eae3777778130bc5"},
     {file = "packaging-24.0.tar.gz", hash = "sha256:eb82c5e3e56209074766e6885bb04b8c38a0c015d0a30036ebe7ece34c9989e9"},
@@ -839,7 +829,7 @@ files = [
 
 [[package]]
 name = "pyright"
-version = "1.1.360"
+version = "1.1.361"
 requires_python = ">=3.7"
 summary = "Command line wrapper for pyright"
 groups = ["lint"]
@@ -847,8 +837,8 @@ dependencies = [
     "nodeenv>=1.6.0",
 ]
 files = [
-    {file = "pyright-1.1.360-py3-none-any.whl", hash = "sha256:7637f75451ac968b7cf1f8c51cfefb6d60ac7d086eb845364bc8ac03a026efd7"},
-    {file = "pyright-1.1.360.tar.gz", hash = "sha256:784ddcda9745e9f5610483d7b963e9aa8d4f50d7755a9dffb28ccbeb27adce32"},
+    {file = "pyright-1.1.361-py3-none-any.whl", hash = "sha256:c50fc94ce92b5c958cfccbbe34142e7411d474da43d6c14a958667e35b9df7ea"},
+    {file = "pyright-1.1.361.tar.gz", hash = "sha256:1d67933315666b05d230c85ea8fb97aaa2056e4092a13df87b7765bb9e8f1a8d"},
 ]
 
 [[package]]
@@ -1110,13 +1100,13 @@ files = [
 
 [[package]]
 name = "sqlglot"
-version = "20.11.0"
+version = "23.12.2"
 requires_python = ">=3.7"
 summary = "An easily customizable SQL parser and transpiler"
 groups = ["default"]
 files = [
-    {file = "sqlglot-20.11.0-py3-none-any.whl", hash = "sha256:658509272da15e90dd1c59d9ca5281d7bff2e87121f87e6f9e6541067a057c9c"},
-    {file = "sqlglot-20.11.0.tar.gz", hash = "sha256:79a1510ffad1f1e4c5915751f0ed978c099e7e83cd4010ecbd471c00331b6902"},
+    {file = "sqlglot-23.12.2-py3-none-any.whl", hash = "sha256:5d63006a802482ab49a4f2e848cecb17edc4ba920395c1f226c8e7ad48fac874"},
+    {file = "sqlglot-23.12.2.tar.gz", hash = "sha256:3d887c3841d615fc97f02df73b441514ebe20576afffdf145019212a4c37e4a8"},
 ]
 
 [[package]]
