@@ -61,7 +61,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
         batch: int | None = None,
         random_state: int | np.random.Generator | np.random.SeedSequence | None = None,
     ) -> None:
-        """Metric for analysis of a statistic using confidence interval.
+        """Metric for analysis of a statistic using bootstrap.
 
         Args:
             columns: Names of the columns to be used in the analysis.
