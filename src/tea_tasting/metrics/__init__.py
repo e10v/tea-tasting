@@ -20,3 +20,4 @@ from tea_tasting.metrics.base import (
 )
 from tea_tasting.metrics.mean import Mean, RatioOfMeans
 from tea_tasting.metrics.proportion import SampleRatio
+from tea_tasting.metrics.resampling import Bootstrap

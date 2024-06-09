@@ -76,6 +76,8 @@ def auto_check(value: R, name: str) -> R:
         check_scalar(value, name, typ=bool)
     elif name == "equal_var":
         check_scalar(value, name, typ=bool)
+    elif name == "n_resamples":
+        check_scalar(value, name, typ=int, gt=0)
     elif name == "ratio":
         check_scalar(value, name, typ=float | int, gt=0)
     elif name == "use_t":

@@ -17,6 +17,7 @@ _global_config = {
     "alternative": "two-sided",
     "confidence_level": 0.95,
     "equal_var": False,
+    "n_resamples": 10_000,
     "use_t": True,
 }
 
@@ -50,6 +51,7 @@ def set_config(
     alternative: Literal["two-sided", "greater", "less"] | None = None,
     confidence_level: float | None = None,
     equal_var: bool | None = None,
+    n_resamples: int | None = None,
     use_t: bool | None = None,
     **kwargs: Any,
 ) -> None:
@@ -62,6 +64,8 @@ def set_config(
         equal_var: Defines whether equal variance is assumed. If `True`,
             pooled variance is used for the calculation of the standard error
             of the difference between two means. Default is `False`.
+        n_resamples: The number of resamples performed to form the bootstrap
+            distribution of a statistic.
         use_t: Defines whether to use the Student's t-distribution (`True`) or
             the Normal distribution (`False`) by default. Default is `True`.
         kwargs: User-defined global parameters.
@@ -104,6 +108,7 @@ def config_context(
     alternative: Literal["two-sided", "greater", "less"] | None = None,
     confidence_level: float | None = None,
     equal_var: bool | None = None,
+    n_resamples: int | None = None,
     use_t: bool | None = None,
     **kwargs: Any,
 ) -> Generator[None, Any, None]:
@@ -116,6 +121,8 @@ def config_context(
         equal_var: Defines whether equal variance is assumed. If `True`,
             pooled variance is used for the calculation of the standard error
             of the difference between two means. Default is `False`.
+        n_resamples: The number of resamples performed to form the bootstrap
+            distribution of a statistic.
         use_t: Defines whether to use the Student's t-distribution (`True`) or
             the Normal distribution (`False`) by default. Default is `True`.
         kwargs: User-defined global parameters.
