@@ -1,4 +1,4 @@
-"""Analysis using resampling methods."""
+"""Metrics with resampling methods."""
 
 from __future__ import annotations
 
@@ -128,7 +128,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):
             treatment=self.statistic(treat, axis=0),  # type: ignore
             effect_size=stat[0],
             effect_size_ci_lower=ci.low[0],
-            effect_size_ci_upper=ci.high[1],
+            effect_size_ci_upper=ci.high[0],
             rel_effect_size=stat[1],
             rel_effect_size_ci_lower=ci.low[1],
             rel_effect_size_ci_upper=ci.high[1],
