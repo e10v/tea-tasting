@@ -24,12 +24,12 @@ class MeanResult(NamedTuple):
     Attributes:
         control: Control mean.
         treatment: Treatment mean.
-        effect_size: Absolute effect size. Difference between two means.
+        effect_size: Absolute effect size. Difference between the two means.
         effect_size_ci_lower: Lower bound of the absolute effect size
             confidence interval.
         effect_size_ci_upper: Upper bound of the absolute effect size
             confidence interval.
-        rel_effect_size: Relative effect size. Difference between two means,
+        rel_effect_size: Relative effect size. Difference between the two means,
             divided by the control mean.
         rel_effect_size_ci_lower: Lower bound of the relative effect size
             confidence interval.
