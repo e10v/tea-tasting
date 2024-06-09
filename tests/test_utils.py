@@ -64,6 +64,13 @@ def test_auto_check_equal_var():
     with pytest.raises(TypeError):
         tea_tasting.utils.auto_check(0, "equal_var")
 
+def test_auto_check_n_resamples():
+    assert tea_tasting.utils.auto_check(1, "n_resamples") == 1
+    with pytest.raises(ValueError, match="must be >"):
+        tea_tasting.utils.auto_check(0, "n_resamples")
+    with pytest.raises(TypeError):
+        tea_tasting.utils.auto_check(0.5, "n_resamples")
+
 def test_auto_check_ratio():
     assert tea_tasting.utils.auto_check(1.5, "ratio") == 1.5
     with pytest.raises(TypeError):

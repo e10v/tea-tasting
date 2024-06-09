@@ -56,7 +56,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
         *,
         alternative: Literal["two-sided", "greater", "less"] | None = None,
         confidence_level: float | None = None,
-        n_resamples: int = 10_000,
+        n_resamples: int | None = None,
         method: Literal["percentile", "basic", "bca"] = "bca",
         batch: int | None = None,
         random_state: int | np.random.Generator | np.random.SeedSequence | None = None,
@@ -150,8 +150,11 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
             else tea_tasting.config.get_config("confidence_level")
         )
 
-        self.n_resamples = tea_tasting.utils.check_scalar(
-            n_resamples, "n_resamples", typ=int, gt=0)
+        self.n_resamples = (
+            tea_tasting.utils.auto_check(n_resamples, "n_resamples")
+            if n_resamples is not None
+            else tea_tasting.config.get_config("n_resamples")
+        )
 
         self.method = tea_tasting.utils.check_scalar(
             method, "method", typ=str, in_={"percentile", "basic", "bca"})

@@ -43,20 +43,30 @@ def test_bootstrap_init_default():
     assert metric.statistic == np.mean
     assert metric.alternative == tea_tasting.config.get_config("alternative")
     assert metric.confidence_level == tea_tasting.config.get_config("confidence_level")
-    assert metric.n_resamples == 10_000
+    assert metric.n_resamples == tea_tasting.config.get_config("n_resamples")
     assert metric.method == "bca"
     assert metric.batch is None
     assert metric.random_state is None
 
-    metric = tea_tasting.metrics.resampling.Bootstrap(("a", "b"), np.mean)
+def test_bootstrap_init_custom():
+    metric = tea_tasting.metrics.resampling.Bootstrap(
+        ("a", "b"),
+        np.mean,
+        alternative="greater",
+        confidence_level=0.9,
+        n_resamples=1000,
+        method="basic",
+        batch=100,
+        random_state=42,
+    )
     assert metric.columns == ("a", "b")
     assert metric.statistic == np.mean
-    assert metric.alternative == tea_tasting.config.get_config("alternative")
-    assert metric.confidence_level == tea_tasting.config.get_config("confidence_level")
-    assert metric.n_resamples == 10_000
-    assert metric.method == "bca"
-    assert metric.batch is None
-    assert metric.random_state is None
+    assert metric.alternative == "greater"
+    assert metric.confidence_level == 0.9
+    assert metric.n_resamples == 1000
+    assert metric.method == "basic"
+    assert metric.batch == 100
+    assert metric.random_state == 42
 
 
 def test_bootstrap_cols():
