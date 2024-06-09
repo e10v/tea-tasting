@@ -149,3 +149,25 @@ def test_bootstrap_analyze_division_by_zero(data: dict[Any, pd.DataFrame]):
     assert np.isnan(result.rel_effect_size)
     assert np.isnan(result.rel_effect_size_ci_lower)
     assert np.isnan(result.rel_effect_size_ci_upper)
+
+def test_quantile(data: dict[Any, pd.DataFrame]):
+    metric = tea_tasting.metrics.resampling.Quantile(
+        "revenue",
+        q=0.8,
+        alternative="greater",
+        confidence_level=0.9,
+        n_resamples=100,
+        random_state=42,
+    )
+    assert metric.column == "revenue"
+    assert metric.q == 0.8
+    result = metric.analyze(data, 0, 1)
+    assert isinstance(result, tea_tasting.metrics.resampling.BootstrapResult)
+    assert result.control == pytest.approx(11.97241622964322)
+    assert result.treatment == pytest.approx(6.283899054876212)
+    assert result.effect_size == pytest.approx(-5.688517174767009)
+    assert result.effect_size_ci_lower == pytest.approx(-10.875502551863555)
+    assert result.effect_size_ci_upper == float("inf")
+    assert result.rel_effect_size == pytest.approx(-0.4751352664036579 )
+    assert result.rel_effect_size_ci_lower == pytest.approx(-0.8744367099313992)
+    assert result.rel_effect_size_ci_upper == float("inf")
