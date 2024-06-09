@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
+import functools
 from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
@@ -230,4 +231,67 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
             rel_effect_size=stat[1],
             rel_effect_size_ci_lower=ci.low[1],
             rel_effect_size_ci_upper=ci.high[1],
+        )
+
+
+class Quantile(Bootstrap):  # noqa: D101
+    def __init__(  # noqa: PLR0913
+        self,
+        column: str,
+        q: float = 0.5,
+        *,
+        alternative: Literal["two-sided", "greater", "less"] | None = None,
+        confidence_level: float | None = None,
+        n_resamples: int | None = None,
+        method: Literal["percentile", "basic", "bca"] = "basic",
+        batch: int | None = None,
+        random_state: int | np.random.Generator | np.random.SeedSequence | None = None,
+    ) -> None:
+        """Metric for analysis of quantiles using bootstrap resampling.
+
+        Args:
+            column: Name of the column for the quantiles to compute.
+            q: Probability for the quantiles to compute.
+            alternative: Alternative hypothesis.
+            confidence_level: Confidence level for the confidence interval.
+            n_resamples: The number of resamples performed to form
+                the bootstrap distribution of the statistic.
+            method: Whether to return the "percentile" bootstrap confidence
+                interval (`"percentile"`), the "basic" (AKA "reverse") bootstrap
+                confidence interval (`"basic"`), or the bias-corrected
+                and accelerated bootstrap confidence interval (`"bca"`).
+            batch: The number of resamples to process in each vectorized call
+                to statistic. Memory usage is O(`batch * n`), where `n` is
+                the sample size. Default is `None`, in which case `batch = n_resamples`
+                (or `batch = max(n_resamples, n)` for method="bca").
+            random_state: Pseudorandom number generator state used
+                to generate resamples.
+
+        Examples:
+            ```python
+            import tea_tasting as tt
+
+
+            experiment = tt.Experiment(
+                revenue_per_user_p80=tt.Quantile("revenue", 0.8, random_state=42),
+            )
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            print(result)
+            #>               metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            #> revenue_per_user_p80    10.6      11.6            9.1%       [-1.3%, 21%]      -
+            ```
+        """  # noqa: E501
+        self.column = tea_tasting.utils.check_scalar(column, "column", typ=str)
+        self.q = tea_tasting.utils.check_scalar(q, "q", typ=float, ge=0, le=1)
+        super().__init__(
+            columns=column,
+            statistic=functools.partial(np.nanquantile, q=q),
+            alternative=alternative,
+            confidence_level=confidence_level,
+            n_resamples=n_resamples,
+            method=method,
+            batch=batch,
+            random_state=random_state,
         )
