@@ -85,6 +85,17 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult]):  # noqa: D101
             - `"less"`: the mean in the treatment variant is less than the mean
                 in the control variant.
 
+        Parameter defaults:
+            Defaults for the parameters `alternative`, `confidence_level`,
+            `equal_var`, and `use_t` can be changed using the
+            `config_context` and `set_context` functions.
+            See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
+            reference for details.
+
+        References:
+            - [Deng, A., Knoblich, U., & Lu, J. (2018). Applying the Delta Method in Metric Analytics: A Practical Guide with Novel Ideas](https://alexdeng.github.io/public/files/kdd2018-dm.pdf).
+            - [Deng, A., Xu, Y., Kohavi, R., & Walker, T. (2013). Improving the Sensitivity of Online Controlled Experiments by Utilizing Pre-Experiment Data](https://exp-platform.com/Documents/2013-02-CUPED-ImprovingSensitivityOfControlledExperiments.pdf).
+
         Examples:
             ```python
             import tea_tasting as tt
@@ -372,6 +383,17 @@ class Mean(RatioOfMeans):  # noqa: D101
             - `"less"`: the mean in the treatment variant is less than the mean
                 in the control variant.
 
+        Parameter defaults:
+            Defaults for the parameters `alternative`, `confidence_level`,
+            `equal_var`, and `use_t` can be changed using the
+            `config_context` and `set_context` functions.
+            See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
+            reference for details.
+
+        References:
+            - [Deng, A., Knoblich, U., & Lu, J. (2018). Applying the Delta Method in Metric Analytics: A Practical Guide with Novel Ideas](https://alexdeng.github.io/public/files/kdd2018-dm.pdf).
+            - [Deng, A., Xu, Y., Kohavi, R., & Walker, T. (2013). Improving the Sensitivity of Online Controlled Experiments by Utilizing Pre-Experiment Data](https://exp-platform.com/Documents/2013-02-CUPED-ImprovingSensitivityOfControlledExperiments.pdf).
+
         Examples:
             ```python
             import tea_tasting as tt
@@ -393,9 +415,6 @@ class Mean(RatioOfMeans):  # noqa: D101
             With CUPED:
 
             ```python
-            import tea_tasting as tt
-
-
             experiment = tt.Experiment(
                 orders_per_user=tt.Mean("orders", "orders_covariate"),
                 revenue_per_user=tt.Mean("revenue", "revenue_covariate"),

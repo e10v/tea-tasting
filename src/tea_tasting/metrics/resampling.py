@@ -1,4 +1,4 @@
-"""Metrics with resampling methods."""
+"""Metrics analyzed using resampling methods."""
 
 from __future__ import annotations
 
@@ -86,10 +86,28 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
             random_state: Pseudorandom number generator state used
                 to generate resamples.
 
-        Notes:
+        Multiple columns:
             If `columns` is a sequence of strings, then the sample passed
             to the statistic callable contains an extra dimension in the first axis.
             See examples below.
+
+        Alternative hypothesis options:
+            - `"two-sided"`: the means are unequal,
+            - `"greater"`: the mean in the treatment variant is greater than the mean
+                in the control variant,
+            - `"less"`: the mean in the treatment variant is less than the mean
+                in the control variant.
+
+        Parameter defaults:
+            Defaults for the parameters `alternative`, `confidence_level`,
+            and `n_resamples` can be changed using the
+            `config_context` and `set_context` functions.
+            See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
+            reference for details.
+
+        References:
+            - [Bootstrapping (statistics) &#8212; Wikipedia](https://en.wikipedia.org/wiki/Bootstrapping_(statistics)).
+            - [scipy.stats.bootstrap &#8212; SciPy Manual](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.bootstrap.html#scipy-stats-bootstrap).
 
         Examples:
             ```python
@@ -266,6 +284,27 @@ class Quantile(Bootstrap):  # noqa: D101
                 (or `batch = max(n_resamples, n)` for method="bca").
             random_state: Pseudorandom number generator state used
                 to generate resamples.
+
+        Alternative hypothesis options:
+            - `"two-sided"`: the means are unequal,
+            - `"greater"`: the mean in the treatment variant is greater than the mean
+                in the control variant,
+            - `"less"`: the mean in the treatment variant is less than the mean
+                in the control variant.
+
+        Parameter defaults:
+            Defaults for the parameters `alternative`, `confidence_level`,
+            and `n_resamples` can be changed using the
+            `config_context` and `set_context` functions.
+            See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
+            reference for details.
+
+        Default method:
+            The default method is "basic" which is different from the default
+            method "bca" in `Bootstrap`. The "bca" confidence intervals cannot
+            be calculated when the bootstrap distribution is degenerate
+            (e.g. all elements are identical). This is often the case for the
+            quantile metrics.
 
         Examples:
             ```python

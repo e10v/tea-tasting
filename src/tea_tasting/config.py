@@ -65,7 +65,7 @@ def set_config(
             pooled variance is used for the calculation of the standard error
             of the difference between two means. Default is `False`.
         n_resamples: The number of resamples performed to form the bootstrap
-            distribution of a statistic.
+            distribution of a statistic. Default is `10_000`.
         use_t: Defines whether to use the Student's t-distribution (`True`) or
             the Normal distribution (`False`) by default. Default is `True`.
         kwargs: User-defined global parameters.
@@ -122,7 +122,7 @@ def config_context(
             pooled variance is used for the calculation of the standard error
             of the difference between two means. Default is `False`.
         n_resamples: The number of resamples performed to form the bootstrap
-            distribution of a statistic.
+            distribution of a statistic. Default is `10_000`.
         use_t: Defines whether to use the Student's t-distribution (`True`) or
             the Normal distribution (`False`) by default. Default is `True`.
         kwargs: User-defined global parameters.

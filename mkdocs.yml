@@ -16,6 +16,7 @@ nav:
       - Base: api/metrics/base.md
       - Mean: api/metrics/mean.md
       - Proportion: api/metrics/proportion.md
+      - Resampling: api/metrics/resampling.md
     - Experiment: api/experiment.md
     - Datasets: api/datasets.md
     - Global configuration: api/config.md

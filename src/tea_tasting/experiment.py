@@ -393,6 +393,26 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             #>    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
             #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
             ```
+
+            Using the first argument `metrics` which accepts metrics if a form of dictionary:
+
+            ```python
+            experiment = tt.Experiment({
+                "sessions per user": tt.Mean("sessions"),
+                "orders per session": tt.RatioOfMeans("orders", "sessions"),
+                "orders per user": tt.Mean("orders"),
+                "revenue per user": tt.Mean("revenue"),
+            })
+
+            data = tt.make_users_data(seed=42)
+            result = experiment.analyze(data)
+            print(result)
+            #>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            #>  sessions per user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+            #> orders per session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+            #>    orders per user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+            #>   revenue per user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+            ```
         """  # noqa: E501
         if metrics is None:
             metrics = {}
