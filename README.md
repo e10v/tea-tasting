@@ -9,7 +9,7 @@
 
 **tea-tasting** is a Python package for statistical analysis of A/B tests that features:
 
-- Student's t-test and Z-test out of the box.
+- Student's t-test, Z-test, Bootstrap, and quantile metrics out of the box.
 - Extensible API: Define and use statistical tests of your choice.
 - [Delta method](https://alexdeng.github.io/public/files/kdd2018-dm.pdf) for ratio metrics.
 - Variance reduction with [CUPED](https://exp-platform.com/Documents/2013-02-CUPED-ImprovingSensitivityOfControlledExperiments.pdf)/[CUPAC](https://doordash.engineering/2020/06/08/improving-experimental-power-through-control-using-predictions-as-covariate-cupac/) (also in combination with delta method for ratio metrics).
@@ -20,13 +20,11 @@
 
 **tea-tasting** is still in alpha, but already includes all the features listed above. The following features are coming soon:
 
-- More statistical tests:
-    - Bootstrap.
-    - Quantile test (using Bootstrap).
-    - Asymptotic and exact tests for frequency data.
-    - Mann–Whitney U test.
 - Power analysis.
 - A/A tests and simulations.
+- More statistical tests:
+    - Asymptotic and exact tests for frequency data.
+    - Mann–Whitney U test.
 
 ## Installation
 
@@ -87,7 +85,7 @@ Many statistical tests, like Student's t-test or Z-test, don't need granular dat
 The `Experiment` class defines the parameters of an A/B test: metrics and a variant column name. There are two ways to define metrics:
 
 - Using keyword parameters, with metric names as parameter names and metric definitions as parameter values, as in example above.
-- Using the first argument `metrics` which accepts metrics if a form of dictionary with metric names as keys and metric definitions as values.
+- Using the first argument `metrics` which accepts metrics in a form of dictionary with metric names as keys and metric definitions as values.
 
 By default, **tea-testing** assumes that A/B test variant is stored in a column named `"variant"`. You can change it using the `variant` parameter of the `Experiment` class.
 
@@ -133,6 +131,8 @@ experiment = tt.Experiment(
     revenue_per_user=tt.Mean("revenue", use_t=False),
 )
 ```
+
+Look for other supported metrics in the [Metrics](https://tea-tasting.e10v.me/api/metrics/) reference.
 
 You can change the default values of these four parameters using global settings (see details below).
 
@@ -305,6 +305,7 @@ In **tea-tasting**, you can change defaults for the following parameters:
 - `alternative`: Alternative hypothesis.
 - `confidence_level`: Confidence level of the confidence interval.
 - `equal_var`: If `False`, assume unequal population variances in calculation of the standard deviation and the number of degrees of freedom. Otherwise, assume equal population variance and calculate pooled standard deviation.
+- `n_resamples`: The number of resamples performed to form the bootstrap distribution of a statistic.
 - `use_t`: If `True`, use Student's t-distribution in p-value and confidence interval calculations. Otherwise use Normal distribution.
 
 Use `get_config` with the option name as a parameter to get a global option value:
