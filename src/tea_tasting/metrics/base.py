@@ -15,6 +15,9 @@ import tea_tasting.utils
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from typing import Literal
+
+    PowerParameter = Literal["power", "effect_size", "rel_effect_size", "n_obs"]
 
 
 # The | operator doesn't work for NamedTuple, but Union works.
@@ -49,30 +52,16 @@ class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
 class PowerBase(abc.ABC, tea_tasting.utils.ReprMixin):
     """Base class the analysis of power."""
     @abc.abstractmethod
-    def power(self, data: pd.DataFrame | ibis.expr.types.Table, **kwargs: Any) -> float:
-        """Calculate the power of a test.
-
-        Args:
-            data: Sample data.
-            kwargs: Other parameters.
-
-        Returns:
-            Statistical power.
-        """
-
-    @abc.abstractmethod
     def solve_power(
         self,
         data: pd.DataFrame | ibis.expr.types.Table,
-        parameter: str,
-        **kwargs: Any,
+        parameter: PowerParameter = "power",
     ) -> float | int:
         """Solve for a parameter of the power of a test.
 
         Args:
             data: Sample data.
             parameter: Parameter name.
-            kwargs: Other parameters.
 
         Returns:
             The value of the parameter that was set in the `parameter` argument.
@@ -202,57 +191,16 @@ class MetricBaseAggregated(MetricBase[R], _HasAggrCols):
 
 class PowerBaseAggregated(PowerBase, _HasAggrCols):
     """Base class for the analysis of power using aggregated statistics."""
-    def power(
-        self,
-        data: pd.DataFrame | ibis.expr.types.Table | tea_tasting.aggr.Aggregates,
-        **kwargs: Any,
-    ) -> float:
-        """Calculate the power of a test.
-
-        Args:
-            data: Sample data.
-            kwargs: Other parameters.
-
-        Returns:
-            Statistical power.
-        """
-        if not isinstance(data, tea_tasting.aggr.Aggregates):
-            data = tea_tasting.aggr.read_aggregates(
-                data=data,
-                group_col=None,
-                **self.aggr_cols._asdict(),
-            )
-        return self.power_from_aggregates(data=data, **kwargs)
-
-    @abc.abstractmethod
-    def power_from_aggregates(
-        self,
-        data: tea_tasting.aggr.Aggregates,
-        **kwargs: Any,
-    ) -> float:
-        """Calculate the power of a test.
-
-        Args:
-            data: Sample data.
-            kwargs: Other parameters.
-
-        Returns:
-            Statistical power.
-        """
-
-    @abc.abstractmethod
     def solve_power(
         self,
         data: pd.DataFrame | ibis.expr.types.Table | tea_tasting.aggr.Aggregates,
-        parameter: str,
-        **kwargs: Any,
+        parameter: PowerParameter = "power",
     ) -> float | int:
         """Solve for a parameter of the power of a test.
 
         Args:
             data: Sample data.
             parameter: Parameter name.
-            kwargs: Other parameters.
 
         Returns:
             The value of the parameter that was set in the `parameter` argument.
@@ -263,18 +211,13 @@ class PowerBaseAggregated(PowerBase, _HasAggrCols):
                 group_col=None,
                 **self.aggr_cols._asdict(),
             )
-        return self.solve_power_from_aggregates(
-            data=data,
-            parameter=parameter,
-            **kwargs,
-        )
+        return self.solve_power_from_aggregates(data=data, parameter=parameter)
 
     @abc.abstractmethod
     def solve_power_from_aggregates(
         self,
         data: tea_tasting.aggr.Aggregates,
-        parameter: str,
-        **kwargs: Any,
+        parameter: PowerParameter = "power",
     ) -> float | int:
         """Solve for a parameter of the power of a test.
 
@@ -400,82 +343,6 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
 
         Returns:
             Analysis result.
-        """
-
-
-class PowerBaseGranular(PowerBase, _HasCols):
-    """Base class for the analysis of power using aggregated statistics."""
-    def power(
-        self,
-        data: pd.DataFrame | ibis.expr.types.Table,
-        **kwargs: Any,
-    ) -> float:
-        """Calculate the power of a test.
-
-        Args:
-            data: Sample data.
-            kwargs: Other parameters.
-
-        Returns:
-            Statistical power.
-        """
-        if isinstance(data, ibis.expr.types.Table):
-            data = data.select(*self.cols).to_pandas()
-        return self.power_from_dataframe(data=data, **kwargs)
-
-    @abc.abstractmethod
-    def power_from_dataframe(
-        self,
-        data: pd.DataFrame,
-        **kwargs: Any,
-    ) -> float:
-        """Calculate the power of a test.
-
-        Args:
-            data: Sample data.
-            kwargs: Other parameters.
-
-        Returns:
-            Statistical power.
-        """
-
-    @abc.abstractmethod
-    def solve_power(
-        self,
-        data: pd.DataFrame | ibis.expr.types.Table,
-        parameter: str,
-        **kwargs: Any,
-    ) -> float | int:
-        """Solve for a parameter of the power of a test.
-
-        Args:
-            data: Sample data.
-            parameter: Parameter name.
-            kwargs: Other parameters.
-
-        Returns:
-            The value of the parameter that was set in the `parameter` argument.
-        """
-        if isinstance(data, ibis.expr.types.Table):
-            data = data.select(*self.cols).to_pandas()
-        return self.power_from_dataframe(data=data, **kwargs)
-
-    @abc.abstractmethod
-    def solve_power_from_dataframe(
-        self,
-        data: pd.DataFrame,
-        parameter: str,
-        **kwargs: Any,
-    ) -> float | int:
-        """Solve for a parameter of the power of a test.
-
-        Args:
-            data: Sample data.
-            parameter: Parameter name.
-            kwargs: Other parameters.
-
-        Returns:
-            The value of the parameter that was set in the `parameter` argument.
         """
 
 
