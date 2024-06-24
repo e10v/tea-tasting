@@ -62,6 +62,12 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult]):  # noqa: D101
         confidence_level: float | None = None,
         equal_var: bool | None = None,
         use_t: bool | None = None,
+        alpha: float | None = None,
+        ratio: float | int | None = None,
+        power: float | None = None,
+        effect_size: float | int | None = None,
+        rel_effect_size: float | None = None,
+        n_obs: int | None = None,
     ) -> None:
         """Metric for the analysis of ratios of means.
 
@@ -77,6 +83,16 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult]):  # noqa: D101
                 of the difference between two means.
             use_t: Defines whether to use the Student's t-distribution (`True`) or
                 the Normal distribution (`False`).
+            alpha: Significance level. Only for the analysis of power.
+            ratio: Ratio of the number of observations in the treatment
+                relative to the control. Only for the analysis of power.
+            power: Statistical power. Only for the analysis of power.
+            effect_size: Absolute effect size. Difference between the two means.
+                Only for the analysis of power.
+            rel_effect_size: Relative effect size. Difference between the two means,
+                divided by the control mean. Only for the analysis of power.
+            n_obs: Number of observations in the control and in the treatment together.
+                Only for the analysis of power.
 
         Alternative hypothesis options:
             - `"two-sided"`: the means are unequal,
@@ -86,8 +102,8 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult]):  # noqa: D101
                 in the control variant.
 
         Parameter defaults:
-            Defaults for the parameters `alternative`, `confidence_level`,
-            `equal_var`, and `use_t` can be changed using the
+            Defaults for the parameters `alpha`, `alternative`, `confidence_level`,
+            `equal_var`, `power`, `ratio`, and `use_t` can be changed using the
             `config_context` and `set_context` functions.
             See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
             reference for details.
@@ -156,6 +172,39 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult]):  # noqa: D101
             tea_tasting.utils.auto_check(use_t, "use_t")
             if use_t is not None
             else tea_tasting.config.get_config("use_t")
+        )
+        self.alpha = (
+            tea_tasting.utils.auto_check(alpha, "alpha")
+            if alpha is not None
+            else tea_tasting.config.get_config("alpha")
+        )
+        self.ratio = (
+            tea_tasting.utils.auto_check(ratio, "ratio")
+            if ratio is not None
+            else tea_tasting.config.get_config("ratio")
+        )
+        self.power = (
+            tea_tasting.utils.auto_check(power, "power")
+            if power is not None
+            else tea_tasting.config.get_config("power")
+        )
+        self.effect_size = (
+            None if effect_size is None else
+            tea_tasting.utils.check_scalar(
+                effect_size, "effect_size", typ=float | int,
+                gt=float("-inf"), lt=float("inf"),
+            )
+        )
+        self.rel_effect_size = (
+            None if rel_effect_size is None else
+            tea_tasting.utils.check_scalar(
+                rel_effect_size, "rel_effect_size", typ=float | int,
+                gt=-1, lt=float("inf"),
+            )
+        )
+        self.n_obs = (
+            None if n_obs is None else
+            tea_tasting.utils.check_scalar(n_obs, "n_obs", typ=int, gt=1)
         )
 
 
@@ -353,7 +402,7 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult]):  # noqa: D101
 
 
 class Mean(RatioOfMeans):  # noqa: D101
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         value: str,
         covariate: str | None = None,
@@ -362,6 +411,12 @@ class Mean(RatioOfMeans):  # noqa: D101
         confidence_level: float | None = None,
         equal_var: bool | None = None,
         use_t: bool | None = None,
+        alpha: float | None = None,
+        ratio: float | int | None = None,
+        power: float | None = None,
+        effect_size: float | int | None = None,
+        rel_effect_size: float | None = None,
+        n_obs: int | None = None,
     ) -> None:
         """Metric for the analysis of means.
 
@@ -375,6 +430,16 @@ class Mean(RatioOfMeans):  # noqa: D101
                 of the difference between two means.
             use_t: Defines whether to use the Student's t-distribution (`True`) or
                 the Normal distribution (`False`).
+            alpha: Significance level. Only for the analysis of power.
+            ratio: Ratio of the number of observations in the treatment
+                relative to the control. Only for the analysis of power.
+            power: Statistical power. Only for the analysis of power.
+            effect_size: Absolute effect size. Difference between the two means.
+                Only for the analysis of power.
+            rel_effect_size: Relative effect size. Difference between the two means,
+                divided by the control mean. Only for the analysis of power.
+            n_obs: Number of observations in the control and in the treatment together.
+                Only for the analysis of power.
 
         Alternative hypothesis options:
             - `"two-sided"`: the means are unequal,
@@ -384,8 +449,8 @@ class Mean(RatioOfMeans):  # noqa: D101
                 in the control variant.
 
         Parameter defaults:
-            Defaults for the parameters `alternative`, `confidence_level`,
-            `equal_var`, and `use_t` can be changed using the
+            Defaults for the parameters `alpha`, `alternative`, `confidence_level`,
+            `equal_var`, `power`, `ratio`, and `use_t` can be changed using the
             `config_context` and `set_context` functions.
             See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
             reference for details.
@@ -437,6 +502,12 @@ class Mean(RatioOfMeans):  # noqa: D101
             confidence_level=confidence_level,
             equal_var=equal_var,
             use_t=use_t,
+            alpha=alpha,
+            ratio=ratio,
+            power=power,
+            effect_size=effect_size,
+            rel_effect_size=rel_effect_size,
+            n_obs=n_obs,
         )
         self.value = value
         self.covariate = covariate

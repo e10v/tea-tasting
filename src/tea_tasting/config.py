@@ -14,10 +14,13 @@ if TYPE_CHECKING:
 
 
 _global_config = {
+    "alpha": 0.05,
     "alternative": "two-sided",
     "confidence_level": 0.95,
     "equal_var": False,
     "n_resamples": 10_000,
+    "power": 0.8,
+    "ratio": 1,
     "use_t": True,
 }
 
@@ -48,24 +51,31 @@ def get_config(option: str | None = None) -> Any:
 
 def set_config(
     *,
+    alpha: float | None = None,
     alternative: Literal["two-sided", "greater", "less"] | None = None,
     confidence_level: float | None = None,
     equal_var: bool | None = None,
     n_resamples: int | None = None,
+    power: float | None = None,
+    ratio: float | int | None = None,
     use_t: bool | None = None,
     **kwargs: Any,
 ) -> None:
     """Update the global configuration with specified settings.
 
     Args:
-        alternative: Default alternative hypothesis. Default is `"two-sided"`.
-        confidence_level: Default confidence level for the confidence interval.
+        alpha: Significance level. Default is 0.05.
+        alternative: Alternative hypothesis. Default is `"two-sided"`.
+        confidence_level: Confidence level for the confidence interval.
             Default is `0.95`.
         equal_var: Defines whether equal variance is assumed. If `True`,
             pooled variance is used for the calculation of the standard error
             of the difference between two means. Default is `False`.
         n_resamples: The number of resamples performed to form the bootstrap
             distribution of a statistic. Default is `10_000`.
+        power: Statistical power. Default is 0.8.
+        ratio: Ratio of the number of observations in the treatment
+            relative to the control. Default is 1.
         use_t: Defines whether to use the Student's t-distribution (`True`) or
             the Normal distribution (`False`) by default. Default is `True`.
         kwargs: User-defined global parameters.
@@ -105,24 +115,31 @@ def set_config(
 @contextlib.contextmanager
 def config_context(
     *,
+    alpha: float | None = None,
     alternative: Literal["two-sided", "greater", "less"] | None = None,
     confidence_level: float | None = None,
     equal_var: bool | None = None,
     n_resamples: int | None = None,
+    power: float | None = None,
+    ratio: float | int | None = None,
     use_t: bool | None = None,
     **kwargs: Any,
 ) -> Generator[None, Any, None]:
     """A context manager that temporarily modifies the global configuration.
 
     Args:
-        alternative: Default alternative hypothesis. Default is `"two-sided"`.
-        confidence_level: Default confidence level for the confidence interval.
+        alpha: Significance level. Default is 0.05.
+        alternative: Alternative hypothesis. Default is `"two-sided"`.
+        confidence_level: Confidence level for the confidence interval.
             Default is `0.95`.
         equal_var: Defines whether equal variance is assumed. If `True`,
             pooled variance is used for the calculation of the standard error
             of the difference between two means. Default is `False`.
         n_resamples: The number of resamples performed to form the bootstrap
             distribution of a statistic. Default is `10_000`.
+        power: Statistical power. Default is 0.8.
+        ratio: Ratio of the number of observations in the treatment
+            relative to the control. Default is 1.
         use_t: Defines whether to use the Student's t-distribution (`True`) or
             the Normal distribution (`False`) by default. Default is `True`.
         kwargs: User-defined global parameters.
