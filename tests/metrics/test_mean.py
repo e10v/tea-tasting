@@ -322,7 +322,7 @@ def test_ratio_of_means_solve_power_raises_max_iter(
         metric.solve_power(power_data, "n_obs")
 
 
-def test_mean(data: dict[str, tea_tasting.aggr.Aggregates]):
+def test_mean_analyze(data: dict[str, tea_tasting.aggr.Aggregates]):
     metric = tea_tasting.metrics.mean.Mean(
         "orders",
         covariate="orders_covariate",
@@ -340,6 +340,30 @@ def test_mean(data: dict[str, tea_tasting.aggr.Aggregates]):
         use_t=False,
     )
     _compare_results(metric.analyze(data, 0, 1), ratio_metric.analyze(data, 0, 1))
+
+
+def test_mean_solve_power(power_data: tea_tasting.aggr.Aggregates):
+    metric = tea_tasting.metrics.mean.Mean(
+        "orders",
+        covariate="orders_covariate",
+        alternative="greater",
+        confidence_level=0.9,
+        equal_var=True,
+        use_t=False,
+        rel_effect_size=0.1,
+    )
+    ratio_metric = tea_tasting.metrics.mean.RatioOfMeans(
+        "orders",
+        numer_covariate="orders_covariate",
+        alternative="greater",
+        confidence_level=0.9,
+        equal_var=True,
+        use_t=False,
+        rel_effect_size=0.1,
+    )
+    assert metric.solve_power(power_data) == pytest.approx(
+        ratio_metric.solve_power(power_data))
+
 
 
 def _compare_results(
