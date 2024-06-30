@@ -32,6 +32,11 @@ def test_check_scalar_lt():
     with pytest.raises(ValueError, match="must be <"):
         tea_tasting.utils.check_scalar(1, lt=1)
 
+def test_check_scalar_ne():
+    assert tea_tasting.utils.check_scalar(1, ne=2) == 1
+    with pytest.raises(ValueError, match="must be !="):
+        tea_tasting.utils.check_scalar(1, ne=1)
+
 def test_check_scalar_is_in():
     assert tea_tasting.utils.check_scalar(1, in_={0, 1}) == 1
     with pytest.raises(ValueError, match="must be in"):

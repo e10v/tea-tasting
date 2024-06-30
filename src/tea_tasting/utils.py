@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     R = TypeVar("R")
 
 
-def check_scalar(
+def check_scalar(  # noqa: PLR0913
     value: R,
     name: str = "value",
     *,
@@ -25,6 +25,7 @@ def check_scalar(
     gt: Any = None,
     le: Any = None,
     lt: Any = None,
+    ne: Any = None,
     in_: Any = None,
 ) -> R:
     """Check if a scalar parameter meets specified type and value constraints.
@@ -38,6 +39,7 @@ def check_scalar(
         gt: If not `None`, check that the parameter value is greater than `gt`.
         le: If not `None`, check that the parameter value is less than or equal to `le`.
         lt: If not `None`, check that the parameter value is less than `lt`.
+        ne: If not `None`, check that the parameter value is not equal to `ne`.
         in_: If not `None`, check that the parameter value is in `in_`.
 
     Returns:
@@ -53,6 +55,8 @@ def check_scalar(
         raise ValueError(f"{name} == {value}, must be <= {le}.")
     if lt is not None and value >= lt:
         raise ValueError(f"{name} == {value}, must be < {lt}.")
+    if ne is not None and value == ne:
+        raise ValueError(f"{name} == {value}, must be != {ne}.")
     if in_ is not None and value not in in_:
         raise ValueError(f"{name} == {value}, must be in {in_}.")
     return value
