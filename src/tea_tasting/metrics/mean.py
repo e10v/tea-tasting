@@ -467,7 +467,6 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult], PowerBaseAggregated):  # no
             other_bound = _find_boundary(
                 fn,
                 sign * 10 * math.sqrt(sample_var / sample_count),
-                sign * 10,
             )
             lower_bound, upper_bound = sorted((0, other_bound))
 
