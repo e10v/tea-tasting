@@ -205,6 +205,11 @@ class PowerBaseAggregated(PowerBase, _HasAggrCols):
         Returns:
             The value of the parameter that was set in the `parameter` argument.
         """
+        tea_tasting.utils.check_scalar(
+            parameter,
+            "parameter",
+            in_={"power", "effect_size", "rel_effect_size", "n_obs"},
+        )
         if not isinstance(data, tea_tasting.aggr.Aggregates):
             data = tea_tasting.aggr.read_aggregates(
                 data=data,
