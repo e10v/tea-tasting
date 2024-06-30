@@ -192,14 +192,14 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult]):  # noqa: D101
             None if effect_size is None else
             tea_tasting.utils.check_scalar(
                 effect_size, "effect_size", typ=float | int,
-                gt=float("-inf"), lt=float("inf"),
+                gt=float("-inf"), lt=float("inf"), ne=0,
             )
         )
         self.rel_effect_size = (
             None if rel_effect_size is None else
             tea_tasting.utils.check_scalar(
                 rel_effect_size, "rel_effect_size", typ=float | int,
-                gt=-1, lt=float("inf"),
+                gt=float("-inf"), lt=float("inf"), ne=0,
             )
         )
         self.n_obs = (
