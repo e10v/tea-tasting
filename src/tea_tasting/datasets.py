@@ -26,7 +26,7 @@ def make_users_data(
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
-    sessions_uplift: float = 0.0,
+    sessions_uplift: float | int = 0.0,
     orders_uplift: float = 0.1,
     revenue_uplift: float = 0.1,
     avg_sessions: float | int = 2,
@@ -43,7 +43,7 @@ def make_users_data(
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
-    sessions_uplift: float = 0.0,
+    sessions_uplift: float | int = 0.0,
     orders_uplift: float = 0.1,
     revenue_uplift: float = 0.1,
     avg_sessions: float | int = 2,
@@ -59,7 +59,7 @@ def make_users_data(
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
-    sessions_uplift: float = 0.0,
+    sessions_uplift: float | int = 0.0,
     orders_uplift: float = 0.1,
     revenue_uplift: float = 0.1,
     avg_sessions: float | int = 2,
@@ -173,7 +173,7 @@ def make_sessions_data(
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
-    sessions_uplift: float = 0.0,
+    sessions_uplift: float | int = 0.0,
     orders_uplift: float = 0.1,
     revenue_uplift: float = 0.1,
     avg_sessions: float | int = 2,
@@ -190,7 +190,7 @@ def make_sessions_data(
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
-    sessions_uplift: float = 0.0,
+    sessions_uplift: float | int = 0.0,
     orders_uplift: float = 0.1,
     revenue_uplift: float = 0.1,
     avg_sessions: float | int = 2,
@@ -206,7 +206,7 @@ def make_sessions_data(
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
-    sessions_uplift: float = 0.0,
+    sessions_uplift: float | int = 0.0,
     orders_uplift: float = 0.1,
     revenue_uplift: float = 0.1,
     avg_sessions: float | int = 2,
@@ -318,7 +318,7 @@ def _make_data(
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
-    sessions_uplift: float = 0.0,
+    sessions_uplift: float | int = 0.0,
     orders_uplift: float = 0.1,
     revenue_uplift: float = 0.1,
     avg_sessions: float | int = 2,
@@ -427,7 +427,7 @@ def _make_data(
 def _check_params(
     n_users: int,
     ratio: float | int,
-    sessions_uplift: float,
+    sessions_uplift: float | int,
     orders_uplift: float,
     revenue_uplift: float,
     avg_sessions: float | int,
@@ -437,16 +437,16 @@ def _check_params(
     tea_tasting.utils.check_scalar(n_users, name="n_users", typ=int, ge=10)
     tea_tasting.utils.check_scalar(ratio, name="ratio", typ=float | int, gt=0)
     tea_tasting.utils.check_scalar(
-        sessions_uplift, name="sessions_uplift", typ=float, gt=1/avg_sessions - 1)
+        sessions_uplift, name="sessions_uplift", typ=float | int, gt=1/avg_sessions - 1)
     tea_tasting.utils.check_scalar(
         orders_uplift,
         name="orders_uplift",
-        typ=float,
+        typ=float | int,
         gt=-1,
         lt=(1 + sessions_uplift)/avg_orders_per_session - 1,
     )
     tea_tasting.utils.check_scalar(
-        revenue_uplift, name="revenue_uplift", typ=float, gt=-1)
+        revenue_uplift, name="revenue_uplift", typ=float | int, gt=-1)
     tea_tasting.utils.check_scalar(
         avg_sessions, name="avg_sessions", typ=float | int, gt=1)
     tea_tasting.utils.check_scalar(
