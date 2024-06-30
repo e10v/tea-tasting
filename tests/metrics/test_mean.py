@@ -58,6 +58,12 @@ def test_ratio_of_means_init_default():
     assert metric.confidence_level == tea_tasting.config.get_config("confidence_level")
     assert metric.equal_var == tea_tasting.config.get_config("equal_var")
     assert metric.use_t == tea_tasting.config.get_config("use_t")
+    assert metric.alpha == tea_tasting.config.get_config("alpha")
+    assert metric.ratio == tea_tasting.config.get_config("ratio")
+    assert metric.power == tea_tasting.config.get_config("power")
+    assert metric.effect_size is None
+    assert metric.rel_effect_size is None
+    assert metric.n_obs is None
 
 def test_ratio_of_means_init_custom():
     metric = tea_tasting.metrics.mean.RatioOfMeans(
@@ -69,6 +75,11 @@ def test_ratio_of_means_init_custom():
         confidence_level=0.9,
         equal_var=True,
         use_t=False,
+        alpha=0.1,
+        power=0.75,
+        effect_size=1,
+        rel_effect_size=0.08,
+        n_obs=10_000,
     )
     assert metric.numer == "a"
     assert metric.denom == "b"
@@ -78,6 +89,11 @@ def test_ratio_of_means_init_custom():
     assert metric.confidence_level == 0.9
     assert metric.equal_var is True
     assert metric.use_t is False
+    assert metric.alpha == 0.1
+    assert metric.power == 0.75
+    assert metric.effect_size == 1
+    assert metric.rel_effect_size == 0.08
+    assert metric.n_obs == 10_000
 
 def test_ratio_of_means_init_config():
     with tea_tasting.config.config_context(
