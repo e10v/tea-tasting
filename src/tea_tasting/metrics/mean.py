@@ -11,18 +11,15 @@ import scipy.stats
 
 import tea_tasting.aggr
 import tea_tasting.config
-from tea_tasting.metrics.base import (
-    AggrCols,
-    MetricBaseAggregated,
-    PowerBaseAggregated,
-    PowerParameter,
-)
+from tea_tasting.metrics.base import AggrCols, MetricBaseAggregated, PowerBaseAggregated
 import tea_tasting.utils
 
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from typing import Literal
+
+    from tea_tasting.metrics.base import PowerParameter
 
 
 MAX_ITER = 100
