@@ -32,11 +32,25 @@ def test_check_scalar_lt():
     with pytest.raises(ValueError, match="must be <"):
         tea_tasting.utils.check_scalar(1, lt=1)
 
+def test_check_scalar_ne():
+    assert tea_tasting.utils.check_scalar(1, ne=2) == 1
+    with pytest.raises(ValueError, match="must be !="):
+        tea_tasting.utils.check_scalar(1, ne=1)
+
 def test_check_scalar_is_in():
     assert tea_tasting.utils.check_scalar(1, in_={0, 1}) == 1
     with pytest.raises(ValueError, match="must be in"):
         tea_tasting.utils.check_scalar(1, in_={0, 2})
 
+
+def test_auto_check_alpha():
+    assert tea_tasting.utils.auto_check(0.05, "alpha") == 0.05
+    with pytest.raises(TypeError):
+        tea_tasting.utils.auto_check(0, "alpha")
+    with pytest.raises(ValueError, match="must be >"):
+        tea_tasting.utils.auto_check(0.0, "alpha")
+    with pytest.raises(ValueError, match="must be <"):
+        tea_tasting.utils.auto_check(1.0, "alpha")
 
 def test_auto_check_alternative():
     assert tea_tasting.utils.auto_check("two-sided", "alternative") == "two-sided"
@@ -70,6 +84,15 @@ def test_auto_check_n_resamples():
         tea_tasting.utils.auto_check(0, "n_resamples")
     with pytest.raises(TypeError):
         tea_tasting.utils.auto_check(0.5, "n_resamples")
+
+def test_auto_check_power():
+    assert tea_tasting.utils.auto_check(0.8, "power") == 0.8
+    with pytest.raises(TypeError):
+        tea_tasting.utils.auto_check(0, "power")
+    with pytest.raises(ValueError, match="must be >"):
+        tea_tasting.utils.auto_check(0.0, "power")
+    with pytest.raises(ValueError, match="must be <"):
+        tea_tasting.utils.auto_check(1.0, "power")
 
 def test_auto_check_ratio():
     assert tea_tasting.utils.auto_check(1.5, "ratio") == 1.5

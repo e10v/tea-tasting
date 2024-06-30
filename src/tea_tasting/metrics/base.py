@@ -15,6 +15,9 @@ import tea_tasting.utils
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from typing import Literal
+
+    PowerParameter = Literal["power", "effect_size", "rel_effect_size", "n_obs"]
 
 
 # The | operator doesn't work for NamedTuple, but Union works.
@@ -44,7 +47,25 @@ class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
         Returns:
             Analysis result.
         """
-        ...
+
+
+class PowerBase(abc.ABC, tea_tasting.utils.ReprMixin):
+    """Base class the analysis of power."""
+    @abc.abstractmethod
+    def solve_power(
+        self,
+        data: pd.DataFrame | ibis.expr.types.Table,
+        parameter: PowerParameter = "power",
+    ) -> float | int:
+        """Solve for a parameter of the power of a test.
+
+        Args:
+            data: Sample data.
+            parameter: Parameter name.
+
+        Returns:
+            The value of the parameter that was set in the `parameter` argument.
+        """
 
 
 class AggrCols(NamedTuple):
@@ -93,14 +114,15 @@ class AggrCols(NamedTuple):
         )
 
 
-class MetricBaseAggregated(MetricBase[R]):
-    """Base class for metrics, which are analyzed using aggregated statistics."""
+class _HasAggrCols(abc.ABC):
     @property
     @abc.abstractmethod
     def aggr_cols(self) -> AggrCols:
-        """Columns to be aggregated for a metric analysis."""
-        ...
+        """Columns to be aggregated for an analysis."""
 
+
+class MetricBaseAggregated(MetricBase[R], _HasAggrCols):
+    """Base class for metrics, which are analyzed using aggregated statistics."""
     @overload
     def analyze(
         self,
@@ -165,7 +187,47 @@ class MetricBaseAggregated(MetricBase[R]):
         Returns:
             Analysis result.
         """
-        ...
+
+
+class PowerBaseAggregated(PowerBase, _HasAggrCols):
+    """Base class for the analysis of power using aggregated statistics."""
+    def solve_power(
+        self,
+        data: pd.DataFrame | ibis.expr.types.Table | tea_tasting.aggr.Aggregates,
+        parameter: PowerParameter = "power",
+    ) -> float | int:
+        """Solve for a parameter of the power of a test.
+
+        Args:
+            data: Sample data.
+            parameter: Parameter name.
+
+        Returns:
+            The value of the parameter that was set in the `parameter` argument.
+        """
+        if not isinstance(data, tea_tasting.aggr.Aggregates):
+            data = tea_tasting.aggr.read_aggregates(
+                data=data,
+                group_col=None,
+                **self.aggr_cols._asdict(),
+            )
+        return self.solve_power_from_aggregates(data=data, parameter=parameter)
+
+    @abc.abstractmethod
+    def solve_power_from_aggregates(
+        self,
+        data: tea_tasting.aggr.Aggregates,
+        parameter: PowerParameter = "power",
+    ) -> float | int:
+        """Solve for a parameter of the power of a test.
+
+        Args:
+            data: Sample data.
+            parameter: Parameter name.
+
+        Returns:
+            The value of the parameter that was set in the `parameter` argument.
+        """
 
 
 def aggregate_by_variants(
@@ -209,14 +271,15 @@ def aggregate_by_variants(
     )
 
 
-class MetricBaseGranular(MetricBase[R]):
-    """Base class for metrics, which are analyzed using granular data."""
+class _HasCols(abc.ABC):
     @property
     @abc.abstractmethod
     def cols(self) -> Sequence[str]:
-        """Columns to be fetched for a metric analysis."""
-        ...
+        """Columns to be fetched for an analysis."""
 
+
+class MetricBaseGranular(MetricBase[R], _HasCols):
+    """Base class for metrics, which are analyzed using granular data."""
     @overload
     def analyze(
         self,
@@ -280,7 +343,6 @@ class MetricBaseGranular(MetricBase[R]):
         Returns:
             Analysis result.
         """
-        ...
 
 
 def read_dataframes(
