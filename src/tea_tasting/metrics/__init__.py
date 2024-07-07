@@ -17,6 +17,8 @@ from tea_tasting.metrics.base import (
     MetricBaseGranular,
     MetricPowerResults,
     MetricResult,
+    PowerBase,
+    PowerBaseAggregated,
     aggregate_by_variants,
     read_dataframes,
 )

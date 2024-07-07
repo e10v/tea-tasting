@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NamedTuple, TypedDict
+from typing import TYPE_CHECKING, Any, NamedTuple, TypedDict
 
 import ibis
 import ibis.expr.types
@@ -11,10 +11,13 @@ import tea_tasting.aggr
 import tea_tasting.datasets
 import tea_tasting.experiment
 import tea_tasting.metrics
+import tea_tasting.utils
 
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from tea_tasting.metrics.base import PowerParameter
 
 
 class _MetricResultTuple(NamedTuple):
@@ -27,8 +30,17 @@ class _MetricResultDict(TypedDict):
     treatment: float
     effect_size: float
 
+class _PowerResult(NamedTuple):
+    power: float
+    effect_size: float
+    rel_effect_size: float
+    n_obs: float
 
-class _Metric(tea_tasting.metrics.MetricBase[_MetricResultTuple]):
+
+class _Metric(
+    tea_tasting.metrics.MetricBase[_MetricResultTuple],
+    tea_tasting.metrics.PowerBase[tea_tasting.metrics.MetricPowerResults[_PowerResult]],
+):
     def __init__(self, value: str) -> None:
         self.value = value
 
@@ -50,13 +62,27 @@ class _Metric(tea_tasting.metrics.MetricBase[_MetricResultTuple]):
         contr_mean = agg_data.loc[control, "mean"]
         treat_mean = agg_data.loc[treatment, "mean"]
         return _MetricResultTuple(
-            control=contr_mean,
-            treatment=treat_mean,
+            control=contr_mean,  # type: ignore
+            treatment=treat_mean,  # type: ignore
             effect_size=treat_mean - contr_mean,  # type: ignore
         )
 
+    def solve_power(
+        self,
+        data: pd.DataFrame | ibis.Table,  # noqa: ARG002
+        parameter: PowerParameter = "rel_effect_size",  # noqa: ARG002
+    ) -> tea_tasting.metrics.MetricPowerResults[_PowerResult]:
+        return tea_tasting.metrics.MetricPowerResults((
+            _PowerResult(power=0.8, effect_size=1, rel_effect_size=0.05, n_obs=10_000),
+            _PowerResult(power=0.9, effect_size=2, rel_effect_size=0.1, n_obs=20_000),
+        ))
 
-class _MetricAggregated(tea_tasting.metrics.MetricBaseAggregated[_MetricResultTuple]):
+
+class _MetricAggregated(
+    tea_tasting.metrics.MetricBaseAggregated[_MetricResultTuple],
+    tea_tasting.metrics.PowerBaseAggregated[
+        tea_tasting.metrics.MetricPowerResults[dict[str, Any]]],
+):
     def __init__(self, value: str) -> None:
         self.value = value
 
@@ -76,6 +102,16 @@ class _MetricAggregated(tea_tasting.metrics.MetricBaseAggregated[_MetricResultTu
             treatment=treat_mean,
             effect_size=treat_mean - contr_mean,
         )
+
+    def solve_power_from_aggregates(
+        self,
+        data: tea_tasting.aggr.Aggregates,  # noqa: ARG002
+        parameter: PowerParameter = "rel_effect_size",  # noqa: ARG002
+    ) -> tea_tasting.metrics.MetricPowerResults[dict[str, Any]]:
+        return tea_tasting.metrics.MetricPowerResults((
+            {"power": 0.8, "effect_size": 1, "rel_effect_size": 0.05, "n_obs": 10_000},
+            {"power": 0.9, "effect_size": 2, "rel_effect_size": 0.1, "n_obs": 20_000},
+        ))
 
 
 class _MetricGranular(tea_tasting.metrics.MetricBaseGranular[_MetricResultDict]):  # type: ignore
@@ -279,6 +315,36 @@ def test_experiment_result_to_html(result2: tea_tasting.experiment.ExperimentRes
     )).to_html(index=False)
 
 
+def test_experiment_power_result_to_dicts():
+    raw_results = (
+        {"power": 0.8, "effect_size": 1, "rel_effect_size": 0.05, "n_obs": 20_000},
+        {"power": 0.9, "effect_size": 1, "rel_effect_size": 0.05, "n_obs": 10_000},
+        {"power": 0.8, "effect_size": 2, "rel_effect_size": 0.1, "n_obs": 10_000},
+        {"power": 0.9, "effect_size": 2, "rel_effect_size": 0.1, "n_obs": 20_000},
+    )
+    result = tea_tasting.experiment.ExperimentPowerResult({
+        "metric_dict": tea_tasting.metrics.MetricPowerResults[dict[str, Any]](
+            raw_results[0:2]),
+        "metric_tuple": tea_tasting.metrics.MetricPowerResults[_PowerResult]([
+            _PowerResult(**raw_results[2]),
+            _PowerResult(**raw_results[3]),
+        ]),
+    })
+    assert isinstance(result, tea_tasting.utils.PrettyDictsMixin)
+    assert result.default_keys == (
+        "metric", "power", "effect_size", "rel_effect_size", "n_obs")
+    assert result.to_dicts() == (
+        {"metric": "metric_dict", "power": 0.8, "effect_size": 1,
+            "rel_effect_size": 0.05, "n_obs": 20_000},
+        {"metric": "metric_dict", "power": 0.9, "effect_size": 1,
+            "rel_effect_size": 0.05, "n_obs": 10_000},
+        {"metric": "metric_tuple", "power": 0.8, "effect_size": 2,
+            "rel_effect_size": 0.1, "n_obs": 10_000},
+        {"metric": "metric_tuple", "power": 0.9, "effect_size": 2,
+            "rel_effect_size": 0.1, "n_obs": 20_000},
+    )
+
+
 def test_experiment_init_default():
     metrics = {
         "avg_sessions": _Metric("sessions"),
@@ -415,4 +481,22 @@ def test_experiment_analyze_two_treatments(
     assert results == tea_tasting.experiment.ExperimentResults({
         (0, 1): ref_result,
         (0, 2): ref_result,
+    })
+
+
+def test_experiment_solve_power(data: ibis.expr.types.Table):
+    experiment = tea_tasting.experiment.Experiment(
+        metric=_Metric("sessions"),
+        metric_aggr=_MetricAggregated("orders"),
+    )
+    result = experiment.solve_power(data)
+    assert result == tea_tasting.experiment.ExperimentPowerResult({
+        "metric": tea_tasting.metrics.MetricPowerResults((
+            _PowerResult(power=0.8, effect_size=1, rel_effect_size=0.05, n_obs=10_000),
+            _PowerResult(power=0.9, effect_size=2, rel_effect_size=0.1, n_obs=20_000),
+        )),
+        "metric_aggr": tea_tasting.metrics.MetricPowerResults((
+            {"power": 0.8, "effect_size": 1, "rel_effect_size": 0.05, "n_obs": 10_000},
+            {"power": 0.9, "effect_size": 2, "rel_effect_size": 0.1, "n_obs": 20_000},
+        )),
     })
