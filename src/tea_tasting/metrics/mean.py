@@ -57,7 +57,26 @@ class MeanResult(NamedTuple):
     statistic: float
 
 
-class RatioOfMeans(MetricBaseAggregated[MeanResult], PowerBaseAggregated):  # noqa: D101
+class MeanPowerResult(NamedTuple):
+    """Result of the analysis of power.
+
+    Args:
+        power: Statistical power.
+        effect_size: Absolute effect size. Difference between the two means.
+        rel_effect_size: Relative effect size. Difference between the two means,
+            divided by the control mean.
+        n_obs: Number of observations in the control and in the treatment together.
+    """
+    power: float
+    effect_size: float
+    rel_effect_size: float
+    n_obs: float
+
+
+class RatioOfMeans(  # noqa: D101
+    MetricBaseAggregated[MeanResult],
+    PowerBaseAggregated[tuple[MeanPowerResult]],
+):
     def __init__(  # noqa: PLR0913
         self,
         numer: str,
@@ -274,7 +293,7 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult], PowerBaseAggregated):  # no
         self,
         data: tea_tasting.aggr.Aggregates,
         parameter: PowerParameter = "rel_effect_size",
-    ) -> float | int:
+    ) -> tuple[MeanPowerResult]:
         """Solve for a parameter of the power of a test.
 
         Args:
@@ -298,6 +317,7 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult], PowerBaseAggregated):  # no
 
         n_obs = None
         effect_size = None
+        rel_effect_size = None
         power = None
 
         if parameter in {"power", "n_obs"}:
@@ -315,6 +335,10 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult], PowerBaseAggregated):  # no
                 self.effect_size if self.rel_effect_size is None
                 else self.rel_effect_size * metric_mean
             )
+            rel_effect_size = (
+                self.rel_effect_size if self.effect_size is None
+                else self.effect_size / metric_mean
+            )
 
         if parameter in {"power", "effect_size", "rel_effect_size"}:
             n_obs = data.count() if self.n_obs is None else self.n_obs
@@ -329,11 +353,20 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult], PowerBaseAggregated):  # no
             power=power,
         )
 
-        if parameter == "rel_effect_size":
-            return parameter_value / metric_mean
-        if parameter == "n_obs":
-            return math.ceil(parameter_value)
-        return parameter_value
+        if parameter in {"effect_size", "rel_effect_size"}:
+            effect_size = parameter_value
+            rel_effect_size = parameter_value / metric_mean
+        elif parameter == "n_obs":
+            n_obs = math.ceil(parameter_value)
+        else:
+            power = parameter_value
+
+        return (MeanPowerResult(
+            power=power,  # type: ignore
+            effect_size=effect_size,  # type: ignore
+            rel_effect_size=rel_effect_size,  # type: ignore
+            n_obs=n_obs,  # type: ignore
+        ),)
 
 
     def _covariate_coef(self, aggr: tea_tasting.aggr.Aggregates) -> float:

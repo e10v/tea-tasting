@@ -126,8 +126,10 @@ def aggr_metric(
 @pytest.fixture
 def aggr_power(
     aggr_cols: tea_tasting.metrics.base.AggrCols,
-) -> tea_tasting.metrics.base.PowerBaseAggregated:
-    class AggrPower(tea_tasting.metrics.base.PowerBaseAggregated):
+) -> tea_tasting.metrics.base.PowerBaseAggregated[tuple[dict[str, Any]]]:
+    class AggrPower(
+        tea_tasting.metrics.base.PowerBaseAggregated[tuple[dict[str, Any]]],
+    ):
         @property
         def aggr_cols(self) -> tea_tasting.metrics.base.AggrCols:
             return aggr_cols
@@ -141,8 +143,8 @@ def aggr_power(
                 "rel_effect_size",
                 "n_obs",
             ] = "power",
-        ) -> float | int:
-            return 0
+        ) -> tuple[dict[str, Any]]:
+            return ({},)
     return AggrPower()
 
 @pytest.fixture
@@ -211,7 +213,7 @@ def test_metric_base_aggregated_analyze_aggrs(
 
 
 def test_power_base_aggregated_analyze_table(
-    aggr_power: tea_tasting.metrics.base.PowerBaseAggregated,
+    aggr_power: tea_tasting.metrics.base.PowerBaseAggregated[Any],
     data: ibis.expr.types.Table,
     correct_aggr: tea_tasting.aggr.Aggregates,
 ):
@@ -223,7 +225,7 @@ def test_power_base_aggregated_analyze_table(
     assert kwargs["parameter"] == "effect_size"
 
 def test_power_base_aggregated_analyze_df(
-    aggr_power: tea_tasting.metrics.base.PowerBaseAggregated,
+    aggr_power: tea_tasting.metrics.base.PowerBaseAggregated[Any],
     data: ibis.expr.types.Table,
     correct_aggr: tea_tasting.aggr.Aggregates,
 ):
@@ -235,7 +237,7 @@ def test_power_base_aggregated_analyze_df(
     assert kwargs["parameter"] == "n_obs"
 
 def test_power_base_aggregated_analyze_aggr(
-    aggr_power: tea_tasting.metrics.base.PowerBaseAggregated,
+    aggr_power: tea_tasting.metrics.base.PowerBaseAggregated[Any],
     correct_aggr: tea_tasting.aggr.Aggregates,
 ):
     aggr_power.solve_power_from_aggregates = unittest.mock.MagicMock()
