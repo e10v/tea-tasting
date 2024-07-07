@@ -215,6 +215,11 @@ class RatioOfMeans(  # noqa: D101
             if power is not None
             else tea_tasting.config.get_config("power")
         )
+        if effect_size is not None and rel_effect_size is not None:
+            raise ValueError(
+                "Both `effect_size` and `rel_effect_size` are not `None`. "
+                "Only one of them should be defined.",
+            )
         if effect_size is None:
             self.effect_size = effect_size
         else:
@@ -393,11 +398,6 @@ class RatioOfMeans(  # noqa: D101
                 raise ValueError(
                     "Both `effect_size` and `rel_effect_size` are `None`. "
                     "One of them should be defined.",
-                )
-            if self.effect_size is not None and self.rel_effect_size is not None:
-                raise ValueError(
-                    "Both `effect_size` and `rel_effect_size` are not `None`. "
-                    "Only one of them should be defined.",
                 )
             effect_size = (
                 self.effect_size if self.rel_effect_size is None

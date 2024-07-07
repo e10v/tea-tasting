@@ -110,7 +110,6 @@ def test_ratio_of_means_init_custom():
         alpha=0.1,
         ratio=0.5,
         power=0.75,
-        effect_size=1,
         rel_effect_size=0.08,
         n_obs=(5_000, 10_000),
     )
@@ -125,7 +124,7 @@ def test_ratio_of_means_init_custom():
     assert metric.alpha == 0.1
     assert metric.ratio == 0.5
     assert metric.power == 0.75
-    assert metric.effect_size == (1,)
+    assert metric.effect_size is None
     assert metric.rel_effect_size == (0.08,)
     assert metric.n_obs == (5_000, 10_000)
 
@@ -351,13 +350,12 @@ def test_ratio_of_means_solve_power_raises_effect_size(
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders")
     with pytest.raises(ValueError, match="One of them should be defined"):
         metric.solve_power(power_data, "power")
-    metric = tea_tasting.metrics.mean.RatioOfMeans(
-        numer="orders",
-        effect_size=0.05,
-        rel_effect_size=0.1,
-    )
     with pytest.raises(ValueError, match="Only one of them should be defined"):
-        metric.solve_power(power_data, "power")
+        tea_tasting.metrics.mean.RatioOfMeans(
+            numer="orders",
+            effect_size=0.05,
+            rel_effect_size=0.1,
+        )
 
 def test_ratio_of_means_solve_power_raises_max_iter(
     power_data: tea_tasting.aggr.Aggregates,
