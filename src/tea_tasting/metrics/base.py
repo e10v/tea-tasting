@@ -66,7 +66,7 @@ class PowerBase(abc.ABC, Generic[S], tea_tasting.utils.ReprMixin):
             parameter: Parameter name.
 
         Returns:
-            The value of the parameter that was set in the `parameter` argument.
+            Power analysis result.
         """
 
 
@@ -205,7 +205,7 @@ class PowerBaseAggregated(PowerBase[S], _HasAggrCols):
             parameter: Parameter name.
 
         Returns:
-            The value of the parameter that was set in the `parameter` argument.
+            Power analysis result.
         """
         if not isinstance(data, tea_tasting.aggr.Aggregates):
             data = tea_tasting.aggr.read_aggregates(
@@ -228,7 +228,7 @@ class PowerBaseAggregated(PowerBase[S], _HasAggrCols):
             parameter: Parameter name.
 
         Returns:
-            The value of the parameter that was set in the `parameter` argument.
+            Power analysis result.
         """
 
 

@@ -322,7 +322,7 @@ class RatioOfMeans(  # noqa: D101
             parameter: Parameter name.
 
         Returns:
-            The value of the parameter that was set in the `parameter` argument.
+            Power analysis result.
         """
         tea_tasting.utils.check_scalar(
             parameter,
