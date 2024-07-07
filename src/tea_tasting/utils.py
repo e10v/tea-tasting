@@ -3,14 +3,17 @@
 
 from __future__ import annotations
 
+import abc
 import inspect
 import locale
 import math
 from typing import TYPE_CHECKING
 
+import pandas as pd
+
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Callable, Iterator, Sequence
     from typing import Any, Literal, TypeVar
 
     R = TypeVar("R")
@@ -352,3 +355,113 @@ class ReprMixin:
         params = {p: getattr(self, p) for p in self._get_param_names()}
         params_repr = ", ".join(f"{k}={v!r}" for k, v in params.items())
         return f"{self.__class__.__name__}({params_repr})"
+
+
+def get_and_format_num(data: dict[str, Any], key: str) -> str:
+    """Get and format dictionary value.
+
+    Args:
+        data: Dictionary.
+        key: Key.
+
+    Returns:
+        Formatted value.
+    """
+    if key.endswith("_ci"):
+        ci_lower = get_and_format_num(data, key + "_lower")
+        ci_upper = get_and_format_num(data, key + "_upper")
+        return f"[{ci_lower}, {ci_upper}]"
+
+    val = data.get(key)
+    if not isinstance(val, float | int | None):
+        return str(val)
+
+    sig, pct = (2, True) if key.startswith("rel_") else (3, False)
+    return format_num(val, sig=sig, pct=pct)
+
+
+class PrettyDictsMixin(abc.ABC):
+    """Pretty representation of a sequence of dictionaries."""
+    default_keys: Sequence[str]
+
+    @abc.abstractmethod
+    def to_dicts(self) -> Sequence[dict[str, Any]]:
+        """Convert the object to a sequence of dictionaries."""
+
+    def to_pandas(self) -> pd.DataFrame:
+        """Convert the object to a Pandas DataFrame."""
+        return pd.DataFrame.from_records(self.to_dicts())
+
+    def to_pretty(
+        self,
+        keys: Sequence[str] | None = None,
+        formatter: Callable[[dict[str, Any], str], str] = get_and_format_num,
+    ) -> pd.DataFrame:
+        """Convert the object to a Pandas Dataframe with formatted values.
+
+        Args:
+            keys: Keys to convert. If a key is not defined in the dictionary
+                it's assumed to be `None`.
+            formatter: Custom formatter function. It should accept a dictionary
+                of metric result attributes and an attribute name, and return
+                a formatted attribute value.
+
+        Returns:
+            Pandas Dataframe with formatted values.
+        """
+        if keys is None:
+            keys = self.default_keys
+        return pd.DataFrame.from_records(
+            {key: formatter(data, key) for key in keys}
+            for data in self.to_dicts()
+        )
+
+    def to_string(
+        self,
+        keys: Sequence[str] | None = None,
+        formatter: Callable[[dict[str, Any], str], str] = get_and_format_num,
+    ) -> str:
+        """Convert the object to a string.
+
+        Args:
+            keys: Keys to convert. If a key is not defined in the dictionary
+                it's assumed to be `None`.
+            formatter: Custom formatter function. It should accept a dictionary
+                of metric result attributes and an attribute name, and return
+                a formatted attribute value.
+
+        Returns:
+            A table with results rendered as string.
+        """
+        if keys is None:
+            keys = self.default_keys
+        return self.to_pretty(keys, formatter).to_string(index=False)
+
+    def to_html(
+        self,
+        keys: Sequence[str] | None = None,
+        formatter: Callable[[dict[str, Any], str], str] = get_and_format_num,
+    ) -> str:
+        """Convert the object to HTML.
+
+        Args:
+            keys: Keys to convert. If a key is not defined in the dictionary
+                it's assumed to be `None`.
+            formatter: Custom formatter function. It should accept a dictionary
+                of metric result attributes and an attribute name, and return
+                a formatted attribute value.
+
+        Returns:
+            A table with results rendered as HTML.
+        """
+        if keys is None:
+            keys = self.default_keys
+        return self.to_pretty(keys, formatter).to_html(index=False)
+
+    def __str__(self) -> str:
+        """Object string representation."""
+        return self.to_string()
+
+    def _repr_html_(self) -> str:
+        """Object HTML representation."""
+        return self.to_html()

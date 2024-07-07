@@ -1,10 +1,16 @@
 from __future__ import annotations
 
 import math
+from typing import TYPE_CHECKING
 
+import pandas as pd
 import pytest
 
 import tea_tasting.utils
+
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 def test_check_scalar_typ():
@@ -229,3 +235,75 @@ def test_repr_mixin_repr_pos():
     pos = Pos(1, 2, 3)
     with pytest.raises(RuntimeError):
         repr(pos)
+
+
+def test_get_and_format_num():
+    data = {
+        "name": "metric",
+        "metric": 0.12345,
+        "rel_metric": 0.12345,
+        "metric_ci_lower": 0.12345,
+        "metric_ci_upper": 0.98765,
+        "rel_metric_ci_lower": 0.12345,
+        "rel_metric_ci_upper": 0.98765,
+    }
+    assert tea_tasting.utils.get_and_format_num(data, "name") == "metric"
+    assert tea_tasting.utils.get_and_format_num(data, "metric") == "0.123"
+    assert tea_tasting.utils.get_and_format_num(data, "rel_metric") == "12%"
+    assert tea_tasting.utils.get_and_format_num(data, "metric_ci") == "[0.123, 0.988]"
+    assert tea_tasting.utils.get_and_format_num(data, "rel_metric_ci") == "[12%, 99%]"
+
+
+@pytest.fixture
+def pretty_dicts() -> tea_tasting.utils.PrettyDictsMixin:
+    class PrettyDicts(tea_tasting.utils.PrettyDictsMixin):
+        default_keys = ("a", "b")
+        def to_dicts(self) -> tuple[dict[str, Any], ...]:
+            return (
+                {"a": 0.12345, "b": 0.23456},
+                {"a": 0.34567, "b": 0.45678},
+                {"a": 0.56789, "b": 0.67890},
+            )
+    return PrettyDicts()
+
+def test_pretty_dicts_mixin_to_pandas(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
+    pd.testing.assert_frame_equal(
+        pretty_dicts.to_pandas(),
+        pd.DataFrame({
+            "a": (0.12345, 0.34567, 0.56789),
+            "b": (0.23456, 0.45678, 0.67890),
+        }),
+    )
+
+def test_pretty_dicts_mixin_to_pretty(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
+    pd.testing.assert_frame_equal(
+        pretty_dicts.to_pretty(),
+        pd.DataFrame({
+            "a": ("0.123", "0.346", "0.568"),
+            "b": ("0.235", "0.457", "0.679"),
+        }),
+    )
+
+def test_pretty_dicts_mixin_to_string(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
+    assert pretty_dicts.to_string() == pd.DataFrame({
+        "a": ("0.123", "0.346", "0.568"),
+        "b": ("0.235", "0.457", "0.679"),
+    }).to_string(index=False)
+
+def test_pretty_dicts_mixin_to_html(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
+    assert pretty_dicts.to_html() == pd.DataFrame({
+        "a": ("0.123", "0.346", "0.568"),
+        "b": ("0.235", "0.457", "0.679"),
+    }).to_html(index=False)
+
+def test_pretty_dicts_mixin_str(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
+    assert str(pretty_dicts) == pd.DataFrame({
+        "a": ("0.123", "0.346", "0.568"),
+        "b": ("0.235", "0.457", "0.679"),
+    }).to_string(index=False)
+
+def test_pretty_dicts_mixin_repr_html(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
+    assert pretty_dicts._repr_html_() == pd.DataFrame({
+        "a": ("0.123", "0.346", "0.568"),
+        "b": ("0.235", "0.457", "0.679"),
+    }).to_html(index=False)

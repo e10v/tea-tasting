@@ -19,17 +19,10 @@ if TYPE_CHECKING:
     import ibis.expr.types
 
 
-def _default_formatter(data: dict[str, Any], name: str) -> str:
-    if name.endswith("_ci"):
-        ci_lower = _default_formatter(data, name + "_lower")
-        ci_upper = _default_formatter(data, name + "_upper")
-        return f"[{ci_lower}, {ci_upper}]"
-
-    sig, pct = (2, True) if name.startswith("rel_") else (3, False)
-    return tea_tasting.utils.format_num(data.get(name), sig=sig, pct=pct)
-
-
-class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
+class ExperimentResult(
+    UserDict[str, tea_tasting.metrics.MetricResult],
+    tea_tasting.utils.PrettyDictsMixin,
+):
     """Experiment result for a pair of variants.
 
     Examples:
@@ -54,6 +47,14 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
         #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
         ```
     """  # noqa: E501
+    default_keys = (
+        "metric",
+        "control",
+        "treatment",
+        "rel_effect_size",
+        "rel_effect_size_ci",
+        "pvalue",
+    )
 
     def to_dicts(self) -> tuple[dict[str, Any], ...]:
         """Convert the result to a sequence of dictionaries.
@@ -129,25 +130,20 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
             #> [4 rows x 11 columns]
             ```
         """
-        return pd.DataFrame.from_records(self.to_dicts())
+        return tea_tasting.utils.PrettyDictsMixin.to_pandas(self)
 
     def to_pretty(
         self,
-        names: Sequence[str] = (
-            "control",
-            "treatment",
-            "rel_effect_size",
-            "rel_effect_size_ci",
-            "pvalue",
-        ),
-        formatter: Callable[[dict[str, Any], str], str] = _default_formatter,
+        keys: Sequence[str] | None = None,
+        formatter: Callable[
+            [dict[str, Any], str], str] = tea_tasting.utils.get_and_format_num,
     ) -> pd.DataFrame:
         """Convert the result to a Pandas Dataframe with formatted values.
 
         Metric result attribute values are converted to strings in a "pretty" format.
 
         Args:
-            names: Metric attribute names. If an attribute is not defined
+            keys: Metric attribute names. If an attribute is not defined
                 for a metric it's assumed to be `None`.
             formatter: Custom formatter function. It should accept a dictionary
                 of metric result attributes and an attribute name, and return
@@ -180,7 +176,8 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
 
             data = tt.make_users_data(seed=42)
             result = experiment.analyze(data)
-            print(result.to_pretty(names=(
+            print(result.to_pretty(keys=(
+                "metric",
                 "control",
                 "treatment",
                 "effect_size",
@@ -193,30 +190,20 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
             #> 3    revenue_per_user    5.24      5.73       0.489      [-0.133, 1.11]
             ```
         """
-        records: list[dict[str, Any]] = []
-        for key, val in self.items():
-            data = val if isinstance(val, dict) else val._asdict()
-            formatted_values = {name: formatter(data, name) for name in names}
-            records.append({"metric": key} | formatted_values)
-        return pd.DataFrame.from_records(records)
+        return tea_tasting.utils.PrettyDictsMixin.to_pretty(self, keys, formatter)
 
     def to_string(
         self,
-        names: Sequence[str] = (
-            "control",
-            "treatment",
-            "rel_effect_size",
-            "rel_effect_size_ci",
-            "pvalue",
-        ),
-        formatter: Callable[[dict[str, Any], str], str] = _default_formatter,
+        keys: Sequence[str] | None = None,
+        formatter: Callable[
+            [dict[str, Any], str], str] = tea_tasting.utils.get_and_format_num,
     ) -> str:
         """Convert the result to a string.
 
         Metric result attribute values are converted to strings in a "pretty" format.
 
         Args:
-            names: Metric attribute names. If an attribute is not defined
+            keys: Metric attribute names. If an attribute is not defined
                 for a metric it's assumed to be `None`.
             formatter: Custom formatter function. It should accept a dictionary
                 of metric result attributes and an attribute name, and return
@@ -249,7 +236,8 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
 
             data = tt.make_users_data(seed=42)
             result = experiment.analyze(data)
-            print(result.to_string(names=(
+            print(result.to_string(keys=(
+                "metric",
                 "control",
                 "treatment",
                 "effect_size",
@@ -262,25 +250,20 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
             #>   revenue_per_user    5.24      5.73       0.489     [-0.133, 1.11]
             ```
         """
-        return self.to_pretty(names=names, formatter=formatter).to_string(index=False)
+        return tea_tasting.utils.PrettyDictsMixin.to_string(self, keys, formatter)
 
     def to_html(
         self,
-        names: Sequence[str] = (
-            "control",
-            "treatment",
-            "rel_effect_size",
-            "rel_effect_size_ci",
-            "pvalue",
-        ),
-        formatter: Callable[[dict[str, Any], str], str] = _default_formatter,
+        keys: Sequence[str] | None = None,
+        formatter: Callable[
+            [dict[str, Any], str], str] = tea_tasting.utils.get_and_format_num,
     ) -> str:
         """Convert the result to HTML.
 
         Metric result attribute values are converted to strings in a "pretty" format.
 
         Args:
-            names: Metric attribute names. If an attribute is not defined
+            keys: Metric attribute names. If an attribute is not defined
                 for a metric it's assumed to be `None`.
             formatter: Custom formatter function. It should accept a dictionary
                 of metric result attributes and an attribute name, and return
@@ -344,15 +327,7 @@ class ExperimentResult(UserDict[str, tea_tasting.metrics.MetricResult]):
             #> </table>
             ```
         """
-        return self.to_pretty(names=names, formatter=formatter).to_html(index=False)
-
-    def __str__(self) -> str:
-        """Result string representation."""
-        return self.to_string()
-
-    def _repr_html_(self) -> str:
-        """Result HTML representation."""
-        return self.to_html()
+        return tea_tasting.utils.PrettyDictsMixin.to_html(self, keys, formatter)
 
 
 ExperimentResults = dict[tuple[Any, Any], ExperimentResult]

@@ -12,7 +12,12 @@ import scipy.stats
 
 import tea_tasting.aggr
 import tea_tasting.config
-from tea_tasting.metrics.base import AggrCols, MetricBaseAggregated, PowerBaseAggregated
+from tea_tasting.metrics.base import (
+    AggrCols,
+    MetricBaseAggregated,
+    MetricPowerResults,
+    PowerBaseAggregated,
+)
 import tea_tasting.utils
 
 
@@ -59,7 +64,7 @@ class MeanResult(NamedTuple):
 
 
 class MeanPowerResult(NamedTuple):
-    """Result of the analysis of power.
+    """Power analysis results.
 
     Args:
         power: Statistical power.
@@ -73,10 +78,12 @@ class MeanPowerResult(NamedTuple):
     rel_effect_size: float
     n_obs: float
 
+MeanPowerResults = MetricPowerResults[MeanPowerResult]
+
 
 class RatioOfMeans(  # noqa: D101
     MetricBaseAggregated[MeanResult],
-    PowerBaseAggregated[tuple[MeanPowerResult, ...]],
+    PowerBaseAggregated[MeanPowerResults],
 ):
     def __init__(  # noqa: PLR0913
         self,
@@ -314,7 +321,7 @@ class RatioOfMeans(  # noqa: D101
         self,
         data: tea_tasting.aggr.Aggregates,
         parameter: PowerParameter = "rel_effect_size",
-    ) -> tuple[MeanPowerResult, ...]:
+    ) -> MeanPowerResults:
         """Solve for a parameter of the power of a test.
 
         Args:
@@ -342,7 +349,7 @@ class RatioOfMeans(  # noqa: D101
             parameter=parameter,
         )
 
-        result = ()
+        result = MeanPowerResults()
         for effect_size_i, rel_effect_size_i in zip(
             effect_size,
             rel_effect_size,
@@ -355,7 +362,7 @@ class RatioOfMeans(  # noqa: D101
                     effect_size=effect_size_i,
                     power=power,
                 )
-                result = (*result, MeanPowerResult(
+                result.append(MeanPowerResult(
                     power=parameter_value if parameter == "power" else power,  # type: ignore
                     effect_size=(
                         parameter_value

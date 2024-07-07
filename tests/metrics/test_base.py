@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NamedTuple
 import unittest.mock
 
 import pandas as pd
@@ -126,9 +126,13 @@ def aggr_metric(
 @pytest.fixture
 def aggr_power(
     aggr_cols: tea_tasting.metrics.base.AggrCols,
-) -> tea_tasting.metrics.base.PowerBaseAggregated[tuple[dict[str, Any]]]:
+) -> tea_tasting.metrics.base.PowerBaseAggregated[
+    tea_tasting.metrics.base.MetricPowerResults[dict[str, Any]]
+]:
     class AggrPower(
-        tea_tasting.metrics.base.PowerBaseAggregated[tuple[dict[str, Any]]],
+        tea_tasting.metrics.base.PowerBaseAggregated[
+            tea_tasting.metrics.base.MetricPowerResults[dict[str, Any]]
+        ],
     ):
         @property
         def aggr_cols(self) -> tea_tasting.metrics.base.AggrCols:
@@ -143,8 +147,8 @@ def aggr_power(
                 "rel_effect_size",
                 "n_obs",
             ] = "power",
-        ) -> tuple[dict[str, Any]]:
-            return ({},)
+        ) -> tea_tasting.metrics.base.MetricPowerResults[dict[str, Any]]:
+            return tea_tasting.metrics.base.MetricPowerResults()
     return AggrPower()
 
 @pytest.fixture
@@ -174,6 +178,36 @@ def _compare_aggrs(
     assert left.mean_ == right.mean_
     assert left.var_ == right.var_
     assert left.cov_ == right.cov_
+
+
+def test_metric_power_results_to_dicts():
+    result0 = {
+        "power": 0.8,
+        "effect_size": 1,
+        "rel_effect_size": 0.05,
+        "n_obs": 10_000,
+    }
+    result1 = {
+        "power": 0.9,
+        "effect_size": 2,
+        "rel_effect_size": 0.1,
+        "n_obs": 20_000,
+    }
+
+    results = tea_tasting.metrics.base.MetricPowerResults[dict[str, Any]](
+        [result0, result1])
+    assert results.to_dicts() == (result0, result1)
+
+    class PowerResult(NamedTuple):
+        power: float
+        effect_size: float
+        rel_effect_size: float
+        n_obs: float
+    results = tea_tasting.metrics.base.MetricPowerResults[PowerResult]([
+        PowerResult(**result0),
+        PowerResult(**result1),
+    ])
+    assert results.to_dicts() == (result0, result1)
 
 
 def test_metric_base_aggregated_analyze_table(
