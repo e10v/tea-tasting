@@ -55,7 +55,7 @@ class PowerBase(abc.ABC, tea_tasting.utils.ReprMixin):
     def solve_power(
         self,
         data: pd.DataFrame | ibis.expr.types.Table,
-        parameter: PowerParameter = "power",
+        parameter: PowerParameter = "rel_effect_size",
     ) -> float | int:
         """Solve for a parameter of the power of a test.
 
@@ -194,7 +194,7 @@ class PowerBaseAggregated(PowerBase, _HasAggrCols):
     def solve_power(
         self,
         data: pd.DataFrame | ibis.expr.types.Table | tea_tasting.aggr.Aggregates,
-        parameter: PowerParameter = "power",
+        parameter: PowerParameter = "rel_effect_size",
     ) -> float | int:
         """Solve for a parameter of the power of a test.
 
@@ -217,7 +217,7 @@ class PowerBaseAggregated(PowerBase, _HasAggrCols):
     def solve_power_from_aggregates(
         self,
         data: tea_tasting.aggr.Aggregates,
-        parameter: PowerParameter = "power",
+        parameter: PowerParameter = "rel_effect_size",
     ) -> float | int:
         """Solve for a parameter of the power of a test.
 

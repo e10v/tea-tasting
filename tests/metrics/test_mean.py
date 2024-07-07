@@ -248,7 +248,7 @@ def test_ratio_of_means_solve_power_table(power_table: ibis.expr.types.Table):
         numer_covariate="orders_covariate",
         rel_effect_size=0.1,
     )
-    result = metric.solve_power(power_table)
+    result = metric.solve_power(power_table, "power")
     assert isinstance(result, float)
     assert result > 0
     assert result < 1
@@ -259,7 +259,7 @@ def test_ratio_of_means_solve_power_df(power_dataframe: pd.DataFrame):
         denom="sessions",
         rel_effect_size=0.1,
     )
-    result = metric.solve_power(power_dataframe)
+    result = metric.solve_power(power_dataframe, "power")
     assert isinstance(result, float)
     assert result > 0
     assert result < 1
@@ -302,14 +302,14 @@ def test_ratio_of_means_solve_power_raises_effect_size(
 ):
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders")
     with pytest.raises(ValueError, match="One of them should be defined"):
-        metric.solve_power(power_data)
+        metric.solve_power(power_data, "power")
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
         effect_size=0.05,
         rel_effect_size=0.1,
     )
     with pytest.raises(ValueError, match="Only one of them should be defined"):
-        metric.solve_power(power_data)
+        metric.solve_power(power_data, "power")
 
 def test_ratio_of_means_solve_power_raises_max_iter(
     power_data: tea_tasting.aggr.Aggregates,
@@ -361,9 +361,8 @@ def test_mean_solve_power(power_data: tea_tasting.aggr.Aggregates):
         use_t=False,
         rel_effect_size=0.1,
     )
-    assert metric.solve_power(power_data) == pytest.approx(
-        ratio_metric.solve_power(power_data))
-
+    assert metric.solve_power(power_data, "power") == pytest.approx(
+        ratio_metric.solve_power(power_data, "power"))
 
 
 def _compare_results(

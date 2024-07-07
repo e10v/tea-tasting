@@ -273,7 +273,7 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult], PowerBaseAggregated):  # no
     def solve_power_from_aggregates(
         self,
         data: tea_tasting.aggr.Aggregates,
-        parameter: PowerParameter = "power",
+        parameter: PowerParameter = "rel_effect_size",
     ) -> float | int:
         """Solve for a parameter of the power of a test.
 
