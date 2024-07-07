@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import abc
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Generic, NamedTuple, TypeVar, Union, overload
 
 import ibis
@@ -14,7 +15,6 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
     from typing import Literal
 
     PowerParameter = Literal["power", "effect_size", "rel_effect_size", "n_obs"]
@@ -22,8 +22,10 @@ if TYPE_CHECKING:
 
 # The | operator doesn't work for NamedTuple, but Union works.
 MetricResult = Union[NamedTuple, dict[str, Any]]  # noqa: UP007
+PowerResult = Sequence[Union[NamedTuple, dict[str, Any]]]  # noqa: UP007
 
 R = TypeVar("R", bound=MetricResult)
+S = TypeVar("S", bound=PowerResult)
 
 
 class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
@@ -49,14 +51,14 @@ class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
         """
 
 
-class PowerBase(abc.ABC, tea_tasting.utils.ReprMixin):
-    """Base class the analysis of power."""
+class PowerBase(abc.ABC, Generic[S], tea_tasting.utils.ReprMixin):
+    """Base class for the analysis of power."""
     @abc.abstractmethod
     def solve_power(
         self,
         data: pd.DataFrame | ibis.expr.types.Table,
-        parameter: PowerParameter = "power",
-    ) -> float | int:
+        parameter: PowerParameter = "rel_effect_size",
+    ) -> S:
         """Solve for a parameter of the power of a test.
 
         Args:
@@ -64,7 +66,7 @@ class PowerBase(abc.ABC, tea_tasting.utils.ReprMixin):
             parameter: Parameter name.
 
         Returns:
-            The value of the parameter that was set in the `parameter` argument.
+            Power analysis result.
         """
 
 
@@ -189,13 +191,13 @@ class MetricBaseAggregated(MetricBase[R], _HasAggrCols):
         """
 
 
-class PowerBaseAggregated(PowerBase, _HasAggrCols):
+class PowerBaseAggregated(PowerBase[S], _HasAggrCols):
     """Base class for the analysis of power using aggregated statistics."""
     def solve_power(
         self,
         data: pd.DataFrame | ibis.expr.types.Table | tea_tasting.aggr.Aggregates,
-        parameter: PowerParameter = "power",
-    ) -> float | int:
+        parameter: PowerParameter = "rel_effect_size",
+    ) -> S:
         """Solve for a parameter of the power of a test.
 
         Args:
@@ -203,7 +205,7 @@ class PowerBaseAggregated(PowerBase, _HasAggrCols):
             parameter: Parameter name.
 
         Returns:
-            The value of the parameter that was set in the `parameter` argument.
+            Power analysis result.
         """
         if not isinstance(data, tea_tasting.aggr.Aggregates):
             data = tea_tasting.aggr.read_aggregates(
@@ -217,8 +219,8 @@ class PowerBaseAggregated(PowerBase, _HasAggrCols):
     def solve_power_from_aggregates(
         self,
         data: tea_tasting.aggr.Aggregates,
-        parameter: PowerParameter = "power",
-    ) -> float | int:
+        parameter: PowerParameter = "rel_effect_size",
+    ) -> S:
         """Solve for a parameter of the power of a test.
 
         Args:
@@ -226,7 +228,7 @@ class PowerBaseAggregated(PowerBase, _HasAggrCols):
             parameter: Parameter name.
 
         Returns:
-            The value of the parameter that was set in the `parameter` argument.
+            Power analysis result.
         """
 
 

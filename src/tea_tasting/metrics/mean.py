@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 import math
 from typing import TYPE_CHECKING, NamedTuple, overload
 
@@ -57,7 +58,26 @@ class MeanResult(NamedTuple):
     statistic: float
 
 
-class RatioOfMeans(MetricBaseAggregated[MeanResult], PowerBaseAggregated):  # noqa: D101
+class MeanPowerResult(NamedTuple):
+    """Result of the analysis of power.
+
+    Args:
+        power: Statistical power.
+        effect_size: Absolute effect size. Difference between the two means.
+        rel_effect_size: Relative effect size. Difference between the two means,
+            divided by the control mean.
+        n_obs: Number of observations in the control and in the treatment together.
+    """
+    power: float
+    effect_size: float
+    rel_effect_size: float
+    n_obs: float
+
+
+class RatioOfMeans(  # noqa: D101
+    MetricBaseAggregated[MeanResult],
+    PowerBaseAggregated[tuple[MeanPowerResult, ...]],
+):
     def __init__(  # noqa: PLR0913
         self,
         numer: str,
@@ -72,9 +92,9 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult], PowerBaseAggregated):  # no
         alpha: float | None = None,
         ratio: float | int | None = None,
         power: float | None = None,
-        effect_size: float | int | None = None,
-        rel_effect_size: float | None = None,
-        n_obs: int | None = None,
+        effect_size: float | int | Sequence[float | int] | None = None,
+        rel_effect_size: float | Sequence[float] | None = None,
+        n_obs: int | Sequence[int] | None = None,
     ) -> None:
         """Metric for the analysis of ratios of means.
 
@@ -195,24 +215,44 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult], PowerBaseAggregated):  # no
             if power is not None
             else tea_tasting.config.get_config("power")
         )
-        self.effect_size = (
-            None if effect_size is None else
-            tea_tasting.utils.check_scalar(
-                effect_size, "effect_size", typ=float | int,
-                gt=float("-inf"), lt=float("inf"), ne=0,
+        if effect_size is not None and rel_effect_size is not None:
+            raise ValueError(
+                "Both `effect_size` and `rel_effect_size` are not `None`. "
+                "Only one of them should be defined.",
             )
-        )
-        self.rel_effect_size = (
-            None if rel_effect_size is None else
-            tea_tasting.utils.check_scalar(
-                rel_effect_size, "rel_effect_size", typ=float | int,
-                gt=float("-inf"), lt=float("inf"), ne=0,
+        if effect_size is None:
+            self.effect_size = effect_size
+        else:
+            if not isinstance(effect_size, Sequence):
+                effect_size = (effect_size,)
+            self.effect_size = tuple(
+                tea_tasting.utils.check_scalar(
+                    x, "effect_size", typ=float | int,
+                    gt=float("-inf"), lt=float("inf"), ne=0,
+                )
+                for x in effect_size
             )
-        )
-        self.n_obs = (
-            None if n_obs is None else
-            tea_tasting.utils.check_scalar(n_obs, "n_obs", typ=int, gt=1)
-        )
+        if rel_effect_size is None:
+            self.rel_effect_size = None
+        else:
+            if not isinstance(rel_effect_size, Sequence):
+                rel_effect_size = (rel_effect_size,)
+            self.rel_effect_size = tuple(
+                tea_tasting.utils.check_scalar(
+                    x, "rel_effect_size", typ=float | int,
+                    gt=float("-inf"), lt=float("inf"), ne=0,
+                )
+                for x in rel_effect_size
+            )
+        if n_obs is None:
+            self.n_obs = None
+        else:
+            if not isinstance(n_obs, Sequence):
+                n_obs = (n_obs,)
+            self.n_obs = tuple(
+                tea_tasting.utils.check_scalar(x, "n_obs", typ=int, gt=1)
+                for x in n_obs
+            )
 
 
     @property
@@ -273,8 +313,8 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult], PowerBaseAggregated):  # no
     def solve_power_from_aggregates(
         self,
         data: tea_tasting.aggr.Aggregates,
-        parameter: PowerParameter = "power",
-    ) -> float | int:
+        parameter: PowerParameter = "rel_effect_size",
+    ) -> tuple[MeanPowerResult, ...]:
         """Solve for a parameter of the power of a test.
 
         Args:
@@ -282,7 +322,7 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult], PowerBaseAggregated):  # no
             parameter: Parameter name.
 
         Returns:
-            The value of the parameter that was set in the `parameter` argument.
+            Power analysis result.
         """
         tea_tasting.utils.check_scalar(
             parameter,
@@ -296,8 +336,61 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult], PowerBaseAggregated):  # no
             self.denom_covariate)
         metric_mean = self._metric_mean(data, covariate_coef, covariate_mean)
 
+        power, effect_size, rel_effect_size, n_obs = self._validate_power_parameters(
+            metric_mean=metric_mean,
+            sample_count=data.count(),
+            parameter=parameter,
+        )
+
+        result = ()
+        for effect_size_i, rel_effect_size_i in zip(
+            effect_size,
+            rel_effect_size,
+            strict=True,
+        ):
+            for n_obs_i in n_obs:
+                parameter_value = self._solve_power_from_stats(
+                    sample_var=self._metric_var(data, covariate_coef),
+                    sample_count=n_obs_i,
+                    effect_size=effect_size_i,
+                    power=power,
+                )
+                result = (*result, MeanPowerResult(
+                    power=parameter_value if parameter == "power" else power,  # type: ignore
+                    effect_size=(
+                        parameter_value
+                        if parameter in {"effect_size", "rel_effect_size"}
+                        else effect_size_i
+                    ),  # type: ignore
+                    rel_effect_size=(
+                        parameter_value / metric_mean
+                        if parameter in {"effect_size", "rel_effect_size"}
+                        else rel_effect_size_i
+                    ),  # type: ignore
+                    n_obs=(
+                        math.ceil(parameter_value)
+                        if parameter == "n_obs"
+                        else n_obs_i
+                    ),  # type: ignore
+                ))
+
+        return result
+
+
+    def _validate_power_parameters(
+        self,
+        metric_mean: float,
+        sample_count: int,
+        parameter: PowerParameter,
+    ) -> tuple[
+        float | None,  # power
+        tuple[float | int | None, ...],  # effect_size
+        tuple[float | None, ...],  # rel_effect_size
+        tuple[int | None, ...],  # n_obs
+    ]:
         n_obs = None
         effect_size = None
+        rel_effect_size = None
         power = None
 
         if parameter in {"power", "n_obs"}:
@@ -306,34 +399,35 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult], PowerBaseAggregated):  # no
                     "Both `effect_size` and `rel_effect_size` are `None`. "
                     "One of them should be defined.",
                 )
-            if self.effect_size is not None and self.rel_effect_size is not None:
-                raise ValueError(
-                    "Both `effect_size` and `rel_effect_size` are not `None`. "
-                    "Only one of them should be defined.",
-                )
             effect_size = (
                 self.effect_size if self.rel_effect_size is None
-                else self.rel_effect_size * metric_mean
+                else tuple(
+                    rel_effect_size * metric_mean
+                    for rel_effect_size in self.rel_effect_size
+                )
+            )
+            rel_effect_size = (
+                self.rel_effect_size if self.effect_size is None
+                else tuple(
+                    effect_size / metric_mean
+                    for effect_size in self.effect_size
+                )
             )
 
         if parameter in {"power", "effect_size", "rel_effect_size"}:
-            n_obs = data.count() if self.n_obs is None else self.n_obs
+            n_obs = (sample_count,) if self.n_obs is None else self.n_obs
 
         if parameter in {"effect_size", "rel_effect_size", "n_obs"}:
             power = self.power
 
-        parameter_value = self._solve_power_from_stats(
-            sample_var=self._metric_var(data, covariate_coef),
-            sample_count=n_obs,
-            effect_size=effect_size,
-            power=power,
-        )
+        if effect_size is None:
+            effect_size = (None,)
+        if rel_effect_size is None:
+            rel_effect_size = (None,)
+        if n_obs is None:
+            n_obs = (None,)
 
-        if parameter == "rel_effect_size":
-            return parameter_value / metric_mean
-        if parameter == "n_obs":
-            return math.ceil(parameter_value)
-        return parameter_value
+        return power, effect_size, rel_effect_size, n_obs
 
 
     def _covariate_coef(self, aggr: tea_tasting.aggr.Aggregates) -> float:
@@ -467,7 +561,6 @@ class RatioOfMeans(MetricBaseAggregated[MeanResult], PowerBaseAggregated):  # no
             other_bound = _find_boundary(
                 fn,
                 sign * 10 * math.sqrt(sample_var / sample_count),
-                sign * 10,
             )
             lower_bound, upper_bound = sorted((0, other_bound))
 

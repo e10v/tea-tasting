@@ -110,9 +110,8 @@ def test_ratio_of_means_init_custom():
         alpha=0.1,
         ratio=0.5,
         power=0.75,
-        effect_size=1,
         rel_effect_size=0.08,
-        n_obs=10_000,
+        n_obs=(5_000, 10_000),
     )
     assert metric.numer == "a"
     assert metric.denom == "b"
@@ -125,9 +124,9 @@ def test_ratio_of_means_init_custom():
     assert metric.alpha == 0.1
     assert metric.ratio == 0.5
     assert metric.power == 0.75
-    assert metric.effect_size == 1
-    assert metric.rel_effect_size == 0.08
-    assert metric.n_obs == 10_000
+    assert metric.effect_size is None
+    assert metric.rel_effect_size == (0.08,)
+    assert metric.n_obs == (5_000, 10_000)
 
 def test_ratio_of_means_init_config():
     with tea_tasting.config.config_context(
@@ -248,10 +247,14 @@ def test_ratio_of_means_solve_power_table(power_table: ibis.expr.types.Table):
         numer_covariate="orders_covariate",
         rel_effect_size=0.1,
     )
-    result = metric.solve_power(power_table)
-    assert isinstance(result, float)
-    assert result > 0
-    assert result < 1
+    results = metric.solve_power(power_table, "power")
+    assert isinstance(results, tuple)
+    assert len(results) == 1
+    result = results[0]
+    assert isinstance(result, tea_tasting.metrics.mean.MeanPowerResult)
+    assert result.power > 0
+    assert result.power < 1
+    assert result.rel_effect_size == 0.1
 
 def test_ratio_of_means_solve_power_df(power_dataframe: pd.DataFrame):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
@@ -259,10 +262,14 @@ def test_ratio_of_means_solve_power_df(power_dataframe: pd.DataFrame):
         denom="sessions",
         rel_effect_size=0.1,
     )
-    result = metric.solve_power(power_dataframe)
-    assert isinstance(result, float)
-    assert result > 0
-    assert result < 1
+    results = metric.solve_power(power_dataframe, "power")
+    assert isinstance(results, tuple)
+    assert len(results) == 1
+    result = results[0]
+    assert isinstance(result, tea_tasting.metrics.mean.MeanPowerResult)
+    assert result.power > 0
+    assert result.power < 1
+    assert result.rel_effect_size == 0.1
 
 def test_ratio_of_means_solve_power_power(power_data: tea_tasting.aggr.Aggregates):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
@@ -271,8 +278,15 @@ def test_ratio_of_means_solve_power_power(power_data: tea_tasting.aggr.Aggregate
         rel_effect_size=0.1,
         n_obs=10_000,
     )
-    result = metric.solve_power(power_data, "power")
-    assert result == pytest.approx(0.895653144822902)
+    results = metric.solve_power(power_data, "power")
+    assert isinstance(results, tuple)
+    assert len(results) == 1
+    result = results[0]
+    assert isinstance(result, tea_tasting.metrics.mean.MeanPowerResult)
+    assert result.power == pytest.approx(0.895653144822902)
+    assert result.effect_size == pytest.approx(0.1 * power_data.mean("orders"))
+    assert result.rel_effect_size == 0.1
+    assert result.n_obs == 10_000
 
 def test_ratio_of_means_solve_power_effect_size(
     power_data: tea_tasting.aggr.Aggregates,
@@ -282,34 +296,66 @@ def test_ratio_of_means_solve_power_effect_size(
         alternative="less",
         n_obs=10_000,
     )
-    result = metric.solve_power(power_data, "effect_size")
-    assert result == pytest.approx(-0.04027000268908317)
+    results = metric.solve_power(power_data, "effect_size")
+    assert isinstance(results, tuple)
+    assert len(results) == 1
+    result = results[0]
+    assert isinstance(result, tea_tasting.metrics.mean.MeanPowerResult)
+    assert result.power == 0.8
+    assert result.effect_size == pytest.approx(-0.04027000268908317)
+    assert result.rel_effect_size == pytest.approx(-0.08568085678528335)
+    assert result.n_obs == 10_000
 
 def test_ratio_of_means_solve_power_rel_effect_size(
     power_data: tea_tasting.aggr.Aggregates,
 ):
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders", n_obs=10_000)
-    result = metric.solve_power(power_data, "rel_effect_size")
-    assert result == pytest.approx(0.09654179522252104)
+    results = metric.solve_power(power_data, "rel_effect_size")
+    assert isinstance(results, tuple)
+    assert len(results) == 1
+    result = results[0]
+    assert isinstance(result, tea_tasting.metrics.mean.MeanPowerResult)
+    assert result.power == 0.8
+    assert result.effect_size == pytest.approx(0.04537464375458489)
+    assert result.rel_effect_size == pytest.approx(0.09654179522252104)
+    assert result.n_obs == 10_000
 
 def test_ratio_of_means_solve_power_n_obs(power_data: tea_tasting.aggr.Aggregates):
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders", effect_size=0.05)
-    result = metric.solve_power(power_data, "n_obs")
-    assert result == 8236
+    results = metric.solve_power(power_data, "n_obs")
+    assert isinstance(results, tuple)
+    assert len(results) == 1
+    result = results[0]
+    assert isinstance(result, tea_tasting.metrics.mean.MeanPowerResult)
+    assert result.power == 0.8
+    assert result.effect_size == 0.05
+    assert result.rel_effect_size == pytest.approx(0.05 / power_data.mean("orders"))
+    assert result.n_obs == 8236
+
+def test_ratio_of_means_solve_power_multi(power_data: tea_tasting.aggr.Aggregates):
+    metric = tea_tasting.metrics.mean.RatioOfMeans(
+        numer="orders",
+        rel_effect_size=(0.05, 0.1),
+        n_obs=(5_000, 10_000),
+    )
+    results = metric.solve_power(power_data, "power")
+    assert isinstance(results, tuple)
+    assert len(results) == 4
+    for result in results:
+        assert isinstance(result, tea_tasting.metrics.mean.MeanPowerResult)
 
 def test_ratio_of_means_solve_power_raises_effect_size(
     power_data: tea_tasting.aggr.Aggregates,
 ):
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders")
     with pytest.raises(ValueError, match="One of them should be defined"):
-        metric.solve_power(power_data)
-    metric = tea_tasting.metrics.mean.RatioOfMeans(
-        numer="orders",
-        effect_size=0.05,
-        rel_effect_size=0.1,
-    )
+        metric.solve_power(power_data, "power")
     with pytest.raises(ValueError, match="Only one of them should be defined"):
-        metric.solve_power(power_data)
+        tea_tasting.metrics.mean.RatioOfMeans(
+            numer="orders",
+            effect_size=0.05,
+            rel_effect_size=0.1,
+        )
 
 def test_ratio_of_means_solve_power_raises_max_iter(
     power_data: tea_tasting.aggr.Aggregates,
@@ -339,7 +385,7 @@ def test_mean_analyze(data: dict[str, tea_tasting.aggr.Aggregates]):
         equal_var=True,
         use_t=False,
     )
-    _compare_results(metric.analyze(data, 0, 1), ratio_metric.analyze(data, 0, 1))
+    assert metric.analyze(data, 0, 1) == ratio_metric.analyze(data, 0, 1)
 
 
 def test_mean_solve_power(power_data: tea_tasting.aggr.Aggregates):
@@ -361,26 +407,5 @@ def test_mean_solve_power(power_data: tea_tasting.aggr.Aggregates):
         use_t=False,
         rel_effect_size=0.1,
     )
-    assert metric.solve_power(power_data) == pytest.approx(
-        ratio_metric.solve_power(power_data))
-
-
-
-def _compare_results(
-    left: tea_tasting.metrics.mean.MeanResult,
-    right: tea_tasting.metrics.mean.MeanResult,
-) -> None:
-    assert isinstance(left, tea_tasting.metrics.mean.MeanResult)
-    assert isinstance(right, tea_tasting.metrics.mean.MeanResult)
-    assert left.control == pytest.approx(right.control)
-    assert left.treatment == pytest.approx(right.treatment)
-    assert left.effect_size == pytest.approx(right.effect_size)
-    assert left.effect_size_ci_lower == pytest.approx(right.effect_size_ci_lower)
-    assert left.effect_size_ci_upper == pytest.approx(right.effect_size_ci_upper)
-    assert left.rel_effect_size == pytest.approx(right.rel_effect_size)
-    assert left.rel_effect_size_ci_lower == pytest.approx(
-        right.rel_effect_size_ci_lower)
-    assert left.rel_effect_size_ci_upper == pytest.approx(
-        right.rel_effect_size_ci_upper)
-    assert left.pvalue == pytest.approx(right.pvalue)
-    assert left.statistic == pytest.approx(right.statistic)
+    assert metric.solve_power(power_data, "power") ==  ratio_metric.solve_power(
+        power_data, "power")
