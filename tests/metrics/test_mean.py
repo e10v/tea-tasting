@@ -248,10 +248,9 @@ def test_ratio_of_means_solve_power_table(power_table: ibis.expr.types.Table):
         rel_effect_size=0.1,
     )
     results = metric.solve_power(power_table, "power")
-    assert isinstance(results, tuple)
+    assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
     assert len(results) == 1
     result = results[0]
-    assert isinstance(result, tea_tasting.metrics.mean.MeanPowerResult)
     assert result.power > 0
     assert result.power < 1
     assert result.rel_effect_size == 0.1
@@ -263,10 +262,9 @@ def test_ratio_of_means_solve_power_df(power_dataframe: pd.DataFrame):
         rel_effect_size=0.1,
     )
     results = metric.solve_power(power_dataframe, "power")
-    assert isinstance(results, tuple)
+    assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
     assert len(results) == 1
     result = results[0]
-    assert isinstance(result, tea_tasting.metrics.mean.MeanPowerResult)
     assert result.power > 0
     assert result.power < 1
     assert result.rel_effect_size == 0.1
@@ -279,10 +277,9 @@ def test_ratio_of_means_solve_power_power(power_data: tea_tasting.aggr.Aggregate
         n_obs=10_000,
     )
     results = metric.solve_power(power_data, "power")
-    assert isinstance(results, tuple)
+    assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
     assert len(results) == 1
     result = results[0]
-    assert isinstance(result, tea_tasting.metrics.mean.MeanPowerResult)
     assert result.power == pytest.approx(0.895653144822902)
     assert result.effect_size == pytest.approx(0.1 * power_data.mean("orders"))
     assert result.rel_effect_size == 0.1
@@ -297,10 +294,9 @@ def test_ratio_of_means_solve_power_effect_size(
         n_obs=10_000,
     )
     results = metric.solve_power(power_data, "effect_size")
-    assert isinstance(results, tuple)
+    assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
     assert len(results) == 1
     result = results[0]
-    assert isinstance(result, tea_tasting.metrics.mean.MeanPowerResult)
     assert result.power == 0.8
     assert result.effect_size == pytest.approx(-0.04027000268908317)
     assert result.rel_effect_size == pytest.approx(-0.08568085678528335)
@@ -311,10 +307,9 @@ def test_ratio_of_means_solve_power_rel_effect_size(
 ):
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders", n_obs=10_000)
     results = metric.solve_power(power_data, "rel_effect_size")
-    assert isinstance(results, tuple)
+    assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
     assert len(results) == 1
     result = results[0]
-    assert isinstance(result, tea_tasting.metrics.mean.MeanPowerResult)
     assert result.power == 0.8
     assert result.effect_size == pytest.approx(0.04537464375458489)
     assert result.rel_effect_size == pytest.approx(0.09654179522252104)
@@ -323,10 +318,9 @@ def test_ratio_of_means_solve_power_rel_effect_size(
 def test_ratio_of_means_solve_power_n_obs(power_data: tea_tasting.aggr.Aggregates):
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders", effect_size=0.05)
     results = metric.solve_power(power_data, "n_obs")
-    assert isinstance(results, tuple)
+    assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
     assert len(results) == 1
     result = results[0]
-    assert isinstance(result, tea_tasting.metrics.mean.MeanPowerResult)
     assert result.power == 0.8
     assert result.effect_size == 0.05
     assert result.rel_effect_size == pytest.approx(0.05 / power_data.mean("orders"))
@@ -339,10 +333,8 @@ def test_ratio_of_means_solve_power_multi(power_data: tea_tasting.aggr.Aggregate
         n_obs=(5_000, 10_000),
     )
     results = metric.solve_power(power_data, "power")
-    assert isinstance(results, tuple)
+    assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
     assert len(results) == 4
-    for result in results:
-        assert isinstance(result, tea_tasting.metrics.mean.MeanPowerResult)
 
 def test_ratio_of_means_solve_power_raises_effect_size(
     power_data: tea_tasting.aggr.Aggregates,

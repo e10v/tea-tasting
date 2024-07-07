@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import abc
-from collections.abc import Sequence
+from collections import UserList
 from typing import TYPE_CHECKING, Any, Generic, NamedTuple, TypeVar, Union, overload
 
 import ibis
@@ -15,6 +15,7 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from typing import Literal
 
     PowerParameter = Literal["power", "effect_size", "rel_effect_size", "n_obs"]
@@ -22,10 +23,21 @@ if TYPE_CHECKING:
 
 # The | operator doesn't work for NamedTuple, but Union works.
 MetricResult = Union[NamedTuple, dict[str, Any]]  # noqa: UP007
-PowerResult = Sequence[Union[NamedTuple, dict[str, Any]]]  # noqa: UP007
+MetricPowerResult = Union[NamedTuple, dict[str, Any]]  # noqa: UP007
 
 R = TypeVar("R", bound=MetricResult)
-S = TypeVar("S", bound=PowerResult)
+P = TypeVar("P", bound=MetricPowerResult)
+
+
+class MetricPowerResults(UserList[P], tea_tasting.utils.PrettyDictsMixin):
+    """Power analysis results."""
+    default_keys = ("power", "effect_size", "rel_effect_size", "n_obs")
+
+    def to_dicts(self) -> tuple[dict[str, Any], ...]:
+        """"Convert the results to a sequence of dictionaries."""
+        return tuple((v if isinstance(v, dict) else v._asdict()) for v in self)
+
+S = TypeVar("S", bound=MetricPowerResults)  # type: ignore
 
 
 class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
