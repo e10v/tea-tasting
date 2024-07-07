@@ -18,6 +18,8 @@ if TYPE_CHECKING:
 
     import ibis.expr.types
 
+    from tea_tasting.metrics.base import PowerParameter
+
 
 class ExperimentResult(
     UserDict[str, tea_tasting.metrics.MetricResult],
@@ -329,8 +331,22 @@ class ExperimentResult(
         """
         return tea_tasting.utils.PrettyDictsMixin.to_html(self, keys, formatter)
 
-
 ExperimentResults = dict[tuple[Any, Any], ExperimentResult]
+
+
+class ExperimentPowerResult(
+    UserDict[str, tea_tasting.metrics.MetricPowerResults[Any]],
+    tea_tasting.utils.PrettyDictsMixin,
+):
+    """Result of the analysis of power in a experiment."""
+    default_keys = ("metric", "power", "effect_size", "rel_effect_size", "n_obs")
+
+    def to_dicts(self) -> tuple[dict[str, Any], ...]:
+        """Convert the result to a sequence of dictionaries."""
+        dicts = ()
+        for metric, results in self.items():
+            dicts = (*dicts, *({"metric": metric} | d for d in results.to_dicts()))
+        return dicts
 
 
 class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
@@ -575,3 +591,38 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             .to_pandas()
             .loc[:, self.variant]
         )
+
+
+    def solve_power(
+        self,
+        data: pd.DataFrame | ibis.expr.types.Table,
+        parameter: PowerParameter = "rel_effect_size",
+    ) -> ExperimentPowerResult:
+        """Solve for a parameter of the power of a test.
+
+        Args:
+            data: Sample data.
+            parameter: Parameter name.
+
+        Returns:
+            Power analysis result.
+        """
+        aggr_cols = tea_tasting.metrics.AggrCols()
+        for metric in self.metrics.values():
+            if isinstance(metric, tea_tasting.metrics.PowerBaseAggregated):
+                aggr_cols |= metric.aggr_cols
+
+        aggr_data = tea_tasting.aggr.read_aggregates(
+            data,
+            group_col=None,
+            **aggr_cols._asdict(),
+        ) if len(aggr_cols) > 0 else tea_tasting.aggr.Aggregates()
+
+        result = ExperimentPowerResult()
+        for name, metric in self.metrics.items():
+            if isinstance(metric, tea_tasting.metrics.PowerBaseAggregated):
+                result |= {name: metric.solve_power(aggr_data, parameter=parameter)}
+            elif isinstance(metric, tea_tasting.metrics.PowerBase):
+                result |= {name: metric.solve_power(data, parameter=parameter)}
+
+        return result
