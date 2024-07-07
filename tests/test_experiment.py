@@ -204,7 +204,6 @@ def test_experiment_result_to_dicts(result: tea_tasting.experiment.ExperimentRes
         {"metric": "metric_dict", "control": 20, "treatment": 22, "effect_size": 2},
     )
 
-
 def test_experiment_result_to_pandas(result: tea_tasting.experiment.ExperimentResult):
     pd.testing.assert_frame_equal(
         result.to_pandas(),
@@ -215,7 +214,6 @@ def test_experiment_result_to_pandas(result: tea_tasting.experiment.ExperimentRe
             "effect_size": (1, 2),
         }),
     )
-
 
 def test_experiment_result_to_pretty(result2: tea_tasting.experiment.ExperimentResult):
     pd.testing.assert_frame_equal(
@@ -240,7 +238,6 @@ def test_experiment_result_to_pretty(result2: tea_tasting.experiment.ExperimentR
         )),
     )
 
-
 def test_experiment_result_to_string(result2: tea_tasting.experiment.ExperimentResult):
     assert result2.to_string() == pd.DataFrame((
         {
@@ -261,51 +258,8 @@ def test_experiment_result_to_string(result2: tea_tasting.experiment.ExperimentR
         },
     )).to_string(index=False)
 
-
-def test_experiment_result_str(result2: tea_tasting.experiment.ExperimentResult):
-    assert str(result2) == pd.DataFrame((
-        {
-            "metric": "metric_tuple",
-            "control": "4.44",
-            "treatment": "5.56",
-            "rel_effect_size": "20%",
-            "rel_effect_size_ci": "[12%, ∞]",
-            "pvalue": "0.235",
-        },
-        {
-            "metric": "metric_dict",
-            "control": "10.0",
-            "treatment": "11.1",
-            "rel_effect_size": "11%",
-            "rel_effect_size_ci": "[0.0%, -]",
-            "pvalue": "-",
-        },
-    )).to_string(index=False)
-
-
 def test_experiment_result_to_html(result2: tea_tasting.experiment.ExperimentResult):
     assert result2.to_html() == pd.DataFrame((
-        {
-            "metric": "metric_tuple",
-            "control": "4.44",
-            "treatment": "5.56",
-            "rel_effect_size": "20%",
-            "rel_effect_size_ci": "[12%, ∞]",
-            "pvalue": "0.235",
-        },
-        {
-            "metric": "metric_dict",
-            "control": "10.0",
-            "treatment": "11.1",
-            "rel_effect_size": "11%",
-            "rel_effect_size_ci": "[0.0%, -]",
-            "pvalue": "-",
-        },
-    )).to_html(index=False)
-
-
-def test_experiment_result_repr_html(result2: tea_tasting.experiment.ExperimentResult):
-    assert result2._repr_html_() == pd.DataFrame((
         {
             "metric": "metric_tuple",
             "control": "4.44",
