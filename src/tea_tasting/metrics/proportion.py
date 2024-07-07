@@ -150,7 +150,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
             self.method == "binom" or
             (self.method == "auto" and n < _MAX_EXACT_THRESHOLD)
         ):
-            pvalue = scipy.stats.binomtest(k=k, n=n, p=p).pvalue
+            pvalue = scipy.stats.binomtest(k=int(k), n=int(n), p=p).pvalue
         else:  # norm
             d = k - n*p
             if self.correction and d != 0:
