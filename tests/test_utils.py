@@ -84,6 +84,19 @@ def test_auto_check_equal_var():
     with pytest.raises(TypeError):
         tea_tasting.utils.auto_check(0, "equal_var")
 
+def test_auto_check_n_obs():
+    assert tea_tasting.utils.auto_check(2, "n_obs") == 2
+    assert tea_tasting.utils.auto_check((2, 3), "n_obs") == (2, 3)
+    assert tea_tasting.utils.auto_check(None, "n_obs") is None
+    with pytest.raises(TypeError):
+        tea_tasting.utils.auto_check(0.5, "n_obs")
+    with pytest.raises(TypeError):
+        tea_tasting.utils.auto_check((0.5, 2), "n_obs")
+    with pytest.raises(ValueError, match="must be >"):
+        tea_tasting.utils.auto_check(1, "n_obs")
+    with pytest.raises(ValueError, match="must be >"):
+        tea_tasting.utils.auto_check((1, 2), "n_obs")
+
 def test_auto_check_n_resamples():
     assert tea_tasting.utils.auto_check(1, "n_resamples") == 1
     with pytest.raises(ValueError, match="must be >"):

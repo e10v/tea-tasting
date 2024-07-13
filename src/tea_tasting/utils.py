@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import abc
+from collections.abc import Sequence
 import inspect
 import locale
 import math
@@ -13,7 +14,7 @@ import pandas as pd
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator, Sequence
+    from collections.abc import Callable, Iterator
     from typing import Any, Literal, TypeVar
 
     R = TypeVar("R")
@@ -65,7 +66,7 @@ def check_scalar(  # noqa: PLR0913
     return value
 
 
-def auto_check(value: R, name: str) -> R:
+def auto_check(value: R, name: str) -> R:  # noqa: C901, PLR0912
     """Automatically check a parameter's type and value based on its name.
 
     Args:
@@ -85,9 +86,16 @@ def auto_check(value: R, name: str) -> R:
         check_scalar(value, name, typ=bool)
     elif name == "equal_var":
         check_scalar(value, name, typ=bool)
+    elif name == "n_obs":
+        check_scalar(value, name, typ=int | Sequence | None)
+        if isinstance(value, int):
+            check_scalar(value, name, gt=1)
+        if isinstance(value, Sequence):
+            for val in value:
+                check_scalar(val, name, typ=int, gt=1)
     elif name == "n_resamples":
         check_scalar(value, name, typ=int, gt=0)
-    if name == "power":
+    elif name == "power":
         check_scalar(value, name, typ=float, gt=0, lt=1)
     elif name == "ratio":
         check_scalar(value, name, typ=float | int, gt=0)

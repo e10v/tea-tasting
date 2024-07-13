@@ -1,4 +1,5 @@
 """Global configuration."""
+# ruff: noqa: PLR0913
 
 from __future__ import annotations
 
@@ -9,7 +10,7 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Iterator, Sequence
     from typing import Any, Literal
 
 
@@ -18,6 +19,7 @@ _global_config = {
     "alternative": "two-sided",
     "confidence_level": 0.95,
     "equal_var": False,
+    "n_obs": None,
     "n_resamples": 10_000,
     "power": 0.8,
     "ratio": 1,
@@ -55,6 +57,7 @@ def set_config(
     alternative: Literal["two-sided", "greater", "less"] | None = None,
     confidence_level: float | None = None,
     equal_var: bool | None = None,
+    n_obs: int | Sequence[int] | None = None,
     n_resamples: int | None = None,
     power: float | None = None,
     ratio: float | int | None = None,
@@ -71,6 +74,8 @@ def set_config(
         equal_var: Defines whether equal variance is assumed. If `True`,
             pooled variance is used for the calculation of the standard error
             of the difference between two means. Default is `False`.
+        n_obs: Number of observations in the control and in the treatment together.
+            Default is `None`.
         n_resamples: The number of resamples performed to form the bootstrap
             distribution of a statistic. Default is `10_000`.
         power: Statistical power. Default is 0.8.
@@ -119,12 +124,13 @@ def config_context(
     alternative: Literal["two-sided", "greater", "less"] | None = None,
     confidence_level: float | None = None,
     equal_var: bool | None = None,
+    n_obs: int | Sequence[int] | None = None,
     n_resamples: int | None = None,
     power: float | None = None,
     ratio: float | int | None = None,
     use_t: bool | None = None,
     **kwargs: Any,
-) -> Generator[None, Any, None]:
+) -> Iterator[Any]:
     """A context manager that temporarily modifies the global configuration.
 
     Args:
@@ -135,6 +141,8 @@ def config_context(
         equal_var: Defines whether equal variance is assumed. If `True`,
             pooled variance is used for the calculation of the standard error
             of the difference between two means. Default is `False`.
+        n_obs: Number of observations in the control and in the treatment together.
+            Default is `None`.
         n_resamples: The number of resamples performed to form the bootstrap
             distribution of a statistic. Default is `10_000`.
         power: Statistical power. Default is 0.8.
@@ -176,4 +184,4 @@ def config_context(
     try:
         yield
     finally:
-        set_config(**old_config)
+        _global_config.update(**old_config)
