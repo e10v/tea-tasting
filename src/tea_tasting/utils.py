@@ -99,6 +99,7 @@ def auto_check(value: R, name: str) -> R:
 def format_num(
     val: float | int | None,
     sig: int = 3,
+    *,
     pct: bool = False,
     nan: str = "-",
     inf: str = "∞",

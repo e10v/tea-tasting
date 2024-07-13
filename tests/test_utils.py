@@ -212,7 +212,7 @@ def test_numeric():
 
 def test_repr_mixin_repr():
     class Repr(tea_tasting.utils.ReprMixin):
-        def __init__(self, a: int, b: bool, c: str) -> None:
+        def __init__(self, a: int, *, b: bool, c: str) -> None:
             self._a = -1
             self.a_ = -1
             self.a = a

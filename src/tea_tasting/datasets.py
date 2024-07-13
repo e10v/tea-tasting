@@ -314,6 +314,7 @@ def make_sessions_data(
 
 
 def _make_data(
+    *,
     covariates: bool = False,
     seed: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
@@ -425,6 +426,7 @@ def _make_data(
 
 
 def _check_params(
+    *,
     n_users: int,
     ratio: float | int,
     sessions_uplift: float | int,
