@@ -23,9 +23,12 @@ import tea_tasting.utils
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from typing import Literal
+    from typing import Literal, TypeVar
 
     from tea_tasting.metrics.base import PowerParameter
+
+
+    N = TypeVar("N", bound=float | int | None)
 
 
 MAX_ITER = 100
@@ -227,39 +230,35 @@ class RatioOfMeans(  # noqa: D101
                 "Both `effect_size` and `rel_effect_size` are not `None`. "
                 "Only one of them should be defined.",
             )
-        if effect_size is None:
-            self.effect_size = effect_size
-        else:
-            if not isinstance(effect_size, Sequence):
-                effect_size = (effect_size,)
-            self.effect_size = tuple(
+        if isinstance(effect_size, Sequence):
+            for x in effect_size:
                 tea_tasting.utils.check_scalar(
                     x, "effect_size", typ=float | int,
                     gt=float("-inf"), lt=float("inf"), ne=0,
                 )
-                for x in effect_size
+        elif effect_size is not None:
+            tea_tasting.utils.check_scalar(
+                effect_size, "effect_size", typ=float | int,
+                gt=float("-inf"), lt=float("inf"), ne=0,
             )
-        if rel_effect_size is None:
-            self.rel_effect_size = None
-        else:
-            if not isinstance(rel_effect_size, Sequence):
-                rel_effect_size = (rel_effect_size,)
-            self.rel_effect_size = tuple(
+        self.effect_size = effect_size
+        if isinstance(rel_effect_size, Sequence):
+            for x in rel_effect_size:
                 tea_tasting.utils.check_scalar(
                     x, "rel_effect_size", typ=float | int,
                     gt=float("-inf"), lt=float("inf"), ne=0,
                 )
-                for x in rel_effect_size
+        elif rel_effect_size is not None:
+            tea_tasting.utils.check_scalar(
+                rel_effect_size, "rel_effect_size", typ=float | int,
+                gt=float("-inf"), lt=float("inf"), ne=0,
             )
-        if n_obs is None:
-            self.n_obs = None
-        else:
-            if not isinstance(n_obs, Sequence):
-                n_obs = (n_obs,)
-            self.n_obs = tuple(
-                tea_tasting.utils.check_scalar(x, "n_obs", typ=int, gt=1)
-                for x in n_obs
-            )
+        self.rel_effect_size = rel_effect_size
+        self.n_obs = (
+            tea_tasting.utils.auto_check(n_obs, "n_obs")
+            if n_obs is not None
+            else tea_tasting.config.get_config("n_obs")
+        )
 
 
     @property
@@ -391,9 +390,9 @@ class RatioOfMeans(  # noqa: D101
         parameter: PowerParameter,
     ) -> tuple[
         float | None,  # power
-        tuple[float | int | None, ...],  # effect_size
-        tuple[float | None, ...],  # rel_effect_size
-        tuple[int | None, ...],  # n_obs
+        Sequence[float | int | None],  # effect_size
+        Sequence[float | None],  # rel_effect_size
+        Sequence[int | None],  # n_obs
     ]:
         n_obs = None
         effect_size = None
@@ -410,14 +409,14 @@ class RatioOfMeans(  # noqa: D101
                 self.effect_size if self.rel_effect_size is None
                 else tuple(
                     rel_effect_size * metric_mean
-                    for rel_effect_size in self.rel_effect_size
+                    for rel_effect_size in _to_seq(self.rel_effect_size)
                 )
             )
             rel_effect_size = (
                 self.rel_effect_size if self.effect_size is None
                 else tuple(
                     effect_size / metric_mean
-                    for effect_size in self.effect_size
+                    for effect_size in _to_seq(self.effect_size)
                 )
             )
 
@@ -427,14 +426,7 @@ class RatioOfMeans(  # noqa: D101
         if parameter in {"effect_size", "rel_effect_size", "n_obs"}:
             power = self.power
 
-        if effect_size is None:
-            effect_size = (None,)
-        if rel_effect_size is None:
-            rel_effect_size = (None,)
-        if n_obs is None:
-            n_obs = (None,)
-
-        return power, effect_size, rel_effect_size, n_obs
+        return power, _to_seq(effect_size), _to_seq(rel_effect_size), _to_seq(n_obs)
 
 
     def _covariate_coef(self, aggr: tea_tasting.aggr.Aggregates) -> float:
@@ -685,6 +677,12 @@ def _find_boundary(
     return b
 
 
+def _to_seq(x: N | Sequence[N]) -> Sequence[N]:
+    if isinstance(x, Sequence):
+        return x
+    return (x,)
+
+
 class Mean(RatioOfMeans):  # noqa: D101
     def __init__(  # noqa: PLR0913
         self,
@@ -698,9 +696,9 @@ class Mean(RatioOfMeans):  # noqa: D101
         alpha: float | None = None,
         ratio: float | int | None = None,
         power: float | None = None,
-        effect_size: float | int | None = None,
-        rel_effect_size: float | None = None,
-        n_obs: int | None = None,
+        effect_size: float | int | Sequence[float | int] | None = None,
+        rel_effect_size: float | Sequence[float] | None = None,
+        n_obs: int | Sequence[int] | None = None,
     ) -> None:
         """Metric for the analysis of means.
 

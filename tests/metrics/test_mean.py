@@ -125,8 +125,10 @@ def test_ratio_of_means_init_custom():
     assert metric.ratio == 0.5
     assert metric.power == 0.75
     assert metric.effect_size is None
-    assert metric.rel_effect_size == (0.08,)
+    assert metric.rel_effect_size == 0.08
     assert metric.n_obs == (5_000, 10_000)
+    metric = tea_tasting.metrics.mean.RatioOfMeans("a", effect_size=(1, 0.2))
+    assert metric.effect_size == (1, 0.2)
 
 def test_ratio_of_means_init_config():
     with tea_tasting.config.config_context(
@@ -137,6 +139,7 @@ def test_ratio_of_means_init_config():
         alpha=0.1,
         ratio=0.5,
         power=0.75,
+        n_obs=(5_000, 10_000),
     ):
         metric = tea_tasting.metrics.mean.RatioOfMeans("a")
     assert metric.alternative == "greater"
@@ -146,6 +149,7 @@ def test_ratio_of_means_init_config():
     assert metric.alpha == 0.1
     assert metric.ratio == 0.5
     assert metric.power == 0.75
+    assert metric.n_obs == (5_000, 10_000)
 
 
 def test_ratio_of_means_aggr_cols():
