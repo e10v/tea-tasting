@@ -233,6 +233,7 @@ def _add_cov(left: Aggregates, right: Aggregates, cols: tuple[str, str]) -> floa
 def read_aggregates(
     data: ibis.expr.types.Table | pd.DataFrame,
     group_col: str,
+    *,
     has_count: bool,
     mean_cols: Sequence[str],
     var_cols: Sequence[str],
@@ -244,6 +245,7 @@ def read_aggregates(
 def read_aggregates(
     data: ibis.expr.types.Table | pd.DataFrame,
     group_col: None,
+    *,
     has_count: bool,
     mean_cols: Sequence[str],
     var_cols: Sequence[str],
@@ -254,6 +256,7 @@ def read_aggregates(
 def read_aggregates(
     data: ibis.expr.types.Table | pd.DataFrame,
     group_col: str | None,
+    *,
     has_count: bool,
     mean_cols: Sequence[str],
     var_cols: Sequence[str],
@@ -285,8 +288,8 @@ def read_aggregates(
             _DEMEAN.format(col): data[col] - data[col].mean()  # type: ignore
             for col in demean_cols
         }
-        grouped_data = data.group_by(group_col) if group_col is not None else data
-        data = grouped_data.mutate(**demean_expr)
+        grouped_data = data.group_by(group_col) if group_col is not None else data  # type: ignore
+        data = grouped_data.mutate(**demean_expr)  # type: ignore
 
     count_expr = {_COUNT: data.count()} if has_count else {}
     mean_expr = {_MEAN.format(col): data[col].mean() for col in mean_cols}  # type: ignore
@@ -303,10 +306,10 @@ def read_aggregates(
         for left, right in cov_cols
     }
 
-    grouped_data = data.group_by(group_col) if group_col is not None else data
+    grouped_data = data.group_by(group_col) if group_col is not None else data  # type: ignore
     aggr_data = grouped_data.aggregate(
-        **count_expr,
-        **mean_expr,
+        **count_expr,  # type: ignore
+        **mean_expr,  # type: ignore
         **var_expr,
         **cov_expr,
     ).to_pandas()
@@ -334,6 +337,7 @@ def read_aggregates(
 
 def _get_aggregates(
     data: pd.DataFrame,
+    *,
     has_count: bool,
     mean_cols: Sequence[str],
     var_cols: Sequence[str],

@@ -426,6 +426,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         self,
         data: pd.DataFrame | ibis.expr.types.Table,
         control: Any = None,
+        *,
         all_variants: Literal[False] = False,
     ) -> ExperimentResult:
         ...
@@ -435,6 +436,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         self,
         data: pd.DataFrame | ibis.expr.types.Table,
         control: Any = None,
+        *,
         all_variants: Literal[True] = True,
     ) -> ExperimentResults:
         ...
@@ -443,6 +445,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         self,
         data: pd.DataFrame | ibis.expr.types.Table,
         control: Any = None,
+        *,
         all_variants: bool = False,
     ) -> ExperimentResult | ExperimentResults:
         """Analyze the experiment.
@@ -507,7 +510,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
                 "all_variants is False, but there are more than one pair of variants.")
 
         results = ExperimentResults()
-        for control, treatment in variant_pairs:
+        for contr, treat in variant_pairs:
             result = ExperimentResult()
             for name, metric in self.metrics.items():
                 result |= {name: self._analyze_metric(
@@ -515,14 +518,14 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
                     data=data,
                     aggregated_data=aggregated_data,
                     granular_data=granular_data,
-                    control=control,
-                    treatment=treatment,
+                    control=contr,
+                    treatment=treat,
                 )}
 
             if not all_variants:
                 return result
 
-            results |= {(control, treatment): result}
+            results |= {(contr, treat): result}
 
         return results
 
@@ -583,7 +586,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         data: pd.DataFrame | ibis.expr.types.Table,
     ) -> pd.Series[Any]:  # type: ignore
         if isinstance(data, pd.DataFrame):
-            return data.loc[:, self.variant].drop_duplicates()
+            return data.loc[:, self.variant].drop_duplicates()  # type: ignore
 
         return (
             data.select(self.variant)
