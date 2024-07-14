@@ -106,9 +106,9 @@ experiment = tt.Experiment(
 )
 ```
 
-Look for other supported metrics in the [Metrics](https://tea-tasting.e10v.me/api/metrics/) reference.
+Look for other supported metrics in the [Metrics](api/metrics/index.md) reference.
 
-You can change the default values of these four parameters using global settings (see details below).
+You can change the default values of these four parameters using [global settings](#global-settings).
 
 ### Analyzing and retrieving experiment results
 

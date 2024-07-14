@@ -42,7 +42,7 @@ print(result)
 #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 ```
 
-Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide).
+Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/).
 
 ## Roadmap
 
@@ -59,5 +59,5 @@ Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide).
 
 The package name "tea-tasting" is a play of words which refers to two subjects:
 
-- [Lady tasting tea](https://en.wikipedia.org/wiki/Lady_tasting_tea) is a famous experiment which was devised by Ronald Fisher. In this experiment, Fisher developed the null hypothesis significance testing framework to analyze a lady's claim that she could discern whether the tea or the milk was added first to a cup.
+- [Lady tasting tea](https://en.wikipedia.org/wiki/Lady_tasting_tea/) is a famous experiment which was devised by Ronald Fisher. In this experiment, Fisher developed the null hypothesis significance testing framework to analyze a lady's claim that she could discern whether the tea or the milk was added first to a cup.
 - "tea-tasting" phonetically resembles "t-testing" or Student's t-test, a statistical test developed by William Gosset.
