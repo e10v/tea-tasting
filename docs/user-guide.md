@@ -36,7 +36,7 @@ In the following sections, each step of this process will be explained in detail
 
 ### Input data
 
-The `make_users_data` function creates synthetic data for demonstration purposes. This data mimics what you might encounter in an A/B test for an online store. Each row represents an individual user, with the following columns:
+The [`make_users_data`](api/datasets.md) function creates synthetic data for demonstration purposes. This data mimics what you might encounter in an A/B test for an online store. Each row represents an individual user, with the following columns:
 
 - `user`: The unique identifier for each user.
 - `variant`: The specific variant (e.g., 0 or 1) assigned to each user in the A/B test.
@@ -56,7 +56,7 @@ Many statistical tests, like Student's t-test or Z-test, don't need granular dat
 
 ### A/B test definition
 
-The `Experiment` class defines the parameters of an A/B test: metrics and a variant column name. There are two ways to define metrics:
+The [`Experiment`](api/experiment.md) class defines the parameters of an A/B test: metrics and a variant column name. There are two ways to define metrics:
 
 - Using keyword parameters, with metric names as parameter names and metric definitions as parameter values, as in example above.
 - Using the first argument `metrics` which accepts metrics in a form of dictionary with metric names as keys and metric definitions as values.
@@ -81,9 +81,9 @@ experiment = tt.Experiment(
 
 Metrics are instances of metric classes which define how metrics are calculated. Those calculations include calculation of effect size, confidence interval, p-value and other statistics.
 
-Use the `Mean` class to compare averages between variants of an A/B test. For example, average number of orders per user, where user is a randomization unit of an experiment. Specify the column containing the metric values using the first parameter `value`.
+Use the [`Mean`](api/metrics/mean.md#tea_tasting.metrics.mean.Mean) class to compare averages between variants of an A/B test. For example, average number of orders per user, where user is a randomization unit of an experiment. Specify the column containing the metric values using the first parameter `value`.
 
-Use the `RatioOfMeans` class to compare ratios of averages between variants of an A/B test. For example, average number of orders per average number of sessions. Specify the columns containing the numerator and denominator values using the parameters `numer` and `denom`.
+Use the [`RatioOfMeans`](api/metrics/mean.md#tea_tasting.metrics.mean.RatioOfMeans) class to compare ratios of averages between variants of an A/B test. For example, average number of orders per average number of sessions. Specify the columns containing the numerator and denominator values using the parameters `numer` and `denom`.
 
 Use the following parameters of `Mean` and `RatioOfMeans` to customize the analysis:
 
@@ -112,7 +112,7 @@ You can change the default values of these four parameters using [global setting
 
 ### Analyzing and retrieving experiment results
 
-After defining an experiment and metrics, you can analyze the experiment data using the `analyze` method of the `Experiment` class. This method takes data as an input and returns an `ExperimentResult` object with experiment result.
+After defining an experiment and metrics, you can analyze the experiment data using the [`analyze`](api/experiment.md#tea_tasting.experiment.Experiment.analyze) method of the `Experiment` class. This method takes data as an input and returns an `ExperimentResult` object with experiment result.
 
 ```python
 result = experiment.analyze(data)
@@ -124,7 +124,7 @@ By default, **tea-tasting** assumes that the variant with the lowest ID is a con
 result = experiment.analyze(data, control=0)
 ```
 
-`ExperimentResult` is a mapping. Get a metric's analysis result using metric name as a key.
+[`ExperimentResult`](api/experiment.md#tea_tasting.experiment.ExperimentResult) is a mapping. Get a metric's analysis result using metric name as a key.
 
 ```python
 print(result["orders_per_user"])
@@ -136,7 +136,7 @@ print(result["orders_per_user"])
 #> statistic=1.5647028839586694)
 ```
 
-The fields in the result depend on metrics. For `Mean` and `RatioOfMeans`, the fields include:
+The fields in the result depend on metrics. For `Mean` and `RatioOfMeans`, the [fields include](api/metrics/mean.md#tea_tasting.metrics.mean.MeanResult):
 
 - `metric`: Metric name.
 - `control`: Mean or ratio of means in the control variant.
@@ -150,7 +150,7 @@ The fields in the result depend on metrics. For `Mean` and `RatioOfMeans`, the f
 - `pvalue`: P-value
 - `statistic`: Statistic (standardized effect size).
 
-`ExperimentResult` provides the following methods to serialize and view the experiment result:
+[`ExperimentResult`](api/experiment.md#tea_tasting.experiment.ExperimentResult) provides the following methods to serialize and view the experiment result:
 
 - `to_dicts`: Convert the result to a sequence of dictionaries.
 - `to_pandas`: Convert the result to a Pandas DataFrame.
@@ -191,7 +191,7 @@ In Jupyter and IPython, the output of the line `result` will be a rendered HTML 
 
 ### Variance reduction with CUPED/CUPAC
 
-**tea-tasting** supports variance reduction with CUPED/CUPAC, within both `Mean` and `RatioOfMeans` classes.
+**tea-tasting** supports variance reduction with CUPED/CUPAC, within both [`Mean`](api/metrics/mean.md#tea_tasting.metrics.mean.Mean) and [`RatioOfMeans`](api/metrics/mean.md#tea_tasting.metrics.mean.RatioOfMeans) classes.
 
 Example usage:
 
@@ -235,7 +235,7 @@ Define the metrics' covariates:
 
 ### Sample ratio mismatch check
 
-The `SampleRatio` class in **tea-tasting** detects mismatches in the sample ratios of different variants of an A/B test.
+The [`SampleRatio`](api/metrics/proportion.md#tea_tasting.metrics.proportion.SampleRatio) class in **tea-tasting** detects mismatches in the sample ratios of different variants of an A/B test.
 
 Example usage:
 
@@ -265,7 +265,7 @@ The `method` parameter determines the statistical test to apply:
 - `"binom"`: Apply exact binomial test.
 - `"norm"`: Apply normal approximation of the binomial distribution.
 
-The result of the sample ratio mismatch includes the following attributes:
+The [result](api/metrics/proportion.md#tea_tasting.metrics.proportion.SampleRatioResult) of the sample ratio mismatch includes the following attributes:
 
 - `metric`: Metric name.
 - `control`: Number of observations in control.
@@ -281,8 +281,9 @@ In **tea-tasting**, you can change defaults for the following parameters:
 - `equal_var`: If `False`, assume unequal population variances in calculation of the standard deviation and the number of degrees of freedom. Otherwise, assume equal population variance and calculate pooled standard deviation.
 - `n_resamples`: The number of resamples performed to form the bootstrap distribution of a statistic.
 - `use_t`: If `True`, use Student's t-distribution in p-value and confidence interval calculations. Otherwise use Normal distribution.
+- And [more](api/config.md#tea_tasting.config.config_context).
 
-Use `get_config` with the option name as a parameter to get a global option value:
+Use [`get_config`](api/config.md#tea_tasting.config.get_config) with the option name as a parameter to get a global option value:
 
 ```python
 import tea_tasting as tt
@@ -292,13 +293,13 @@ tt.get_config("equal_var")
 #> False
 ```
 
-Use `get_config` without parameters to get a dictionary of global options:
+Use [`get_config`](api/config.md#tea_tasting.config.get_config) without parameters to get a dictionary of global options:
 
 ```python
 global_config = tt.get_config()
 ```
 
-Use `set_config` to set a global option value:
+Use [`set_config`](api/config.md#tea_tasting.config.set_config) to set a global option value:
 
 ```python
 tt.set_config(equal_var=True, use_t=False)
@@ -315,7 +316,7 @@ experiment.metrics["orders_per_user"]
 #> confidence_level=0.95, equal_var=True, use_t=False)
 ```
 
-Use `config_context` to temporarily set a global option value within a context:
+Use [`config_context`](api/config.md#tea_tasting.config.config_context) to temporarily set a global option value within a context:
 
 ```python
 with tt.config_context(equal_var=True, use_t=False):
