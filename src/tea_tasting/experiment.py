@@ -25,30 +25,7 @@ class ExperimentResult(
     UserDict[str, tea_tasting.metrics.MetricResult],
     tea_tasting.utils.PrettyDictsMixin,
 ):
-    """Experiment result for a pair of variants.
-
-    Examples:
-        ```python
-        import tea_tasting as tt
-
-
-        experiment = tt.Experiment(
-            sessions_per_user=tt.Mean("sessions"),
-            orders_per_session=tt.RatioOfMeans("orders", "sessions"),
-            orders_per_user=tt.Mean("orders"),
-            revenue_per_user=tt.Mean("revenue"),
-        )
-
-        data = tt.make_users_data(seed=42)
-        result = experiment.analyze(data)
-        print(result)
-        #>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
-        #>  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
-        #> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
-        #>    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
-        #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
-        ```
-    """  # noqa: E501
+    """Experiment result for a pair of variants."""
     default_keys = (
         "metric",
         "control",
@@ -404,6 +381,43 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             #>    orders per user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
             #>   revenue per user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
             ```
+
+            Power analysis:
+
+            ```python
+            data = tt.make_users_data(
+                seed=42,
+                sessions_uplift=0,
+                orders_uplift=0,
+                revenue_uplift=0,
+                covariates=True,
+            )
+
+            with tt.config_context(n_obs=(10_000, 20_000)):
+                experiment = tt.Experiment(
+                    sessions_per_user=tt.Mean("sessions", "sessions_covariate"),
+                    orders_per_session=tt.RatioOfMeans(
+                        numer="orders",
+                        denom="sessions",
+                        numer_covariate="orders_covariate",
+                        denom_covariate="sessions_covariate",
+                    ),
+                    orders_per_user=tt.Mean("orders", "orders_covariate"),
+                    revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
+                )
+
+            power_result = experiment.solve_power(data)
+            print(power_result)
+            #>             metric power effect_size rel_effect_size n_obs
+            #>  sessions_per_user   80%      0.0458            2.3% 10000
+            #>  sessions_per_user   80%      0.0324            1.6% 20000
+            #> orders_per_session   80%      0.0177            6.8% 10000
+            #> orders_per_session   80%      0.0125            4.8% 20000
+            #>    orders_per_user   80%      0.0374            7.2% 10000
+            #>    orders_per_user   80%      0.0264            5.1% 20000
+            #>   revenue_per_user   80%       0.488            9.2% 10000
+            #>   revenue_per_user   80%       0.345            6.5% 20000
+            ```
         """  # noqa: E501
         if metrics is None:
             metrics = {}
@@ -459,29 +473,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
         Returns:
             Experiment result.
-
-        Examples:
-            ```python
-            import tea_tasting as tt
-
-
-            experiment = tt.Experiment(
-                sessions_per_user=tt.Mean("sessions"),
-                orders_per_session=tt.RatioOfMeans("orders", "sessions"),
-                orders_per_user=tt.Mean("orders"),
-                revenue_per_user=tt.Mean("revenue"),
-            )
-
-            data = tt.make_users_data(seed=42)
-            result = experiment.analyze(data)
-            print(result)
-            #>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
-            #>  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
-            #> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
-            #>    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
-            #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
-            ```
-        """  # noqa: E501
+        """
         aggregated_data, granular_data = self._read_data(data)
 
         if aggregated_data is not None:
