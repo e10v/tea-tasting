@@ -1,4 +1,4 @@
-# Overview
+# tea-tasting: statistical analysis of A/B tests
 
 [![CI](https://github.com/e10v/tea-tasting/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/e10v/tea-tasting/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/github/e10v/tea-tasting/coverage.svg?branch=main)](https://codecov.io/gh/e10v/tea-tasting)
@@ -18,13 +18,42 @@
 
 **tea-tasting** calculates statistics within data backends such as BigQuery, ClickHouse, PostgreSQL, Snowflake, Spark, and other of 20+ backends supported by [Ibis](https://ibis-project.org/). This approach eliminates the need to import granular data into a Python environment, though Pandas DataFrames are also supported.
 
-**tea-tasting** is still in alpha, but already includes all the features listed above. The following features are coming soon:
+## Basic example
+
+```python
+import tea_tasting as tt
+
+
+data = tt.make_users_data(seed=42)
+
+experiment = tt.Experiment(
+    sessions_per_user=tt.Mean("sessions"),
+    orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+    orders_per_user=tt.Mean("orders"),
+    revenue_per_user=tt.Mean("revenue"),
+)
+
+result = experiment.analyze(data)
+print(result)
+#>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
+#>  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+#> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+#>    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+#>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+```
+
+Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide).
+
+## Roadmap
 
 - Power analysis.
 - A/A tests and simulations.
 - More statistical tests:
     - Asymptotic and exact tests for frequency data.
     - Mann–Whitney U test.
+- More examples or guides on how to:
+    - Create a custom metric.
+    - Use **tea-tasting** with an arbitrary Ibis backend.
 
 ## Package name
 
