@@ -139,7 +139,7 @@ class RatioOfMeans(  # noqa: D101
                 in the control variant.
 
         Parameter defaults:
-            Defaults for the parameters `alpha`, `alternative`, `confidence_level`,
+            Defaults for parameters `alpha`, `alternative`, `confidence_level`,
             `equal_var`, `n_obs`, `power`, `ratio`, and `use_t` can be changed
             using the `config_context` and `set_context` functions.
             See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
@@ -731,7 +731,7 @@ class Mean(RatioOfMeans):  # noqa: D101
                 in the control variant.
 
         Parameter defaults:
-            Defaults for the parameters `alpha`, `alternative`, `confidence_level`,
+            Defaults for parameters `alpha`, `alternative`, `confidence_level`,
             `equal_var`, `n_obs`, `power`, `ratio`, and `use_t` can be changed
             using the `config_context` and `set_context` functions.
             See the [Global configuration](https://tea-tasting.e10v.me/api/config/)

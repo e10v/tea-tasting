@@ -38,13 +38,13 @@ def check_scalar(  # noqa: PLR0913
         value: Parameter value.
         name: Parameter name.
         typ: Acceptable data types.
-        ge: If not `None`, check that the parameter value is greater than
+        ge: If not `None`, check that parameter value is greater than
             or equal to `ge`.
-        gt: If not `None`, check that the parameter value is greater than `gt`.
-        le: If not `None`, check that the parameter value is less than or equal to `le`.
-        lt: If not `None`, check that the parameter value is less than `lt`.
-        ne: If not `None`, check that the parameter value is not equal to `ne`.
-        in_: If not `None`, check that the parameter value is in `in_`.
+        gt: If not `None`, check that parameter value is greater than `gt`.
+        le: If not `None`, check that parameter value is less than or equal to `le`.
+        lt: If not `None`, check that parameter value is less than `lt`.
+        ne: If not `None`, check that parameter value is not equal to `ne`.
+        in_: If not `None`, check that parameter value is in `in_`.
 
     Returns:
         Parameter value.

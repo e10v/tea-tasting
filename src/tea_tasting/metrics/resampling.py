@@ -99,7 +99,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
                 in the control variant.
 
         Parameter defaults:
-            Defaults for the parameters `alternative`, `confidence_level`,
+            Defaults for parameters `alternative`, `confidence_level`,
             and `n_resamples` can be changed using the
             `config_context` and `set_context` functions.
             See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
@@ -293,14 +293,14 @@ class Quantile(Bootstrap):  # noqa: D101
                 in the control variant.
 
         Parameter defaults:
-            Defaults for the parameters `alternative`, `confidence_level`,
+            Defaults for parameters `alternative`, `confidence_level`,
             and `n_resamples` can be changed using the
             `config_context` and `set_context` functions.
             See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
             reference for details.
 
         Default method:
-            The default method is "basic" which is different from the default
+            Default method is "basic" which is different from default
             method "bca" in `Bootstrap`. The "bca" confidence intervals cannot
             be calculated when the bootstrap distribution is degenerate
             (e.g. all elements are identical). This is often the case for the
