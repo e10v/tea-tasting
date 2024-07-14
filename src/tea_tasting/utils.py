@@ -38,13 +38,13 @@ def check_scalar(  # noqa: PLR0913
         value: Parameter value.
         name: Parameter name.
         typ: Acceptable data types.
-        ge: If not `None`, check that the parameter value is greater than
+        ge: If not `None`, check that parameter value is greater than
             or equal to `ge`.
-        gt: If not `None`, check that the parameter value is greater than `gt`.
-        le: If not `None`, check that the parameter value is less than or equal to `le`.
-        lt: If not `None`, check that the parameter value is less than `lt`.
-        ne: If not `None`, check that the parameter value is not equal to `ne`.
-        in_: If not `None`, check that the parameter value is in `in_`.
+        gt: If not `None`, check that parameter value is greater than `gt`.
+        le: If not `None`, check that parameter value is less than or equal to `le`.
+        lt: If not `None`, check that parameter value is less than `lt`.
+        ne: If not `None`, check that parameter value is not equal to `ne`.
+        in_: If not `None`, check that parameter value is in `in_`.
 
     Returns:
         Parameter value.
@@ -176,6 +176,16 @@ def get_and_format_num(data: dict[str, Any], key: str) -> str:
 
     Returns:
         Formatted value.
+
+    Formatting rules:
+        - If a name starts with `"rel_"` or equals to `"power"` consider it
+            a percentage value. Round percentage values to 2 significant digits,
+            multiply by `100` and add `"%"`.
+        - Round other values to 3 significant values.
+        - If value is less than `0.001`, format it in exponential presentation.
+        - If a name ends with `"_ci"`, consider it a confidence interval.
+            Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
+            and format the interval as `"[{lower_bound}, {lower_bound}]"`.
     """
     if key.endswith("_ci"):
         ci_lower = get_and_format_num(data, key + "_lower")
@@ -191,7 +201,18 @@ def get_and_format_num(data: dict[str, Any], key: str) -> str:
 
 
 class PrettyDictsMixin(abc.ABC):
-    """Pretty representation of a sequence of dictionaries."""
+    """Pretty representation of a sequence of dictionaries.
+
+    Default formatting rules:
+        - If a name starts with `"rel_"` or equals to `"power"` consider it
+            a percentage value. Round percentage values to 2 significant digits,
+            multiply by `100` and add `"%"`.
+        - Round other values to 3 significant values.
+        - If value is less than `0.001`, format it in exponential presentation.
+        - If a name ends with `"_ci"`, consider it a confidence interval.
+            Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
+            and format the interval as `"[{lower_bound}, {lower_bound}]"`.
+    """
     default_keys: Sequence[str]
 
     @abc.abstractmethod
@@ -218,6 +239,16 @@ class PrettyDictsMixin(abc.ABC):
 
         Returns:
             Pandas Dataframe with formatted values.
+
+        Default formatting rules:
+            - If a name starts with `"rel_"` or equals to `"power"` consider it
+                a percentage value. Round percentage values to 2 significant digits,
+                multiply by `100` and add `"%"`.
+            - Round other values to 3 significant values.
+            - If value is less than `0.001`, format it in exponential presentation.
+            - If a name ends with `"_ci"`, consider it a confidence interval.
+                Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
+                and format the interval as `"[{lower_bound}, {lower_bound}]"`.
         """
         if keys is None:
             keys = self.default_keys
@@ -242,6 +273,16 @@ class PrettyDictsMixin(abc.ABC):
 
         Returns:
             A table with results rendered as string.
+
+        Default formatting rules:
+            - If a name starts with `"rel_"` or equals to `"power"` consider it
+                a percentage value. Round percentage values to 2 significant digits,
+                multiply by `100` and add `"%"`.
+            - Round other values to 3 significant values.
+            - If value is less than `0.001`, format it in exponential presentation.
+            - If a name ends with `"_ci"`, consider it a confidence interval.
+                Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
+                and format the interval as `"[{lower_bound}, {lower_bound}]"`.
         """
         if keys is None:
             keys = self.default_keys
@@ -263,6 +304,16 @@ class PrettyDictsMixin(abc.ABC):
 
         Returns:
             A table with results rendered as HTML.
+
+        Default formatting rules:
+            - If a name starts with `"rel_"` or equals to `"power"` consider it
+                a percentage value. Round percentage values to 2 significant digits,
+                multiply by `100` and add `"%"`.
+            - Round other values to 3 significant values.
+            - If value is less than `0.001`, format it in exponential presentation.
+            - If a name ends with `"_ci"`, consider it a confidence interval.
+                Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
+                and format the interval as `"[{lower_bound}, {lower_bound}]"`.
         """
         if keys is None:
             keys = self.default_keys

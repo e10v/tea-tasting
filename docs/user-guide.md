@@ -36,7 +36,7 @@ In the following sections, each step of this process will be explained in detail
 
 ### Input data
 
-The `make_users_data` function creates synthetic data for demonstration purposes. This data mimics what you might encounter in an A/B test for an online store. Each row represents an individual user, with the following columns:
+The [`make_users_data`](api/datasets.md) function creates synthetic data for demonstration purposes. This data mimics what you might encounter in an A/B test for an online store. Each row represents an individual user, with the following columns:
 
 - `user`: The unique identifier for each user.
 - `variant`: The specific variant (e.g., 0 or 1) assigned to each user in the A/B test.
@@ -50,18 +50,18 @@ Many statistical tests, like Student's t-test or Z-test, don't need granular dat
 
 **tea-tasting** assumes that:
 
-- The data is grouped by randomization units, such as individual users.
-- There is a column indicating the variant of the A/B test (typically labeled as A, B, etc.).
+- Data is grouped by randomization units, such as individual users.
+- There is a column indicating variant of the A/B test (typically labeled as A, B, etc.).
 - All necessary columns for metric calculations (like the number of orders, revenue, etc.) are included in the table.
 
 ### A/B test definition
 
-The `Experiment` class defines the parameters of an A/B test: metrics and a variant column name. There are two ways to define metrics:
+The [`Experiment`](api/experiment.md) class defines parameters of an A/B test: metrics and a variant column name. There are two ways to define metrics:
 
-- Using keyword parameters, with metric names as parameter names and metric definitions as parameter values, as in example above.
+- Using keyword parameters, with metric names as parameter names, and metric definitions as parameter values, as in example above.
 - Using the first argument `metrics` which accepts metrics in a form of dictionary with metric names as keys and metric definitions as values.
 
-By default, **tea-testing** assumes that A/B test variant is stored in a column named `"variant"`. You can change it using the `variant` parameter of the `Experiment` class.
+By default, **tea-testing** assumes that A/B test variant is stored in a column named `"variant"`. You can change it, using the `variant` parameter of the `Experiment` class.
 
 Example usage:
 
@@ -81,9 +81,9 @@ experiment = tt.Experiment(
 
 Metrics are instances of metric classes which define how metrics are calculated. Those calculations include calculation of effect size, confidence interval, p-value and other statistics.
 
-Use the `Mean` class to compare averages between variants of an A/B test. For example, average number of orders per user, where user is a randomization unit of an experiment. Specify the column containing the metric values using the first parameter `value`.
+Use the [`Mean`](api/metrics/mean.md#tea_tasting.metrics.mean.Mean) class to compare averages between variants of an A/B test. For example, average number of orders per user, where user is a randomization unit of an experiment. Specify the column containing the metric values using the first parameter `value`.
 
-Use the `RatioOfMeans` class to compare ratios of averages between variants of an A/B test. For example, average number of orders per average number of sessions. Specify the columns containing the numerator and denominator values using the parameters `numer` and `denom`.
+Use the [`RatioOfMeans`](api/metrics/mean.md#tea_tasting.metrics.mean.RatioOfMeans) class to compare ratios of averages between variants of an A/B test. For example, average number of orders per average number of sessions. Specify the columns containing the numerator and denominator values using parameters `numer` and `denom`.
 
 Use the following parameters of `Mean` and `RatioOfMeans` to customize the analysis:
 
@@ -106,25 +106,25 @@ experiment = tt.Experiment(
 )
 ```
 
-Look for other supported metrics in the [Metrics](https://tea-tasting.e10v.me/api/metrics/) reference.
+Look for other supported metrics in the [Metrics](api/metrics/index.md) reference.
 
-You can change the default values of these four parameters using global settings (see details below).
+You can change default values of these four parameters using the [global settings](#global-settings).
 
 ### Analyzing and retrieving experiment results
 
-After defining an experiment and metrics, you can analyze the experiment data using the `analyze` method of the `Experiment` class. This method takes data as an input and returns an `ExperimentResult` object with experiment result.
+After defining an experiment and metrics, you can analyze the experiment data using the [`analyze`](api/experiment.md#tea_tasting.experiment.Experiment.analyze) method of the `Experiment` class. This method takes data as an input and returns an `ExperimentResult` object with experiment result.
 
 ```python
 result = experiment.analyze(data)
 ```
 
-By default, **tea-tasting** assumes that the variant with the lowest ID is a control. Change the default behavior using the `control` parameter:
+By default, **tea-tasting** assumes that the variant with the lowest ID is a control. Change default behavior using the `control` parameter:
 
 ```python
 result = experiment.analyze(data, control=0)
 ```
 
-`ExperimentResult` is a mapping. Get a metric's analysis result using metric name as a key.
+[`ExperimentResult`](api/experiment.md#tea_tasting.experiment.ExperimentResult) is a mapping. Get a metric's analysis result using metric name as a key.
 
 ```python
 print(result["orders_per_user"])
@@ -136,7 +136,7 @@ print(result["orders_per_user"])
 #> statistic=1.5647028839586694)
 ```
 
-The fields in the result depend on metrics. For `Mean` and `RatioOfMeans`, the fields include:
+Fields in result depend on metrics. For `Mean` and `RatioOfMeans`, the [fields include](api/metrics/mean.md#tea_tasting.metrics.mean.MeanResult):
 
 - `metric`: Metric name.
 - `control`: Mean or ratio of means in the control variant.
@@ -150,7 +150,7 @@ The fields in the result depend on metrics. For `Mean` and `RatioOfMeans`, the f
 - `pvalue`: P-value
 - `statistic`: Statistic (standardized effect size).
 
-`ExperimentResult` provides the following methods to serialize and view the experiment result:
+[`ExperimentResult`](api/experiment.md#tea_tasting.experiment.ExperimentResult) provides the following methods to serialize and view the experiment result:
 
 - `to_dicts`: Convert the result to a sequence of dictionaries.
 - `to_pandas`: Convert the result to a Pandas DataFrame.
@@ -191,7 +191,7 @@ In Jupyter and IPython, the output of the line `result` will be a rendered HTML 
 
 ### Variance reduction with CUPED/CUPAC
 
-**tea-tasting** supports variance reduction with CUPED/CUPAC, within both `Mean` and `RatioOfMeans` classes.
+**tea-tasting** supports variance reduction with CUPED/CUPAC, within both [`Mean`](api/metrics/mean.md#tea_tasting.metrics.mean.Mean) and [`RatioOfMeans`](api/metrics/mean.md#tea_tasting.metrics.mean.RatioOfMeans) classes.
 
 Example usage:
 
@@ -235,7 +235,7 @@ Define the metrics' covariates:
 
 ### Sample ratio mismatch check
 
-The `SampleRatio` class in **tea-tasting** detects mismatches in the sample ratios of different variants of an A/B test.
+The [`SampleRatio`](api/metrics/proportion.md#tea_tasting.metrics.proportion.SampleRatio) class in **tea-tasting** detects mismatches in the sample ratios of different variants of an A/B test.
 
 Example usage:
 
@@ -265,12 +265,93 @@ The `method` parameter determines the statistical test to apply:
 - `"binom"`: Apply exact binomial test.
 - `"norm"`: Apply normal approximation of the binomial distribution.
 
-The result of the sample ratio mismatch includes the following attributes:
+The [result](api/metrics/proportion.md#tea_tasting.metrics.proportion.SampleRatioResult) of the sample ratio mismatch includes the following attributes:
 
 - `metric`: Metric name.
 - `control`: Number of observations in control.
 - `treatment`: Number of observations in treatment.
 - `pvalue`: P-value
+
+### Power analysis
+
+In **tea-tasting**, you can analyze statistical power for `Mean` and `RatioOfMeans` metrics. There are three possible options:
+
+- Calculate the effect size, given statistical power and the total number of observations.
+- Calculate the total number of observations, given statistical power and the effect size.
+- Calculate statistical power, given the effect size and the total number of observations.
+
+In the following example, **tea-tasting** calculates statistical power given the relative effect size and the number of observations:
+
+```python
+import tea_tasting as tt
+
+
+data = tt.make_users_data(
+    seed=42,
+    sessions_uplift=0,
+    orders_uplift=0,
+    revenue_uplift=0,
+    covariates=True,
+)
+
+orders_per_session = tt.RatioOfMeans("orders", "sessions", rel_effect_size=0.1)
+print(orders_per_session.solve_power(data, "power"))
+#> power effect_size rel_effect_size n_obs
+#>   52%      0.0261             10%  4000
+```
+
+Besides `alternative`, `equal_var`, `use_t`, and covariates (CUPED), the following metric parameters impact the result:
+
+- `alpha`: Significance level.
+- `ratio`: Ratio of the number of observations in the treatment relative to the control.
+- `power`: Statistical power.
+- `effect_size` and `rel_effect_size`: Absolute and relative effect size. Only one of them can be defined.
+- `n_obs`: Number of observations in the control and in the treatment together. If the number of observations is not set explicitly, it's inferred from the dataset.
+
+You can change default values of `alpha`, `ratio`, `power`, and `n_obs` using the [global settings](#global-settings).
+
+**tea-tasting** can analyze power for several values of parameters `effect_size`, `rel_effect_size`, or `n_obs`. Example:
+
+```python
+orders_per_user = tt.Mean("orders", alpha=0.1, power=0.7, n_obs=(10_000, 20_000))
+print(orders_per_user.solve_power(data, "rel_effect_size"))
+#> power effect_size rel_effect_size n_obs
+#>   70%      0.0367            7.1% 10000
+#>   70%      0.0260            5.0% 20000
+```
+
+You can analyze power for all metrics in the experiment. Example:
+
+```python
+with tt.config_context(n_obs=(10_000, 20_000)):
+    experiment = tt.Experiment(
+        sessions_per_user=tt.Mean("sessions", "sessions_covariate"),
+        orders_per_session=tt.RatioOfMeans(
+            numer="orders",
+            denom="sessions",
+            numer_covariate="orders_covariate",
+            denom_covariate="sessions_covariate",
+        ),
+        orders_per_user=tt.Mean("orders", "orders_covariate"),
+        revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
+    )
+
+power_result = experiment.solve_power(data)
+print(power_result)
+#>             metric power effect_size rel_effect_size n_obs
+#>  sessions_per_user   80%      0.0458            2.3% 10000
+#>  sessions_per_user   80%      0.0324            1.6% 20000
+#> orders_per_session   80%      0.0177            6.8% 10000
+#> orders_per_session   80%      0.0125            4.8% 20000
+#>    orders_per_user   80%      0.0374            7.2% 10000
+#>    orders_per_user   80%      0.0264            5.1% 20000
+#>   revenue_per_user   80%       0.488            9.2% 10000
+#>   revenue_per_user   80%       0.345            6.5% 20000
+```
+
+In the example above, **tea-tasting** calculates the relative and absolute effect size for all metrics for two possible sample size values, `10_000` and `20_000`.
+
+The `solve_power` methods of a [metric](api/metrics/mean.md#tea_tasting.metrics.mean.Mean.solve_power) and of an [experiment](api/experiment.md#tea_tasting.experiment.Experiment.solve_power) return the instances of [`MeanPowerResult`](api/metrics/mean.md#tea_tasting.metrics.mean.MeanPowerResult) and [`ExperimentPowerResult`](api/experiment.md#tea_tasting.experiment.ExperimentPowerResult) respectively. These result classes provide the serialization methods similar to the experiment result: `to_dicts`, `to_pandas`, `to_pretty`, `to_string`, `to_html`.
 
 ### Global settings
 
@@ -281,8 +362,9 @@ In **tea-tasting**, you can change defaults for the following parameters:
 - `equal_var`: If `False`, assume unequal population variances in calculation of the standard deviation and the number of degrees of freedom. Otherwise, assume equal population variance and calculate pooled standard deviation.
 - `n_resamples`: The number of resamples performed to form the bootstrap distribution of a statistic.
 - `use_t`: If `True`, use Student's t-distribution in p-value and confidence interval calculations. Otherwise use Normal distribution.
+- And [more](api/config.md#tea_tasting.config.config_context).
 
-Use `get_config` with the option name as a parameter to get a global option value:
+Use [`get_config`](api/config.md#tea_tasting.config.get_config) with the option name as a parameter to get a global option value:
 
 ```python
 import tea_tasting as tt
@@ -292,13 +374,13 @@ tt.get_config("equal_var")
 #> False
 ```
 
-Use `get_config` without parameters to get a dictionary of global options:
+Use [`get_config`](api/config.md#tea_tasting.config.get_config) without parameters to get a dictionary of global options:
 
 ```python
 global_config = tt.get_config()
 ```
 
-Use `set_config` to set a global option value:
+Use [`set_config`](api/config.md#tea_tasting.config.set_config) to set a global option value:
 
 ```python
 tt.set_config(equal_var=True, use_t=False)
@@ -315,7 +397,7 @@ experiment.metrics["orders_per_user"]
 #> confidence_level=0.95, equal_var=True, use_t=False)
 ```
 
-Use `config_context` to temporarily set a global option value within a context:
+Use [`config_context`](api/config.md#tea_tasting.config.config_context) to temporarily set a global option value within a context:
 
 ```python
 with tt.config_context(equal_var=True, use_t=False):
