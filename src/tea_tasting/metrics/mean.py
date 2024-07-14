@@ -69,7 +69,7 @@ class MeanResult(NamedTuple):
 class MeanPowerResult(NamedTuple):
     """Power analysis results.
 
-    Args:
+    Attributes:
         power: Statistical power.
         effect_size: Absolute effect size. Difference between the two means.
         rel_effect_size: Relative effect size. Difference between the two means,
