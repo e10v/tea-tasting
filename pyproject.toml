@@ -51,6 +51,7 @@ package-dir = "src"
 
 [tool.pdm.dev-dependencies]
 docs = ["mkdocs-material", "mkdocstrings[crystal,python]"]
+examples = ["ibis-framework[duckdb]"]
 lint = ["ruff", "pyright"]
 test = ["pytest", "coverage[toml]"]
 

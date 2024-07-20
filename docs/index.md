@@ -7,16 +7,22 @@
 [![Package Status](https://img.shields.io/pypi/status/tea-tasting.svg)](https://pypi.org/project/tea-tasting/)
 [![PyPI Python Versions](https://img.shields.io/pypi/pyversions/tea-tasting.svg)](https://pypi.org/project/tea-tasting/)
 
-**tea-tasting** is a Python package for statistical analysis of A/B tests that features:
+**tea-tasting** is a Python package for statistical analysis of A/B tests, featuring:
 
 - Student's t-test, Z-test, Bootstrap, and quantile metrics out of the box.
 - Extensible API: Define and use statistical tests of your choice.
 - [Delta method](https://alexdeng.github.io/public/files/kdd2018-dm.pdf) for ratio metrics.
-- Variance reduction with [CUPED](https://exp-platform.com/Documents/2013-02-CUPED-ImprovingSensitivityOfControlledExperiments.pdf)/[CUPAC](https://doordash.engineering/2020/06/08/improving-experimental-power-through-control-using-predictions-as-covariate-cupac/) (also in combination with delta method for ratio metrics).
-- Confidence interval for both absolute and percent change.
+- Variance reduction with [CUPED](https://exp-platform.com/Documents/2013-02-CUPED-ImprovingSensitivityOfControlledExperiments.pdf)/[CUPAC](https://doordash.engineering/2020/06/08/improving-experimental-power-through-control-using-predictions-as-covariate-cupac/) (also in combination with the delta method for ratio metrics).
+- Confidence interval for both absolute and percentage change.
 - Sample ratio mismatch check.
 
-**tea-tasting** calculates statistics within data backends such as BigQuery, ClickHouse, PostgreSQL, Snowflake, Spark, and other of 20+ backends supported by [Ibis](https://ibis-project.org/). This approach eliminates the need to import granular data into a Python environment, though Pandas DataFrames are also supported.
+**tea-tasting** calculates statistics directly within data backends such as BigQuery, ClickHouse, PostgreSQL, Snowflake, Spark, and other 20+ backends supported by [Ibis](https://ibis-project.org/). This approach eliminates the need to import granular data into a Python environment, though Pandas DataFrames are also supported.
+
+## Installation
+
+```bash
+pip install tea-tasting
+```
 
 ## Basic example
 
@@ -42,7 +48,11 @@ print(result)
 #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 ```
 
-Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/).
+Learn more with:
+
+- [User guide](https://tea-tasting.e10v.me/user-guide/).
+- [Guide on how to use **tea-tasting** with a data backend of your choice](https://tea-tasting.e10v.me/data-backend/).
+- [API reference](https://tea-tasting.e10v.me/api/).
 
 ## Roadmap
 
@@ -51,13 +61,13 @@ Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/)
 - More statistical tests:
     - Asymptotic and exact tests for frequency data.
     - Mann–Whitney U test.
-- More examples or guides on how to:
+- More examples and guides on how to:
     - Create a custom metric.
     - Use **tea-tasting** with an arbitrary Ibis backend.
 
 ## Package name
 
-The package name "tea-tasting" is a play of words which refers to two subjects:
+The package name "tea-tasting" is a play on words which refers to two subjects:
 
 - [Lady tasting tea](https://en.wikipedia.org/wiki/Lady_tasting_tea/) is a famous experiment which was devised by Ronald Fisher. In this experiment, Fisher developed the null hypothesis significance testing framework to analyze a lady's claim that she could discern whether the tea or the milk was added first to a cup.
 - "tea-tasting" phonetically resembles "t-testing" or Student's t-test, a statistical test developed by William Gosset.
