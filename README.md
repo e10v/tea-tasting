@@ -50,8 +50,8 @@ print(result)
 
 Learn more with:
 
-- The detailed [user guide](https://tea-tasting.e10v.me/user-guide/).
-- [Guide on how to use **tea-tasting** with a data backend of your choice](https://tea-tasting.e10v.me/data-backend/).
+- [User guide](https://tea-tasting.e10v.me/user-guide/).
+- [Guide on how to use tea-tasting with a data backend of your choice](https://tea-tasting.e10v.me/data-backend/).
 - [API reference](https://tea-tasting.e10v.me/api/).
 
 ## Roadmap
