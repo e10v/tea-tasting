@@ -50,7 +50,7 @@ class BootstrapResult(NamedTuple):
 
 
 class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         columns: str | Sequence[str],
         statistic: Callable[..., npt.NDArray[np.number[Any]]],
@@ -253,7 +253,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
 
 
 class Quantile(Bootstrap):  # noqa: D101
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         column: str,
         q: float = 0.5,
