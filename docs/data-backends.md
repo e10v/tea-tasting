@@ -41,15 +41,15 @@ con.create_table("users_data", users_data)
 
 In the example above:
 
-- `tt.make_users_data(seed=42)` returns a Pandas DataFrame with example experimental data.
-- `ibis.duckdb.connect()` creates a DuckDB in-process database using Ibis API.
-- `con.create_table("users_data", users_data)` creates and populates a table in the database based on the DataFrame.
+- Function `tt.make_users_data` returns a Pandas DataFrame with example experimental data.
+- Function `ibis.duckdb.connect` creates a DuckDB in-process database using Ibis API.
+- Method `con.create_table` creates and populates a table in the database based on the DataFrame.
 
 See the [Ibis documentation on how to create connections](https://ibis-project.org/reference/connection) to other data backends.
 
 ## Querying experimental data
 
-Method `con.create_table` in the example above returns an instance of Ibis Table which already can be used in the analysis of the experiment. But let's see how to use an arbitrary SQL query to create Ibis Table:
+Method `con.create_table` in the example above returns an instance of Ibis Table which already can be used in the analysis of the experiment. But let's see how to use an SQL query to create Ibis Table:
 
 ```python
 data = con.sql("select * from users_data")
@@ -173,11 +173,7 @@ In the example above, **tea-tasting** fetches all the required statistics with a
 
 Some statistical methods, like Bootstrap, require granular data for the analysis. In this case, **tea-tasting** fetches the detailed data as well.
 
-## Appendix A: Calculation of variance and covariance
-
-Ibis might not [support](https://ibis-project.org/backends/support/matrix) the calculation of variance or covariance in some data backends. To avoid this problem, **tea-tasting** calculates variance and covariance using standard aggregation functions `sum` and `count` as well as `avg` over variant column.
-
-## Appendix B: Example with CUPED
+## Example with CUPED
 
 An example of a slightly more complicated analysis using variance reduction with CUPED:
 
@@ -206,11 +202,11 @@ experiment_with_cov = tt.Experiment(
     orders_per_user=tt.Mean("orders", "orders_covariate"),
     revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
 )
-result_with_cov = experiment.analyze(data_with_cov)
+result_with_cov = experiment_with_cov.analyze(data_with_cov)
 print(result_with_cov)
-#>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
-#>  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
-#> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
-#>    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
-#>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+#>             metric control treatment rel_effect_size rel_effect_size_ci  pvalue
+#>  sessions_per_user    2.00      1.98          -0.68%      [-3.2%, 1.9%]   0.603
+#> orders_per_session   0.262     0.293             12%        [4.2%, 21%] 0.00229
+#>    orders_per_user   0.523     0.581             11%        [2.9%, 20%] 0.00733
+#>   revenue_per_user    5.12      5.85             14%        [3.8%, 26%] 0.00675
 ```

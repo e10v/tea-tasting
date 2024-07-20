@@ -51,7 +51,7 @@ print(result)
 Learn more with:
 
 - [User guide](https://tea-tasting.e10v.me/user-guide/).
-- [Guide on how to use **tea-tasting** with a data backend of your choice](https://tea-tasting.e10v.me/data-backend/).
+- [Guide on how to use tea-tasting with a data backend of your choice](https://tea-tasting.e10v.me/data-backend/).
 - [API reference](https://tea-tasting.e10v.me/api/).
 
 ## Roadmap

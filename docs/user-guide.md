@@ -46,7 +46,7 @@ The [`make_users_data`](api/datasets.md) function creates synthetic data for dem
 
 **tea-tasting** can process data in the form of either a Pandas DataFrame or an Ibis Table. [Ibis](https://ibis-project.org/) is a Python package that serves as a DataFrame API to various data backends. It supports 20+ backends including BigQuery, ClickHouse, DuckDB, Polars, PostgreSQL, Snowflake, Spark etc. You can write an SQL query, [wrap](https://ibis-project.org/how-to/extending/sql#backend.sql) it as an Ibis Table and pass it to **tea-tasting**.
 
-Many statistical tests, such as the Student's t-test or the Z-test, require only aggregated data for analysis. For these tests, **tea-tasting** retrieves only aggregated statistics like mean and variance instead of downloading all detailed data.
+Many statistical tests, such as the Student's t-test or the Z-test, require only aggregated data for analysis. For these tests, **tea-tasting** retrieves only aggregated statistics like mean and variance instead of downloading all detailed data. See more details in the [guide on data backends](data-backends.md).
 
 **tea-tasting** assumes that:
 
