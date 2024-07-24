@@ -2,16 +2,16 @@
 
 ## Intro
 
-**tea-tasting** supports Student's t-test, Z-test, and [some other statistical tests](api/metrics/index.md) out of the box. However you might want to analyze an experiment using other statistical criteria. In this case you can define a custom metric with statistical test of your choice.
+**tea-tasting** supports Student's t-test, Z-test, and [some other statistical tests](api/metrics/index.md) out of the box. However, you might want to analyze an experiment using other statistical criteria. In this case you can define a custom metric with statistical test of your choice.
 
-There are two types of metrics in **tea-tasting**:
+In **tea-tasting**, there are two types of metrics:
 
-- Metrics that require only aggregated statistics for the analysis.
-- Metrics that require granular data for the analysis.
+- Metrics that require only aggregated statistics for analysis.
+- Metrics that require granular data for analysis.
 
-This guide explains how to define a custom metric of each type.
+This guide explains how to define a custom metric for each type.
 
-First, let's import all required modules and prepare data:
+First, let's import all the required modules and prepare the data:
 
 ```python
 from typing import Literal, NamedTuple
@@ -45,13 +45,13 @@ print(data)
 #> [4000 rows x 6 columns]
 ```
 
-This guide uses Pandas as a data backend. But it's valid for other backends as well. See the [guide on data backends](data-backends.md) for more details.
+This guide uses Pandas as the data backend, but it's valid for other backends as well. See the [guide on data backends](data-backends.md) for more details.
 
 ## Metrics based on aggregated statistics
 
 Let's define a metric that performs a proportion test, [G-test](https://en.wikipedia.org/wiki/G-test) or [Pearson's chi-squared test](https://en.wikipedia.org/wiki/Pearson%27s_chi-squared_test), on a binary column (with values `0` or `1`).
 
-First step is defining a result class. It should be a named tuple or a dictionary.
+The first step is defining a result class. It should be a named tuple or a dictionary.
 
 ```python
 class ProportionResult(NamedTuple):
@@ -63,9 +63,9 @@ class ProportionResult(NamedTuple):
     statistic: float
 ```
 
-Second step is defining the metric class itself. Metric based on aggregated statistics should be a subclass of [`MetricBaseAggregated`](api/metrics/base.md#tea_tasting.metrics.base.MetricBaseAggregated). `MetricBaseAggregated` is a generic class with the result class as a type variable.
+The second step is defining the metric class itself. Metric based on aggregated statistics should be a subclass of [`MetricBaseAggregated`](api/metrics/base.md#tea_tasting.metrics.base.MetricBaseAggregated). `MetricBaseAggregated` is a generic class with the result class as a type variable.
 
-Metric should have the following methods properties defined:
+The metric should have the following methods and properties defined:
 
 - Method `__init__` checks and saves metric parameters.
 - Property `aggr_cols` returns columns to be aggregated for analysis for each type of statistic.
@@ -119,7 +119,7 @@ class Proportion(tea_tasting.metrics.MetricBaseAggregated[ProportionResult]):
         )
 ```
 
-Method `__init__` save metric parameters to be used in the analysis. You can use utility functions [`check_scalar`](api/utils.md#tea_tasting.utils.check_scalar) and [`auto_check`](api/utils.md#tea_tasting.utils.auto_check) to check parameter values.
+Method `__init__` save metric parameters to be used in analysis. You can use utility functions [`check_scalar`](api/utils.md#tea_tasting.utils.check_scalar) and [`auto_check`](api/utils.md#tea_tasting.utils.auto_check) to check parameter values.
 
 Property `aggr_cols` returns an instance of [`AggrCols`](api/metrics/base.md#tea_tasting.metrics.base.AggrCols). Analysis of proportion requires the number of rows (`has_count=True`) and the average value for the column of interest (`mean_cols=(self.column,)`) for each variant.
 
@@ -127,7 +127,7 @@ Method `analyze_aggregates` accepts two parameters: `control` and `treatment` da
 
 Method `analyze_aggregates` returns an instance of `ProportionResult`, defined earlier, with analysis result.
 
-Now we can analyze the proportion of users which created at least one order during the experiment. For comparison, let's also add a metric that performs Z-test on the same column.
+Now we can analyze the proportion of users who created at least one order during the experiment. For comparison, let's also add a metric that performs Z-test on the same column.
 
 ```python
 experiment_prop = tt.Experiment(
@@ -142,11 +142,23 @@ print(experiment_prop.analyze(data))
 
 ## Metrics based on granular data
 
+Now let's define a metric that performs the Mann-Whitney U test. While it's possible to use the aggregated sum of ranks in the test, this example will use granular data for analysis.
+
+The result class:
+
 ```python
 class MannWhitneyUResult(NamedTuple):
     pvalue: float
     statistic: float
 ```
+
+Metric that analyses granular data should be a subclass of [`MetricBaseGranular`](api/metrics/base.md#tea_tasting.metrics.base.MetricBaseGranular). `MetricBaseGranular` is a generic class with the result class as a type variable.
+
+Metric should have the following methods and properties defined:
+
+- Method `__init__` checks and saves metric parameters.
+- Property `cols` returns columns to be fetched for an analysis.
+- Method `analyze_dataframes` analyzes the metric using granular data.
 
 ```python
 class MannWhitneyU(tea_tasting.metrics.MetricBaseGranular[MannWhitneyUResult]):
@@ -186,6 +198,14 @@ class MannWhitneyU(tea_tasting.metrics.MetricBaseGranular[MannWhitneyUResult]):
         )
 ```
 
+Property `cols` should return a sequence of strings.
+
+Method `analyze_dataframes` accepts two parameters: control and treatment data as Pandas DataFrames. Even with [data backend](data-backends.md) different from Pandas, **tea-tasting** will retrieve the data and transform into a Pandas DataFrame.
+
+Method `analyze_dataframes` returns an instance of `MannWhitneyUResult`, defined earlier, with analysis result.
+
+Now we can perform the Mann-Whitney U test:
+
 ```python
 experiment_mwu = tt.Experiment(
     mwu_orders=MannWhitneyU("orders"),
@@ -199,6 +219,8 @@ print(result.to_string(("metric", "pvalue", "statistic")))
 ```
 
 ## Analyzing two types of metrics together
+
+It's also possible to analyze two types of metrics in one experiment:
 
 ```python
 experiment = tt.Experiment(
@@ -215,4 +237,14 @@ print(experiment.analyze(data))
 #>            mwu_revenue       -         -               -             [-, -] 0.0300
 ```
 
+In this case, **tea-tasting** perform two queries on experimental data:
+
+- With aggregated statistics required for analysis of metrics of type `MetricBaseAggregated`.
+- With detailed data with columns required for analysis of metrics of type `MetricBaseGranular`.
+
 ## Recommendations
+
+Please follow the recommendations when defining custom metrics:
+
+- Use parameter and attribute names consistent with the ones that are already defined in **tea-tasting**. For example, use `pvalue` instead of `p_value` or `correction` instead of `use_continuity`.
+- Use globals settings as default values for standards parameters such as `alternative` or `confidence_level`. See the [reference](api/config.md#tea_tasting.config.config_context) for the full list of standard parameters. You can also define your own global parameters.
