@@ -48,7 +48,7 @@ print(result)
 #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 ```
 
-Learn more with the detailed [user guide](https://tea-tasting.e10v.me/user-guide/). Also see the guides on [data backends](https://tea-tasting.e10v.me/data-backends/) and [custom metrics](https://tea-tasting.e10v.me/custom-metrics/).
+Learn more with the detailed [user guide](https://tea-tasting.e10v.me/user-guide/). Additionally, see the guides on [data backends](https://tea-tasting.e10v.me/data-backends/) and [custom metrics](https://tea-tasting.e10v.me/custom-metrics/).
 
 ## Roadmap
 
