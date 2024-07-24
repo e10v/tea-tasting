@@ -69,6 +69,10 @@ def check_scalar(  # noqa: PLR0913
 def auto_check(value: R, name: str) -> R:  # noqa: C901, PLR0912
     """Automatically check a parameter's type and value based on its name.
 
+    The following parameter names are supported: `"alpha"`, `"alternative"`,
+    `"confidence_level"`, `"correction"`, `"equal_var"`, `"n_obs"`,
+    `"n_resamples"`, `"power"`, `"ratio"`, `"use_t"`.
+
     Args:
         value: Parameter value.
         name: Parameter name.
