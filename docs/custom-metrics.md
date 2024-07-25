@@ -244,7 +244,9 @@ In this case, **tea-tasting** perform two queries on experimental data:
 
 ## Recommendations
 
-Please follow the recommendations when defining custom metrics:
+Follow these recommendations when defining custom metrics:
 
 - Use parameter and attribute names consistent with the ones that are already defined in **tea-tasting**. For example, use `pvalue` instead of `p_value` or `correction` instead of `use_continuity`.
-- Use globals settings as default values for standards parameters such as `alternative` or `confidence_level`. See the [reference](api/config.md#tea_tasting.config.config_context) for the full list of standard parameters. You can also define your own global parameters.
+- End confidence interval boundary names with `"_ci_lower"` and `"_ci_upper"`.
+- During initialization, save parameter values in metric attributes using the same names. For example, use `self.correction = correction` instead of `self.use_continuity = correction`.
+- Use globals settings as default values for standard parameters, such as `alternative` or `confidence_level`. See the [reference](api/config.md#tea_tasting.config.config_context) for the full list of standard parameters. You can also define and use your own global parameters.
