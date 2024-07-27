@@ -265,7 +265,7 @@ class Quantile(Bootstrap):  # noqa: D101
         batch: int | None = None,
         random_state: int | np.random.Generator | np.random.SeedSequence | None = None,
     ) -> None:
-        """Metric for analysis of quantiles using bootstrap resampling.
+        """Metric for the analysis of quantiles using bootstrap resampling.
 
         Args:
             column: Name of the column for the quantiles to compute.
