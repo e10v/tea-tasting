@@ -64,5 +64,5 @@ Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/)
 
 The package name "tea-tasting" is a play on words that refers to two subjects:
 
-- [Lady tasting tea](https://en.wikipedia.org/wiki/Lady_tasting_tea/) is a famous experiment which was devised by Ronald Fisher. In this experiment, Fisher developed the null hypothesis significance testing framework to analyze a lady's claim that she could discern whether the tea or the milk was added first to the cup.
+- [Lady tasting tea](https://en.wikipedia.org/wiki/Lady_tasting_tea) is a famous experiment which was devised by Ronald Fisher. In this experiment, Fisher developed the null hypothesis significance testing framework to analyze a lady's claim that she could discern whether the tea or the milk was added first to the cup.
 - "tea-tasting" phonetically resembles "t-testing" or Student's t-test, a statistical test developed by William Gosset.
