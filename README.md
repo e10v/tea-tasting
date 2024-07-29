@@ -19,7 +19,7 @@
 
 **tea-tasting** calculates statistics directly within data backends such as BigQuery, ClickHouse, PostgreSQL, Snowflake, Spark, and 20+ other backends supported by [Ibis](https://ibis-project.org/). This approach eliminates the need to import granular data into a Python environment, though Pandas DataFrames are also supported.
 
-Check out the [blog post](https://e10v.me/tea-tasting-announcement/) explaining the advantages of using **tea-tasting** for the analysis of A/B tests.
+Check out the [blog post](https://e10v.me/tea-tasting-analysis-of-experiments/) explaining the advantages of using **tea-tasting** for the analysis of A/B tests.
 
 ## Installation
 
