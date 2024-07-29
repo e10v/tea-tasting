@@ -2,7 +2,7 @@
 
 ## Intro
 
-**tea-tasting** supports a wide range of data backends such as BigQuery, ClickHouse, PostgreSQL/GreenPlum, Snowflake, Spark, and other 20+ backends supported by [Ibis](https://ibis-project.org/). Ibis is a Python package that serves as a DataFrame API to various data backends.
+**tea-tasting** supports a wide range of data backends such as BigQuery, ClickHouse, PostgreSQL/GreenPlum, Snowflake, Spark, and 20+ other backends supported by [Ibis](https://ibis-project.org/). Ibis is a Python package that serves as a DataFrame API to various data backends.
 
 Many statistical tests, such as the Student's t-test or the Z-test, require only aggregated data for analysis. For these tests, **tea-tasting** retrieves only aggregated statistics like mean and variance instead of downloading all detailed data.
 
@@ -151,7 +151,7 @@ See [Ibis documentation](https://ibis-project.org/tutorials/getting_started) for
 
 The example above shows how to query the metric averages. But for statistical inference it's not enough. For example, Student's t-test and Z-test also require number of rows and variance. And analysis of ratio metrics and variance reduction with CUPED require covariances.
 
-Querying all the required statistics manually can be a daunting and error-prone task. But don't worry, **tea-tasting** does this work for you. You just need to specify the metrics:
+Querying all the required statistics manually can be a daunting and error-prone task. But don't worry—**tea-tasting** does this work for you. You just need to specify the metrics:
 
 ```python
 experiment = tt.Experiment(
