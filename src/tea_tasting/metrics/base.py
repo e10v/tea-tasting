@@ -18,8 +18,6 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from typing import Literal
 
-    PowerParameter = Literal["power", "effect_size", "rel_effect_size", "n_obs"]
-
 
 # The | operator doesn't work for NamedTuple, but Union works.
 MetricResult = Union[NamedTuple, dict[str, Any]]  # noqa: UP007
@@ -69,7 +67,8 @@ class PowerBase(abc.ABC, Generic[S], tea_tasting.utils.ReprMixin):
     def solve_power(
         self,
         data: pd.DataFrame | ibis.expr.types.Table,
-        parameter: PowerParameter = "rel_effect_size",
+        parameter: Literal[
+            "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> S:
         """Solve for a parameter of the power of a test.
 
@@ -208,7 +207,8 @@ class PowerBaseAggregated(PowerBase[S], _HasAggrCols):
     def solve_power(
         self,
         data: pd.DataFrame | ibis.expr.types.Table | tea_tasting.aggr.Aggregates,
-        parameter: PowerParameter = "rel_effect_size",
+        parameter: Literal[
+            "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> S:
         """Solve for a parameter of the power of a test.
 
@@ -231,7 +231,8 @@ class PowerBaseAggregated(PowerBase[S], _HasAggrCols):
     def solve_power_from_aggregates(
         self,
         data: tea_tasting.aggr.Aggregates,
-        parameter: PowerParameter = "rel_effect_size",
+        parameter: Literal[
+            "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> S:
         """Solve for a parameter of the power of a test.
 

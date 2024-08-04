@@ -25,8 +25,6 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from typing import Literal, TypeVar
 
-    from tea_tasting.metrics.base import PowerParameter
-
 
     N = TypeVar("N", bound=float | int | None)
 
@@ -367,7 +365,8 @@ class RatioOfMeans(  # noqa: D101
     def solve_power_from_aggregates(
         self,
         data: tea_tasting.aggr.Aggregates,
-        parameter: PowerParameter = "rel_effect_size",
+        parameter: Literal[
+            "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> MeanPowerResults:
         """Solve for a parameter of the power of a test.
 
@@ -435,7 +434,7 @@ class RatioOfMeans(  # noqa: D101
         self,
         metric_mean: float,
         sample_count: int,
-        parameter: PowerParameter,
+        parameter: Literal["power", "effect_size", "rel_effect_size", "n_obs"],
     ) -> tuple[
         float | None,  # power
         Sequence[float | int | None],  # effect_size

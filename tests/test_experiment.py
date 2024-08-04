@@ -16,8 +16,7 @@ import tea_tasting.utils
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-    from tea_tasting.metrics.base import PowerParameter
+    from typing import Literal
 
 
 class _MetricResultTuple(NamedTuple):
@@ -55,7 +54,7 @@ class _Metric(
             con = ibis.pandas.connect()
             data = con.create_table("data", data)
         agg_data = (
-            data.group_by(variant)
+            data.group_by(variant)  # type: ignore
             .agg(mean=data[self.value].mean())  # type: ignore
             .to_pandas()
         )
@@ -70,7 +69,8 @@ class _Metric(
     def solve_power(
         self,
         data: pd.DataFrame | ibis.Table,  # noqa: ARG002
-        parameter: PowerParameter = "rel_effect_size",  # noqa: ARG002
+        parameter: Literal[  # noqa: ARG002
+            "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> tea_tasting.metrics.MetricPowerResults[_PowerResult]:
         return tea_tasting.metrics.MetricPowerResults((
             _PowerResult(power=0.8, effect_size=1, rel_effect_size=0.05, n_obs=10_000),
@@ -106,7 +106,8 @@ class _MetricAggregated(
     def solve_power_from_aggregates(
         self,
         data: tea_tasting.aggr.Aggregates,  # noqa: ARG002
-        parameter: PowerParameter = "rel_effect_size",  # noqa: ARG002
+        parameter: Literal[  # noqa: ARG002
+            "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> tea_tasting.metrics.MetricPowerResults[dict[str, Any]]:
         return tea_tasting.metrics.MetricPowerResults((
             {"power": 0.8, "effect_size": 1, "rel_effect_size": 0.05, "n_obs": 10_000},

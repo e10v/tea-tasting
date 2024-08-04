@@ -51,14 +51,18 @@ print(result)
 #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 ```
 
-Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/). Additionally, see the guides on [data backends](https://tea-tasting.e10v.me/data-backends/) and [custom metrics](https://tea-tasting.e10v.me/custom-metrics/).
+Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/). Additionally, see the guides on [data backends](https://tea-tasting.e10v.me/data-backends/), [power analysis](https://tea-tasting.e10v.me/power-analysis/), and [custom metrics](https://tea-tasting.e10v.me/custom-metrics/).
 
 ## Roadmap
 
+- Multiple hypotheses testing:
+    - Family-wise error rate: Holm–Bonferroni method.
+    - False discovery rate: Benjamini–Hochberg procedure.
 - A/A tests and simulations.
 - More statistical tests:
     - Asymptotic and exact tests for frequency data.
     - Mann–Whitney U test.
+- Sequential testing: always valid p-value with mSPRT.
 
 ## Package name
 
