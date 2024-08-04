@@ -36,7 +36,7 @@ In the following sections, each step of this process is explained in detail.
 
 ### Input data
 
-The [`make_users_data`](api/datasets.md) function creates synthetic data for demonstration purposes. This data mimics what you might encounter in an A/B test for an online store. Each row represents an individual user, with the following columns:
+The [`make_users_data`](api/datasets.md#tea_tasting.datasets.make_users_data) function creates synthetic data for demonstration purposes. This data mimics what you might encounter in an A/B test for an online store. Each row represents an individual user, with the following columns:
 
 - `user`: The unique identifier for each user.
 - `variant`: The specific variant (e.g., 0 or 1) assigned to each user in the A/B test.
@@ -56,7 +56,7 @@ Many statistical tests, such as the Student's t-test or the Z-test, require only
 
 ### A/B test definition
 
-The [`Experiment`](api/experiment.md) class defines parameters of an A/B test: metrics and a variant column name. There are two ways to define metrics:
+The [`Experiment`](api/experiment.md#tea_tasting.experiment.Experiment) class defines parameters of an A/B test: metrics and a variant column name. There are two ways to define metrics:
 
 - Using keyword parameters, with metric names as parameter names, and metric definitions as parameter values, as in example above.
 - Using the first argument `metrics` which accepts metrics in a form of dictionary with metric names as keys and metric definitions as values.
