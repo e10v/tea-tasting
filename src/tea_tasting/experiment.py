@@ -18,8 +18,6 @@ if TYPE_CHECKING:
 
     import ibis.expr.types
 
-    from tea_tasting.metrics.base import PowerParameter
-
 
 class ExperimentResult(
     UserDict[str, tea_tasting.metrics.MetricResult],
@@ -591,7 +589,8 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     def solve_power(
         self,
         data: pd.DataFrame | ibis.expr.types.Table,
-        parameter: PowerParameter = "rel_effect_size",
+        parameter: Literal[
+            "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> ExperimentPowerResult:
         """Solve for a parameter of the power of a test.
 
