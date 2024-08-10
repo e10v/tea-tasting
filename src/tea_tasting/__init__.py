@@ -1,4 +1,4 @@
-"""A Python package for statistical analysis of A/B tests.
+"""A Python package for the statistical analysis of A/B tests.
 
 All classes and functions for the analysis of the experiments can be imported
 from the root `tea_tasting` module.

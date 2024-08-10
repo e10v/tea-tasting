@@ -288,8 +288,6 @@ class PrettyDictsMixin(abc.ABC):
                 Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
                 and format the interval as `"[{lower_bound}, {lower_bound}]"`.
         """
-        if keys is None:
-            keys = self.default_keys
         return self.to_pretty(keys, formatter).to_string(index=False)
 
     def to_html(
@@ -319,8 +317,6 @@ class PrettyDictsMixin(abc.ABC):
                 Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
                 and format the interval as `"[{lower_bound}, {lower_bound}]"`.
         """
-        if keys is None:
-            keys = self.default_keys
         return self.to_pretty(keys, formatter).to_html(index=False)
 
     def __str__(self) -> str:
