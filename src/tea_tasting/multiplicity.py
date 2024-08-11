@@ -51,7 +51,7 @@ def adjust_fdr(
     alpha: float | None = None,
     arbitrary_dependence: bool = True,
 ) -> MultipleComparisonsResults:
-    """Adjust p-value and alpha to control the false discovery rate.
+    """Adjust p-value and alpha to control the false discovery rate (FDR).
 
     The number of hypotheses tested is the total number of metrics included in
     the comparison in all experiment results. For example, if there are
