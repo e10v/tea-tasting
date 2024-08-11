@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import abc
 from collections import UserDict
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
 import tea_tasting.config
@@ -12,7 +13,10 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
+    from collections.abc import Callable
+
+
+NULL_COMPARISON = "-"
 
 
 class MultipleComparisonsResults(
@@ -33,7 +37,7 @@ class MultipleComparisonsResults(
     def to_dicts(self) -> tuple[dict[str, Any], ...]:
         """Convert the result to a sequence of dictionaries."""
         return tuple(
-            {"comparison": str(comparison)} | metric_result
+            {"comparison": _to_str(comparison)} | metric_result
             for comparison, experiment_result in self.items()
             for metric_result in experiment_result.to_dicts()
         )
@@ -47,6 +51,40 @@ def adjust_fdr(
     alpha: float | None = None,
     arbitrary_dependence: bool = True,
 ) -> MultipleComparisonsResults:
+    """Adjust p-value and alpha to control the false discovery rate.
+
+    The number of hypotheses tested is the total number of metrics included in
+    the comparison in all experiment results. For example, if there are
+    3 experiments with 2 metrics in each, the number of hypotheses is 6.
+
+    The function performs one of the following corrections, depending on parameters:
+
+    - Benjamini-Yekutieli procedure, assuming arbitrary dependence between
+        hypotheses (`arbitrary_dependence=True`).
+    - Benjamini-Hochberg procedure, assuming non-negative correlation between
+        hypotheses (`arbitrary_dependence=False`).
+
+    The function adds the following attributes to the results:
+        `pvalue_adj`: The adjusted p-value, which should be compared with the unadjusted
+            FDR (`alpha`).
+        `alpha_adj`: "The adjusted FDR, which should be compared with the unadjusted
+            p-value (`pvalue`).
+        `null_rejected`: A binary indicator (`0` or `1`) that shows whether
+            the null hypothesis is rejected.
+
+    Args:
+        experiment_results: Experiment results.
+        metrics: Metrics included in the comparison.
+            If `None`, all metrics are included.
+        alpha: Significance level. If `None`, the value from global settings is used.
+        arbitrary_dependence: If `True`, arbitrary dependence between hypotheses
+            is assumed and Benjamini-Yekutieli procedure is performed.
+            If `False`, non-negative correlation between hypotheses is assumed
+            and Benjamini-Hochberg procedure is performed.
+
+    Returns:
+        The experiments results with adjusted p-values and alpha.
+    """
     alpha = (
         tea_tasting.utils.auto_check(alpha, "alpha")
         if alpha is not None
@@ -101,7 +139,7 @@ def _copy_results(
     list[dict[str, Any]],
 ]:
     if not isinstance(experiment_results, dict):
-        experiment_results = {"-": experiment_results}
+        experiment_results = {NULL_COMPARISON: experiment_results}
 
     if metrics is not None:
         if isinstance(metrics, str):
@@ -126,6 +164,12 @@ def _copy_results(
             comparison: tea_tasting.experiment.ExperimentResult(result)}
 
     return copy_of_experiment_results, copy_of_metric_results
+
+
+def _to_str(x: Any, seq_sep: str = ", ") -> str:
+    if not isinstance(x, str) and isinstance(x, Sequence):
+        return seq_sep.join(str(v) for v in x)
+    return str(x)
 
 
 class _Adjustment(abc.ABC):
