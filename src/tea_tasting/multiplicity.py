@@ -12,10 +12,10 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
 
-class MultipleComparisonsResult(
+class MultipleComparisonsResults(
     UserDict[Any, tea_tasting.experiment.ExperimentResult],
     tea_tasting.utils.PrettyDictsMixin,
 ):
@@ -26,7 +26,8 @@ class MultipleComparisonsResult(
         "control",
         "treatment",
         "rel_effect_size",
-        "pvalue",
+        "pvalue_adj",
+        "null_rejected",
     )
 
     def to_dicts(self) -> tuple[dict[str, Any], ...]:
@@ -45,7 +46,7 @@ def adjust_fdr(
     *,
     alpha: float | None = None,
     arbitrary_dependence: bool = True,
-) -> MultipleComparisonsResult:
+) -> MultipleComparisonsResults:
     alpha = (
         tea_tasting.utils.auto_check(alpha, "alpha")
         if alpha is not None
@@ -54,21 +55,41 @@ def adjust_fdr(
     arbitrary_dependence = tea_tasting.utils.check_scalar(
         arbitrary_dependence, "arbitrary_dependence", typ=bool)
 
+    # results and metric_results refer to the same dicts.
     results, metric_results = _copy_results(experiment_results, metrics)
-    _adjust_stepup(metric_results, _Benjamini(
+    method = _Benjamini(
         alpha=alpha,  # type: ignore
         m=len(metric_results),
         arbitrary_dependence=arbitrary_dependence,
-    ))
+    )
+    # In-place update.
+    _adjust_stepup(metric_results, method.adjust)
 
-    return MultipleComparisonsResult(results)
+    return MultipleComparisonsResults(results)
 
 
 def _adjust_stepup(
     metric_results: Sequence[dict[str, Any]],
-    adjustment: _Adjustment,
+    adjust: Callable[[float, int], tuple[float, float]],
 ) -> None:
-    ...
+    pvalue_adj_prev = 1
+    alpha_adj_min = 0
+    k = len(metric_results)
+    for metric_result in sorted(metric_results, key=lambda d: -d["pvalue"]):
+        pvalue = metric_result["pvalue"]
+        pvalue_adj, alpha_adj = adjust(pvalue, k)
+
+        if pvalue <= alpha_adj and alpha_adj_min == 0:
+            alpha_adj_min = alpha_adj
+        alpha_adj = max(alpha_adj, alpha_adj_min)
+        pvalue_adj = pvalue_adj_prev = min(pvalue_adj, pvalue_adj_prev)
+
+        metric_result.update(
+            pvalue_adj=pvalue_adj,
+            alpha_adj=alpha_adj,
+            null_rejected=int(pvalue <= alpha_adj),
+        )
+        k -= 1
 
 
 def _copy_results(
@@ -122,7 +143,7 @@ class _Benjamini(_Adjustment):
     ) -> None:
         self.alpha = alpha
         self.denom_ = (
-            m * sum(1/(i+1) for i in range(m))
+            m * sum(1 / i for i in range(1, m + 1))
             if arbitrary_dependence
             else m
         )
