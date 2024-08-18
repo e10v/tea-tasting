@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import abc
 from collections import UserDict
-from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
 import tea_tasting.config
@@ -13,7 +12,7 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
 
 
 NO_NAME_COMPARISON = "-"
@@ -37,16 +36,10 @@ class MultipleComparisonsResults(
     def to_dicts(self) -> tuple[dict[str, Any], ...]:
         """Convert the result to a sequence of dictionaries."""
         return tuple(
-            {"comparison": _to_str(comparison)} | metric_result
+            {"comparison": str(comparison)} | metric_result
             for comparison, experiment_result in self.items()
             for metric_result in experiment_result.to_dicts()
         )
-
-
-def _to_str(x: Any, seq_sep: str = ", ") -> str:
-    if not isinstance(x, str) and isinstance(x, Sequence):
-        return seq_sep.join(str(v) for v in x)
-    return str(x)
 
 
 def adjust_fdr(
