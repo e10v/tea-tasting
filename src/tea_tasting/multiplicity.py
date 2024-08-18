@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-NULL_COMPARISON = "-"
+NO_NAME_COMPARISON = "-"
 
 
 class MultipleComparisonsResults(
@@ -41,6 +41,12 @@ class MultipleComparisonsResults(
             for comparison, experiment_result in self.items()
             for metric_result in experiment_result.to_dicts()
         )
+
+
+def _to_str(x: Any, seq_sep: str = ", ") -> str:
+    if not isinstance(x, str) and isinstance(x, Sequence):
+        return seq_sep.join(str(v) for v in x)
+    return str(x)
 
 
 def adjust_fdr(
@@ -106,30 +112,6 @@ def adjust_fdr(
     return MultipleComparisonsResults(results)
 
 
-def _adjust_stepup(
-    metric_results: Sequence[dict[str, Any]],
-    adjust: Callable[[float, int], tuple[float, float]],
-) -> None:
-    pvalue_adj_prev = 1
-    alpha_adj_min = 0
-    k = len(metric_results)
-    for metric_result in sorted(metric_results, key=lambda d: -d["pvalue"]):
-        pvalue = metric_result["pvalue"]
-        pvalue_adj, alpha_adj = adjust(pvalue, k)
-
-        if pvalue <= alpha_adj and alpha_adj_min == 0:
-            alpha_adj_min = alpha_adj
-        alpha_adj = max(alpha_adj, alpha_adj_min)
-        pvalue_adj = pvalue_adj_prev = min(pvalue_adj, pvalue_adj_prev)
-
-        metric_result.update(
-            pvalue_adj=pvalue_adj,
-            alpha_adj=alpha_adj,
-            null_rejected=int(pvalue <= alpha_adj),
-        )
-        k -= 1
-
-
 def _copy_results(
     experiment_results: tea_tasting.experiment.ExperimentResult | dict[
         Any, tea_tasting.experiment.ExperimentResult],
@@ -139,7 +121,7 @@ def _copy_results(
     list[dict[str, Any]],
 ]:
     if not isinstance(experiment_results, dict):
-        experiment_results = {NULL_COMPARISON: experiment_results}
+        experiment_results = {NO_NAME_COMPARISON: experiment_results}
 
     if metrics is not None:
         if isinstance(metrics, str):
@@ -166,10 +148,28 @@ def _copy_results(
     return copy_of_experiment_results, copy_of_metric_results
 
 
-def _to_str(x: Any, seq_sep: str = ", ") -> str:
-    if not isinstance(x, str) and isinstance(x, Sequence):
-        return seq_sep.join(str(v) for v in x)
-    return str(x)
+def _adjust_stepup(
+    metric_results: Sequence[dict[str, Any]],
+    adjust: Callable[[float, int], tuple[float, float]],
+) -> None:
+    pvalue_adj_max = 1
+    alpha_adj_min = 0
+    k = len(metric_results)
+    for metric_result in sorted(metric_results, key=lambda d: -d["pvalue"]):
+        pvalue = metric_result["pvalue"]
+        pvalue_adj, alpha_adj = adjust(pvalue, k)
+
+        if alpha_adj_min == 0 and pvalue <= alpha_adj:
+            alpha_adj_min = alpha_adj
+        alpha_adj = max(alpha_adj, alpha_adj_min)
+        pvalue_adj = pvalue_adj_max = min(pvalue_adj, pvalue_adj_max)
+
+        metric_result.update(
+            pvalue_adj=pvalue_adj,
+            alpha_adj=alpha_adj,
+            null_rejected=int(pvalue <= alpha_adj),
+        )
+        k -= 1
 
 
 class _Adjustment(abc.ABC):
