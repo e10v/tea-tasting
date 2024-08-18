@@ -21,4 +21,5 @@ from tea_tasting.config import config_context, get_config, set_config
 from tea_tasting.datasets import make_sessions_data, make_users_data
 from tea_tasting.experiment import Experiment
 from tea_tasting.metrics import Bootstrap, Mean, Quantile, RatioOfMeans, SampleRatio
+from tea_tasting.multiplicity import adjust_fdr
 from tea_tasting.version import __version__
