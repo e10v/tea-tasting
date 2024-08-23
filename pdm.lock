@@ -5,7 +5,7 @@
 groups = ["default", "docs", "examples", "lint", "test"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:691324a373f4ca5834085844e4c8747a589e8b3bd088f510f7fb68a1f09f20cd"
+content_hash = "sha256:cebfa53b77b42ed42a7c3aa6dd7a811d90d7726f93ebcf377b247f7ad8ed99ad"
 
 [[metadata.targets]]
 requires_python = ">=3.10"
@@ -272,7 +272,7 @@ name = "duckdb"
 version = "1.0.0"
 requires_python = ">=3.7.0"
 summary = "DuckDB in-process database"
-groups = ["examples"]
+groups = ["default", "examples"]
 files = [
     {file = "duckdb-1.0.0-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:4a8ce2d1f9e1c23b9bab3ae4ca7997e9822e21563ff8f646992663f66d050211"},
     {file = "duckdb-1.0.0-cp310-cp310-macosx_12_0_universal2.whl", hash = "sha256:19797670f20f430196e48d25d082a264b66150c264c1e8eae8e22c64c2c5f3f5"},
@@ -368,7 +368,7 @@ version = "9.3.0"
 extras = ["duckdb"]
 requires_python = "<4.0,>=3.10"
 summary = "The portable Python dataframe library"
-groups = ["examples"]
+groups = ["default", "examples"]
 dependencies = [
     "duckdb<2,>=0.8.1",
     "ibis-framework==9.3.0",
@@ -376,28 +376,6 @@ dependencies = [
     "pandas<3,>=1.5.3",
     "pyarrow-hotfix<1,>=0.4",
     "pyarrow<18,>=10.0.1",
-    "rich<14,>=12.4.4",
-]
-files = [
-    {file = "ibis_framework-9.3.0-py3-none-any.whl", hash = "sha256:65142570205b29715d7bf81b24aea5bed758422e657aeaf7c9317a57c614cc33"},
-    {file = "ibis_framework-9.3.0.tar.gz", hash = "sha256:5e098318964d7ce53218ba9dcbf4b90d127ca3aea5fdf71661d03dc610d5df49"},
-]
-
-[[package]]
-name = "ibis-framework"
-version = "9.3.0"
-extras = ["pandas"]
-requires_python = "<4.0,>=3.10"
-summary = "The portable Python dataframe library"
-groups = ["default"]
-dependencies = [
-    "ibis-framework==9.3.0",
-    "numpy<3,>=1.23.2",
-    "packaging<25,>=21.3",
-    "pandas<3,>=1.5.3",
-    "pyarrow-hotfix<1,>=0.4",
-    "pyarrow<18,>=10.0.1",
-    "regex>=2021.7.6",
     "rich<14,>=12.4.4",
 ]
 files = [
@@ -769,7 +747,7 @@ name = "packaging"
 version = "24.1"
 requires_python = ">=3.8"
 summary = "Core utilities for Python packages"
-groups = ["default", "docs", "test"]
+groups = ["docs", "test"]
 files = [
     {file = "packaging-24.1-py3-none-any.whl", hash = "sha256:5b8f2217dbdbd2f7f384c41c628544e6d52f2d0f53c6d0c3ea61aa5d1d7ff124"},
     {file = "packaging-24.1.tar.gz", hash = "sha256:026ed72c8ed3fcce5bf8950572258698927fd1dbda10a5e981cdf0ac37f4f002"},
@@ -1048,7 +1026,7 @@ name = "regex"
 version = "2024.5.15"
 requires_python = ">=3.8"
 summary = "Alternative regular expression module, to replace re."
-groups = ["default", "docs"]
+groups = ["docs"]
 files = [
     {file = "regex-2024.5.15-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:a81e3cfbae20378d75185171587cbf756015ccb14840702944f014e0d93ea09f"},
     {file = "regex-2024.5.15-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:7b59138b219ffa8979013be7bc85bb60c6f7b7575df3d56dc1e403a438c7a3f6"},
