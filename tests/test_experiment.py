@@ -51,12 +51,12 @@ class _Metric(
         variant: str,
     ) -> _MetricResultTuple:
         if isinstance(data, pd.DataFrame):
-            con = ibis.pandas.connect()
-            data = con.create_table("data", data)
+            data = ibis.memtable(data)
         agg_data = (
             data.group_by(variant)  # type: ignore
             .agg(mean=data[self.value].mean())  # type: ignore
             .to_pandas()
+            .set_index("variant")
         )
         contr_mean = agg_data.loc[control, "mean"]
         treat_mean = agg_data.loc[treatment, "mean"]

@@ -277,8 +277,7 @@ def read_aggregates(
         Aggregated statistics.
     """
     if isinstance(data, pd.DataFrame):
-        con = ibis.pandas.connect()
-        data = con.create_table("data", data)
+        data = ibis.memtable(data)
 
     mean_cols, var_cols, cov_cols = _validate_aggr_cols(mean_cols, var_cols, cov_cols)
 

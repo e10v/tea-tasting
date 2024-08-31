@@ -419,8 +419,7 @@ def _make_data(
         )
 
     if to_ibis:
-        con = ibis.pandas.connect()
-        return con.create_table("users_data", data)
+        return ibis.memtable(data)
 
     return data
 

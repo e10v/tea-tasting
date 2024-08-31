@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 import unittest.mock
 
+import ibis
 import pytest
 
 import tea_tasting.aggr
@@ -15,18 +16,17 @@ import tea_tasting.metrics.mean
 if TYPE_CHECKING:
     from typing import Any
 
-    import ibis.expr.types
+    import ibis.expr.types  # noqa: TCH004
     import pandas as pd
 
 
 @pytest.fixture
-def table() -> ibis.expr.types.Table:
-    return tea_tasting.datasets.make_users_data(
-        n_users=100, covariates=True, seed=42, to_ibis=True)
+def dataframe() -> pd.DataFrame:
+    return tea_tasting.datasets.make_users_data(n_users=100, covariates=True, seed=42)
 
 @pytest.fixture
-def dataframe(table: ibis.expr.types.Table) -> pd.DataFrame:
-    return table.to_pandas()
+def table(dataframe: pd.DataFrame) -> ibis.expr.types.Table:
+    return ibis.memtable(dataframe)
 
 @pytest.fixture
 def data(table: ibis.expr.types.Table) -> dict[Any, tea_tasting.aggr.Aggregates]:
