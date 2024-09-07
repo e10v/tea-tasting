@@ -13,6 +13,7 @@ import tea_tasting.utils
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
+    from typing import Literal
 
 
 NO_NAME_COMPARISON = "-"
@@ -82,7 +83,7 @@ def adjust_fdr(
             and Benjamini-Hochberg procedure is performed.
 
     Returns:
-        The experiments results with adjusted p-values and alpha.
+        The experiments results with adjusted p-values and alphas.
     """
     alpha = (
         tea_tasting.utils.auto_check(alpha, "alpha")
@@ -100,7 +101,64 @@ def adjust_fdr(
         arbitrary_dependence=arbitrary_dependence,
     )
     # In-place update.
-    _adjust_stepup(metric_results, method.adjust)
+    _hochberg_stepup(metric_results, method.adjust)
+
+    return MultipleComparisonsResults(results)
+
+
+def adjust_fwer(
+    experiment_results: tea_tasting.experiment.ExperimentResult | dict[
+        Any, tea_tasting.experiment.ExperimentResult],
+    metrics: str | set[str] | Sequence[str] | None = None,
+    *,
+    alpha: float | None = None,
+    method: Literal["sidak", "bonferroni"] = "sidak",
+    arbitrary_dependence: bool = True,
+) -> MultipleComparisonsResults:
+    """Adjust p-value and alpha to control the family-wise error rate (FWER).
+
+    The number of hypotheses tested is the total number of metrics included in
+    the comparison in all experiment results. For example, if there are
+    3 experiments with 2 metrics in each, the number of hypotheses is 6.
+
+    The function performs one of the following procedures, depending on parameters:
+
+    - Holm's step-down procedure, assuming arbitrary dependence between
+        hypotheses (`arbitrary_dependence=True`).
+    - Hochberg's step-up procedure, assuming non-negative correlation between
+        hypotheses (`arbitrary_dependence=False`).
+
+    Args:
+        experiment_results: Experiment results.
+        metrics: Metrics included in the comparison.
+            If `None`, all metrics are included.
+        alpha: Significance level. If `None`, the value from global settings is used.
+        method: Correction method, Šidák (`"sidak"`) or Bonferroni (`"bonferroni"`).
+        arbitrary_dependence: If `True`, arbitrary dependence between hypotheses
+            is assumed and Holm's step-down procedure is performed.
+            If `False`, non-negative correlation between hypotheses is assumed
+            and Hochberg's step-up procedure is performed.
+
+    Returns:
+        The experiments results with adjusted p-values and alphas.
+    """
+    alpha = (
+        tea_tasting.utils.auto_check(alpha, "alpha")
+        if alpha is not None
+        else tea_tasting.config.get_config("alpha")
+    )
+    method = tea_tasting.utils.check_scalar(
+        method, "method", typ=str, in_={"sidak", "bonferroni"})
+    arbitrary_dependence = tea_tasting.utils.check_scalar(
+        arbitrary_dependence, "arbitrary_dependence", typ=bool)
+
+    # results and metric_results refer to the same dicts.
+    results, metric_results = _copy_results(experiment_results, metrics)
+    method_cls = _Sidak if method == "sidak" else _Bonferroni
+    method_ = method_cls(alpha=alpha, m=len(metric_results))  # type: ignore
+    procedure = _holm_stepdown if arbitrary_dependence else _hochberg_stepup
+    # In-place update.
+    procedure(metric_results, method_.adjust)
 
     return MultipleComparisonsResults(results)
 
@@ -141,7 +199,7 @@ def _copy_results(
     return copy_of_experiment_results, copy_of_metric_results
 
 
-def _adjust_stepup(
+def _hochberg_stepup(
     metric_results: Sequence[dict[str, Any]],
     adjust: Callable[[float, int], tuple[float, float]],
 ) -> None:
@@ -163,6 +221,30 @@ def _adjust_stepup(
             null_rejected=int(pvalue <= alpha_adj),
         )
         k -= 1
+
+
+def _holm_stepdown(
+    metric_results: Sequence[dict[str, Any]],
+    adjust: Callable[[float, int], tuple[float, float]],
+) -> None:
+    pvalue_adj_min = 0
+    alpha_adj_max = 1
+    k = 1
+    for metric_result in sorted(metric_results, key=lambda d: d["pvalue"]):
+        pvalue = metric_result["pvalue"]
+        pvalue_adj, alpha_adj = adjust(pvalue, k)
+
+        if alpha_adj_max == 1 and pvalue > alpha_adj:
+            alpha_adj_max = alpha_adj
+        alpha_adj = min(alpha_adj, alpha_adj_max)
+        pvalue_adj = pvalue_adj_min = min(max(pvalue_adj, pvalue_adj_min), 1)
+
+        metric_result.update(
+            pvalue_adj=pvalue_adj,
+            alpha_adj=alpha_adj,
+            null_rejected=int(pvalue <= alpha_adj),
+        )
+        k += 1
 
 
 class _Adjustment(abc.ABC):
@@ -188,3 +270,23 @@ class _Benjamini(_Adjustment):
     def adjust(self, pvalue: float, k: int) -> tuple[float, float]:
         coef = k / self.denom_
         return pvalue / coef, self.alpha * coef
+
+
+class _Bonferroni(_Adjustment):
+    def __init__(self, alpha: float, m: int) -> None:
+        self.alpha = alpha
+        self.m = m
+
+    def adjust(self, pvalue: float, k: int) -> tuple[float, float]:
+        coef = self.m - k + 1
+        return pvalue * coef, self.alpha / coef
+
+
+class _Sidak(_Adjustment):
+    def __init__(self, alpha: float, m: int) -> None:
+        self.alpha = alpha
+        self.m = m
+
+    def adjust(self, pvalue: float, k: int) -> tuple[float, float]:
+        coef = self.m - k + 1
+        return 1 - (1 - pvalue)**coef, 1 - (1 - self.alpha)**(1 / coef)
