@@ -10,6 +10,7 @@ For convenience, the API reference is provided by submodules:
 
 - `tea_tasting.metrics`: Built-in metrics.
 - `tea_tasting.experiment`: Experiment and experiment result.
+- `tea_tasting.multiplicity`: Multiple hypotheses testing.
 - `tea_tasting.datasets`: Example datasets.
 - `tea_tasting.config`: Global configuration.
 - `tea_tasting.aggr`: Module for working with aggregated statistics.
