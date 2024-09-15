@@ -205,8 +205,11 @@ def _hochberg_stepup(
 ) -> None:
     pvalue_adj_max = 1
     alpha_adj_min = 0
-    k = len(metric_results)
-    for metric_result in sorted(metric_results, key=lambda d: -d["pvalue"]):
+    m = len(metric_results)
+    for i, metric_result in enumerate(
+        sorted(metric_results, key=lambda d: -d["pvalue"]),
+    ):
+        k = m - i
         pvalue = metric_result["pvalue"]
         pvalue_adj, alpha_adj = adjust(pvalue, k)
 
@@ -220,7 +223,6 @@ def _hochberg_stepup(
             alpha_adj=alpha_adj,
             null_rejected=int(pvalue <= alpha_adj),
         )
-        k -= 1
 
 
 def _holm_stepdown(
@@ -229,31 +231,32 @@ def _holm_stepdown(
 ) -> None:
     pvalue_adj_min = 0
     alpha_adj_max = 1
-    k = 1
-    for metric_result in sorted(metric_results, key=lambda d: d["pvalue"]):
+    for k, metric_result in enumerate(
+        sorted(metric_results, key=lambda d: d["pvalue"]),
+        start=1,
+    ):
         pvalue = metric_result["pvalue"]
         pvalue_adj, alpha_adj = adjust(pvalue, k)
 
         if alpha_adj_max == 1 and pvalue > alpha_adj:
             alpha_adj_max = alpha_adj
         alpha_adj = min(alpha_adj, alpha_adj_max)
-        pvalue_adj = pvalue_adj_min = min(max(pvalue_adj, pvalue_adj_min), 1)
+        pvalue_adj = pvalue_adj_min = max(pvalue_adj, pvalue_adj_min)
 
         metric_result.update(
             pvalue_adj=pvalue_adj,
             alpha_adj=alpha_adj,
             null_rejected=int(pvalue <= alpha_adj),
         )
-        k += 1
 
 
-class _Adjustment(abc.ABC):
+class _Correction(abc.ABC):
     @abc.abstractmethod
     def adjust(self, pvalue: float, k: int) -> tuple[float, float]:
         ...
 
 
-class _Benjamini(_Adjustment):
+class _Benjamini(_Correction):
     def __init__(self,
         alpha: float,
         m: int,
@@ -261,28 +264,28 @@ class _Benjamini(_Adjustment):
         arbitrary_dependence: bool,
     ) -> None:
         self.alpha = alpha
-        self.denom_ = (
+        self.m_adj_ = (
             m * sum(1 / i for i in range(1, m + 1))
             if arbitrary_dependence
             else m
         )
 
     def adjust(self, pvalue: float, k: int) -> tuple[float, float]:
-        coef = k / self.denom_
-        return pvalue / coef, self.alpha * coef
+        coef = self.m_adj_ / k
+        return min(pvalue * coef, 1), self.alpha / coef
 
 
-class _Bonferroni(_Adjustment):
+class _Bonferroni(_Correction):
     def __init__(self, alpha: float, m: int) -> None:
         self.alpha = alpha
         self.m = m
 
     def adjust(self, pvalue: float, k: int) -> tuple[float, float]:
         coef = self.m - k + 1
-        return pvalue * coef, self.alpha / coef
+        return min(pvalue * coef, 1), self.alpha / coef
 
 
-class _Sidak(_Adjustment):
+class _Sidak(_Correction):
     def __init__(self, alpha: float, m: int) -> None:
         self.alpha = alpha
         self.m = m
