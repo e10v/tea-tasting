@@ -306,7 +306,29 @@ class ExperimentResult(
         """
         return tea_tasting.utils.PrettyDictsMixin.to_html(self, keys, formatter)
 
-ExperimentResults = dict[tuple[Any, Any], ExperimentResult]
+
+class ExperimentResults(
+    UserDict[tuple[Any, Any], ExperimentResult],
+    tea_tasting.utils.PrettyDictsMixin,
+):
+    """Experiment results for multiple pairs of variants."""
+    default_keys = (
+        "variants",
+        "metric",
+        "control",
+        "treatment",
+        "rel_effect_size",
+        "rel_effect_size_ci",
+        "pvalue",
+    )
+
+    def to_dicts(self) -> tuple[dict[str, Any], ...]:
+        """Convert the result to a sequence of dictionaries."""
+        return tuple(
+            {"variants": str(variants)} | metric_result
+            for variants, experiment_result in self.items()
+            for metric_result in experiment_result.to_dicts()
+        )
 
 
 class ExperimentPowerResult(

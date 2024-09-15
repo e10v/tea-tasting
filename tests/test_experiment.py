@@ -316,6 +316,41 @@ def test_experiment_result_to_html(result2: tea_tasting.experiment.ExperimentRes
     )).to_html(index=False)
 
 
+def test_experiment_results_to_dicts(
+    results2: tea_tasting.experiment.ExperimentResults,
+):
+    assert results2.to_dicts() == (
+        {
+            "variants": "(0, 1)",
+            "metric": "metric_tuple",
+            "control": 10,
+            "treatment": 11,
+            "effect_size": 1,
+        },
+        {
+            "variants": "(0, 1)",
+            "metric": "metric_dict",
+            "control": 20,
+            "treatment": 22,
+            "effect_size": 2,
+        },
+        {
+            "variants": "(0, 2)",
+            "metric": "metric_tuple",
+            "control": 10,
+            "treatment": 11,
+            "effect_size": 1,
+        },
+        {
+            "variants": "(0, 2)",
+            "metric": "metric_dict",
+            "control": 30,
+            "treatment": 33,
+            "effect_size": 3,
+        },
+    )
+
+
 def test_experiment_power_result_to_dicts():
     raw_results = (
         {"power": 0.8, "effect_size": 1, "rel_effect_size": 0.05, "n_obs": 20_000},
