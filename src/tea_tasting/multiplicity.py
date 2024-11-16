@@ -12,7 +12,7 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
+    from collections.abc import Callable, Mapping, Sequence
     from typing import Literal
 
 
@@ -30,8 +30,8 @@ class MultipleComparisonsResults(
         "control",
         "treatment",
         "rel_effect_size",
+        "pvalue",
         "pvalue_adj",
-        "null_rejected",
     )
 
     def to_dicts(self) -> tuple[dict[str, Any], ...]:
@@ -44,7 +44,7 @@ class MultipleComparisonsResults(
 
 
 def adjust_fdr(
-    experiment_results: tea_tasting.experiment.ExperimentResult | dict[
+    experiment_results: tea_tasting.experiment.ExperimentResult | Mapping[
         Any, tea_tasting.experiment.ExperimentResult],
     metrics: str | set[str] | Sequence[str] | None = None,
     *,
@@ -107,13 +107,13 @@ def adjust_fdr(
 
 
 def adjust_fwer(
-    experiment_results: tea_tasting.experiment.ExperimentResult | dict[
+    experiment_results: tea_tasting.experiment.ExperimentResult | Mapping[
         Any, tea_tasting.experiment.ExperimentResult],
     metrics: str | set[str] | Sequence[str] | None = None,
     *,
     alpha: float | None = None,
-    method: Literal["sidak", "bonferroni"] = "sidak",
     arbitrary_dependence: bool = True,
+    method: Literal["bonferroni", "sidak"] = "bonferroni",
 ) -> MultipleComparisonsResults:
     """Adjust p-value and alpha to control the family-wise error rate (FWER).
 
@@ -133,11 +133,11 @@ def adjust_fwer(
         metrics: Metrics included in the comparison.
             If `None`, all metrics are included.
         alpha: Significance level. If `None`, the value from global settings is used.
-        method: Correction method, Šidák (`"sidak"`) or Bonferroni (`"bonferroni"`).
         arbitrary_dependence: If `True`, arbitrary dependence between hypotheses
             is assumed and Holm's step-down procedure is performed.
             If `False`, non-negative correlation between hypotheses is assumed
             and Hochberg's step-up procedure is performed.
+        method: Correction method, Bonferroni (`"bonferroni"`) or Šidák (`"sidak"`).
 
     Returns:
         The experiments results with adjusted p-values and alphas.
@@ -164,14 +164,14 @@ def adjust_fwer(
 
 
 def _copy_results(
-    experiment_results: tea_tasting.experiment.ExperimentResult | dict[
+    experiment_results: tea_tasting.experiment.ExperimentResult | Mapping[
         Any, tea_tasting.experiment.ExperimentResult],
     metrics: str | set[str] | Sequence[str] | None = None,
 ) -> tuple[
     dict[Any, tea_tasting.experiment.ExperimentResult],
     list[dict[str, Any]],
 ]:
-    if not isinstance(experiment_results, dict):
+    if isinstance(experiment_results, tea_tasting.experiment.ExperimentResult):
         experiment_results = {NO_NAME_COMPARISON: experiment_results}
 
     if metrics is not None:

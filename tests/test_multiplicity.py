@@ -133,60 +133,6 @@ def test_adjust_fwer_default(
     experiment_results: dict[Any, tea_tasting.experiment.ExperimentResult],
 ):
     results = tea_tasting.multiplicity.adjust_fwer(experiment_results)
-    assert results[(0, 1)]["metric1"]["pvalue_adj"] == pytest.approx(0.0296274906437343)  # type: ignore
-    assert results[(0, 1)]["metric2"]["pvalue_adj"] == pytest.approx(0.087327)  # type: ignore
-    assert results[(0, 2)]["metric2"]["pvalue_adj"] == pytest.approx(0.0345134180118071)  # type: ignore
-    assert results[(0, 2)]["metric3"]["pvalue_adj"] == pytest.approx(0.087327)  # type: ignore
-    assert results[(0, 3)]["metric1"]["pvalue_adj"] == pytest.approx(0.0394039900000001)  # type: ignore
-    assert results[(0, 3)]["metric3"]["pvalue_adj"] == pytest.approx(0.087327)  # type: ignore
-    assert results[(0, 1)]["metric1"]["alpha_adj"] == pytest.approx(0.0085124446108471)  # type: ignore
-    assert results[(0, 1)]["metric2"]["alpha_adj"] == pytest.approx(0.0169524275084415)  # type: ignore
-    assert results[(0, 2)]["metric2"]["alpha_adj"] == pytest.approx(0.0102062183130115)  # type: ignore
-    assert results[(0, 2)]["metric3"]["alpha_adj"] == pytest.approx(0.0169524275084415)  # type: ignore
-    assert results[(0, 3)]["metric1"]["alpha_adj"] == pytest.approx(0.0127414550985662)  # type: ignore
-    assert results[(0, 3)]["metric3"]["alpha_adj"] == pytest.approx(0.0169524275084415)  # type: ignore
-    assert results[(0, 1)]["metric1"]["null_rejected"] == 1  # type: ignore
-    assert results[(0, 1)]["metric2"]["null_rejected"] == 0  # type: ignore
-    assert results[(0, 2)]["metric2"]["null_rejected"] == 1  # type: ignore
-    assert results[(0, 2)]["metric3"]["null_rejected"] == 0  # type: ignore
-    assert results[(0, 3)]["metric1"]["null_rejected"] == 1  # type: ignore
-    assert results[(0, 3)]["metric3"]["null_rejected"] == 0  # type: ignore
-
-
-def test_adjust_fwer_no_arbitrary_dependence(
-    experiment_results: dict[Any, tea_tasting.experiment.ExperimentResult],
-):
-    results = tea_tasting.multiplicity.adjust_fwer(
-        experiment_results,
-        arbitrary_dependence=False,
-    )
-    assert results[(0, 1)]["metric1"]["pvalue_adj"] == pytest.approx(0.0296274906437343)  # type: ignore
-    assert results[(0, 1)]["metric2"]["pvalue_adj"] == pytest.approx(0.0600000000000001)  # type: ignore
-    assert results[(0, 2)]["metric2"]["pvalue_adj"] == pytest.approx(0.0345134180118071)  # type: ignore
-    assert results[(0, 2)]["metric3"]["pvalue_adj"] == pytest.approx(0.0600000000000001)  # type: ignore
-    assert results[(0, 3)]["metric1"]["pvalue_adj"] == pytest.approx(0.0394039900000001)  # type: ignore
-    assert results[(0, 3)]["metric3"]["pvalue_adj"] == pytest.approx(0.0600000000000001)  # type: ignore
-    assert results[(0, 1)]["metric1"]["alpha_adj"] == pytest.approx(0.0127414550985662)  # type: ignore
-    assert results[(0, 1)]["metric2"]["alpha_adj"] == pytest.approx(0.05)  # type: ignore
-    assert results[(0, 2)]["metric2"]["alpha_adj"] == pytest.approx(0.0127414550985662)  # type: ignore
-    assert results[(0, 2)]["metric3"]["alpha_adj"] == pytest.approx(0.0253205655191037)  # type: ignore
-    assert results[(0, 3)]["metric1"]["alpha_adj"] == pytest.approx(0.0127414550985662)  # type: ignore
-    assert results[(0, 3)]["metric3"]["alpha_adj"] == pytest.approx(0.0169524275084415)  # type: ignore
-    assert results[(0, 1)]["metric1"]["null_rejected"] == 1  # type: ignore
-    assert results[(0, 1)]["metric2"]["null_rejected"] == 0  # type: ignore
-    assert results[(0, 2)]["metric2"]["null_rejected"] == 1  # type: ignore
-    assert results[(0, 2)]["metric3"]["null_rejected"] == 0  # type: ignore
-    assert results[(0, 3)]["metric1"]["null_rejected"] == 1  # type: ignore
-    assert results[(0, 3)]["metric3"]["null_rejected"] == 0  # type: ignore
-
-
-def test_adjust_fwer_bonferroni(
-    experiment_results: dict[Any, tea_tasting.experiment.ExperimentResult],
-):
-    results = tea_tasting.multiplicity.adjust_fwer(
-        experiment_results,
-        method="bonferroni",
-    )
     assert results[(0, 1)]["metric1"]["pvalue_adj"] == pytest.approx(0.03)  # type: ignore
     assert results[(0, 1)]["metric2"]["pvalue_adj"] == pytest.approx(0.09)  # type: ignore
     assert results[(0, 2)]["metric2"]["pvalue_adj"] == pytest.approx(0.035)  # type: ignore
@@ -207,12 +153,11 @@ def test_adjust_fwer_bonferroni(
     assert results[(0, 3)]["metric3"]["null_rejected"] == 0  # type: ignore
 
 
-def test_adjust_fwer_bonferroni_no_arbitrary_dependence(
+def test_adjust_fwer_no_arbitrary_dependence(
     experiment_results: dict[Any, tea_tasting.experiment.ExperimentResult],
 ):
     results = tea_tasting.multiplicity.adjust_fwer(
         experiment_results,
-        method="bonferroni",
         arbitrary_dependence=False,
     )
     assert results[(0, 1)]["metric1"]["pvalue_adj"] == pytest.approx(0.03)  # type: ignore
@@ -227,6 +172,58 @@ def test_adjust_fwer_bonferroni_no_arbitrary_dependence(
     assert results[(0, 2)]["metric3"]["alpha_adj"] == pytest.approx(0.025)  # type: ignore
     assert results[(0, 3)]["metric1"]["alpha_adj"] == pytest.approx(0.0125)  # type: ignore
     assert results[(0, 3)]["metric3"]["alpha_adj"] == pytest.approx(0.0166666666666667)  # type: ignore
+    assert results[(0, 1)]["metric1"]["null_rejected"] == 1  # type: ignore
+    assert results[(0, 1)]["metric2"]["null_rejected"] == 0  # type: ignore
+    assert results[(0, 2)]["metric2"]["null_rejected"] == 1  # type: ignore
+    assert results[(0, 2)]["metric3"]["null_rejected"] == 0  # type: ignore
+    assert results[(0, 3)]["metric1"]["null_rejected"] == 1  # type: ignore
+    assert results[(0, 3)]["metric3"]["null_rejected"] == 0  # type: ignore
+
+
+def test_adjust_fwer_sidak(
+    experiment_results: dict[Any, tea_tasting.experiment.ExperimentResult],
+):
+    results = tea_tasting.multiplicity.adjust_fwer(experiment_results, method="sidak")
+    assert results[(0, 1)]["metric1"]["pvalue_adj"] == pytest.approx(0.0296274906437343)  # type: ignore
+    assert results[(0, 1)]["metric2"]["pvalue_adj"] == pytest.approx(0.087327)  # type: ignore
+    assert results[(0, 2)]["metric2"]["pvalue_adj"] == pytest.approx(0.0345134180118071)  # type: ignore
+    assert results[(0, 2)]["metric3"]["pvalue_adj"] == pytest.approx(0.087327)  # type: ignore
+    assert results[(0, 3)]["metric1"]["pvalue_adj"] == pytest.approx(0.0394039900000001)  # type: ignore
+    assert results[(0, 3)]["metric3"]["pvalue_adj"] == pytest.approx(0.087327)  # type: ignore
+    assert results[(0, 1)]["metric1"]["alpha_adj"] == pytest.approx(0.0085124446108471)  # type: ignore
+    assert results[(0, 1)]["metric2"]["alpha_adj"] == pytest.approx(0.0169524275084415)  # type: ignore
+    assert results[(0, 2)]["metric2"]["alpha_adj"] == pytest.approx(0.0102062183130115)  # type: ignore
+    assert results[(0, 2)]["metric3"]["alpha_adj"] == pytest.approx(0.0169524275084415)  # type: ignore
+    assert results[(0, 3)]["metric1"]["alpha_adj"] == pytest.approx(0.0127414550985662)  # type: ignore
+    assert results[(0, 3)]["metric3"]["alpha_adj"] == pytest.approx(0.0169524275084415)  # type: ignore
+    assert results[(0, 1)]["metric1"]["null_rejected"] == 1  # type: ignore
+    assert results[(0, 1)]["metric2"]["null_rejected"] == 0  # type: ignore
+    assert results[(0, 2)]["metric2"]["null_rejected"] == 1  # type: ignore
+    assert results[(0, 2)]["metric3"]["null_rejected"] == 0  # type: ignore
+    assert results[(0, 3)]["metric1"]["null_rejected"] == 1  # type: ignore
+    assert results[(0, 3)]["metric3"]["null_rejected"] == 0  # type: ignore
+
+
+def test_adjust_fwer_no_arbitrary_dependence_sidak(
+    experiment_results: dict[Any, tea_tasting.experiment.ExperimentResult],
+):
+    results = tea_tasting.multiplicity.adjust_fwer(
+        experiment_results,
+        arbitrary_dependence=False,
+        method="sidak",
+    )
+    assert results[(0, 1)]["metric1"]["pvalue_adj"] == pytest.approx(0.0296274906437343)  # type: ignore
+    assert results[(0, 1)]["metric2"]["pvalue_adj"] == pytest.approx(0.0600000000000001)  # type: ignore
+    assert results[(0, 2)]["metric2"]["pvalue_adj"] == pytest.approx(0.0345134180118071)  # type: ignore
+    assert results[(0, 2)]["metric3"]["pvalue_adj"] == pytest.approx(0.0600000000000001)  # type: ignore
+    assert results[(0, 3)]["metric1"]["pvalue_adj"] == pytest.approx(0.0394039900000001)  # type: ignore
+    assert results[(0, 3)]["metric3"]["pvalue_adj"] == pytest.approx(0.0600000000000001)  # type: ignore
+    assert results[(0, 1)]["metric1"]["alpha_adj"] == pytest.approx(0.0127414550985662)  # type: ignore
+    assert results[(0, 1)]["metric2"]["alpha_adj"] == pytest.approx(0.05)  # type: ignore
+    assert results[(0, 2)]["metric2"]["alpha_adj"] == pytest.approx(0.0127414550985662)  # type: ignore
+    assert results[(0, 2)]["metric3"]["alpha_adj"] == pytest.approx(0.0253205655191037)  # type: ignore
+    assert results[(0, 3)]["metric1"]["alpha_adj"] == pytest.approx(0.0127414550985662)  # type: ignore
+    assert results[(0, 3)]["metric3"]["alpha_adj"] == pytest.approx(0.0169524275084415)  # type: ignore
     assert results[(0, 1)]["metric1"]["null_rejected"] == 1  # type: ignore
     assert results[(0, 1)]["metric2"]["null_rejected"] == 0  # type: ignore
     assert results[(0, 2)]["metric2"]["null_rejected"] == 1  # type: ignore
