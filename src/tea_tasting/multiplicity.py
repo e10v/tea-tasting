@@ -12,7 +12,7 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
+    from collections.abc import Callable, Mapping, Sequence
     from typing import Literal
 
 
@@ -44,7 +44,7 @@ class MultipleComparisonsResults(
 
 
 def adjust_fdr(
-    experiment_results: tea_tasting.experiment.ExperimentResult | dict[
+    experiment_results: tea_tasting.experiment.ExperimentResult | Mapping[
         Any, tea_tasting.experiment.ExperimentResult],
     metrics: str | set[str] | Sequence[str] | None = None,
     *,
@@ -107,7 +107,7 @@ def adjust_fdr(
 
 
 def adjust_fwer(
-    experiment_results: tea_tasting.experiment.ExperimentResult | dict[
+    experiment_results: tea_tasting.experiment.ExperimentResult | Mapping[
         Any, tea_tasting.experiment.ExperimentResult],
     metrics: str | set[str] | Sequence[str] | None = None,
     *,
@@ -164,14 +164,14 @@ def adjust_fwer(
 
 
 def _copy_results(
-    experiment_results: tea_tasting.experiment.ExperimentResult | dict[
+    experiment_results: tea_tasting.experiment.ExperimentResult | Mapping[
         Any, tea_tasting.experiment.ExperimentResult],
     metrics: str | set[str] | Sequence[str] | None = None,
 ) -> tuple[
     dict[Any, tea_tasting.experiment.ExperimentResult],
     list[dict[str, Any]],
 ]:
-    if not isinstance(experiment_results, dict):
+    if isinstance(experiment_results, tea_tasting.experiment.ExperimentResult):
         experiment_results = {NO_NAME_COMPARISON: experiment_results}
 
     if metrics is not None:
