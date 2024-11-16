@@ -21,6 +21,7 @@ nav:
       - Proportion: api/metrics/proportion.md
       - Resampling: api/metrics/resampling.md
     - Experiment: api/experiment.md
+    - Multiplicity: api/multiplicity.md
     - Datasets: api/datasets.md
     - Global configuration: api/config.md
     - Aggregates: api/aggr.md
