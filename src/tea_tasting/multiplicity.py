@@ -30,8 +30,8 @@ class MultipleComparisonsResults(
         "control",
         "treatment",
         "rel_effect_size",
+        "pvalue",
         "pvalue_adj",
-        "null_rejected",
     )
 
     def to_dicts(self) -> tuple[dict[str, Any], ...]:
