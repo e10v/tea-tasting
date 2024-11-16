@@ -112,8 +112,8 @@ def adjust_fwer(
     metrics: str | set[str] | Sequence[str] | None = None,
     *,
     alpha: float | None = None,
-    method: Literal["sidak", "bonferroni"] = "sidak",
     arbitrary_dependence: bool = True,
+    method: Literal["bonferroni", "sidak"] = "bonferroni",
 ) -> MultipleComparisonsResults:
     """Adjust p-value and alpha to control the family-wise error rate (FWER).
 
@@ -133,11 +133,11 @@ def adjust_fwer(
         metrics: Metrics included in the comparison.
             If `None`, all metrics are included.
         alpha: Significance level. If `None`, the value from global settings is used.
-        method: Correction method, Šidák (`"sidak"`) or Bonferroni (`"bonferroni"`).
         arbitrary_dependence: If `True`, arbitrary dependence between hypotheses
             is assumed and Holm's step-down procedure is performed.
             If `False`, non-negative correlation between hypotheses is assumed
             and Hochberg's step-up procedure is performed.
+        method: Correction method, Bonferroni (`"bonferroni"`) or Šidák (`"sidak"`).
 
     Returns:
         The experiments results with adjusted p-values and alphas.
