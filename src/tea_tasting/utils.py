@@ -157,12 +157,12 @@ def format_num(
 
     if thousands_sep is None:
         thousands_sep = locale.localeconv().get("thousands_sep", "_")  # type: ignore
-    if thousands_sep is not None and thousands_sep != "_":
+    if thousands_sep != "_":
         result = result.replace("_", thousands_sep)
 
     if decimal_point is None:
         decimal_point = locale.localeconv().get("decimal_point", ".")  # type: ignore
-    if decimal_point is not None and decimal_point != ".":
+    if decimal_point != ".":
         result = result.replace(".", decimal_point)
 
     if pct:
