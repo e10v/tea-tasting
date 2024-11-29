@@ -1,4 +1,4 @@
-"""Multiple hypotheses testing."""
+"""Multiple hypothesis testing."""
 
 from __future__ import annotations
 

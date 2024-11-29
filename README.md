@@ -55,7 +55,7 @@ Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/)
 
 ## Roadmap
 
-- Multiple hypotheses testing:
+- Multiple hypothesis testing:
     - Family-wise error rate: Holm–Bonferroni method.
     - False discovery rate: Benjamini–Hochberg procedure.
 - A/A tests and simulations.

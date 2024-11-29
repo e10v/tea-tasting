@@ -16,7 +16,7 @@
 - Confidence intervals for both absolute and percentage change.
 - Sample ratio mismatch check.
 - Power analysis.
-- Multiple hypotheses testing (family-wise error rate and false discovery rate).
+- Multiple hypothesis testing (family-wise error rate and false discovery rate).
 
 **tea-tasting** calculates statistics directly within data backends such as BigQuery, ClickHouse, PostgreSQL, Snowflake, Spark, and 20+ other backends supported by [Ibis](https://ibis-project.org/). This approach eliminates the need to import granular data into a Python environment, though Pandas DataFrames are also supported.
 
