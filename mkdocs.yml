@@ -12,6 +12,7 @@ nav:
   - Data backends: data-backends.md
   - Power analysis: power-analysis.md
   - Custom metrics: custom-metrics.md
+  - Multiple hypothesis: multiple-hypothesis.md
   - API reference:
     - API reference: api/index.md
     - Metrics:
