@@ -336,11 +336,71 @@ experiment.metrics["orders_per_user"]
 
 In **tea-tasting**, it's possible to analyze experiments with more than two variants. However, the variants will be compared in pairs through two-sample statistical tests.
 
+Example usage:
+
+```python
+data = pd.concat(
+    (
+        tt.make_users_data(seed=42),
+        tt.make_users_data(seed=21).query("variant==1").assign(variant=2),
+    ),
+    ignore_index=True,
+)
+
+experiment = tt.Experiment(
+    sessions_per_user=tt.Mean("sessions"),
+    orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+    orders_per_user=tt.Mean("orders"),
+    revenue_per_user=tt.Mean("revenue"),
+)
+
+results = experiment.analyze(data, control=0, all_variants=True)
+print(results)
+#> variants             metric control treatment rel_effect_size rel_effect_size_ci pvalue
+#>   (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+#>   (0, 1) orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+#>   (0, 1)    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+#>   (0, 1)   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+#>   (0, 2)  sessions_per_user    2.00      2.02           0.98%      [-2.1%, 4.1%]  0.532
+#>   (0, 2) orders_per_session   0.266     0.273            2.8%       [-6.6%, 13%]  0.575
+#>   (0, 2)    orders_per_user   0.530     0.550            3.8%       [-6.0%, 15%]  0.465
+#>   (0, 2)   revenue_per_user    5.24      5.41            3.1%       [-8.1%, 16%]  0.599
+```
+
 How variant pairs are determined:
 
+- Specified control variant: If a specific variant is set as `control`, as in the example above, it is then compared against each of the other variants.
 - Default control variant: When the `control` parameter of the `analyze` method is set to `None`, **tea-tasting** automatically compares each variant pair. The variant with the lowest ID in each pair is a control.
-- Specified control variant: If a specific variant is set as `control`, it is then compared against each of the other variants.
 
-The result of the analysis is a dictionary of `ExperimentResult` objects with tuples (control, treatment) as keys.
+Example usage without specifying a control variant:
 
-Keep in mind that **tea-tasting** does not adjust for multiple comparisons. When dealing with multiple variant pairs, additional steps may be necessary to account for this, depending on your analysis needs.
+```python
+results = experiment.analyze(data, all_variants=True)
+print(results)
+#> variants             metric control treatment rel_effect_size rel_effect_size_ci pvalue
+#>   (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+#>   (0, 1) orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+#>   (0, 1)    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+#>   (0, 1)   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+#>   (0, 2)  sessions_per_user    2.00      2.02           0.98%      [-2.1%, 4.1%]  0.532
+#>   (0, 2) orders_per_session   0.266     0.273            2.8%       [-6.6%, 13%]  0.575
+#>   (0, 2)    orders_per_user   0.530     0.550            3.8%       [-6.0%, 15%]  0.465
+#>   (0, 2)   revenue_per_user    5.24      5.41            3.1%       [-8.1%, 16%]  0.599
+#>   (1, 2)  sessions_per_user    1.98      2.02            1.7%      [-1.4%, 4.8%]  0.294
+#>   (1, 2) orders_per_session   0.289     0.273           -5.5%       [-14%, 3.6%]  0.225
+#>   (1, 2)    orders_per_user   0.573     0.550           -4.0%       [-13%, 5.7%]  0.407
+#>   (1, 2)   revenue_per_user    5.73      5.41           -5.7%       [-16%, 5.8%]  0.319
+```
+
+The result of the analysis is a mapping of `ExperimentResult` objects with tuples (control, treatment) as keys. You can view the result for a selected pair of variants:
+
+```python
+print(results[0, 1])
+#>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
+#>  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+#> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+#>    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+#>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+```
+
+By default, **tea-tasting** does not adjust for multiple hypothesis testing. However, it provides several methods for multiple testing correction. For more details, see the the [guide on multiple hypothesis](multiple-hypothesis.md).
