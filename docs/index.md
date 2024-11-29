@@ -56,6 +56,7 @@ Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/)
 
 ## Roadmap
 
+- Support more dataframes with [Narwhals](https://github.com/narwhals-dev/narwhals).
 - A/A tests and simulations.
 - More statistical tests:
     - Asymptotic and exact tests for frequency data.
