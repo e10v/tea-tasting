@@ -403,4 +403,4 @@ print(results[0, 1])
 #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 ```
 
-By default, **tea-tasting** does not adjust for multiple hypothesis testing. However, it provides several methods for multiple testing correction. For more details, see the the [guide on multiple hypothesis](multiple-hypothesis.md).
+By default, **tea-tasting** does not adjust for multiple hypothesis testing. However, it provides several methods for multiple testing correction. For more details, see the the [guide on multiple hypothesis testing](multiple-testing.md).
