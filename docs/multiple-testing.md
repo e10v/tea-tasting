@@ -1,4 +1,6 @@
-# Multiple hypothesis testing
+# Multiple testing
+
+## Multiple hypothesis testing problem
 
 [Multiple hypothesis testing problem](https://en.wikipedia.org/wiki/Multiple_comparisons_problem) arises when there are more than one success metrics or when there are more than one treatment variants in an A/B test.
 
@@ -70,4 +72,78 @@ Suppose, only the two metrics, `orders_per_user` and `revenue_per_user`, are con
 metrics = {"orders_per_user", "revenue_per_user"}
 ```
 
-With two treatment variants and two success metrics, there are four hypotheses in total. And that increases the probability of false positives (also called "false discoveries").
+With two treatment variants and two success metrics, there are four hypotheses in total. And that increases the probability of false positives (also called "false discoveries"). It's recommended to adjust the p-values or the significance level alpha. Let's explore the correction methods provided by **tea-tasting**.
+
+## False discovery rate
+
+False discovery rate (FDR) is the expected value of the proportion of false discoveries among the discoveries (rejections of the null hypothesis). To control for FDR, use the [`adjust_fdr`](api/multiplicity.md#tea_tasting.multiplicity.adjust_fdr) method:
+
+```python
+adjusted_results_fdr = tt.adjust_fdr(results, metrics)
+print(adjusted_results_fdr)
+#> comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
+#>     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.245
+#>     (0, 1) revenue_per_user    5.24      5.99             14%  0.0212     0.0592
+#>     (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0592
+#>     (0, 2) revenue_per_user    5.24      6.25             19% 0.00218     0.0182
+```
+
+The method adjusts p-values and save them as `pvalue_adj`. You can compare theses values to the desired significance level alpha to determine if the null hypotheses can be rejected.
+
+The method also adjusts the significance level alpha and save it as `alpha_adj`. You can compare non-adjusted p-values (`pvalue`) to the `alpha_adj` to determine if the null hypotheses can be rejected:
+
+```python
+print(adjusted_results_fdr.to_string(keys=(
+    "comparison",
+    "metric",
+    "control",
+    "treatment",
+    "rel_effect_size",
+    "pvalue",
+    "alpha_adj",
+)))
+#> comparison           metric control treatment rel_effect_size  pvalue alpha_adj
+#>     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118    0.0240
+#>     (0, 1) revenue_per_user    5.24      5.99             14%  0.0212    0.0120
+#>     (0, 2)  orders_per_user   0.530     0.594             12%  0.0213    0.0180
+#>     (0, 2) revenue_per_user    5.24      6.25             19% 0.00218   0.00600
+```
+
+By default, **tea-tasting** assumes arbitrary dependence between hypotheses and performs the Benjamini-Yekutieli procedure. To perform Benjamini-Hochberg procedure, assuming non-negative correlation between hypotheses, set the `arbitrary_dependence` parameter to `False`:
+
+```python
+print(tt.adjust_fdr(results, metrics, arbitrary_dependence=False))
+#> comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
+#>     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
+#>     (0, 1) revenue_per_user    5.24      5.99             14%  0.0212     0.0284
+#>     (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0284
+#>     (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00873
+```
+
+## Family-wise error rate
+
+Family-wise error rate (FWER) is the probability of making at least one type I error. To control for FWER, use the [`adjust_fwer`](api/multiplicity.md#tea_tasting.multiplicity.adjust_fwer) method:
+
+```python
+print(tt.adjust_fwer(results, metrics))
+#> comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
+#>     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
+#>     (0, 1) revenue_per_user    5.24      5.99             14%  0.0212     0.0635
+#>     (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0635
+#>     (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00873
+```
+
+By default, **tea-tasting** assumes arbitrary dependence between hypotheses and performs the Holm's step-down procedure with Bonferroni correction. To perform the Hochberg's step-up procedure, assuming non-negative correlation between hypotheses, set the `arbitrary_dependence` parameter to `False`. In this case you can also use a slightly more powerful Šidák correction instead of Bonferroni correction:
+
+```python
+print(tt.adjust_fwer(
+    results, metrics,
+    arbitrary_dependence=False,
+    method="sidak",
+))
+#> comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
+#>     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
+#>     (0, 1) revenue_per_user    5.24      5.99             14%  0.0212     0.0422
+#>     (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0422
+#>     (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00870
+```
