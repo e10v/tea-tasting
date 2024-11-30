@@ -1,1 +1,73 @@
 # Multiple hypothesis testing
+
+[Multiple hypothesis testing problem](https://en.wikipedia.org/wiki/Multiple_comparisons_problem) arises when there are more than one success metrics or when there are more than one treatment variants in an A/B test.
+
+**tea-tasting** provides the following methods for multiple testing correction:
+
+- [False discovery rate](https://en.wikipedia.org/wiki/False_discovery_rate) (FDR) controlling procedures:
+    - Benjamini-Yekutieli procedure, assuming arbitrary dependence between hypotheses.
+    - Benjamini-Hochberg procedure, assuming non-negative correlation between hypotheses.
+- [Family-wise error rate](https://en.wikipedia.org/wiki/False_discovery_rate) (FWER) controlling procedures:
+    - Holm's step-down procedure, assuming arbitrary dependence between hypotheses.
+    - Hochberg's step-up procedure, assuming non-negative correlation between hypotheses.
+
+As an example, let's consider an experiment with three variants, a control and two treatments:
+
+```python
+import pandas as pd
+import tea_tasting as tt
+
+
+data = pd.concat((
+    tt.make_users_data(seed=42, orders_uplift=0.10, revenue_uplift=0.15),
+    tt.make_users_data(seed=21, orders_uplift=0.15, revenue_uplift=0.20)
+        .query("variant==1")
+        .assign(variant=2),
+))
+print(data)
+#>       user  variant  sessions  orders    revenue
+#> 0        0        1         2       1   9.582790
+#> 1        1        0         2       1   6.434079
+#> 2        2        1         2       1   8.304958
+#> 3        3        1         2       1  16.652705
+#> 4        4        0         1       1   7.136917
+#> ...    ...      ...       ...     ...        ...
+#> 3989  3989        2         4       4  34.931448
+#> 3991  3991        2         1       0   0.000000
+#> 3992  3992        2         3       3  27.964647
+#> 3994  3994        2         2       1  17.217892
+#> 3998  3998        2         3       0   0.000000
+#>
+#> [6046 rows x 5 columns]
+```
+
+Let's calculate the experiment results:
+
+```python
+experiment = tt.Experiment(
+    sessions_per_user=tt.Mean("sessions"),
+    orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+    orders_per_user=tt.Mean("orders"),
+    revenue_per_user=tt.Mean("revenue"),
+)
+
+results = experiment.analyze(data, control=0, all_variants=True)
+print(results)
+#> variants             metric control treatment rel_effect_size rel_effect_size_ci  pvalue
+#>   (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]   0.674
+#>   (0, 1) orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%]  0.0762
+#>   (0, 1)    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]   0.118
+#>   (0, 1)   revenue_per_user    5.24      5.99             14%        [2.1%, 28%]  0.0212
+#>   (0, 2)  sessions_per_user    2.00      2.02           0.98%      [-2.1%, 4.1%]   0.532
+#>   (0, 2) orders_per_session   0.266     0.295             11%        [1.2%, 22%]  0.0273
+#>   (0, 2)    orders_per_user   0.530     0.594             12%        [1.7%, 23%]  0.0213
+#>   (0, 2)   revenue_per_user    5.24      6.25             19%        [6.6%, 33%] 0.00218
+```
+
+Suppose, only the two metrics, `orders_per_user` and `revenue_per_user`, are considered as success metrics. And the two other metrics, `sessions_per_user` and orders_per_session`, are second-orders diagnostic metrics.
+
+```python
+metrics = {"orders_per_user", "revenue_per_user"}
+```
+
+With two treatment variants and two success metrics, there are four hypotheses in total. And that increases the probability of false positives (also called "false discoveries").

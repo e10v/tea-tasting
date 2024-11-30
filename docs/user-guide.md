@@ -339,13 +339,10 @@ In **tea-tasting**, it's possible to analyze experiments with more than two vari
 Example usage:
 
 ```python
-data = pd.concat(
-    (
-        tt.make_users_data(seed=42),
-        tt.make_users_data(seed=21).query("variant==1").assign(variant=2),
-    ),
-    ignore_index=True,
-)
+data = pd.concat((
+    tt.make_users_data(seed=42),
+    tt.make_users_data(seed=21).query("variant==1").assign(variant=2),
+))
 
 experiment = tt.Experiment(
     sessions_per_user=tt.Mean("sessions"),
