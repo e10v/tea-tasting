@@ -16,6 +16,7 @@
 - Confidence intervals for both absolute and percentage change.
 - Sample ratio mismatch check.
 - Power analysis.
+- Multiple hypothesis testing (family-wise error rate and false discovery rate).
 
 **tea-tasting** calculates statistics directly within data backends such as BigQuery, ClickHouse, PostgreSQL, Snowflake, Spark, and 20+ other backends supported by [Ibis](https://ibis-project.org/). This approach eliminates the need to import granular data into a Python environment, though Pandas DataFrames are also supported.
 
@@ -51,18 +52,16 @@ print(result)
 #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 ```
 
-Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/). Additionally, see the guides on [data backends](https://tea-tasting.e10v.me/data-backends/), [power analysis](https://tea-tasting.e10v.me/power-analysis/), and [custom metrics](https://tea-tasting.e10v.me/custom-metrics/).
+Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/). Additionally, see the guides on [data backends](https://tea-tasting.e10v.me/data-backends/), [power analysis](https://tea-tasting.e10v.me/power-analysis/), [multiple hypothesis testing](https://tea-tasting.e10v.me/multiple-testing/), and [custom metrics](https://tea-tasting.e10v.me/custom-metrics/).
 
 ## Roadmap
 
-- Multiple hypotheses testing:
-    - Family-wise error rate: Holm–Bonferroni method.
-    - False discovery rate: Benjamini–Hochberg procedure.
+- Support more dataframes with [Narwhals](https://github.com/narwhals-dev/narwhals).
 - A/A tests and simulations.
 - More statistical tests:
     - Asymptotic and exact tests for frequency data.
     - Mann–Whitney U test.
-- Sequential testing: always valid p-value with mSPRT.
+- Sequential testing.
 
 ## Package name
 
