@@ -29,7 +29,7 @@ jobs:
       - name: Convert coverage report
         run: pdm run coverage xml
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: ./coverage.xml
         env:
