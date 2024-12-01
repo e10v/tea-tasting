@@ -16,7 +16,7 @@ import tea_tasting.metrics.mean
 if TYPE_CHECKING:
     from typing import Any
 
-    import ibis.expr.types  # noqa: TCH004
+    import ibis.expr.types  # noqa: TC004
     import pandas as pd
 
 

@@ -15,7 +15,7 @@ import tea_tasting.utils
 if TYPE_CHECKING:
     from typing import Any, Literal
 
-    import ibis.expr.types  # noqa: TCH004
+    import ibis.expr.types  # noqa: TC004
     import numpy.typing as npt
 
 
