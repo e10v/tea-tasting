@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture
-def reset_config() -> Generator[None, Any, None]:  # noqa: PT004
+def reset_config() -> Generator[None, Any, None]:
     old_config = tea_tasting.config._global_config.copy()
 
     try:
