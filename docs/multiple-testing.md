@@ -2,14 +2,14 @@
 
 ## Multiple hypothesis testing problem
 
-[Multiple hypothesis testing problem](https://en.wikipedia.org/wiki/Multiple_comparisons_problem) arises when there are more than one success metrics or when there are more than one treatment variants in an A/B test.
+The [multiple hypothesis testing problem](https://en.wikipedia.org/wiki/Multiple_comparisons_problem) arises when there is more than one success metric or more than one treatment variant in an A/B test.
 
 **tea-tasting** provides the following methods for multiple testing correction:
 
 - [False discovery rate](https://en.wikipedia.org/wiki/False_discovery_rate) (FDR) controlling procedures:
     - Benjamini-Yekutieli procedure, assuming arbitrary dependence between hypotheses.
     - Benjamini-Hochberg procedure, assuming non-negative correlation between hypotheses.
-- [Family-wise error rate](https://en.wikipedia.org/wiki/False_discovery_rate) (FWER) controlling procedures:
+- [Family-wise error rate](https://en.wikipedia.org/wiki/Family-wise_error_rate) (FWER) controlling procedures:
     - Holm's step-down procedure, assuming arbitrary dependence between hypotheses.
     - Hochberg's step-up procedure, assuming non-negative correlation between hypotheses.
 
@@ -66,13 +66,13 @@ print(results)
 #>   (0, 2)   revenue_per_user    5.24      6.25             19%        [6.6%, 33%] 0.00218
 ```
 
-Suppose, only the two metrics, `orders_per_user` and `revenue_per_user`, are considered as success metrics. And the two other metrics, `sessions_per_user` and orders_per_session`, are second-orders diagnostic metrics.
+Suppose only the two metrics `orders_per_user` and `revenue_per_user` are considered as success metrics, while the two other metrics `sessions_per_user` and `orders_per_session` are second-orders diagnostic metrics.
 
 ```python
 metrics = {"orders_per_user", "revenue_per_user"}
 ```
 
-With two treatment variants and two success metrics, there are four hypotheses in total. And that increases the probability of false positives (also called "false discoveries"). It's recommended to adjust the p-values or the significance level alpha. Let's explore the correction methods provided by **tea-tasting**.
+With two treatment variants and two success metrics, there are four hypotheses in total, which increases the probability of false positives (also called "false discoveries"). It's recommended to adjust the p-values or the significance level alpha in this case. Let's explore the correction methods provided by **tea-tasting**.
 
 ## False discovery rate
 
@@ -88,9 +88,9 @@ print(adjusted_results_fdr)
 #>     (0, 2) revenue_per_user    5.24      6.25             19% 0.00218     0.0182
 ```
 
-The method adjusts p-values and save them as `pvalue_adj`. You can compare theses values to the desired significance level alpha to determine if the null hypotheses can be rejected.
+The method adjusts p-values and saves them as `pvalue_adj`. Compare these values to the desired significance level alpha to determine if the null hypotheses can be rejected.
 
-The method also adjusts the significance level alpha and save it as `alpha_adj`. You can compare non-adjusted p-values (`pvalue`) to the `alpha_adj` to determine if the null hypotheses can be rejected:
+The method also adjusts the significance level alpha and saves it as `alpha_adj`. Compare non-adjusted p-values (`pvalue`) to the `alpha_adj` to determine if the null hypotheses can be rejected:
 
 ```python
 print(adjusted_results_fdr.to_string(keys=(
@@ -109,7 +109,7 @@ print(adjusted_results_fdr.to_string(keys=(
 #>     (0, 2) revenue_per_user    5.24      6.25             19% 0.00218   0.00600
 ```
 
-By default, **tea-tasting** assumes arbitrary dependence between hypotheses and performs the Benjamini-Yekutieli procedure. To perform Benjamini-Hochberg procedure, assuming non-negative correlation between hypotheses, set the `arbitrary_dependence` parameter to `False`:
+By default, **tea-tasting** assumes arbitrary dependence between hypotheses and performs the Benjamini-Yekutieli procedure. To perform the Benjamini-Hochberg procedure, assuming non-negative correlation between hypotheses, set the `arbitrary_dependence` parameter to `False`:
 
 ```python
 print(tt.adjust_fdr(results, metrics, arbitrary_dependence=False))
@@ -133,11 +133,12 @@ print(tt.adjust_fwer(results, metrics))
 #>     (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00873
 ```
 
-By default, **tea-tasting** assumes arbitrary dependence between hypotheses and performs the Holm's step-down procedure with Bonferroni correction. To perform the Hochberg's step-up procedure, assuming non-negative correlation between hypotheses, set the `arbitrary_dependence` parameter to `False`. In this case you can also use a slightly more powerful Šidák correction instead of Bonferroni correction:
+By default, **tea-tasting** assumes arbitrary dependence between hypotheses and performs the Holm's step-down procedure with Bonferroni correction. To perform the Hochberg's step-up procedure, assuming non-negative correlation between hypotheses, set the `arbitrary_dependence` parameter to `False`. In this case, you can also use the slightly more powerful Šidák correction instead of the Bonferroni correction:
 
 ```python
 print(tt.adjust_fwer(
-    results, metrics,
+    results,
+    metrics,
     arbitrary_dependence=False,
     method="sidak",
 ))
@@ -146,4 +147,35 @@ print(tt.adjust_fwer(
 #>     (0, 1) revenue_per_user    5.24      5.99             14%  0.0212     0.0422
 #>     (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0422
 #>     (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00870
+```
+
+## Other inputs
+
+In the examples above, the methods `adjust_fdr` and `adjust_fwer` received results from a *single experiment* with *more than two variants*. They can also accept the results from *multiple experiments* with *two variants* in each:
+
+```python
+data1 = tt.make_users_data(seed=42, orders_uplift=0.10, revenue_uplift=0.15)
+data2 = tt.make_users_data(seed=21, orders_uplift=0.15, revenue_uplift=0.20)
+
+result1 = experiment.analyze(data1)
+result2 = experiment.analyze(data2)
+
+print(tt.adjust_fdr(
+    {"Experiment 1": result1, "Experiment 2": result2},
+    metrics,
+))
+#>   comparison           metric control treatment rel_effect_size   pvalue pvalue_adj
+#> Experiment 1  orders_per_user   0.530     0.573            8.0%    0.118      0.245
+#> Experiment 1 revenue_per_user    5.24      5.99             14%   0.0212     0.0588
+#> Experiment 2  orders_per_user   0.514     0.594             16%  0.00427     0.0178
+#> Experiment 2 revenue_per_user    5.10      6.25             22% 6.27e-04    0.00523
+```
+
+The methods `adjust_fdr` and `adjust_fwer` can also accept the result of *a single experiment with two variants*:
+
+```python
+print(tt.adjust_fwer(result2, metrics))
+#> comparison           metric control treatment rel_effect_size   pvalue pvalue_adj
+#>          -  orders_per_user   0.514     0.594             16%  0.00427    0.00427
+#>          - revenue_per_user    5.10      6.25             22% 6.27e-04    0.00125
 ```
