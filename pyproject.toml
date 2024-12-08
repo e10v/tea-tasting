@@ -70,11 +70,11 @@ src = ["src"]
 
 [tool.ruff.lint]
 select = [
-    "A", "ANN", "ARG", "B", "BLE", "C4", "C90", "COM", "D", "E", "ERA", "F",
-    "FA", "FBT", "FIX", "FLY", "FURB", "I", "ICN", "INP", "INT", "ISC", "N",
-    "NPY", "PD", "PERF", "PGH", "PIE", "PL", "PT", "Q", "RET", "RSE", "RUF",
-    "S", "SIM", "SLF", "SLOT", "T10", "T20", "TCH", "TD", "TID", "TRY", "UP",
-    "W",
+    "A", "ANN", "ARG", "B", "BLE", "C4", "C90", "COM", "D", "DOC", "E", "ERA",
+    "F", "FA", "FBT", "FIX", "FLY", "FURB", "I", "ICN", "INP", "INT", "ISC",
+    "N", "NPY", "PD", "PERF", "PGH", "PIE", "PL", "PT", "Q", "RET", "RSE",
+    "RUF", "S", "SIM", "SLF", "SLOT", "T10", "T20", "TC", "TD", "TID", "TRY",
+    "UP", "W",
 ]
 ignore = ["ANN401", "PGH003", "SLF001", "TRY003"]
 
