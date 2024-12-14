@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import ibis.expr.types
 import pandas as pd
 
 import tea_tasting.datasets
@@ -42,13 +41,6 @@ def test_make_users_data_covariates():
     ) == 1
 
 
-def test_make_users_data_ibis():
-    n_users = 100
-    data = tea_tasting.datasets.make_users_data(seed=42, n_users=n_users, to_ibis=True)
-    assert isinstance(data, ibis.expr.types.Table)
-    assert data.columns == ["user", "variant", "sessions", "orders", "revenue"]
-
-
 def test_make_sessions_data_default():
     n_users = 100
     data = tea_tasting.datasets.make_sessions_data(seed=42, n_users=n_users)
@@ -84,11 +76,3 @@ def test_make_sessions_data_covariates():
         .eq(data["orders_covariate"].gt(0))
         .astype(int).min()
     ) == 1
-
-
-def test_make_sessions_data_ibis():
-    n_users = 100
-    data = tea_tasting.datasets.make_sessions_data(
-        seed=42, n_users=n_users, to_ibis=True)
-    assert isinstance(data, ibis.expr.types.Table)
-    assert data.columns == ["user", "variant", "sessions", "orders", "revenue"]

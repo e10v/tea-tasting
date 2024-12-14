@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 import unittest.mock
 
-import ibis
 import pytest
 
 import tea_tasting.aggr
@@ -16,26 +15,21 @@ import tea_tasting.metrics.mean
 if TYPE_CHECKING:
     from typing import Any
 
-    import ibis.expr.types  # noqa: TC004
     import pandas as pd
 
 
 @pytest.fixture
-def dataframe() -> pd.DataFrame:
+def data_pandas() -> pd.DataFrame:
     return tea_tasting.datasets.make_users_data(n_users=100, covariates=True, seed=42)
 
 @pytest.fixture
-def table(dataframe: pd.DataFrame) -> ibis.expr.types.Table:
-    return ibis.memtable(dataframe)
-
-@pytest.fixture
-def data(table: ibis.expr.types.Table) -> dict[Any, tea_tasting.aggr.Aggregates]:
+def data_aggr(data_pandas: pd.DataFrame) -> dict[Any, tea_tasting.aggr.Aggregates]:
     cols = (
         "sessions", "orders", "revenue",
         "sessions_covariate", "orders_covariate", "revenue_covariate",
     )
     return tea_tasting.aggr.read_aggregates(
-        table,
+        data_pandas,
         group_col="variant",
         has_count=True,
         mean_cols=cols,
@@ -49,24 +43,20 @@ def data(table: ibis.expr.types.Table) -> dict[Any, tea_tasting.aggr.Aggregates]
     )
 
 @pytest.fixture
-def power_table() -> ibis.expr.types.Table:
+def power_data_pandas() -> pd.DataFrame:
     return tea_tasting.datasets.make_users_data(
-        n_users=100, covariates=True, seed=42, to_ibis=True,
+        n_users=100, covariates=True, seed=42,
         sessions_uplift=0, orders_uplift=0, revenue_uplift=0,
     )
 
 @pytest.fixture
-def power_dataframe(power_table: ibis.expr.types.Table) -> pd.DataFrame:
-    return power_table.to_pandas()
-
-@pytest.fixture
-def power_data(power_table: ibis.expr.types.Table) -> tea_tasting.aggr.Aggregates:
+def power_data_aggr(power_data_pandas: pd.DataFrame) -> tea_tasting.aggr.Aggregates:
     cols = (
         "sessions", "orders", "revenue",
         "sessions_covariate", "orders_covariate", "revenue_covariate",
     )
     return tea_tasting.aggr.read_aggregates(
-        power_table,
+        power_data_pandas,
         group_col=None,
         has_count=True,
         mean_cols=cols,
@@ -167,25 +157,19 @@ def test_ratio_of_means_aggr_cols():
     assert set(aggr_cols.cov_cols) == {("a", "b"), ("a", "c"), ("b", "c")}
 
 
-def test_ratio_of_means_analyze_table(table: ibis.expr.types.Table):
-    metric = tea_tasting.metrics.mean.RatioOfMeans(
-        numer="orders",
-        numer_covariate="orders_covariate",
-    )
-    result = metric.analyze(table, 0, 1, variant="variant")
-    assert isinstance(result, tea_tasting.metrics.mean.MeanResult)
-
-def test_ratio_of_means_analyze_df(dataframe: pd.DataFrame):
+def test_ratio_of_means_analyze_frame(data_pandas: pd.DataFrame):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
         denom="sessions",
     )
-    result = metric.analyze(dataframe, 0, 1, variant="variant")
+    result = metric.analyze(data_pandas, 0, 1, variant="variant")
     assert isinstance(result, tea_tasting.metrics.mean.MeanResult)
 
-def test_ratio_of_means_analyze_basic(data: dict[str, tea_tasting.aggr.Aggregates]):
+def test_ratio_of_means_analyze_basic(
+    data_aggr: dict[str, tea_tasting.aggr.Aggregates],
+):
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders")
-    result = metric.analyze(data, 0, 1)
+    result = metric.analyze(data_aggr, 0, 1)
     assert isinstance(result, tea_tasting.metrics.mean.MeanResult)
     assert result.control == pytest.approx(0.5660377358490566)
     assert result.treatment == pytest.approx(0.3829787234042553)
@@ -199,7 +183,7 @@ def test_ratio_of_means_analyze_basic(data: dict[str, tea_tasting.aggr.Aggregate
     assert result.statistic == pytest.approx(-1.1447678040118034)
 
 def test_ratio_of_means_analyze_ratio_greater_equal_var(
-    data: dict[str, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[str, tea_tasting.aggr.Aggregates],
 ):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
@@ -207,7 +191,7 @@ def test_ratio_of_means_analyze_ratio_greater_equal_var(
         alternative="greater",
         equal_var=True,
     )
-    result = metric.analyze(data, 0, 1)
+    result = metric.analyze(data_aggr, 0, 1)
     assert isinstance(result, tea_tasting.metrics.mean.MeanResult)
     assert result.control == pytest.approx(0.2857142857142857)
     assert result.treatment == pytest.approx(0.20224719101123595)
@@ -221,7 +205,7 @@ def test_ratio_of_means_analyze_ratio_greater_equal_var(
     assert result.statistic == pytest.approx(-1.0794048813446926)
 
 def test_ratio_of_means_analyze_ratio_less_use_norm(
-    data: dict[str, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[str, tea_tasting.aggr.Aggregates],
 ):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
@@ -231,7 +215,7 @@ def test_ratio_of_means_analyze_ratio_less_use_norm(
         alternative="less",
         use_t=False,
     )
-    result = metric.analyze(data, 0, 1)
+    result = metric.analyze(data_aggr, 0, 1)
     assert isinstance(result, tea_tasting.metrics.mean.MeanResult)
     assert result.control == pytest.approx(0.25572348175909004)
     assert result.treatment == pytest.approx(0.23549786496156158)
@@ -245,27 +229,13 @@ def test_ratio_of_means_analyze_ratio_less_use_norm(
     assert result.statistic == pytest.approx(-0.3573188986307722)
 
 
-def test_ratio_of_means_solve_power_table(power_table: ibis.expr.types.Table):
-    metric = tea_tasting.metrics.mean.RatioOfMeans(
-        numer="orders",
-        numer_covariate="orders_covariate",
-        rel_effect_size=0.1,
-    )
-    results = metric.solve_power(power_table, "power")
-    assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
-    assert len(results) == 1
-    result = results[0]
-    assert result.power > 0
-    assert result.power < 1
-    assert result.rel_effect_size == 0.1
-
-def test_ratio_of_means_solve_power_df(power_dataframe: pd.DataFrame):
+def test_ratio_of_means_solve_power_frame(power_data_pandas: pd.DataFrame):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
         denom="sessions",
         rel_effect_size=0.1,
     )
-    results = metric.solve_power(power_dataframe, "power")
+    results = metric.solve_power(power_data_pandas, "power")
     assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
     assert len(results) == 1
     result = results[0]
@@ -273,31 +243,31 @@ def test_ratio_of_means_solve_power_df(power_dataframe: pd.DataFrame):
     assert result.power < 1
     assert result.rel_effect_size == 0.1
 
-def test_ratio_of_means_solve_power_power(power_data: tea_tasting.aggr.Aggregates):
+def test_ratio_of_means_solve_power_power(power_data_aggr: tea_tasting.aggr.Aggregates):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
         alternative="greater",
         rel_effect_size=0.1,
         n_obs=10_000,
     )
-    results = metric.solve_power(power_data, "power")
+    results = metric.solve_power(power_data_aggr, "power")
     assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
     assert len(results) == 1
     result = results[0]
     assert result.power == pytest.approx(0.895653144822902)
-    assert result.effect_size == pytest.approx(0.1 * power_data.mean("orders"))
+    assert result.effect_size == pytest.approx(0.1 * power_data_aggr.mean("orders"))
     assert result.rel_effect_size == 0.1
     assert result.n_obs == 10_000
 
 def test_ratio_of_means_solve_power_effect_size(
-    power_data: tea_tasting.aggr.Aggregates,
+    power_data_aggr: tea_tasting.aggr.Aggregates,
 ):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
         alternative="less",
         n_obs=10_000,
     )
-    results = metric.solve_power(power_data, "effect_size")
+    results = metric.solve_power(power_data_aggr, "effect_size")
     assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
     assert len(results) == 1
     result = results[0]
@@ -307,10 +277,10 @@ def test_ratio_of_means_solve_power_effect_size(
     assert result.n_obs == 10_000
 
 def test_ratio_of_means_solve_power_rel_effect_size(
-    power_data: tea_tasting.aggr.Aggregates,
+    power_data_aggr: tea_tasting.aggr.Aggregates,
 ):
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders", n_obs=10_000)
-    results = metric.solve_power(power_data, "rel_effect_size")
+    results = metric.solve_power(power_data_aggr, "rel_effect_size")
     assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
     assert len(results) == 1
     result = results[0]
@@ -319,33 +289,34 @@ def test_ratio_of_means_solve_power_rel_effect_size(
     assert result.rel_effect_size == pytest.approx(0.09654179522252104)
     assert result.n_obs == 10_000
 
-def test_ratio_of_means_solve_power_n_obs(power_data: tea_tasting.aggr.Aggregates):
+def test_ratio_of_means_solve_power_n_obs(power_data_aggr: tea_tasting.aggr.Aggregates):
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders", effect_size=0.05)
-    results = metric.solve_power(power_data, "n_obs")
+    results = metric.solve_power(power_data_aggr, "n_obs")
     assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
     assert len(results) == 1
     result = results[0]
     assert result.power == 0.8
     assert result.effect_size == 0.05
-    assert result.rel_effect_size == pytest.approx(0.05 / power_data.mean("orders"))
+    assert result.rel_effect_size == pytest.approx(
+        0.05 / power_data_aggr.mean("orders"))
     assert result.n_obs == 8236
 
-def test_ratio_of_means_solve_power_multi(power_data: tea_tasting.aggr.Aggregates):
+def test_ratio_of_means_solve_power_multi(power_data_aggr: tea_tasting.aggr.Aggregates):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
         rel_effect_size=(0.05, 0.1),
         n_obs=(5_000, 10_000),
     )
-    results = metric.solve_power(power_data, "power")
+    results = metric.solve_power(power_data_aggr, "power")
     assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
     assert len(results) == 4
 
 def test_ratio_of_means_solve_power_raises_effect_size(
-    power_data: tea_tasting.aggr.Aggregates,
+    power_data_aggr: tea_tasting.aggr.Aggregates,
 ):
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders")
     with pytest.raises(ValueError, match="One of them should be defined"):
-        metric.solve_power(power_data, "power")
+        metric.solve_power(power_data_aggr, "power")
     with pytest.raises(ValueError, match="Only one of them should be defined"):
         tea_tasting.metrics.mean.RatioOfMeans(
             numer="orders",
@@ -354,17 +325,17 @@ def test_ratio_of_means_solve_power_raises_effect_size(
         )
 
 def test_ratio_of_means_solve_power_raises_max_iter(
-    power_data: tea_tasting.aggr.Aggregates,
+    power_data_aggr: tea_tasting.aggr.Aggregates,
 ):
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders", rel_effect_size=0.01)
     with (
         unittest.mock.patch("tea_tasting.metrics.mean.MAX_ITER", 1),
         pytest.raises(RuntimeError, match="Maximum number of iterations"),
     ):
-        metric.solve_power(power_data, "n_obs")
+        metric.solve_power(power_data_aggr, "n_obs")
 
 
-def test_mean_analyze(data: dict[str, tea_tasting.aggr.Aggregates]):
+def test_mean_analyze(data_aggr: dict[str, tea_tasting.aggr.Aggregates]):
     metric = tea_tasting.metrics.mean.Mean(
         "orders",
         covariate="orders_covariate",
@@ -381,10 +352,10 @@ def test_mean_analyze(data: dict[str, tea_tasting.aggr.Aggregates]):
         equal_var=True,
         use_t=False,
     )
-    assert metric.analyze(data, 0, 1) == ratio_metric.analyze(data, 0, 1)
+    assert metric.analyze(data_aggr, 0, 1) == ratio_metric.analyze(data_aggr, 0, 1)
 
 
-def test_mean_solve_power(power_data: tea_tasting.aggr.Aggregates):
+def test_mean_solve_power(power_data_aggr: tea_tasting.aggr.Aggregates):
     metric = tea_tasting.metrics.mean.Mean(
         "orders",
         covariate="orders_covariate",
@@ -403,5 +374,5 @@ def test_mean_solve_power(power_data: tea_tasting.aggr.Aggregates):
         use_t=False,
         rel_effect_size=0.1,
     )
-    assert metric.solve_power(power_data, "power") ==  ratio_metric.solve_power(
-        power_data, "power")
+    assert metric.solve_power(power_data_aggr, "power") ==  ratio_metric.solve_power(
+        power_data_aggr, "power")

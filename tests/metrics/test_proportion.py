@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, NamedTuple
 import unittest.mock
 
-import ibis
 import pytest
 
 import tea_tasting.aggr
@@ -15,22 +14,17 @@ import tea_tasting.metrics.proportion
 if TYPE_CHECKING:
     from typing import Any
 
-    import ibis.expr.types  # noqa: TC004
     import pandas as pd
 
 
 @pytest.fixture
-def dataframe() -> pd.DataFrame:
+def data_pandas() -> pd.DataFrame:
     return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
 
 @pytest.fixture
-def table(dataframe: pd.DataFrame) -> ibis.expr.types.Table:
-    return ibis.memtable(dataframe)
-
-@pytest.fixture
-def data(table: ibis.expr.types.Table) -> dict[Any, tea_tasting.aggr.Aggregates]:
+def data_aggr(data_pandas: pd.DataFrame) -> dict[Any, tea_tasting.aggr.Aggregates]:
     return tea_tasting.aggr.read_aggregates(
-        table,
+        data_pandas,
         group_col="variant",
         has_count=True,
         mean_cols=(),
@@ -61,14 +55,9 @@ def test_sample_ratio_aggr_cols():
     assert metric.aggr_cols == tea_tasting.metrics.base.AggrCols(has_count=True)
 
 
-def test_sample_ratio_analyze_table(table: ibis.expr.types.Table):
+def test_sample_ratio_analyze_frame(data_pandas: pd.DataFrame):
     metric = tea_tasting.metrics.proportion.SampleRatio()
-    result = metric.analyze(table, 0, 1, variant="variant")
-    assert isinstance(result, tea_tasting.metrics.proportion.SampleRatioResult)
-
-def test_sample_ratio_analyze_df(dataframe: pd.DataFrame):
-    metric = tea_tasting.metrics.proportion.SampleRatio()
-    result = metric.analyze(dataframe, 0, 1, variant="variant")
+    result = metric.analyze(data_pandas, 0, 1, variant="variant")
     assert isinstance(result, tea_tasting.metrics.proportion.SampleRatioResult)
 
 def test_sample_ratio_analyze_auto():
@@ -90,30 +79,34 @@ def test_sample_ratio_analyze_auto():
         metric.analyze(data, 0, 1, variant="variant")
         mock.assert_called_once()
 
-def test_sample_ratio_analyze_binom(data: dict[str, tea_tasting.aggr.Aggregates]):
+def test_sample_ratio_analyze_binom(data_aggr: dict[str, tea_tasting.aggr.Aggregates]):
     metric = tea_tasting.metrics.proportion.SampleRatio(method="binom")
-    result = metric.analyze(data, 0, 1, variant="variant")
+    result = metric.analyze(data_aggr, 0, 1, variant="variant")
     assert result.control == 53
     assert result.treatment == 47
     assert result.pvalue == pytest.approx(0.6172994135892521)
 
-def test_sample_ratio_analyze_norm_corr(data: dict[str, tea_tasting.aggr.Aggregates]):
+def test_sample_ratio_analyze_norm_corr(
+    data_aggr: dict[str, tea_tasting.aggr.Aggregates],
+):
     metric = tea_tasting.metrics.proportion.SampleRatio(method="norm", correction=True)
-    result = metric.analyze(data, 0, 1, variant="variant")
+    result = metric.analyze(data_aggr, 0, 1, variant="variant")
     assert result.control == 53
     assert result.treatment == 47
     assert result.pvalue == pytest.approx(0.6170750774519738)
 
 def test_sample_ratio_analyze_norm_no_corr(
-    data: dict[str, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[str, tea_tasting.aggr.Aggregates],
 ):
     metric = tea_tasting.metrics.proportion.SampleRatio(method="norm", correction=False)
-    result = metric.analyze(data, 0, 1, variant="variant")
+    result = metric.analyze(data_aggr, 0, 1, variant="variant")
     assert result.control == 53
     assert result.treatment == 47
     assert result.pvalue == pytest.approx(0.5485062355001472)
 
-def test_sample_ratio_analyze_aggregates(data: dict[Any, tea_tasting.aggr.Aggregates]):
+def test_sample_ratio_analyze_aggregates(
+    data_aggr: dict[Any, tea_tasting.aggr.Aggregates],
+):
     metric = tea_tasting.metrics.proportion.SampleRatio()
     with pytest.raises(NotImplementedError):
-        metric.analyze_aggregates(data[0], data[1])
+        metric.analyze_aggregates(data_aggr[0], data_aggr[1])
