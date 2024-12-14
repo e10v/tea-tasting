@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import ibis
+import polars as pl
 import pytest
 
 import tea_tasting.aggr
@@ -9,7 +11,11 @@ import tea_tasting.datasets
 
 
 if TYPE_CHECKING:
-    import ibis.expr.types
+    import ibis.expr.types  # noqa: TC004
+    import pandas as pd
+
+
+    Frame = ibis.expr.types.Table | pd.DataFrame | pl.LazyFrame
 
 
 COUNT = 100
@@ -28,8 +34,53 @@ def aggr() -> tea_tasting.aggr.Aggregates:
 
 
 @pytest.fixture
-def data() -> ibis.expr.types.Table:
-    return tea_tasting.datasets.make_users_data(n_users=100, seed=42, to_ibis=True)
+def data_pandas() -> pd.DataFrame:
+    return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
+
+@pytest.fixture
+def data_polars(data_pandas: pd.DataFrame) -> pl.LazyFrame:
+    return pl.from_pandas(data_pandas).lazy()
+
+@pytest.fixture
+def data_duckdb(data_pandas: pd.DataFrame) -> ibis.expr.types.Table:
+    return ibis.connect("duckdb://").create_table("data", data_pandas)
+
+@pytest.fixture
+def data_sqlite(data_pandas: pd.DataFrame) -> ibis.expr.types.Table:
+    return ibis.connect("sqlite://").create_table("data", data_pandas)
+
+@pytest.fixture(params=["data_pandas", "data_polars", "data_duckdb", "data_sqlite"])
+def data(request: pytest.FixtureRequest) -> Frame:
+    return request.getfixturevalue(request.param)
+
+
+@pytest.fixture
+def correct_aggr(data_pandas: pd.DataFrame) -> tea_tasting.aggr.Aggregates:
+    return tea_tasting.aggr.Aggregates(
+        count_=len(data_pandas),
+        mean_={
+            "sessions": data_pandas["sessions"].mean(),
+            "orders": data_pandas["orders"].mean(),
+        },  # type: ignore
+        var_={
+            "sessions": data_pandas["sessions"].var(),
+            "orders": data_pandas["orders"].var(),
+        },  # type: ignore
+        cov_={
+            ("orders", "sessions"): data_pandas["sessions"].cov(data_pandas["orders"])},  # type: ignore
+    )
+
+@pytest.fixture
+def correct_aggrs(data_pandas: pd.DataFrame) -> dict[int, tea_tasting.aggr.Aggregates]:
+    return {
+        v: tea_tasting.aggr.Aggregates(
+            count_=len(d),
+            mean_={"sessions": d["sessions"].mean(), "orders": d["orders"].mean()},  # type: ignore
+            var_={"sessions": d["sessions"].var(), "orders": d["orders"].var()},  # type: ignore
+            cov_={("orders", "sessions"): d["sessions"].cov(d["orders"])},  # type: ignore
+        )
+        for v, d in data_pandas.groupby("variant")
+    }
 
 
 def test_aggregates_init(aggr: tea_tasting.aggr.Aggregates):
@@ -69,13 +120,19 @@ def test_aggregates_ratio_cov():
     )
     assert aggr.ratio_cov("a", "b", "c", "d") == pytest.approx(-0.0146938775510204)
 
-def test_aggregates_add(data: ibis.expr.types.Table):
-    d = data.to_pandas()
+def test_aggregates_add(data_pandas: pd.DataFrame):
     aggr = tea_tasting.aggr.Aggregates(
-        count_=len(d),
-        mean_={"sessions": d["sessions"].mean(), "orders": d["orders"].mean()},  # type: ignore
-        var_={"sessions": d["sessions"].var(), "orders": d["orders"].var()},  # type: ignore
-        cov_={("sessions", "orders"): d["sessions"].cov(d["orders"])},  # type: ignore
+        count_=len(data_pandas),
+        mean_={
+            "sessions": data_pandas["sessions"].mean(),
+            "orders": data_pandas["orders"].mean(),
+        },  # type: ignore
+        var_={
+            "sessions": data_pandas["sessions"].var(),
+            "orders": data_pandas["orders"].var(),
+        },  # type: ignore
+        cov_={
+            ("sessions", "orders"): data_pandas["sessions"].cov(data_pandas["orders"])},  # type: ignore
     )
     aggrs = tuple(
         tea_tasting.aggr.Aggregates(
@@ -84,7 +141,7 @@ def test_aggregates_add(data: ibis.expr.types.Table):
             var_={"sessions": d["sessions"].var(), "orders": d["orders"].var()},  # type: ignore
             cov_={("sessions", "orders"): d["sessions"].cov(d["orders"])},  # type: ignore
         )
-        for _, d in d.groupby("variant")
+        for _, d in data_pandas.groupby("variant")
     )
     aggrs_add = aggrs[0] + aggrs[1]
     assert aggrs_add.count_ == pytest.approx(aggr.count_)
@@ -93,16 +150,10 @@ def test_aggregates_add(data: ibis.expr.types.Table):
     assert aggrs_add.cov_ == pytest.approx(aggr.cov_)
 
 
-def test_read_aggregates_groups(data: ibis.expr.types.Table):
-    correct_aggrs = {
-        v: tea_tasting.aggr.Aggregates(
-            count_=len(d),
-            mean_={"sessions": d["sessions"].mean(), "orders": d["orders"].mean()},  # type: ignore
-            var_={"sessions": d["sessions"].var(), "orders": d["orders"].var()},  # type: ignore
-            cov_={("orders", "sessions"): d["sessions"].cov(d["orders"])},  # type: ignore
-        )
-        for v, d in data.to_pandas().groupby("variant")
-    }
+def test_read_aggregates_groups(
+    data: Frame,
+    correct_aggrs: dict[int, tea_tasting.aggr.Aggregates],
+):
     aggrs = tea_tasting.aggr.read_aggregates(
         data,
         group_col="variant",
@@ -117,14 +168,10 @@ def test_read_aggregates_groups(data: ibis.expr.types.Table):
         assert aggrs[i].var_ == pytest.approx(correct_aggrs[i].var_)
         assert aggrs[i].cov_ == pytest.approx(correct_aggrs[i].cov_)
 
-def test_read_aggregates_no_groups(data: ibis.expr.types.Table):
-    d = data.to_pandas()
-    correct_aggr = tea_tasting.aggr.Aggregates(
-        count_=len(d),
-        mean_={"sessions": d["sessions"].mean(), "orders": d["orders"].mean()},  # type: ignore
-        var_={"sessions": d["sessions"].var(), "orders": d["orders"].var()},  # type: ignore
-        cov_={("orders", "sessions"): d["sessions"].cov(d["orders"])},  # type: ignore
-    )
+def test_read_aggregates_no_groups(
+    data: Frame,
+    correct_aggr: tea_tasting.aggr.Aggregates,
+):
     aggr = tea_tasting.aggr.read_aggregates(
         data,
         group_col=None,
@@ -138,33 +185,9 @@ def test_read_aggregates_no_groups(data: ibis.expr.types.Table):
     assert aggr.var_ == pytest.approx(correct_aggr.var_)
     assert aggr.cov_ == pytest.approx(correct_aggr.cov_)
 
-def test_read_aggregates_pandas(data: ibis.expr.types.Table):
-    correct_aggrs = {
-        v: tea_tasting.aggr.Aggregates(
-            count_=len(d),
-            mean_={"sessions": d["sessions"].mean(), "orders": d["orders"].mean()},  # type: ignore
-            var_={"sessions": d["sessions"].var(), "orders": d["orders"].var()},  # type: ignore
-            cov_={("orders", "sessions"): d["sessions"].cov(d["orders"])},  # type: ignore
-        )
-        for v, d in data.to_pandas().groupby("variant")
-    }
-    aggrs = tea_tasting.aggr.read_aggregates(
-        data.to_pandas(),
-        group_col="variant",
-        has_count=True,
-        mean_cols=("sessions", "orders"),
-        var_cols=("sessions", "orders"),
-        cov_cols=(("sessions", "orders"),),
-    )
-    for i in (0, 1):
-        assert aggrs[i].count_ == pytest.approx(correct_aggrs[i].count_)
-        assert aggrs[i].mean_ == pytest.approx(correct_aggrs[i].mean_)
-        assert aggrs[i].var_ == pytest.approx(correct_aggrs[i].var_)
-        assert aggrs[i].cov_ == pytest.approx(correct_aggrs[i].cov_)
-
-def test_read_aggregates_no_count(data: ibis.expr.types.Table):
+def test_read_aggregates_no_count(data_pandas: pd.DataFrame):
     aggr = tea_tasting.aggr.read_aggregates(
-        data,
+        data_pandas,
         group_col=None,
         has_count=False,
         mean_cols=("sessions", "orders"),
