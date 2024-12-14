@@ -58,9 +58,8 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
         """Return aggregates that do not raise an error on division by zero.
 
         Division by zero returns:
-            - `nan` if numerator is equal to `0`,
             - `inf` if numerator is greater than `0`,
-            - `-inf` if numerator is less than `0`.
+            - `nan` if numerator is equal to or less than `0`.
         """
         return Aggregates(
             count_=None if self.count_ is None else tea_tasting.utils.Int(self.count_),

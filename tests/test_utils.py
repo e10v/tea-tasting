@@ -246,9 +246,9 @@ def test_repr_mixin_repr_pos():
 def test_div():
     assert tea_tasting.utils.div(1, 2) == 0.5
     assert tea_tasting.utils.div(1, 0, 3) == 3
-    assert math.isnan(tea_tasting.utils.div(0, 0))
     assert tea_tasting.utils.div(1, 0) == float("inf")
-    assert tea_tasting.utils.div(-1, 0) == float("-inf")
+    assert math.isnan(tea_tasting.utils.div(0, 0))
+    assert math.isnan(tea_tasting.utils.div(-1, 0))
 
 
 def test_float():
@@ -263,8 +263,8 @@ def test_float():
     assert math.isnan(0 / typ(0))
     assert typ(1) / 0 == float("inf")
     assert 1 / typ(0) == float("inf")
-    assert typ(-1) / 0 == float("-inf")
-    assert -1 / typ(0) == float("-inf")
+    assert math.isnan(typ(-1) / 0)
+    assert math.isnan(-1 / typ(0))
     assert typ(5) // 2 == typ(2)
     assert 5 // typ(2) == typ(2)
     assert typ(5) % 2 == typ(1)
@@ -296,8 +296,8 @@ def test_int():
     assert math.isnan(0 / typ(0))
     assert typ(1) / 0 == float("inf")
     assert 1 / typ(0) == float("inf")
-    assert typ(-1) / 0 == float("-inf")
-    assert -1 / typ(0) == float("-inf")
+    assert math.isnan(typ(-1) / 0)
+    assert math.isnan(-1 / typ(0))
     assert typ(5) // 2 == typ(2)
     assert 5 // typ(2) == typ(2)
     assert typ(5) % 2 == typ(1)
