@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections import UserDict
 from typing import TYPE_CHECKING, Any, overload
 
+import ibis.expr.types
+import narwhals as nw
 import pandas as pd
 
 import tea_tasting.aggr
@@ -16,7 +18,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
     from typing import Literal
 
-    import ibis.expr.types
+    import narwhals.typing  # noqa: TC004
 
 
 class ExperimentResult(
@@ -458,7 +460,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     @overload
     def analyze(
         self,
-        data: pd.DataFrame | ibis.expr.types.Table,
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
         control: Any = None,
         *,
         all_variants: Literal[False] = False,
@@ -468,7 +470,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     @overload
     def analyze(
         self,
-        data: pd.DataFrame | ibis.expr.types.Table,
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
         control: Any = None,
         *,
         all_variants: Literal[True] = True,
@@ -477,7 +479,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
     def analyze(
         self,
-        data: pd.DataFrame | ibis.expr.types.Table,
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
         control: Any = None,
         *,
         all_variants: bool = False,
@@ -545,7 +547,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     def _analyze_metric(
         self,
         metric: tea_tasting.metrics.MetricBase[Any],
-        data: pd.DataFrame | ibis.expr.types.Table,
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
         aggregated_data: dict[Any, tea_tasting.aggr.Aggregates] | None,
         granular_data: dict[Any, pd.DataFrame] | None,
         control: Any,
@@ -566,7 +568,10 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         return metric.analyze(data, control, treatment, self.variant)
 
 
-    def _read_data(self, data: pd.DataFrame | ibis.expr.types.Table) -> tuple[
+    def _read_data(
+        self,
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
+    ) -> tuple[
         dict[Any, tea_tasting.aggr.Aggregates] | None,
         dict[Any, pd.DataFrame] | None,
     ]:
@@ -595,22 +600,28 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
     def _read_variants(
         self,
-        data: pd.DataFrame | ibis.expr.types.Table,
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
     ) -> pd.Series[Any]:  # type: ignore
         if isinstance(data, pd.DataFrame):
             return data.loc[:, self.variant].drop_duplicates()  # type: ignore
 
-        return (
-            data.select(self.variant)
-            .distinct()
-            .to_pandas()
-            .loc[:, self.variant]
-        )
+        if isinstance(data, ibis.expr.types.Table):
+            return (
+                data.select(self.variant)
+                .distinct()
+                .to_pandas()
+                .loc[:, self.variant]
+            )
+
+        data = nw.from_native(data)
+        if not isinstance(data, nw.LazyFrame):
+            data = data.lazy()
+        return data.unique(self.variant).collect().to_pandas().loc[:, self.variant]
 
 
     def solve_power(
         self,
-        data: pd.DataFrame | ibis.expr.types.Table,
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
         parameter: Literal[
             "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> ExperimentPowerResult:
