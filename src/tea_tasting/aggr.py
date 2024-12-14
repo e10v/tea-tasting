@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import itertools
 from typing import TYPE_CHECKING, overload
+import warnings
 
 import ibis.expr.operations
 import ibis.expr.types
@@ -434,10 +435,12 @@ def _read_aggr_narwhals(
     }
     all_expr = count_expr | mean_expr | var_expr | cov_expr
 
-    aggr_data = (
-        data.select(**all_expr) if group_col is None
-        else data.group_by(group_col).agg(**all_expr)
-    )
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning)
+        aggr_data = (
+            data.select(**all_expr) if group_col is None
+            else data.group_by(group_col).agg(**all_expr)
+        )
     return aggr_data.collect().to_pandas()
 
 
