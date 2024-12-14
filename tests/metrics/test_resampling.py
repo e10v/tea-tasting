@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import ibis
 import numpy as np
 import pytest
 
@@ -16,23 +15,18 @@ import tea_tasting.metrics.resampling
 if TYPE_CHECKING:
     from typing import Any
 
-    import ibis.expr.types  # noqa: TC004
     import numpy.typing as npt
     import pandas as pd
 
 
 @pytest.fixture
-def dataframe() -> pd.DataFrame:
+def data_pandas() -> pd.DataFrame:
     return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
 
 @pytest.fixture
-def table(dataframe: pd.DataFrame) -> ibis.expr.types.Table:
-    return ibis.memtable(dataframe)
-
-@pytest.fixture
-def data(dataframe: pd.DataFrame) -> dict[Any, pd.DataFrame]:
+def data_gran(data_pandas: pd.DataFrame) -> dict[Any, pd.DataFrame]:
     return tea_tasting.metrics.base.read_dataframes(
-        dataframe,
+        data_pandas,
         ("sessions", "orders", "revenue"),
         variant="variant",
     )
@@ -78,25 +72,20 @@ def test_bootstrap_cols():
     assert metric.cols == ("a", "b")
 
 
-def test_bootstrap_analyze_table(table: ibis.expr.types.Table):
-    metric = tea_tasting.metrics.resampling.Bootstrap("orders", np.mean)
-    result = metric.analyze(table, 0, 1, variant="variant")
-    assert isinstance(result, tea_tasting.metrics.resampling.BootstrapResult)
-
-def test_bootstrap_analyze_df(dataframe: ibis.expr.types.Table):
+def test_bootstrap_analyze_frame(data_pandas: pd.DataFrame):
     metric = tea_tasting.metrics.resampling.Bootstrap("sessions", np.mean)
-    result = metric.analyze(dataframe, 0, 1, variant="variant")
+    result = metric.analyze(data_pandas, 0, 1, variant="variant")
     assert isinstance(result, tea_tasting.metrics.resampling.BootstrapResult)
 
 
-def test_bootstrap_analyze_default(data: dict[Any, pd.DataFrame]):
+def test_bootstrap_analyze_default(data_gran: dict[Any, pd.DataFrame]):
     metric = tea_tasting.metrics.resampling.Bootstrap(
         "revenue",
         np.mean,
         n_resamples=100,
         random_state=42,
     )
-    result = metric.analyze(data, 0, 1)
+    result = metric.analyze(data_gran, 0, 1)
     assert isinstance(result, tea_tasting.metrics.resampling.BootstrapResult)
     assert result.control == pytest.approx(5.029606016096378)
     assert result.treatment == pytest.approx(5.430045947447926)
@@ -107,7 +96,7 @@ def test_bootstrap_analyze_default(data: dict[Any, pd.DataFrame]):
     assert result.rel_effect_size_ci_lower == pytest.approx(-0.5658060166766641)
     assert result.rel_effect_size_ci_upper == pytest.approx(1.8185107973505807)
 
-def test_bootstrap_analyze_multiple_columns(data: dict[Any, pd.DataFrame]):
+def test_bootstrap_analyze_multiple_columns(data_gran: dict[Any, pd.DataFrame]):
     def ratio_of_means(
         sample: npt.NDArray[np.number[Any]],
         axis: int,
@@ -121,7 +110,7 @@ def test_bootstrap_analyze_multiple_columns(data: dict[Any, pd.DataFrame]):
         n_resamples=100,
         random_state=42,
     )
-    result = metric.analyze(data, 0, 1)
+    result = metric.analyze(data_gran, 0, 1)
     assert isinstance(result, tea_tasting.metrics.resampling.BootstrapResult)
     assert result.control == pytest.approx(0.2857142857142857)
     assert result.treatment == pytest.approx(0.20224719101123595)
@@ -132,7 +121,7 @@ def test_bootstrap_analyze_multiple_columns(data: dict[Any, pd.DataFrame]):
     assert result.rel_effect_size_ci_lower == pytest.approx(-0.6424902672606227)
     assert result.rel_effect_size_ci_upper == pytest.approx(0.4374404130492657)
 
-def test_bootstrap_analyze_division_by_zero(data: dict[Any, pd.DataFrame]):
+def test_bootstrap_analyze_division_by_zero(data_gran: dict[Any, pd.DataFrame]):
     metric = tea_tasting.metrics.resampling.Bootstrap(
         "orders",
         np.median,
@@ -140,7 +129,7 @@ def test_bootstrap_analyze_division_by_zero(data: dict[Any, pd.DataFrame]):
         random_state=42,
         method="basic",
     )
-    result = metric.analyze(data, 0, 1)
+    result = metric.analyze(data_gran, 0, 1)
     assert isinstance(result, tea_tasting.metrics.resampling.BootstrapResult)
     assert result.control == 0
     assert result.treatment == 0
@@ -151,7 +140,7 @@ def test_bootstrap_analyze_division_by_zero(data: dict[Any, pd.DataFrame]):
     assert np.isnan(result.rel_effect_size_ci_lower)
     assert np.isnan(result.rel_effect_size_ci_upper)
 
-def test_quantile(data: dict[Any, pd.DataFrame]):
+def test_quantile(data_gran: dict[Any, pd.DataFrame]):
     metric = tea_tasting.metrics.resampling.Quantile(
         "revenue",
         q=0.8,
@@ -162,7 +151,7 @@ def test_quantile(data: dict[Any, pd.DataFrame]):
     )
     assert metric.column == "revenue"
     assert metric.q == 0.8
-    result = metric.analyze(data, 0, 1)
+    result = metric.analyze(data_gran, 0, 1)
     assert isinstance(result, tea_tasting.metrics.resampling.BootstrapResult)
     assert result.control == pytest.approx(11.97241622964322)
     assert result.treatment == pytest.approx(6.283899054876212)
