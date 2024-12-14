@@ -5,8 +5,9 @@ from __future__ import annotations
 import itertools
 from typing import TYPE_CHECKING, overload
 
+import ibis.expr.operations
 import ibis.expr.types
-import pandas as pd
+import narwhals as nw
 
 import tea_tasting.utils
 
@@ -14,6 +15,9 @@ import tea_tasting.utils
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from typing import Any
+
+    import narwhals.typing  # noqa: TC004
+    import pandas as pd
 
 
 _COUNT = "_count"
@@ -231,7 +235,7 @@ def _add_cov(left: Aggregates, right: Aggregates, cols: tuple[str, str]) -> floa
 
 @overload
 def read_aggregates(
-    data: ibis.expr.types.Table | pd.DataFrame,
+    data: ibis.expr.types.Table | narwhals.typing.IntoFrame,
     group_col: str,
     *,
     has_count: bool,
@@ -243,7 +247,7 @@ def read_aggregates(
 
 @overload
 def read_aggregates(
-    data: ibis.expr.types.Table | pd.DataFrame,
+    data: ibis.expr.types.Table | narwhals.typing.IntoFrame,
     group_col: None,
     *,
     has_count: bool,
@@ -254,7 +258,7 @@ def read_aggregates(
     ...
 
 def read_aggregates(
-    data: ibis.expr.types.Table | pd.DataFrame,
+    data: ibis.expr.types.Table | narwhals.typing.IntoFrame,
     group_col: str | None,
     *,
     has_count: bool,
@@ -276,42 +280,26 @@ def read_aggregates(
     Returns:
         Aggregated statistics.
     """
-    if isinstance(data, pd.DataFrame):
-        data = ibis.memtable(data)
-
     mean_cols, var_cols, cov_cols = _validate_aggr_cols(mean_cols, var_cols, cov_cols)
 
-    demean_cols = tuple({*var_cols, *itertools.chain(*cov_cols)})
-    if len(demean_cols) > 0:
-        demean_expr = {
-            _DEMEAN.format(col): data[col] - data[col].cast("float").mean()  # type: ignore
-            for col in demean_cols
-        }
-        grouped_data = data.group_by(group_col) if group_col is not None else data  # type: ignore
-        data = grouped_data.mutate(**demean_expr)  # type: ignore
-
-    count_expr = {_COUNT: data.count()} if has_count else {}
-    mean_expr = {_MEAN.format(col): data[col].cast("float").mean() for col in mean_cols}  # type: ignore
-    var_expr = {
-        _VAR.format(col): (
-            data[_DEMEAN.format(col)] * data[_DEMEAN.format(col)]
-        ).sum() / (data.count() - 1)  # type: ignore
-        for col in var_cols
-    }
-    cov_expr = {
-        _COV.format(left, right): (
-            data[_DEMEAN.format(left)] * data[_DEMEAN.format(right)]
-        ).sum() / (data.count() - 1)  # type: ignore
-        for left, right in cov_cols
-    }
-
-    grouped_data = data.group_by(group_col) if group_col is not None else data  # type: ignore
-    aggr_data = grouped_data.aggregate(
-        **count_expr,  # type: ignore
-        **mean_expr,  # type: ignore
-        **var_expr,
-        **cov_expr,
-    ).to_pandas()
+    if isinstance(data, ibis.expr.types.Table):
+        aggr_data = _read_aggr_ibis(
+            data=data,
+            group_col=group_col,
+            has_count=has_count,
+            mean_cols=mean_cols,
+            var_cols=var_cols,
+            cov_cols=cov_cols,
+        )
+    else:
+        aggr_data = _read_aggr_narwhals(
+            data=data,
+            group_col=group_col,
+            has_count=has_count,
+            mean_cols=mean_cols,
+            var_cols=var_cols,
+            cov_cols=cov_cols,
+        )
 
     if group_col is None:
         return _get_aggregates(
@@ -334,23 +322,6 @@ def read_aggregates(
     }
 
 
-def _get_aggregates(
-    data: pd.DataFrame,
-    *,
-    has_count: bool,
-    mean_cols: Sequence[str],
-    var_cols: Sequence[str],
-    cov_cols: Sequence[tuple[str, str]],
-) -> Aggregates:
-    s = data.iloc[0]
-    return Aggregates(
-        count_=s[_COUNT] if has_count else None,
-        mean_={col: s[_MEAN.format(col)] for col in mean_cols},
-        var_={col: s[_VAR.format(col)] for col in var_cols},
-        cov_={cols: s[_COV.format(*cols)] for cols in cov_cols},
-    )
-
-
 def _validate_aggr_cols(
     mean_cols: Sequence[str],
     var_cols: Sequence[str],
@@ -369,3 +340,125 @@ def _sorted_tuple(left: str, right: str) -> tuple[str, str]:
     if right < left:
         return right, left
     return left, right
+
+
+def _read_aggr_ibis(
+    data: ibis.expr.types.Table,
+    group_col: str | None,
+    *,
+    has_count: bool,
+    mean_cols: Sequence[str],
+    var_cols: Sequence[str],
+    cov_cols: Sequence[tuple[str, str]],
+) -> pd.DataFrame:
+    covar_cols = tuple({*var_cols, *itertools.chain(*cov_cols)})
+    backend = ibis.get_backend(data)
+    var_op = ibis.expr.operations.Variance
+    cov_op = ibis.expr.operations.Covariance
+    if backend.has_operation(var_op) and backend.has_operation(cov_op):
+        var_expr = {
+            _VAR.format(col): data[col].cast("float").var(how="sample")  # type: ignore
+            for col in var_cols
+        }
+        cov_expr = {
+            _COV.format(left, right): data[left].cast("float").cov(  # type: ignore
+                data[right].cast("float"),  # type: ignore
+                how="sample",
+            )
+            for left, right in cov_cols
+        }
+    else:
+        # Use demeaned values if backend doesn't have var and cov functions.
+        if len(covar_cols) > 0:
+            demean_expr = {
+                _DEMEAN.format(col): data[col] - data[col].cast("float").mean()  # type: ignore
+                for col in covar_cols
+            }
+            grouped_data = data.group_by(group_col) if group_col is not None else data  # type: ignore
+            data = grouped_data.mutate(**demean_expr)  # type: ignore
+
+        var_expr = {
+            _VAR.format(col): (
+                data[_DEMEAN.format(col)] * data[_DEMEAN.format(col)]
+            ).sum() / (data.count() - 1)  # type: ignore
+            for col in var_cols
+        }
+        cov_expr = {
+            _COV.format(left, right): (
+                data[_DEMEAN.format(left)] * data[_DEMEAN.format(right)]
+            ).sum() / (data.count() - 1)  # type: ignore
+            for left, right in cov_cols
+        }
+
+    count_expr = {_COUNT: data.count()} if has_count else {}
+    mean_expr = {_MEAN.format(col): data[col].cast("float").mean() for col in mean_cols}  # type: ignore
+    all_expr = count_expr | mean_expr | var_expr | cov_expr
+
+    grouped_data = data.group_by(group_col) if group_col is not None else data  # type: ignore
+    return grouped_data.aggregate(**all_expr).to_pandas()  # type: ignore
+
+
+def _read_aggr_narwhals(
+    data: narwhals.typing.IntoFrame,
+    group_col: str | None,
+    *,
+    has_count: bool,
+    mean_cols: Sequence[str],
+    var_cols: Sequence[str],
+    cov_cols: Sequence[tuple[str, str]],
+) -> pd.DataFrame:
+    data = nw.from_native(data)
+    if not isinstance(data, nw.LazyFrame):
+        data = data.lazy()
+
+    covar_cols = tuple({*var_cols, *itertools.chain(*cov_cols)})
+    if len(covar_cols) > 0:
+        data = data.with_columns(**{
+            _DEMEAN.format(col): _demean_nw_col(col, group_col)
+            for col in covar_cols
+        })
+
+    count_expr = {_COUNT: nw.len()} if has_count else {}
+    mean_expr = {_MEAN.format(col): nw.col(col).mean() for col in mean_cols}
+    var_expr = {
+        _VAR.format(col): (
+            nw.col(_DEMEAN.format(col)) * nw.col(_DEMEAN.format(col))
+        ).sum() / (nw.len() - 1)
+        for col in var_cols
+    }
+    cov_expr = {
+        _COV.format(left, right): (
+            nw.col(_DEMEAN.format(left)) * nw.col(_DEMEAN.format(right))
+        ).sum() / (nw.len() - 1)
+        for left, right in cov_cols
+    }
+    all_expr = count_expr | mean_expr | var_expr | cov_expr
+
+    aggr_data = (
+        data.select(**all_expr) if group_col is None
+        else data.group_by(group_col).agg(**all_expr)
+    )
+    return aggr_data.collect().to_pandas()
+
+
+def _demean_nw_col(col: str, group_col: str | None) -> nw.Expr:
+    if group_col is None:
+        return nw.col(col) - nw.col(col).mean()
+    return nw.col(col) - nw.col(col).mean().over(group_col)
+
+
+def _get_aggregates(
+    data: pd.DataFrame,
+    *,
+    has_count: bool,
+    mean_cols: Sequence[str],
+    var_cols: Sequence[str],
+    cov_cols: Sequence[tuple[str, str]],
+) -> Aggregates:
+    s = data.iloc[0]
+    return Aggregates(
+        count_=s[_COUNT] if has_count else None,
+        mean_={col: s[_MEAN.format(col)] for col in mean_cols},
+        var_={col: s[_VAR.format(col)] for col in var_cols},
+        cov_={cols: s[_COV.format(*cols)] for cols in cov_cols},
+    )

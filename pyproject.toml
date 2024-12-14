@@ -6,7 +6,8 @@ authors = [
     {name = "Evgeny Ivanov", email = "ivanov.evgeny.n@gmail.com"},
 ]
 dependencies = [
-    "ibis-framework[duckdb]>=7,<10",
+    "ibis-framework>=7,<10",
+    "narwhals>=1,<2",
     "numpy>=1.25,<3",
     "pandas>=2,<3",
     "scipy>=1.10,<2",
@@ -51,8 +52,8 @@ package-dir = "src"
 
 [tool.pdm.dev-dependencies]
 docs = ["mkdocs-material", "mkdocstrings[crystal,python]"]
-lint = ["ruff", "pyright"]
-test = ["pytest", "coverage[toml]"]
+lint = ["pyright", "ruff"]
+test = ["coverage[toml]", "ibis-framework[duckdb,sqlite]", "polars", "pytest"]
 
 [tool.pdm.scripts]
 lint = "ruff check ."
@@ -69,11 +70,11 @@ src = ["src"]
 
 [tool.ruff.lint]
 select = [
-    "A", "ANN", "ARG", "B", "BLE", "C4", "C90", "COM", "D", "E", "ERA", "F",
-    "FA", "FBT", "FIX", "FLY", "FURB", "I", "ICN", "INP", "INT", "ISC", "N",
-    "NPY", "PD", "PERF", "PGH", "PIE", "PL", "PT", "Q", "RET", "RSE", "RUF",
-    "S", "SIM", "SLF", "SLOT", "T10", "T20", "TCH", "TD", "TID", "TRY", "UP",
-    "W",
+    "A", "ANN", "ARG", "B", "BLE", "C4", "C90", "COM", "D", "DOC", "E", "ERA",
+    "F", "FA", "FBT", "FIX", "FLY", "FURB", "I", "ICN", "INP", "INT", "ISC",
+    "N", "NPY", "PD", "PERF", "PGH", "PIE", "PL", "PT", "Q", "RET", "RSE",
+    "RUF", "S", "SIM", "SLF", "SLOT", "T10", "T20", "TC", "TD", "TID", "TRY",
+    "UP", "W",
 ]
 ignore = ["ANN401", "PGH003", "SLF001", "TRY003"]
 

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Generic, NamedTuple, TypeVar, Union, over
 
 import ibis
 import ibis.expr.types
+import narwhals as nw
 import pandas as pd
 
 import tea_tasting.aggr
@@ -17,6 +18,8 @@ import tea_tasting.utils
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from typing import Literal
+
+    import narwhals.typing  # noqa: TC004
 
 
 # The | operator doesn't work for NamedTuple, but Union works.
@@ -43,7 +46,7 @@ class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
     @abc.abstractmethod
     def analyze(
         self,
-        data: pd.DataFrame | ibis.expr.types.Table,
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
         control: Any,
         treatment: Any,
         variant: str,
@@ -66,7 +69,7 @@ class PowerBase(abc.ABC, Generic[S], tea_tasting.utils.ReprMixin):
     @abc.abstractmethod
     def solve_power(
         self,
-        data: pd.DataFrame | ibis.expr.types.Table,
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
         parameter: Literal[
             "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> S:
@@ -149,7 +152,7 @@ class MetricBaseAggregated(MetricBase[R], _HasAggrCols):
     @overload
     def analyze(
         self,
-        data: pd.DataFrame | ibis.expr.types.Table,
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
         control: Any,
         treatment: Any,
         variant: str,
@@ -158,7 +161,7 @@ class MetricBaseAggregated(MetricBase[R], _HasAggrCols):
 
     def analyze(
         self,
-        data: pd.DataFrame | ibis.expr.types.Table | dict[
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[
             Any, tea_tasting.aggr.Aggregates],
         control: Any,
         treatment: Any,
@@ -206,7 +209,11 @@ class PowerBaseAggregated(PowerBase[S], _HasAggrCols):
     """Base class for the analysis of power using aggregated statistics."""
     def solve_power(
         self,
-        data: pd.DataFrame | ibis.expr.types.Table | tea_tasting.aggr.Aggregates,
+        data: (
+            narwhals.typing.IntoFrame |
+            ibis.expr.types.Table |
+            tea_tasting.aggr.Aggregates
+        ),
         parameter: Literal[
             "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> S:
@@ -246,7 +253,11 @@ class PowerBaseAggregated(PowerBase[S], _HasAggrCols):
 
 
 def aggregate_by_variants(
-    data: pd.DataFrame | ibis.expr.types.Table | dict[Any, tea_tasting.aggr.Aggregates],
+    data: (
+        narwhals.typing.IntoFrame |
+        ibis.expr.types.Table |
+        dict[Any, tea_tasting.aggr.Aggregates]
+    ),
     aggr_cols: AggrCols,
     variant: str | None = None,
 ) ->  dict[Any, tea_tasting.aggr.Aggregates]:
@@ -273,14 +284,8 @@ def aggregate_by_variants(
     if variant is None:
         raise ValueError("The variant parameter is required but was not provided.")
 
-    if not isinstance(data, pd.DataFrame | ibis.expr.types.Table):
-        raise TypeError(
-            f"data is a {type(data)}, but must be an instance of"
-            " DataFrame, Table, or a dictionary of Aggregates.",
-        )
-
     return tea_tasting.aggr.read_aggregates(
-        data=data,
+        data=data,  # type: ignore
         group_col=variant,
         **aggr_cols._asdict(),
     )
@@ -308,7 +313,7 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
     @overload
     def analyze(
         self,
-        data: pd.DataFrame | ibis.expr.types.Table,
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
         control: Any,
         treatment: Any,
         variant: str,
@@ -317,7 +322,11 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
 
     def analyze(
         self,
-        data: pd.DataFrame | ibis.expr.types.Table | dict[Any, pd.DataFrame],
+        data: (
+            narwhals.typing.IntoFrame |
+            ibis.expr.types.Table |
+            dict[Any, pd.DataFrame]
+        ),
         control: Any,
         treatment: Any,
         variant: str | None = None,
@@ -361,7 +370,7 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
 
 
 def read_dataframes(
-    data: pd.DataFrame | ibis.expr.types.Table | dict[Any, pd.DataFrame],
+    data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[Any, pd.DataFrame],
     cols: Sequence[str],
     variant: str | None = None,
 ) -> dict[Any, pd.DataFrame]:
@@ -388,13 +397,14 @@ def read_dataframes(
     if variant is None:
         raise ValueError("The variant parameter is required but was not provided.")
 
-    if isinstance(data, ibis.expr.types.Table):
+    if isinstance(data, pd.DataFrame):
+        data = data.loc[:, [*cols, variant]]
+    elif isinstance(data, ibis.expr.types.Table):
         data = data.select(*cols, variant).to_pandas()
+    else:
+        data = nw.from_native(data)
+        if not isinstance(data, nw.LazyFrame):
+            data = data.lazy()
+        data = data.select(*cols, variant).collect().to_pandas()
 
-    if not isinstance(data, pd.DataFrame):
-        raise TypeError(
-            f"data is a {type(data)}, but must be an instance of"
-            " DataFrame, Table, or a dictionary if DataFrames.",
-        )
-
-    return dict(tuple(data.loc[:, [*cols, variant]].groupby(variant)))
+    return dict(tuple(data.groupby(variant)))  # type: ignore
