@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, NamedTuple, TypedDict
 
 import ibis
 import ibis.expr.types
+import narwhals as nw
 import pandas as pd
 import pytest
 
@@ -17,6 +18,8 @@ import tea_tasting.utils
 if TYPE_CHECKING:
     from collections.abc import Callable
     from typing import Literal
+
+    import narwhals.typing  # noqa: TC004
 
 
 class _MetricResultTuple(NamedTuple):
@@ -45,21 +48,22 @@ class _Metric(
 
     def analyze(
         self,
-        data: pd.DataFrame | ibis.expr.types.Table,
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[
+            Any, tea_tasting.aggr.Aggregates],
         control: int,
         treatment: int,
         variant: str,
     ) -> _MetricResultTuple:
-        if isinstance(data, pd.DataFrame):
-            data = ibis.memtable(data)
-        agg_data = (
-            data.group_by(variant)  # type: ignore
-            .agg(mean=data[self.value].mean())  # type: ignore
-            .to_pandas()
-            .set_index("variant")
-        )
-        contr_mean = agg_data.loc[control, "mean"]
-        treat_mean = agg_data.loc[treatment, "mean"]
+        if not isinstance(data, pd.DataFrame):
+            if not isinstance(data, ibis.expr.types.Table):
+                data = nw.from_native(data)
+                if isinstance(data, nw.LazyFrame):
+                    data = data.collect()
+            data = data.to_pandas()
+
+        agg_data = data.loc[:, [variant, self.value]].groupby(variant).agg("mean")
+        contr_mean = agg_data.loc[control, self.value]
+        treat_mean = agg_data.loc[treatment, self.value]
         return _MetricResultTuple(
             control=contr_mean,  # type: ignore
             treatment=treat_mean,  # type: ignore
@@ -68,7 +72,7 @@ class _Metric(
 
     def solve_power(
         self,
-        data: pd.DataFrame | ibis.Table,  # noqa: ARG002
+        data: narwhals.typing.IntoFrame | ibis.Table,  # noqa: ARG002
         parameter: Literal[  # noqa: ARG002
             "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> tea_tasting.metrics.MetricPowerResults[_PowerResult]:

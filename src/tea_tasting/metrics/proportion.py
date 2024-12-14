@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from typing import Any, Literal
 
     import ibis.expr.types
-    import pandas as pd
+    import narwhals.typing
 
 
 _MAX_EXACT_THRESHOLD = 1000
@@ -113,7 +113,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
 
     def analyze(
         self,
-        data: pd.DataFrame | ibis.expr.types.Table | dict[
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[
             Any, tea_tasting.aggr.Aggregates],
         control: Any,
         treatment: Any,
