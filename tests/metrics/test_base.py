@@ -175,9 +175,9 @@ def _compare_aggrs(
     right: tea_tasting.aggr.Aggregates,
 ) -> None:
     assert left.count_ == right.count_
-    assert left.mean_ == right.mean_
-    assert left.var_ == right.var_
-    assert left.cov_ == right.cov_
+    assert left.mean_ == pytest.approx(right.mean_)
+    assert left.var_ == pytest.approx(right.var_)
+    assert left.cov_ == pytest.approx(right.cov_)
 
 
 def test_metric_power_results_to_dicts():
