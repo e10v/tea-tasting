@@ -38,8 +38,12 @@ def data_pandas() -> pd.DataFrame:
     return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
 
 @pytest.fixture
-def data_polars(data_pandas: pd.DataFrame) -> pl.LazyFrame:
-    return pl.from_pandas(data_pandas).lazy()
+def data_polars(data_pandas: pd.DataFrame) -> pl.DataFrame:
+    return pl.from_pandas(data_pandas)
+
+@pytest.fixture
+def data_polars_lazy(data_polars: pl.DataFrame) -> pl.LazyFrame:
+    return data_polars.lazy()
 
 @pytest.fixture
 def data_duckdb(data_pandas: pd.DataFrame) -> ibis.expr.types.Table:
@@ -49,7 +53,8 @@ def data_duckdb(data_pandas: pd.DataFrame) -> ibis.expr.types.Table:
 def data_sqlite(data_pandas: pd.DataFrame) -> ibis.expr.types.Table:
     return ibis.connect("sqlite://").create_table("data", data_pandas)
 
-@pytest.fixture(params=["data_pandas", "data_polars", "data_duckdb", "data_sqlite"])
+@pytest.fixture(params=[
+    "data_pandas", "data_polars", "data_polars_lazy", "data_duckdb", "data_sqlite"])
 def data(request: pytest.FixtureRequest) -> Frame:
     return request.getfixturevalue(request.param)
 
