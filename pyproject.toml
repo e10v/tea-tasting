@@ -53,7 +53,7 @@ package-dir = "src"
 [tool.pdm.dev-dependencies]
 docs = ["mkdocs-material", "mkdocstrings[crystal,python]"]
 lint = ["pyright", "ruff"]
-test = ["coverage[toml]", "ibis-framework[duckdb]", "polars", "pytest"]
+test = ["coverage[toml]", "ibis-framework[duckdb,sqlite]", "polars", "pytest"]
 
 [tool.pdm.scripts]
 lint = "ruff check ."
