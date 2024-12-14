@@ -18,7 +18,7 @@
 - Power analysis.
 - Multiple hypothesis testing (family-wise error rate and false discovery rate).
 
-**tea-tasting** calculates statistics directly within data backends such as BigQuery, ClickHouse, PostgreSQL, Snowflake, Spark, and 20+ other backends supported by [Ibis](https://ibis-project.org/). This approach eliminates the need to import granular data into a Python environment, though Pandas DataFrames are also supported.
+**tea-tasting** calculates statistics directly within data backends such as BigQuery, ClickHouse, DuckDB, PostgreSQL, Snowflake, Spark, and many other backends supported by [Ibis](https://github.com/ibis-project/ibis) and [Narwhals](https://github.com/narwhals-dev/narwhals). This approach eliminates the need to import granular data into a Python environment. **tea-tasting** also accepts dataframes supported by [Narwhals](https://github.com/narwhals-dev/narwhals): cuDF, Dask, Modin, pandas, Polars, PyArrow.
 
 Check out the [blog post](https://e10v.me/tea-tasting-analysis-of-experiments/) explaining the advantages of using **tea-tasting** for the analysis of A/B tests.
 
@@ -56,7 +56,6 @@ Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/)
 
 ## Roadmap
 
-- Support more dataframes with [Narwhals](https://github.com/narwhals-dev/narwhals).
 - A/A tests and simulations.
 - More statistical tests:
     - Asymptotic and exact tests for frequency data.

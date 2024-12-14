@@ -2,11 +2,13 @@
 
 ## Intro
 
-**tea-tasting** supports a wide range of data backends such as BigQuery, ClickHouse, PostgreSQL/GreenPlum, Snowflake, Spark, and 20+ other backends supported by [Ibis](https://ibis-project.org/). Ibis is a Python package that serves as a DataFrame API to various data backends.
+**tea-tasting** supports a wide range of data backends such as BigQuery, ClickHouse, DuckDB, PostgreSQL, Snowflake, Spark, and many other backends supported by [Ibis](https://github.com/ibis-project/ibis). Ibis is a DataFrame API to various data backends.
 
 Many statistical tests, such as the Student's t-test or the Z-test, require only aggregated data for analysis. For these tests, **tea-tasting** retrieves only aggregated statistics like mean and variance instead of downloading all detailed data.
 
 For example, if the raw experimental data are stored in ClickHouse, it's faster and more efficient to calculate counts, averages, variances, and covariances directly in ClickHouse rather than fetching granular data and performing aggregations in a Python environment.
+
+**tea-tasting** also accepts dataframes supported by [Narwhals](https://github.com/narwhals-dev/narwhals): cuDF, Dask, Modin, pandas, Polars, PyArrow. Narwhals is a compatibility layer between dataframe libraries.
 
 This guide:
 
@@ -15,10 +17,10 @@ This guide:
 
 ## Demo database
 
-This guide uses [DuckDB](https://duckdb.org/), an in-process analytical database, as an example data backend. To be able to reproduce the example code, install both **tea-tasting** and Ibis with DuckDB extra:
+This guide uses [DuckDB](https://github.com/duckdb/duckdb), an in-process analytical database, and [Polars](https://github.com/pola-rs/polars) as example data backends. To be able to reproduce the example code, install **tea-tasting**, Ibis with DuckDB extra, and Polars:
 
 ```bash
-pip install tea-tasting ibis-framework[duckdb]
+pip install tea-tasting ibis-framework[duckdb] polars
 ```
 
 First, let's prepare a demo database:
@@ -209,4 +211,21 @@ print(result_with_cov)
 #> orders_per_session   0.262     0.293             12%        [4.2%, 21%] 0.00229
 #>    orders_per_user   0.523     0.581             11%        [2.9%, 20%] 0.00733
 #>   revenue_per_user    5.12      5.85             14%        [3.8%, 26%] 0.00675
+```
+
+## Polars example
+
+An example of analysis using a Polars DataFrame as input data:
+
+```python
+import polars as pl
+
+
+polars_data = pl.from_pandas(users_data)
+print(experiment.analyze(polars_data))
+#>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
+#>  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+#> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+#>    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+#>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 ```
