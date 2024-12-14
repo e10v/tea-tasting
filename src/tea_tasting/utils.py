@@ -370,17 +370,14 @@ def div(
 
     If `fill_zero_div` is equal `"auto"`, return:
 
-    - `nan` if numerator is equal to `0`,
     - `inf` if numerator is greater than `0`,
-    - `-inf` if numerator is less than `0`.
+    - `nan` if numerator is equal to or less than `0`.
     """
     if denom != 0:
         return numer / denom
     if fill_zero_div != "auto":
         return fill_zero_div
-    if numer == 0:
-        return float("nan")
-    return float("inf") if numer > 0 else float("-inf")
+    return float("inf") if numer > 0 else float("nan")
 
 
 class _NumericBase:
