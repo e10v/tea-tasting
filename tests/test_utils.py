@@ -211,10 +211,11 @@ def test_pretty_dicts_mixin_to_html(pretty_dicts: tea_tasting.utils.PrettyDictsM
     )
 
 def test_pretty_dicts_mixin_str(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
-    assert str(pretty_dicts) == pd.DataFrame({
-        "a": ("0.123", "0.346", "0.568"),
-        "b": ("0.235", "0.457", "0.679"),
-    }).to_string(index=False)
+    assert str(pretty_dicts) == textwrap.dedent("""\
+            a     b
+        0.123 0.235
+        0.346 0.457
+        0.568 0.679""")
 
 def test_pretty_dicts_mixin_repr_html(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
     assert pretty_dicts._repr_html_() == (

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import textwrap
 from typing import TYPE_CHECKING, Any, NamedTuple, TypedDict
 
 import ibis
@@ -312,24 +313,10 @@ def test_experiment_result_to_pretty(result2: tea_tasting.experiment.ExperimentR
     )
 
 def test_experiment_result_to_string(result2: tea_tasting.experiment.ExperimentResult):
-    assert result2.to_string() == pd.DataFrame((
-        {
-            "metric": "metric_tuple",
-            "control": "4.44",
-            "treatment": "5.56",
-            "rel_effect_size": "20%",
-            "rel_effect_size_ci": "[12%, ∞]",
-            "pvalue": "0.235",
-        },
-        {
-            "metric": "metric_dict",
-            "control": "10.0",
-            "treatment": "11.1",
-            "rel_effect_size": "11%",
-            "rel_effect_size_ci": "[0.0%, -]",
-            "pvalue": "-",
-        },
-    )).to_string(index=False)
+    assert result2.to_string() == textwrap.dedent("""\
+              metric control treatment rel_effect_size rel_effect_size_ci pvalue
+        metric_tuple    4.44      5.56             20%           [12%, ∞]  0.235
+         metric_dict    10.0      11.1             11%          [0.0%, -]      -""")
 
 def test_experiment_result_to_html(result2: tea_tasting.experiment.ExperimentResult):
     assert result2.to_html() == (
