@@ -56,6 +56,7 @@ Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/)
 
 ## Roadmap
 
+- Switch from Pandas DataFrames to PyArrow Tables for internal data. Make Pandas dependency optional.
 - A/A tests and simulations.
 - More statistical tests:
     - Asymptotic and exact tests for frequency data.
