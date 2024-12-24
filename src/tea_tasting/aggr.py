@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import itertools
 from typing import TYPE_CHECKING, overload
-import warnings
 
 import ibis.expr.operations
 import ibis.expr.types
@@ -413,33 +412,51 @@ def _read_aggr_narwhals(
 
     covar_cols = tuple({*var_cols, *itertools.chain(*cov_cols)})
     if len(covar_cols) > 0:
-        data = data.with_columns(**{
-            _DEMEAN.format(col): _demean_nw_col(col, group_col)
-            for col in covar_cols
-        })
+        data = (
+            data.with_columns(**{
+                _DEMEAN.format(col): _demean_nw_col(col, group_col)
+                for col in covar_cols
+            })
+            .with_columns(
+                **{
+                    _VAR.format(col):
+                        nw.col(_DEMEAN.format(col)) * nw.col(_DEMEAN.format(col))
+                    for col in var_cols
+                },
+                **{
+                    _COV.format(left, right):
+                        nw.col(_DEMEAN.format(left)) * nw.col(_DEMEAN.format(right))
+                    for left, right in cov_cols
+                },
+            )
+        )
 
-    count_expr = {_COUNT: nw.len()} if has_count else {}
+    count_expr = {_COUNT: nw.len()} if has_count or len(covar_cols) > 0 else {}
     mean_expr = {_MEAN.format(col): nw.col(col).mean() for col in mean_cols}
-    var_expr = {
-        _VAR.format(col): (
-            nw.col(_DEMEAN.format(col)) * nw.col(_DEMEAN.format(col))
-        ).sum() / (nw.len() - 1)
-        for col in var_cols
-    }
+    var_expr = {_VAR.format(col): nw.col(_VAR.format(col)).mean() for col in var_cols}
     cov_expr = {
-        _COV.format(left, right): (
-            nw.col(_DEMEAN.format(left)) * nw.col(_DEMEAN.format(right))
-        ).sum() / (nw.len() - 1)
+        _COV.format(left, right): nw.col(_COV.format(left, right)).mean()
         for left, right in cov_cols
     }
     all_expr = count_expr | mean_expr | var_expr | cov_expr
 
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=UserWarning)
-        aggr_data = (
-            data.select(**all_expr) if group_col is None
-            else data.group_by(group_col).agg(**all_expr)
+    aggr_data = (
+        data.select(**all_expr) if group_col is None
+        else data.group_by(group_col).agg(**all_expr)
+    )
+    if len(covar_cols) > 0:
+        aggr_data = aggr_data.with_columns(
+            **{
+                _VAR.format(col): nw.col(_VAR.format(col)) / (1 - 1/nw.col(_COUNT))
+                for col in var_cols
+            },
+            **{
+                _COV.format(left, right): nw.col(_COV.format(left, right)) /
+                    (1 - 1/nw.col(_COUNT))
+                for left, right in cov_cols
+            },
         )
+
     return aggr_data.collect().to_pandas()
 
 
