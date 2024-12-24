@@ -332,24 +332,14 @@ def test_experiment_result_to_string(result2: tea_tasting.experiment.ExperimentR
     )).to_string(index=False)
 
 def test_experiment_result_to_html(result2: tea_tasting.experiment.ExperimentResult):
-    assert result2.to_html() == pd.DataFrame((
-        {
-            "metric": "metric_tuple",
-            "control": "4.44",
-            "treatment": "5.56",
-            "rel_effect_size": "20%",
-            "rel_effect_size_ci": "[12%, ∞]",
-            "pvalue": "0.235",
-        },
-        {
-            "metric": "metric_dict",
-            "control": "10.0",
-            "treatment": "11.1",
-            "rel_effect_size": "11%",
-            "rel_effect_size_ci": "[0.0%, -]",
-            "pvalue": "-",
-        },
-    )).to_html(index=False)
+    assert result2.to_html() == (
+        '<table class="dataframe"><thead><tr style="text-align: right;"><th>metric</th>'
+        '<th>control</th><th>treatment</th><th>rel_effect_size</th>'
+        '<th>rel_effect_size_ci</th><th>pvalue</th></tr></thead>'
+        '<tbody><tr><td>metric_tuple</td><td>4.44</td><td>5.56</td><td>20%</td>'
+        '<td>[12%, ∞]</td><td>0.235</td></tr><tr><td>metric_dict</td><td>10.0</td>'
+        '<td>11.1</td><td>11%</td><td>[0.0%, -]</td><td>-</td></tr></tbody></table>'
+    )
 
 
 def test_experiment_results_to_dicts(

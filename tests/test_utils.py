@@ -200,10 +200,15 @@ def test_pretty_dicts_mixin_to_string(pretty_dicts: tea_tasting.utils.PrettyDict
         0.568 0.679""")
 
 def test_pretty_dicts_mixin_to_html(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
-    assert pretty_dicts.to_html() == pd.DataFrame({
-        "a": ("0.123", "0.346", "0.568"),
-        "b": ("0.235", "0.457", "0.679"),
-    }).to_html(index=False)
+    assert pretty_dicts.to_html() == (
+        '<table class="dataframe">'
+        '<thead><tr style="text-align: right;"><th>a</th><th>b</th></tr></thead>'
+        '<tbody>'
+        '<tr><td>0.123</td><td>0.235</td></tr>'
+        '<tr><td>0.346</td><td>0.457</td></tr>'
+        '<tr><td>0.568</td><td>0.679</td></tr>'
+        '</tbody></table>'
+    )
 
 def test_pretty_dicts_mixin_str(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
     assert str(pretty_dicts) == pd.DataFrame({
@@ -212,10 +217,15 @@ def test_pretty_dicts_mixin_str(pretty_dicts: tea_tasting.utils.PrettyDictsMixin
     }).to_string(index=False)
 
 def test_pretty_dicts_mixin_repr_html(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
-    assert pretty_dicts._repr_html_() == pd.DataFrame({
-        "a": ("0.123", "0.346", "0.568"),
-        "b": ("0.235", "0.457", "0.679"),
-    }).to_html(index=False)
+    assert pretty_dicts._repr_html_() == (
+        '<table class="dataframe">'
+        '<thead><tr style="text-align: right;"><th>a</th><th>b</th></tr></thead>'
+        '<tbody>'
+        '<tr><td>0.123</td><td>0.235</td></tr>'
+        '<tr><td>0.346</td><td>0.457</td></tr>'
+        '<tr><td>0.568</td><td>0.679</td></tr>'
+        '</tbody></table>'
+    )
 
 
 def test_repr_mixin_repr():

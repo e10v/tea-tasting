@@ -9,6 +9,7 @@ import inspect
 import locale
 import math
 from typing import TYPE_CHECKING
+import xml.etree.ElementTree as ET
 
 import pandas as pd
 
@@ -336,7 +337,21 @@ class PrettyDictsMixin(abc.ABC):
                 Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
                 and format the interval as `"[{lower_bound}, {lower_bound}]"`.
         """
-        return self.to_pretty(keys, formatter).to_html(index=False)
+        if keys is None:
+            keys = self.default_keys
+        table = ET.Element("table", {"class": "dataframe"})
+        thead = ET.SubElement(table, "thead")
+        thead_tr = ET.SubElement(thead, "tr", {"style": "text-align: right;"})
+        for key in keys:
+            th = ET.SubElement(thead_tr, "th")
+            th.text = key
+        tbody = ET.SubElement(table, "tbody")
+        for data in self.to_dicts():
+            tr = ET.SubElement(tbody, "tr")
+            for key in keys:
+                td = ET.SubElement(tr, "td")
+                td.text = formatter(data, key)
+        return ET.tostring(table, encoding="unicode", method="html")
 
     def __str__(self) -> str:
         """Object string representation."""
