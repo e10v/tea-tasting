@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import textwrap
 from typing import TYPE_CHECKING
 
 import pandas as pd
@@ -192,10 +193,11 @@ def test_pretty_dicts_mixin_to_pretty(pretty_dicts: tea_tasting.utils.PrettyDict
     )
 
 def test_pretty_dicts_mixin_to_string(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
-    assert pretty_dicts.to_string() == pd.DataFrame({
-        "a": ("0.123", "0.346", "0.568"),
-        "b": ("0.235", "0.457", "0.679"),
-    }).to_string(index=False)
+    assert pretty_dicts.to_string() == textwrap.dedent("""\
+            a     b
+        0.123 0.235
+        0.346 0.457
+        0.568 0.679""")
 
 def test_pretty_dicts_mixin_to_html(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
     assert pretty_dicts.to_html() == pd.DataFrame({
