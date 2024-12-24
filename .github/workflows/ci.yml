@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - '**.py'
+      - '.github/workflows/ci.yml'
   workflow_dispatch:
 jobs:
   test:
@@ -49,7 +50,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: true
       - name: Install dependencies
-        run: pdm sync -G lint test
+        run: pdm sync -G lint -G test
       - name: Check with ruff
         run: pdm run lint
       - name: Check with pyright
