@@ -314,6 +314,8 @@ class PrettyDictsMixin(abc.ABC):
         self,
         keys: Sequence[str] | None = None,
         formatter: Callable[[dict[str, Any], str], str] = get_and_format_num,
+        *,
+        indent: str | None = None,
     ) -> str:
         """Convert the object to HTML.
 
@@ -323,6 +325,8 @@ class PrettyDictsMixin(abc.ABC):
             formatter: Custom formatter function. It should accept a dictionary
                 of metric result attributes and an attribute name, and return
                 a formatted attribute value.
+            indent: Whitespace to insert for each indentation level. If `None`,
+                do not indent.
 
         Returns:
             A table with results rendered as HTML.
@@ -354,6 +358,8 @@ class PrettyDictsMixin(abc.ABC):
             for key in keys:
                 td = ET.SubElement(tr, "td")
                 td.text = formatter(data, key)
+        if indent is not None:
+            ET.indent(table, space=indent)
         return ET.tostring(table, encoding="unicode", method="html")
 
     def __str__(self) -> str:

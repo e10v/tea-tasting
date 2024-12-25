@@ -236,6 +236,8 @@ class ExperimentResult(
         keys: Sequence[str] | None = None,
         formatter: Callable[
             [dict[str, Any], str], str] = tea_tasting.utils.get_and_format_num,
+        *,
+        indent: str | None = None,
     ) -> str:
         """Convert the result to HTML.
 
@@ -247,6 +249,8 @@ class ExperimentResult(
             formatter: Custom formatter function. It should accept a dictionary
                 of metric result attributes and an attribute name, and return
                 a formatted attribute value.
+            indent: Whitespace to insert for each indentation level. If `None`,
+                do not indent.
 
         Returns:
             A table with results rendered as HTML.
@@ -306,7 +310,8 @@ class ExperimentResult(
             #> </table>
             ```
         """
-        return tea_tasting.utils.PrettyDictsMixin.to_html(self, keys, formatter)
+        return tea_tasting.utils.PrettyDictsMixin.to_html(
+            self, keys, formatter, indent=indent)
 
 
 class ExperimentResults(

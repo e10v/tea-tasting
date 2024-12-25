@@ -210,6 +210,33 @@ def test_pretty_dicts_mixin_to_html(pretty_dicts: tea_tasting.utils.PrettyDictsM
         '</tbody></table>'
     )
 
+def test_pretty_dicts_mixin_to_html_indent(
+    pretty_dicts: tea_tasting.utils.PrettyDictsMixin,
+):
+    assert pretty_dicts.to_html(indent="    ") == textwrap.dedent("""\
+        <table class="dataframe" style="text-align: right;">
+            <thead>
+                <tr>
+                    <th>a</th>
+                    <th>b</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>0.123</td>
+                    <td>0.235</td>
+                </tr>
+                <tr>
+                    <td>0.346</td>
+                    <td>0.457</td>
+                </tr>
+                <tr>
+                    <td>0.568</td>
+                    <td>0.679</td>
+                </tr>
+            </tbody>
+        </table>""")
+
 def test_pretty_dicts_mixin_str(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
     assert str(pretty_dicts) == textwrap.dedent("""\
             a     b
