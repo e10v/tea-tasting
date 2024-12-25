@@ -320,7 +320,7 @@ def test_experiment_result_to_string(result2: tea_tasting.experiment.ExperimentR
 
 def test_experiment_result_to_html(result2: tea_tasting.experiment.ExperimentResult):
     assert result2.to_html() == (
-        '<table class="dataframe"><thead><tr style="text-align: right;"><th>metric</th>'
+        '<table class="dataframe" style="text-align: right;"><thead><tr><th>metric</th>'
         '<th>control</th><th>treatment</th><th>rel_effect_size</th>'
         '<th>rel_effect_size_ci</th><th>pvalue</th></tr></thead>'
         '<tbody><tr><td>metric_tuple</td><td>4.44</td><td>5.56</td><td>20%</td>'

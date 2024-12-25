@@ -201,8 +201,8 @@ def test_pretty_dicts_mixin_to_string(pretty_dicts: tea_tasting.utils.PrettyDict
 
 def test_pretty_dicts_mixin_to_html(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
     assert pretty_dicts.to_html() == (
-        '<table class="dataframe">'
-        '<thead><tr style="text-align: right;"><th>a</th><th>b</th></tr></thead>'
+        '<table class="dataframe" style="text-align: right;">'
+        '<thead><tr><th>a</th><th>b</th></tr></thead>'
         '<tbody>'
         '<tr><td>0.123</td><td>0.235</td></tr>'
         '<tr><td>0.346</td><td>0.457</td></tr>'
@@ -219,8 +219,8 @@ def test_pretty_dicts_mixin_str(pretty_dicts: tea_tasting.utils.PrettyDictsMixin
 
 def test_pretty_dicts_mixin_repr_html(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
     assert pretty_dicts._repr_html_() == (
-        '<table class="dataframe">'
-        '<thead><tr style="text-align: right;"><th>a</th><th>b</th></tr></thead>'
+        '<table class="dataframe" style="text-align: right;">'
+        '<thead><tr><th>a</th><th>b</th></tr></thead>'
         '<tbody>'
         '<tr><td>0.123</td><td>0.235</td></tr>'
         '<tr><td>0.346</td><td>0.457</td></tr>'

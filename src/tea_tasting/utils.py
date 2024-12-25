@@ -339,9 +339,12 @@ class PrettyDictsMixin(abc.ABC):
         """
         if keys is None:
             keys = self.default_keys
-        table = ET.Element("table", {"class": "dataframe"})
+        table = ET.Element(
+            "table",
+            {"class": "dataframe", "style": "text-align: right;"},
+        )
         thead = ET.SubElement(table, "thead")
-        thead_tr = ET.SubElement(thead, "tr", {"style": "text-align: right;"})
+        thead_tr = ET.SubElement(thead, "tr")
         for key in keys:
             th = ET.SubElement(thead_tr, "th")
             th.text = key
