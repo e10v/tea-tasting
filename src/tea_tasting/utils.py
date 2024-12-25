@@ -11,12 +11,15 @@ import math
 from typing import TYPE_CHECKING
 import xml.etree.ElementTree as ET
 
-import pandas as pd
-
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
     from typing import Any, Literal, TypeVar
+
+    try:
+        from pandas import DataFrame
+    except ImportError:
+        from typing import Any as DataFrame
 
     R = TypeVar("R")
 
@@ -224,15 +227,16 @@ class PrettyDictsMixin(abc.ABC):
     def to_dicts(self) -> Sequence[dict[str, Any]]:
         """Convert the object to a sequence of dictionaries."""
 
-    def to_pandas(self) -> pd.DataFrame:
+    def to_pandas(self) -> DataFrame:
         """Convert the object to a Pandas DataFrame."""
+        import pandas as pd
         return pd.DataFrame.from_records(self.to_dicts())
 
     def to_pretty(
         self,
         keys: Sequence[str] | None = None,
         formatter: Callable[[dict[str, Any], str], str] = get_and_format_num,
-    ) -> pd.DataFrame:
+    ) -> DataFrame:
         """Convert the object to a Pandas Dataframe with formatted values.
 
         Args:
@@ -255,6 +259,7 @@ class PrettyDictsMixin(abc.ABC):
                 Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
                 and format the interval as `"[{lower_bound}, {lower_bound}]"`.
         """
+        import pandas as pd
         if keys is None:
             keys = self.default_keys
         return pd.DataFrame.from_records(
