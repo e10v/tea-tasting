@@ -110,4 +110,5 @@ reportMissingTypeStubs = false
 reportPrivateUsage = false
 reportUnknownArgumentType = false
 reportUnknownMemberType = false
+reportUnknownParameterType = false
 reportUnknownVariableType = false
