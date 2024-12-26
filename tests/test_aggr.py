@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     import pyarrow as pa
 
 
-    Frame = ibis.expr.types.Table | pd.DataFrame | pl.LazyFrame
+    Frame = ibis.expr.types.Table | pa.Table | pd.DataFrame | pl.LazyFrame
 
 
 COUNT = 100

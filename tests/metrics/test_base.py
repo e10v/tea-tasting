@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     import ibis.expr.types  # noqa: TC004
 
 
-    Frame = ibis.expr.types.Table | pd.DataFrame | pl.LazyFrame
+    Frame = ibis.expr.types.Table | pa.Table | pd.DataFrame | pl.LazyFrame
 
 
 def test_aggr_cols_or():
