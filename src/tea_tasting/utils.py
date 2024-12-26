@@ -308,12 +308,12 @@ class PrettyDictsMixin(abc.ABC):
             pretty_dicts.append(pretty_dict)
 
         sep = " "
-        lines = [sep.join(key.rjust(widths[key]) for key in keys)]
-        lines.extend(
+        rows = [sep.join(key.rjust(widths[key]) for key in keys)]
+        rows.extend(
             sep.join(pretty_dict[key].rjust(widths[key]) for key in keys)
             for pretty_dict in pretty_dicts
         )
-        return "\n".join(lines)
+        return "\n".join(rows)
 
     def to_html(
         self,
