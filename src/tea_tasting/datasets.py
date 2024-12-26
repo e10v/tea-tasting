@@ -421,10 +421,10 @@ def _make_data(
             "revenue_covariate": revenue_covariate,
         }
 
-    table = pa.table(data)
     if to_pandas:
-        return table.to_pandas()
-    return table
+        import pandas as pd
+        return pd.DataFrame(data)
+    return pa.table(data)
 
 
 def _check_params(
