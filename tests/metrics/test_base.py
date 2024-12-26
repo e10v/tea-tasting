@@ -6,6 +6,7 @@ import unittest.mock
 import ibis
 import pandas as pd
 import polars as pl
+import pyarrow as pa
 import pytest
 
 import tea_tasting.aggr
@@ -65,28 +66,39 @@ def test_aggr_cols_len():
 
 
 @pytest.fixture
-def data_pandas() -> pd.DataFrame:
-    return tea_tasting.datasets.make_users_data(n_users=100, seed=42).astype(
-        {"variant": "int64"})
+def data_arrow() -> pa.Table:
+    table = tea_tasting.datasets.make_users_data(n_users=100, seed=42)
+    return table.set_column(
+        table.schema.get_field_index("variant"),
+        "variant",
+        table["variant"].cast(pa.int64()),
+    )
 
 @pytest.fixture
-def data_polars(data_pandas: pd.DataFrame) -> pl.DataFrame:
-    return pl.from_pandas(data_pandas)
+def data_pandas(data_arrow: pa.Table) -> pd.DataFrame:
+    return data_arrow.to_pandas()
+
+@pytest.fixture
+def data_polars(data_arrow: pa.Table) -> pl.DataFrame:
+    return pl.from_arrow(data_arrow)  # type: ignore
 
 @pytest.fixture
 def data_polars_lazy(data_polars: pl.DataFrame) -> pl.LazyFrame:
     return data_polars.lazy()
 
 @pytest.fixture
-def data_duckdb(data_pandas: pd.DataFrame) -> ibis.expr.types.Table:
-    return ibis.connect("duckdb://").create_table("data", data_pandas)
+def data_duckdb(data_arrow: pa.Table) -> ibis.expr.types.Table:
+    return ibis.connect("duckdb://").create_table("data", data_arrow)
 
 @pytest.fixture
-def data_sqlite(data_pandas: pd.DataFrame) -> ibis.expr.types.Table:
-    return ibis.connect("sqlite://").create_table("data", data_pandas)
+def data_sqlite(data_arrow: pa.Table) -> ibis.expr.types.Table:
+    return ibis.connect("sqlite://").create_table("data", data_arrow)
 
 @pytest.fixture(params=[
-    "data_pandas", "data_polars", "data_polars_lazy", "data_duckdb", "data_sqlite"])
+    "data_arrow", "data_pandas",
+    "data_polars", "data_polars_lazy",
+    "data_duckdb", "data_sqlite",
+])
 def data(request: pytest.FixtureRequest) -> Frame:
     return request.getfixturevalue(request.param)
 

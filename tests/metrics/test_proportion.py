@@ -14,17 +14,17 @@ import tea_tasting.metrics.proportion
 if TYPE_CHECKING:
     from typing import Any
 
-    import pandas as pd
+    import pyarrow as pa
 
 
 @pytest.fixture
-def data_pandas() -> pd.DataFrame:
+def data_arrow() -> pa.Table:
     return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
 
 @pytest.fixture
-def data_aggr(data_pandas: pd.DataFrame) -> dict[Any, tea_tasting.aggr.Aggregates]:
+def data_aggr(data_arrow: pa.Table) -> dict[Any, tea_tasting.aggr.Aggregates]:
     return tea_tasting.aggr.read_aggregates(
-        data_pandas,
+        data_arrow,
         group_col="variant",
         has_count=True,
         mean_cols=(),
@@ -55,9 +55,9 @@ def test_sample_ratio_aggr_cols():
     assert metric.aggr_cols == tea_tasting.metrics.base.AggrCols(has_count=True)
 
 
-def test_sample_ratio_analyze_frame(data_pandas: pd.DataFrame):
+def test_sample_ratio_analyze_frame(data_arrow: pa.Table):
     metric = tea_tasting.metrics.proportion.SampleRatio()
-    result = metric.analyze(data_pandas, 0, 1, variant="variant")
+    result = metric.analyze(data_arrow, 0, 1, variant="variant")
     assert isinstance(result, tea_tasting.metrics.proportion.SampleRatioResult)
 
 def test_sample_ratio_analyze_auto():

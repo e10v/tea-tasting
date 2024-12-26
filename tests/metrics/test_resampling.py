@@ -17,16 +17,17 @@ if TYPE_CHECKING:
 
     import numpy.typing as npt
     import pandas as pd
+    import pyarrow as pa
 
 
 @pytest.fixture
-def data_pandas() -> pd.DataFrame:
+def data_arrow() -> pd.DataFrame:
     return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
 
 @pytest.fixture
-def data_gran(data_pandas: pd.DataFrame) -> dict[Any, pd.DataFrame]:
+def data_gran(data_arrow: pa.Table) -> dict[Any, pd.DataFrame]:
     return tea_tasting.metrics.base.read_dataframes(
-        data_pandas,
+        data_arrow,
         ("sessions", "orders", "revenue"),
         variant="variant",
     )
@@ -72,9 +73,9 @@ def test_bootstrap_cols():
     assert metric.cols == ("a", "b")
 
 
-def test_bootstrap_analyze_frame(data_pandas: pd.DataFrame):
+def test_bootstrap_analyze_frame(data_arrow: pa.Table):
     metric = tea_tasting.metrics.resampling.Bootstrap("sessions", np.mean)
-    result = metric.analyze(data_pandas, 0, 1, variant="variant")
+    result = metric.analyze(data_arrow, 0, 1, variant="variant")
     assert isinstance(result, tea_tasting.metrics.resampling.BootstrapResult)
 
 

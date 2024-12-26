@@ -3,19 +3,58 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
-import pandas as pd
+import pyarrow as pa
 
 import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from typing import Any
+    from typing import Any, Literal
 
     import numpy.typing as npt
 
+    try:
+        from pandas import DataFrame
+    except ImportError:
+        from typing import Any as DataFrame
+
+
+@overload
+def make_users_data(
+    *,
+    covariates: bool = False,
+    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    n_users: int = 4000,
+    ratio: float | int = 1,
+    sessions_uplift: float | int = 0.0,
+    orders_uplift: float = 0.1,
+    revenue_uplift: float = 0.1,
+    avg_sessions: float | int = 2,
+    avg_orders_per_session: float = 0.25,
+    avg_revenue_per_order: float | int = 10,
+    to_pandas: Literal[False] = False,
+) -> pa.Table:
+    ...
+
+@overload
+def make_users_data(
+    *,
+    covariates: bool = False,
+    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    n_users: int = 4000,
+    ratio: float | int = 1,
+    sessions_uplift: float | int = 0.0,
+    orders_uplift: float = 0.1,
+    revenue_uplift: float = 0.1,
+    avg_sessions: float | int = 2,
+    avg_orders_per_session: float = 0.25,
+    avg_revenue_per_order: float | int = 10,
+    to_pandas: Literal[True] = True,
+) -> DataFrame:
+    ...
 
 def make_users_data(
     *,
@@ -29,7 +68,8 @@ def make_users_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-) -> pd.DataFrame:
+    to_pandas: bool = False,
+) -> pa.Table | DataFrame:
     """Generate simulated data for A/B testing scenarios.
 
     Data mimics what you might encounter in an A/B test for an online store,
@@ -63,6 +103,8 @@ def make_users_data(
         avg_orders_per_session: Average number of orders per session.
             Should be less than `1`.
         avg_revenue_per_order: Average revenue per order.
+        to_pandas: If set to `True`, returns a Pandas DataFrame; otherwise,
+            returns a PyArrow Table.
 
     Returns:
         Simulated data for A/B testing scenarios.
@@ -122,9 +164,44 @@ def make_users_data(
         avg_sessions=avg_sessions,
         avg_orders_per_session=avg_orders_per_session,
         avg_revenue_per_order=avg_revenue_per_order,
+        to_pandas=to_pandas,
         explode_sessions=False,
     )
 
+
+@overload
+def make_sessions_data(
+    *,
+    covariates: bool = False,
+    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    n_users: int = 4000,
+    ratio: float | int = 1,
+    sessions_uplift: float | int = 0.0,
+    orders_uplift: float = 0.1,
+    revenue_uplift: float = 0.1,
+    avg_sessions: float | int = 2,
+    avg_orders_per_session: float = 0.25,
+    avg_revenue_per_order: float | int = 10,
+    to_pandas: Literal[False] = False,
+) -> pa.Table:
+    ...
+
+@overload
+def make_sessions_data(
+    *,
+    covariates: bool = False,
+    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    n_users: int = 4000,
+    ratio: float | int = 1,
+    sessions_uplift: float | int = 0.0,
+    orders_uplift: float = 0.1,
+    revenue_uplift: float = 0.1,
+    avg_sessions: float | int = 2,
+    avg_orders_per_session: float = 0.25,
+    avg_revenue_per_order: float | int = 10,
+    to_pandas: Literal[True] = True,
+) -> DataFrame:
+    ...
 
 def make_sessions_data(
     *,
@@ -138,7 +215,8 @@ def make_sessions_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-) -> pd.DataFrame:
+    to_pandas: bool = False,
+) -> pa.Table | DataFrame:
     """Generate simulated user data for A/B testing scenarios.
 
     Data mimics what you might encounter in an A/B test for an online store,
@@ -172,6 +250,8 @@ def make_sessions_data(
         avg_orders_per_session: Average number of orders per session.
             Should be less than `1`.
         avg_revenue_per_order: Average revenue per order.
+        to_pandas: If set to `True`, returns a Pandas DataFrame; otherwise,
+            returns a PyArrow Table.
 
     Returns:
         Simulated data for A/B testing scenarios.
@@ -231,6 +311,7 @@ def make_sessions_data(
         avg_sessions=avg_sessions,
         avg_orders_per_session=avg_orders_per_session,
         avg_revenue_per_order=avg_revenue_per_order,
+        to_pandas=to_pandas,
         explode_sessions=True,
     )
 
@@ -248,7 +329,8 @@ def _make_data(
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
     explode_sessions: bool = False,
-) -> pd.DataFrame:
+    to_pandas: bool = False,
+) -> pa.Table | DataFrame:
     _check_params(
         n_users=n_users,
         ratio=ratio,
@@ -271,7 +353,7 @@ def _make_data(
 
     if explode_sessions:
         user = np.repeat(user, sessions)
-        sessions = 1
+        sessions = np.ones_like(user)
         size = len(user)
         revenue_log_scale = np.sqrt(np.log(
             1 + avg_sessions*(np.exp(revenue_log_scale**2) - 1)))
@@ -299,13 +381,13 @@ def _make_data(
 
     revenue = orders * revenue_per_order
 
-    data = pd.DataFrame({
+    data = {
         "user": user,
         "variant": variant[user].astype(np.uint8),
         "sessions": sessions,
         "orders": orders,
         "revenue": revenue,
-    })
+    }
 
     if covariates:
         sessions_covariate = rng.poisson(lam=sessions / sessions_mult[user], size=size)
@@ -333,13 +415,16 @@ def _make_data(
             orders_covariate = _avg_by_groups(orders_covariate, user)
             revenue_covariate = _avg_by_groups(revenue_covariate, user)
 
-        data = data.assign(
-            sessions_covariate=sessions_covariate,
-            orders_covariate=orders_covariate,
-            revenue_covariate=revenue_covariate,
-        )
+        data |= {
+            "sessions_covariate": sessions_covariate,
+            "orders_covariate": orders_covariate,
+            "revenue_covariate": revenue_covariate,
+        }
 
-    return data
+    table = pa.table(data)
+    if to_pandas:
+        return table.to_pandas()
+    return table
 
 
 def _check_params(
