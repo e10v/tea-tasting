@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING, Any, Generic, NamedTuple, TypeVar, Union, over
 import ibis
 import ibis.expr.types
 import narwhals as nw
-import pandas as pd
+import pyarrow as pa
+import pyarrow.compute as pc
 
 import tea_tasting.aggr
 import tea_tasting.utils
@@ -303,7 +304,7 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
     @overload
     def analyze(
         self,
-        data: dict[Any, pd.DataFrame],
+        data: dict[Any, pa.Table],
         control: Any,
         treatment: Any,
         variant: str | None = None,
@@ -325,7 +326,7 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
         data: (
             narwhals.typing.IntoFrame |
             ibis.expr.types.Table |
-            dict[Any, pd.DataFrame]
+            dict[Any, pa.Table]
         ),
         control: Any,
         treatment: Any,
@@ -342,21 +343,21 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
         Returns:
             Analysis result.
         """
-        dfs = read_dataframes(
+        dfs = read_granular(
             data,
             cols=self.cols,
             variant=variant,
         )
-        return self.analyze_dataframes(
+        return self.analyze_granular(
             control=dfs[control],
             treatment=dfs[treatment],
         )
 
     @abc.abstractmethod
-    def analyze_dataframes(
+    def analyze_granular(
         self,
-        control: pd.DataFrame,
-        treatment: pd.DataFrame,
+        control: pa.Table,
+        treatment: pa.Table,
     ) -> R:
         """Analyze metric in an experiment using granular data.
 
@@ -369,11 +370,11 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
         """
 
 
-def read_dataframes(
-    data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[Any, pd.DataFrame],
+def read_granular(
+    data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[Any, pa.Table],
     cols: Sequence[str],
     variant: str | None = None,
-) -> dict[Any, pd.DataFrame]:
+) -> dict[Any, pa.Table]:
     """Read granular experimental data.
 
     Args:
@@ -383,28 +384,29 @@ def read_dataframes(
 
     Raises:
         ValueError: The variant parameter is required but was not provided.
-        TypeError: data is not an instance of DataFrame, Table,
-            or a dictionary if DataFrames.
 
     Returns:
-        Experimental data as a dictionary of DataFrames.
+        Experimental data as a dictionary of PyArrow Tables.
     """
     if isinstance(data, dict) and all(
-        isinstance(v, pd.DataFrame) for v in data.values()  # type: ignore
+        isinstance(v, pa.Table) for v in data.values()
     ):
         return data
 
     if variant is None:
         raise ValueError("The variant parameter is required but was not provided.")
 
-    if isinstance(data, pd.DataFrame):
-        data = data.loc[:, [*cols, variant]]
-    elif isinstance(data, ibis.expr.types.Table):
-        data = data.select(*cols, variant).to_pandas()
+    if isinstance(data, ibis.expr.types.Table):
+        table = data.select(*cols, variant).to_pyarrow()
     else:
         data = nw.from_native(data)
         if not isinstance(data, nw.LazyFrame):
             data = data.lazy()
-        data = data.select(*cols, variant).collect().to_pandas()
+        table = data.select(*cols, variant).collect().to_arrow()
 
-    return dict(tuple(data.groupby(variant)))  # type: ignore
+    variant_col = table[variant]
+    table = table.select(cols)
+    return {
+        var: table.filter(pc.equal(variant_col, pa.scalar(var)))  # type: ignore
+        for var in variant_col.unique().to_pylist()
+    }

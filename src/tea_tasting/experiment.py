@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any, overload
 
 import ibis.expr.types
 import narwhals as nw
-import pandas as pd
 
 import tea_tasting.aggr
 import tea_tasting.metrics
@@ -18,6 +17,7 @@ if TYPE_CHECKING:
     from typing import Literal
 
     import narwhals.typing  # noqa: TC004
+    import pyarrow as pa
 
 
 class ExperimentResult(
@@ -322,7 +322,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         metric: tea_tasting.metrics.MetricBase[Any],
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
         aggregated_data: dict[Any, tea_tasting.aggr.Aggregates] | None,
-        granular_data: dict[Any, pd.DataFrame] | None,
+        granular_data: dict[Any, pa.Table] | None,
         control: Any,
         treatment: Any,
     ) -> tea_tasting.metrics.MetricResult:
@@ -346,7 +346,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
     ) -> tuple[
         dict[Any, tea_tasting.aggr.Aggregates] | None,
-        dict[Any, pd.DataFrame] | None,
+        dict[Any, pa.Table] | None,
     ]:
         aggr_cols = tea_tasting.metrics.AggrCols()
         gran_cols = set()
@@ -362,7 +362,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             variant=self.variant,
         ) if len(aggr_cols) > 0 else None
 
-        granular_data = tea_tasting.metrics.read_dataframes(
+        granular_data = tea_tasting.metrics.read_granular(
             data,
             cols=tuple(gran_cols),
             variant=self.variant,
@@ -374,22 +374,19 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     def _read_variants(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
-    ) -> pd.Series[Any]:  # type: ignore
-        if isinstance(data, pd.DataFrame):
-            return data.loc[:, self.variant].drop_duplicates()  # type: ignore
-
+    ) -> list[Any]:
         if isinstance(data, ibis.expr.types.Table):
             return (
                 data.select(self.variant)
                 .distinct()
-                .to_pandas()
-                .loc[:, self.variant]
+                .to_pyarrow()[self.variant]
+                .to_pylist()
             )
 
         data = nw.from_native(data)
         if not isinstance(data, nw.LazyFrame):
             data = data.lazy()
-        return data.unique(self.variant).collect().to_pandas().loc[:, self.variant]
+        return data.unique(self.variant).collect().get_column(self.variant).to_list()
 
 
     def solve_power(

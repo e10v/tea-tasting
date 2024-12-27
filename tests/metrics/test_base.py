@@ -4,8 +4,9 @@ from typing import TYPE_CHECKING, Any, NamedTuple
 import unittest.mock
 
 import ibis
-import pandas as pd
 import polars as pl
+import pyarrow as pa
+import pyarrow.compute as pc
 import pytest
 
 import tea_tasting.aggr
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
     from typing import Literal
 
     import ibis.expr.types  # noqa: TC004
-    import pyarrow as pa
+    import pandas as pd
 
 
     Frame = ibis.expr.types.Table | pa.Table | pd.DataFrame | pl.LazyFrame
@@ -134,11 +135,16 @@ def cols() -> tuple[str, ...]:
     return ("sessions", "orders", "revenue")
 
 @pytest.fixture
-def correct_dfs(
-    data_pandas: pd.DataFrame,
+def correct_gran(
+    data_arrow: pa.Table,
     cols: tuple[str, ...],
-) -> dict[Any, pd.DataFrame]:
-    return dict(tuple(data_pandas.loc[:, [*cols, "variant"]].groupby("variant")))
+) -> dict[Any, pa.Table]:
+    variant_col = data_arrow["variant"]
+    table = data_arrow.select(cols)
+    return {
+        var: table.filter(pc.equal(variant_col, pa.scalar(var)))  # type: ignore
+        for var in variant_col.unique().to_pylist()
+    }
 
 @pytest.fixture
 def aggr_metric(
@@ -195,7 +201,7 @@ def gran_metric(
         def cols(self) -> tuple[str, ...]:
             return cols
 
-        def analyze_dataframes(
+        def analyze_granular(
             self,
             control: pd.DataFrame,  # noqa: ARG002
             treatment: pd.DataFrame,  # noqa: ARG002
@@ -329,55 +335,55 @@ def test_aggregate_by_variants_raises(
 def test_metric_base_granular_frame(
     gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, Any]],
     data_pandas: pd.DataFrame,
-    correct_dfs: dict[Any, pd.DataFrame],
+    correct_gran: dict[Any, pa.Table],
 ):
-    gran_metric.analyze_dataframes = unittest.mock.MagicMock()
+    gran_metric.analyze_granular = unittest.mock.MagicMock()
     gran_metric.analyze(data_pandas, control=0, treatment=1, variant="variant")
-    gran_metric.analyze_dataframes.assert_called_once()
-    kwargs = gran_metric.analyze_dataframes.call_args.kwargs
-    pd.testing.assert_frame_equal(kwargs["control"], correct_dfs[0])
-    pd.testing.assert_frame_equal(kwargs["treatment"], correct_dfs[1])
+    gran_metric.analyze_granular.assert_called_once()
+    kwargs = gran_metric.analyze_granular.call_args.kwargs
+    assert kwargs["control"].equals(correct_gran[0])
+    assert kwargs["treatment"].equals(correct_gran[1])
 
-def test_metric_base_granular_dfs(
+def test_metric_base_granular_gran(
     gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, Any]],
-    correct_dfs: dict[Any, pd.DataFrame],
+    correct_gran: dict[Any, pd.DataFrame],
 ):
-    gran_metric.analyze_dataframes = unittest.mock.MagicMock()
-    gran_metric.analyze(correct_dfs, control=0, treatment=1)
-    gran_metric.analyze_dataframes.assert_called_once()
-    kwargs = gran_metric.analyze_dataframes.call_args.kwargs
-    pd.testing.assert_frame_equal(kwargs["control"], correct_dfs[0])
-    pd.testing.assert_frame_equal(kwargs["treatment"], correct_dfs[1])
+    gran_metric.analyze_granular = unittest.mock.MagicMock()
+    gran_metric.analyze(correct_gran, control=0, treatment=1)
+    gran_metric.analyze_granular.assert_called_once()
+    kwargs = gran_metric.analyze_granular.call_args.kwargs
+    assert kwargs["control"].equals(correct_gran[0])
+    assert kwargs["treatment"].equals(correct_gran[1])
 
 
-def test_read_dataframes_frame(
+def test_read_granular_frame(
     data: Frame,
     cols: tuple[str, ...],
-    correct_dfs: dict[Any, pd.DataFrame],
+    correct_gran: dict[Any, pa.Table],
 ):
-    dfs = tea_tasting.metrics.base.read_dataframes(
+    gran = tea_tasting.metrics.base.read_granular(
         data,
         cols=cols,
         variant="variant",
     )
-    pd.testing.assert_frame_equal(dfs[0], correct_dfs[0])
-    pd.testing.assert_frame_equal(dfs[1], correct_dfs[1])
+    assert gran[0].equals(correct_gran[0])
+    assert gran[1].equals(correct_gran[1])
 
-def test_read_dataframes_dfs(
+def test_read_granular_dict(
     cols: tuple[str, ...],
-    correct_dfs: dict[Any, pd.DataFrame],
+    correct_gran: dict[Any, pa.Table],
 ):
-    dfs = tea_tasting.metrics.base.read_dataframes(
-        correct_dfs,
+    gran = tea_tasting.metrics.base.read_granular(
+        correct_gran,
         cols=cols,
         variant="variant",
     )
-    pd.testing.assert_frame_equal(dfs[0], correct_dfs[0])
-    pd.testing.assert_frame_equal(dfs[1], correct_dfs[1])
+    assert gran[0].equals(correct_gran[0])
+    assert gran[1].equals(correct_gran[1])
 
-def test_read_dataframes_raises(
-    data_pandas: ibis.expr.types.Table,
+def test_read_granular_raises(
+    data_pandas: pd.DataFrame,
     cols: tuple[str, ...],
 ):
     with pytest.raises(ValueError, match="variant"):
-        tea_tasting.metrics.base.read_dataframes(data_pandas, cols=cols)
+        tea_tasting.metrics.base.read_granular(data_pandas, cols=cols)

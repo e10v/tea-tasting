@@ -7,6 +7,7 @@ import ibis.expr.types
 import narwhals as nw
 import pandas as pd
 import polars as pl
+import pyarrow.compute as pc
 import pytest
 
 import tea_tasting.aggr
@@ -132,13 +133,13 @@ class _MetricGranular(tea_tasting.metrics.MetricBaseGranular[_MetricResultDict])
     def cols(self) -> tuple[str, ...]:
         return (self.value,)
 
-    def analyze_dataframes(
+    def analyze_granular(
         self,
-        control: pd.DataFrame,
-        treatment: pd.DataFrame,
+        control: pa.Table,
+        treatment: pa.Table,
     ) -> _MetricResultDict:
-        contr_mean = control.loc[:, self.value].mean()
-        treat_mean = treatment.loc[:, self.value].mean()
+        contr_mean = pc.mean(control[self.value]).as_py()  # type: ignore
+        treat_mean = pc.mean(treatment[self.value]).as_py()  # type: ignore
         return _MetricResultDict(
             control=contr_mean,
             treatment=treat_mean,
