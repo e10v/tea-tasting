@@ -21,7 +21,7 @@ NO_NAME_COMPARISON = "-"
 
 class MultipleComparisonsResults(
     UserDict[Any, tea_tasting.experiment.ExperimentResult],
-    tea_tasting.utils.PrettyDictsMixin,
+    tea_tasting.utils.DictsReprMixin,
 ):
     """Multiple comparisons result."""
     default_keys = (

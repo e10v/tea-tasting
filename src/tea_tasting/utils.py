@@ -208,8 +208,8 @@ def get_and_format_num(data: dict[str, Any], key: str) -> str:
     return format_num(val, sig=sig, pct=pct)
 
 
-class PrettyDictsMixin(abc.ABC):
-    """Pretty representation of a sequence of dictionaries.
+class DictsReprMixin(abc.ABC):
+    """Representation and conversion of a sequence of dictionaries.
 
     Default formatting rules:
         - If a name starts with `"rel_"` or equals to `"power"` consider it

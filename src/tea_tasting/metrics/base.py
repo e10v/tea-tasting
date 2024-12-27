@@ -30,7 +30,7 @@ R = TypeVar("R", bound=MetricResult)
 P = TypeVar("P", bound=MetricPowerResult)
 
 
-class MetricPowerResults(UserList[P], tea_tasting.utils.PrettyDictsMixin):
+class MetricPowerResults(UserList[P], tea_tasting.utils.DictsReprMixin):
     """Power analysis results."""
     default_keys = ("power", "effect_size", "rel_effect_size", "n_obs")
 

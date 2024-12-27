@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 class ExperimentResult(
     UserDict[str, tea_tasting.metrics.MetricResult],
-    tea_tasting.utils.PrettyDictsMixin,
+    tea_tasting.utils.DictsReprMixin,
 ):
     """Experiment result for a pair of variants."""
     default_keys = (
@@ -84,7 +84,7 @@ class ExperimentResult(
 
 class ExperimentResults(
     UserDict[tuple[Any, Any], ExperimentResult],
-    tea_tasting.utils.PrettyDictsMixin,
+    tea_tasting.utils.DictsReprMixin,
 ):
     """Experiment results for multiple pairs of variants."""
     default_keys = (
@@ -108,7 +108,7 @@ class ExperimentResults(
 
 class ExperimentPowerResult(
     UserDict[str, tea_tasting.metrics.MetricPowerResults[Any]],
-    tea_tasting.utils.PrettyDictsMixin,
+    tea_tasting.utils.DictsReprMixin,
 ):
     """Result of the analysis of power in a experiment."""
     default_keys = ("metric", "power", "effect_size", "rel_effect_size", "n_obs")

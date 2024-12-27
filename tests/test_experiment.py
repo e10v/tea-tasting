@@ -336,7 +336,7 @@ def test_experiment_power_result_to_dicts():
             _PowerResult(**raw_results[3]),
         ]),
     })
-    assert isinstance(result, tea_tasting.utils.PrettyDictsMixin)
+    assert isinstance(result, tea_tasting.utils.DictsReprMixin)
     assert result.default_keys == (
         "metric", "power", "effect_size", "rel_effect_size", "n_obs")
     assert result.to_dicts() == (
