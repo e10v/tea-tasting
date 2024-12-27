@@ -6,7 +6,6 @@ import unittest.mock
 import ibis
 import pandas as pd
 import polars as pl
-import pyarrow as pa
 import pytest
 
 import tea_tasting.aggr
@@ -18,6 +17,7 @@ if TYPE_CHECKING:
     from typing import Literal
 
     import ibis.expr.types  # noqa: TC004
+    import pyarrow as pa
 
 
     Frame = ibis.expr.types.Table | pa.Table | pd.DataFrame | pl.LazyFrame
@@ -67,12 +67,7 @@ def test_aggr_cols_len():
 
 @pytest.fixture
 def data_arrow() -> pa.Table:
-    table = tea_tasting.datasets.make_users_data(n_users=100, seed=42)
-    return table.set_column(
-        table.schema.get_field_index("variant"),
-        "variant",
-        table["variant"].cast(pa.int64()),
-    )
+    return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
 
 @pytest.fixture
 def data_pandas(data_arrow: pa.Table) -> pd.DataFrame:

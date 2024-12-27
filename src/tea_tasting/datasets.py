@@ -383,7 +383,7 @@ def _make_data(
 
     data = {
         "user": user,
-        "variant": variant[user].astype(np.uint8),
+        "variant": variant[user],
         "sessions": sessions,
         "orders": orders,
         "revenue": revenue,
