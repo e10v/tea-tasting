@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     from typing import Any
 
     import narwhals.typing  # noqa: TC004
-    import pandas as pd
 
 
 _COUNT = "_count"
@@ -302,7 +301,7 @@ def read_aggregates(
 
     if group_col is None:
         return _get_aggregates(
-            aggr_data,
+            aggr_data[0],
             has_count=has_count,
             mean_cols=mean_cols,
             var_cols=var_cols,
@@ -310,14 +309,14 @@ def read_aggregates(
         )
 
     return {
-        group: _get_aggregates(
+        group_data[group_col]: _get_aggregates(
             group_data,
             has_count=has_count,
             mean_cols=mean_cols,
             var_cols=var_cols,
             cov_cols=cov_cols,
         )
-        for group, group_data in aggr_data.groupby(group_col)
+        for group_data in aggr_data
     }
 
 
@@ -349,7 +348,7 @@ def _read_aggr_ibis(
     mean_cols: Sequence[str],
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
-) -> pd.DataFrame:
+) -> list[dict[str, Any]]:
     covar_cols = tuple({*var_cols, *itertools.chain(*cov_cols)})
     backend = ibis.get_backend(data)
     var_op = ibis.expr.operations.Variance
@@ -394,7 +393,7 @@ def _read_aggr_ibis(
     all_expr = count_expr | mean_expr | var_expr | cov_expr
 
     grouped_data = data.group_by(group_col) if group_col is not None else data  # type: ignore
-    return grouped_data.aggregate(**all_expr).to_pandas()  # type: ignore
+    return grouped_data.aggregate(**all_expr).to_pyarrow().to_pylist()  # type: ignore
 
 
 def _read_aggr_narwhals(
@@ -405,7 +404,7 @@ def _read_aggr_narwhals(
     mean_cols: Sequence[str],
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
-) -> pd.DataFrame:
+) -> list[dict[str, Any]]:
     data = nw.from_native(data)
     if not isinstance(data, nw.LazyFrame):
         data = data.lazy()
@@ -457,7 +456,7 @@ def _read_aggr_narwhals(
             },
         )
 
-    return aggr_data.collect().to_pandas()
+    return aggr_data.collect().to_arrow().to_pylist()
 
 
 def _demean_nw_col(col: str, group_col: str | None) -> nw.Expr:
@@ -467,17 +466,16 @@ def _demean_nw_col(col: str, group_col: str | None) -> nw.Expr:
 
 
 def _get_aggregates(
-    data: pd.DataFrame,
+    data: dict[str, Any],
     *,
     has_count: bool,
     mean_cols: Sequence[str],
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
 ) -> Aggregates:
-    s = data.iloc[0]
     return Aggregates(
-        count_=s[_COUNT] if has_count else None,
-        mean_={col: s[_MEAN.format(col)] for col in mean_cols},
-        var_={col: s[_VAR.format(col)] for col in var_cols},
-        cov_={cols: s[_COV.format(*cols)] for cols in cov_cols},
+        count_=data[_COUNT] if has_count else None,
+        mean_={col: data[_MEAN.format(col)] for col in mean_cols},
+        var_={col: data[_VAR.format(col)] for col in var_cols},
+        cov_={cols: data[_COV.format(*cols)] for cols in cov_cols},
     )
