@@ -236,7 +236,7 @@ class DictsReprMixin(abc.ABC):
         self,
         keys: Sequence[str] | None = None,
         formatter: Callable[[dict[str, Any], str], str] = get_and_format_num,
-    ) -> list[dict[str, Any]]:
+    ) -> list[dict[str, str]]:
         """Convert the object to a list of dictionaries with formatted values.
 
         Args:
