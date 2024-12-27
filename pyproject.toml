@@ -9,7 +9,7 @@ dependencies = [
     "ibis-framework>=7",
     "narwhals>=1",
     "numpy>=1.25",
-    "pandas>=2",
+    "pyarrow>=15",
     "scipy>=1.10",
 ]
 requires-python = ">=3.10"
@@ -53,7 +53,7 @@ package-dir = "src"
 [tool.pdm.dev-dependencies]
 docs = ["mkdocs-material", "mkdocstrings[crystal,python]"]
 lint = ["pyright", "ruff"]
-test = ["coverage[toml]", "ibis-framework[duckdb,sqlite]", "polars", "pytest"]
+test = ["coverage[toml]", "ibis-framework[duckdb,sqlite]", "pandas", "polars", "pytest"]
 
 [tool.pdm.scripts]
 lint = "ruff check ."
