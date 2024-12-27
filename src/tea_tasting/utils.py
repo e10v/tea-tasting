@@ -232,12 +232,12 @@ class PrettyDictsMixin(abc.ABC):
         import pandas as pd
         return pd.DataFrame.from_records(self.to_dicts())
 
-    def to_pretty(
+    def to_pretty_dicts(
         self,
         keys: Sequence[str] | None = None,
         formatter: Callable[[dict[str, Any], str], str] = get_and_format_num,
-    ) -> DataFrame:
-        """Convert the object to a Pandas Dataframe with formatted values.
+    ) -> list[dict[str, Any]]:
+        """Convert the object to a list of dictionaries with formatted values.
 
         Args:
             keys: Keys to convert. If a key is not defined in the dictionary
@@ -247,7 +247,7 @@ class PrettyDictsMixin(abc.ABC):
                 a formatted attribute value.
 
         Returns:
-            Pandas Dataframe with formatted values.
+            List of dictionaries with formatted values.
 
         Default formatting rules:
             - If a name starts with `"rel_"` or equals to `"power"` consider it
@@ -259,13 +259,9 @@ class PrettyDictsMixin(abc.ABC):
                 Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
                 and format the interval as `"[{lower_bound}, {lower_bound}]"`.
         """
-        import pandas as pd
         if keys is None:
             keys = self.default_keys
-        return pd.DataFrame.from_records(
-            {key: formatter(data, key) for key in keys}
-            for data in self.to_dicts()
-        )
+        return [{key: formatter(data, key) for key in keys} for data in self.to_dicts()]
 
     def to_string(
         self,

@@ -183,14 +183,14 @@ def test_pretty_dicts_mixin_to_pandas(pretty_dicts: tea_tasting.utils.PrettyDict
         }),
     )
 
-def test_pretty_dicts_mixin_to_pretty(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
-    pd.testing.assert_frame_equal(
-        pretty_dicts.to_pretty(),
-        pd.DataFrame({
-            "a": ("0.123", "0.346", "0.568"),
-            "b": ("0.235", "0.457", "0.679"),
-        }),
-    )
+def test_pretty_dicts_mixin_to_pretty_dicts(
+    pretty_dicts: tea_tasting.utils.PrettyDictsMixin,
+):
+    assert pretty_dicts.to_pretty_dicts() == [
+        {"a": "0.123", "b": "0.235"},
+        {"a": "0.346", "b": "0.457"},
+        {"a": "0.568", "b": "0.679"},
+    ]
 
 def test_pretty_dicts_mixin_to_string(pretty_dicts: tea_tasting.utils.PrettyDictsMixin):
     assert pretty_dicts.to_string() == textwrap.dedent("""\
