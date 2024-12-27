@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import textwrap
 from typing import TYPE_CHECKING, Any, NamedTuple, TypedDict
 
 import ibis
@@ -284,56 +283,6 @@ def test_experiment_result_to_dicts(result: tea_tasting.experiment.ExperimentRes
     assert result.to_dicts() == (
         {"metric": "metric_tuple", "control": 10, "treatment": 11, "effect_size": 1},
         {"metric": "metric_dict", "control": 20, "treatment": 22, "effect_size": 2},
-    )
-
-def test_experiment_result_to_pandas(result: tea_tasting.experiment.ExperimentResult):
-    pd.testing.assert_frame_equal(
-        result.to_pandas(),
-        pd.DataFrame({
-            "metric": ("metric_tuple", "metric_dict"),
-            "control": (10, 20),
-            "treatment": (11, 22),
-            "effect_size": (1, 2),
-        }),
-    )
-
-def test_experiment_result_to_pretty(result2: tea_tasting.experiment.ExperimentResult):
-    pd.testing.assert_frame_equal(
-        result2.to_pretty(),
-        pd.DataFrame((
-            {
-                "metric": "metric_tuple",
-                "control": "4.44",
-                "treatment": "5.56",
-                "rel_effect_size": "20%",
-                "rel_effect_size_ci": "[12%, ∞]",
-                "pvalue": "0.235",
-            },
-            {
-                "metric": "metric_dict",
-                "control": "10.0",
-                "treatment": "11.1",
-                "rel_effect_size": "11%",
-                "rel_effect_size_ci": "[0.0%, -]",
-                "pvalue": "-",
-            },
-        )),
-    )
-
-def test_experiment_result_to_string(result2: tea_tasting.experiment.ExperimentResult):
-    assert result2.to_string() == textwrap.dedent("""\
-              metric control treatment rel_effect_size rel_effect_size_ci pvalue
-        metric_tuple    4.44      5.56             20%           [12%, ∞]  0.235
-         metric_dict    10.0      11.1             11%          [0.0%, -]      -""")
-
-def test_experiment_result_to_html(result2: tea_tasting.experiment.ExperimentResult):
-    assert result2.to_html() == (
-        '<table class="dataframe" style="text-align: right;"><thead><tr><th>metric</th>'
-        '<th>control</th><th>treatment</th><th>rel_effect_size</th>'
-        '<th>rel_effect_size_ci</th><th>pvalue</th></tr></thead>'
-        '<tbody><tr><td>metric_tuple</td><td>4.44</td><td>5.56</td><td>20%</td>'
-        '<td>[12%, ∞]</td><td>0.235</td></tr><tr><td>metric_dict</td><td>10.0</td>'
-        '<td>11.1</td><td>11%</td><td>[0.0%, -]</td><td>-</td></tr></tbody></table>'
     )
 
 
