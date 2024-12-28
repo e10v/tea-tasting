@@ -203,8 +203,8 @@ def gran_metric(
 
         def analyze_granular(
             self,
-            control: pd.DataFrame,  # noqa: ARG002
-            treatment: pd.DataFrame,  # noqa: ARG002
+            control: pa.Table,  # noqa: ARG002
+            treatment: pa.Table,  # noqa: ARG002
         ) -> dict[str, Any]:
             return {}
 
@@ -346,7 +346,7 @@ def test_metric_base_granular_frame(
 
 def test_metric_base_granular_gran(
     gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, Any]],
-    correct_gran: dict[Any, pd.DataFrame],
+    correct_gran: dict[Any, pa.Table],
 ):
     gran_metric.analyze_granular = unittest.mock.MagicMock()
     gran_metric.analyze(correct_gran, control=0, treatment=1)
