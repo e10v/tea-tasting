@@ -43,20 +43,20 @@ def data_aggr(data_arrow: pa.Table) -> dict[Any, tea_tasting.aggr.Aggregates]:
     )
 
 @pytest.fixture
-def power_data_pandas() -> pa.Table:
+def power_data_arrow() -> pa.Table:
     return tea_tasting.datasets.make_users_data(
         n_users=100, covariates=True, seed=42,
         sessions_uplift=0, orders_uplift=0, revenue_uplift=0,
     )
 
 @pytest.fixture
-def power_data_aggr(power_data_pandas: pa.Table) -> tea_tasting.aggr.Aggregates:
+def power_data_aggr(power_data_arrow: pa.Table) -> tea_tasting.aggr.Aggregates:
     cols = (
         "sessions", "orders", "revenue",
         "sessions_covariate", "orders_covariate", "revenue_covariate",
     )
     return tea_tasting.aggr.read_aggregates(
-        power_data_pandas,
+        power_data_arrow,
         group_col=None,
         has_count=True,
         mean_cols=cols,
@@ -229,13 +229,13 @@ def test_ratio_of_means_analyze_ratio_less_use_norm(
     assert result.statistic == pytest.approx(-0.3573188986307722)
 
 
-def test_ratio_of_means_solve_power_frame(power_data_pandas: pa.Table):
+def test_ratio_of_means_solve_power_frame(power_data_arrow: pa.Table):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
         denom="sessions",
         rel_effect_size=0.1,
     )
-    results = metric.solve_power(power_data_pandas, "power")
+    results = metric.solve_power(power_data_arrow, "power")
     assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
     assert len(results) == 1
     result = results[0]
