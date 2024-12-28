@@ -5,8 +5,6 @@ from typing import TYPE_CHECKING, Any, NamedTuple, TypedDict
 
 import ibis
 import ibis.expr.types
-import narwhals as nw
-import pandas as pd
 import polars as pl
 import pyarrow as pa
 import pyarrow.compute as pc
@@ -23,7 +21,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from typing import Literal
 
-    import narwhals.typing  # noqa: TC004
+    import narwhals.typing
+    import pandas as pd
 
 
     Frame = ibis.expr.types.Table | pa.Table | pd.DataFrame | pl.LazyFrame
@@ -61,20 +60,20 @@ class _Metric(
         treatment: int,
         variant: str,
     ) -> _MetricResultTuple:
-        if not isinstance(data, pd.DataFrame):
-            if not isinstance(data, ibis.expr.types.Table):
-                data = nw.from_native(data)
-                if isinstance(data, nw.LazyFrame):
-                    data = data.collect()
-            data = data.to_pandas()
-
-        agg_data = data.loc[:, [variant, self.value]].groupby(variant).agg("mean")
-        contr_mean = agg_data.loc[control, self.value]
-        treat_mean = agg_data.loc[treatment, self.value]
+        if not isinstance(data, dict):
+            data = tea_tasting.aggr.read_aggregates(
+                data,
+                variant,
+                has_count=False,
+                mean_cols=(self.value,),
+                var_cols=(),
+                cov_cols=(),
+            )
         return _MetricResultTuple(
-            control=contr_mean,  # type: ignore
-            treatment=treat_mean,  # type: ignore
-            effect_size=treat_mean - contr_mean,  # type: ignore
+            control=data[control].mean(self.value),
+            treatment=data[treatment].mean(self.value),
+            effect_size=data[treatment].mean(self.value) -
+                data[control].mean(self.value),
         )
 
     def solve_power(
