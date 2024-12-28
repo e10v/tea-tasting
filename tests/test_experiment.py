@@ -1,3 +1,4 @@
+# pyright: reportAttributeAccessIssue=false
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, NamedTuple, TypedDict
@@ -7,6 +8,7 @@ import ibis.expr.types
 import narwhals as nw
 import pandas as pd
 import polars as pl
+import pyarrow as pa
 import pyarrow.compute as pc
 import pytest
 
@@ -22,7 +24,6 @@ if TYPE_CHECKING:
     from typing import Literal
 
     import narwhals.typing  # noqa: TC004
-    import pyarrow as pa
 
 
     Frame = ibis.expr.types.Table | pa.Table | pd.DataFrame | pl.LazyFrame
@@ -259,24 +260,29 @@ def data(request: pytest.FixtureRequest) -> Frame:
     return request.getfixturevalue(request.param)
 
 @pytest.fixture
-def data_pandas_multi(data_pandas: pd.DataFrame) -> pd.DataFrame:
-    return pd.concat((
-        data_pandas,
-        data_pandas.query("variant==1").assign(variant=2),
+def data_arrow_multi(data_arrow: pa.Table) -> pa.Table:
+    data2 = data_arrow.filter(pc.equal(data_arrow["variant"], pa.scalar(1)))
+    return pa.concat_tables((
+        data_arrow,
+        data2.set_column(
+            data_arrow.schema.get_field_index("variant"),
+            "variant",
+            pa.array([2] * data2.num_rows),
+        ),
     ))
 
 
 @pytest.fixture
 def ref_result(
-    data_pandas: pd.DataFrame,
+    data_arrow: pa.Table,
 ) -> tea_tasting.experiment.ExperimentResults:
     sessions = _Metric("sessions")
     orders = _MetricAggregated("orders")
     revenue = _MetricGranular("revenue")
     return tea_tasting.experiment.ExperimentResult(
-        avg_sessions=sessions.analyze(data_pandas, 0, 1, "variant"),
-        avg_orders=orders.analyze(data_pandas, 0, 1, "variant"),
-        avg_revenue=revenue.analyze(data_pandas, 0, 1, "variant"),  # type: ignore
+        avg_sessions=sessions.analyze(data_arrow, 0, 1, "variant"),
+        avg_orders=orders.analyze(data_arrow, 0, 1, "variant"),
+        avg_revenue=revenue.analyze(data_arrow, 0, 1, "variant"),  # type: ignore
     )
 
 
@@ -425,7 +431,7 @@ def test_experiment_analyze_gran(
         avg_revenue=ref_result["avg_revenue"])
 
 def test_experiment_analyze_all_pairs(
-    data_pandas_multi: pd.DataFrame,
+    data_arrow_multi: pa.Table,
     ref_result: tea_tasting.experiment.ExperimentResult,
 ):
     experiment = tea_tasting.experiment.Experiment({
@@ -433,22 +439,22 @@ def test_experiment_analyze_all_pairs(
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     })
-    results = experiment.analyze(data_pandas_multi, all_variants=True)
+    results = experiment.analyze(data_arrow_multi, all_variants=True)
     assert set(results.keys()) == {(0, 1), (0, 2), (1, 2)}
     assert results[0, 1] == ref_result
     assert results[0, 2] == ref_result
 
-def test_experiment_analyze_all_pairs_raises(data_pandas_multi: pd.DataFrame):
+def test_experiment_analyze_all_pairs_raises(data_arrow_multi: pa.Table):
     experiment = tea_tasting.experiment.Experiment({
         "avg_sessions": _Metric("sessions"),
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     })
     with pytest.raises(ValueError, match="all_variants"):
-        experiment.analyze(data_pandas_multi)
+        experiment.analyze(data_arrow_multi)
 
 def test_experiment_analyze_two_treatments(
-    data_pandas_multi: pd.DataFrame,
+    data_arrow_multi: pa.Table,
     ref_result: tea_tasting.experiment.ExperimentResult,
 ):
     experiment = tea_tasting.experiment.Experiment(
@@ -458,19 +464,19 @@ def test_experiment_analyze_two_treatments(
             "avg_revenue": _MetricGranular("revenue"),
         },
     )
-    results = experiment.analyze(data_pandas_multi, control=0, all_variants=True)
+    results = experiment.analyze(data_arrow_multi, control=0, all_variants=True)
     assert results == tea_tasting.experiment.ExperimentResults({
         (0, 1): ref_result,
         (0, 2): ref_result,
     })
 
 
-def test_experiment_solve_power(data_pandas: pd.DataFrame):
+def test_experiment_solve_power(data_arrow: pa.Table):
     experiment = tea_tasting.experiment.Experiment(
         metric=_Metric("sessions"),
         metric_aggr=_MetricAggregated("orders"),
     )
-    result = experiment.solve_power(data_pandas)
+    result = experiment.solve_power(data_arrow)
     assert result == tea_tasting.experiment.ExperimentPowerResult({
         "metric": tea_tasting.metrics.MetricPowerResults((
             _PowerResult(power=0.8, effect_size=1, rel_effect_size=0.05, n_obs=10_000),
