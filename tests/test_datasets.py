@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import pandas as pd
+import polars as pl
 import pyarrow as pa
 import pyarrow.compute as pc
 
@@ -28,9 +29,18 @@ def test_make_users_data_default():
 def test_make_users_data_pandas():
     n_users = 100
     data = tea_tasting.datasets.make_users_data(
-        seed=42, n_users=n_users, to_pandas=True)
+        seed=42, n_users=n_users, result_type="pandas")
     assert isinstance(data, pd.DataFrame)
     assert data.columns.to_list() == [
+        "user", "variant", "sessions", "orders", "revenue"]
+    assert data.shape[0] == n_users
+
+def test_make_users_data_polars():
+    n_users = 100
+    data = tea_tasting.datasets.make_users_data(
+        seed=42, n_users=n_users, result_type="polars")
+    assert isinstance(data, pl.DataFrame)
+    assert data.columns == [
         "user", "variant", "sessions", "orders", "revenue"]
     assert data.shape[0] == n_users
 
@@ -78,9 +88,18 @@ def test_make_sessions_data_default():
 def test_make_sessions_data_pandas():
     n_users = 100
     data = tea_tasting.datasets.make_sessions_data(
-        seed=42, n_users=n_users, to_pandas=True)
+        seed=42, n_users=n_users, result_type="pandas")
     assert isinstance(data, pd.DataFrame)
     assert data.columns.to_list() == [
+        "user", "variant", "sessions", "orders", "revenue"]
+    assert data.shape[0] > n_users
+
+def test_make_sessions_data_polars():
+    n_users = 100
+    data = tea_tasting.datasets.make_sessions_data(
+        seed=42, n_users=n_users, result_type="polars")
+    assert isinstance(data, pl.DataFrame)
+    assert data.columns == [
         "user", "variant", "sessions", "orders", "revenue"]
     assert data.shape[0] > n_users
 

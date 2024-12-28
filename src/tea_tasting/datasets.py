@@ -17,9 +17,14 @@ if TYPE_CHECKING:
     import numpy.typing as npt
 
     try:
-        from pandas import DataFrame
+        from pandas import DataFrame as PandasDataFrame
     except ImportError:
-        from typing import Any as DataFrame
+        from typing import Any as PandasDataFrame
+
+    try:
+        from polars import DataFrame as PolarsDataFrame
+    except ImportError:
+        from typing import Any as PolarsDataFrame
 
 
 @overload
@@ -35,7 +40,7 @@ def make_users_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    to_pandas: Literal[False] = False,
+    result_type: Literal["arrow"] = "arrow",
 ) -> pa.Table:
     ...
 
@@ -52,8 +57,25 @@ def make_users_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    to_pandas: Literal[True] = True,
-) -> DataFrame:
+    result_type: Literal["pandas"] = "pandas",
+) -> PandasDataFrame:
+    ...
+
+@overload
+def make_users_data(
+    *,
+    covariates: bool = False,
+    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    n_users: int = 4000,
+    ratio: float | int = 1,
+    sessions_uplift: float | int = 0.0,
+    orders_uplift: float = 0.1,
+    revenue_uplift: float = 0.1,
+    avg_sessions: float | int = 2,
+    avg_orders_per_session: float = 0.25,
+    avg_revenue_per_order: float | int = 10,
+    result_type: Literal["polars"] = "polars",
+) -> PolarsDataFrame:
     ...
 
 def make_users_data(
@@ -68,8 +90,8 @@ def make_users_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    to_pandas: bool = False,
-) -> pa.Table | DataFrame:
+    result_type: Literal["arrow", "pandas", "polars"] = "arrow",
+) -> pa.Table | PandasDataFrame | PolarsDataFrame:
     """Generate simulated data for A/B testing scenarios.
 
     Data mimics what you might encounter in an A/B test for an online store,
@@ -103,8 +125,12 @@ def make_users_data(
         avg_orders_per_session: Average number of orders per session.
             Should be less than `1`.
         avg_revenue_per_order: Average revenue per order.
-        to_pandas: If set to `True`, returns a Pandas DataFrame; otherwise,
-            returns a PyArrow Table.
+        result_type: Result type.
+
+    Result types:
+        - `"arrow"`: PyArrow Table.
+        - `"pandas"`: Pandas DataFrame.
+        - `"polars"`: Polars DataFrame.
 
     Returns:
         Simulated data for A/B testing scenarios.
@@ -164,7 +190,7 @@ def make_users_data(
         avg_sessions=avg_sessions,
         avg_orders_per_session=avg_orders_per_session,
         avg_revenue_per_order=avg_revenue_per_order,
-        to_pandas=to_pandas,
+        result_type=result_type,
         explode_sessions=False,
     )
 
@@ -182,7 +208,7 @@ def make_sessions_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    to_pandas: Literal[False] = False,
+    result_type: Literal["arrow"] = "arrow",
 ) -> pa.Table:
     ...
 
@@ -199,8 +225,25 @@ def make_sessions_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    to_pandas: Literal[True] = True,
-) -> DataFrame:
+    result_type: Literal["pandas"] = "pandas",
+) -> PandasDataFrame:
+    ...
+
+@overload
+def make_sessions_data(
+    *,
+    covariates: bool = False,
+    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    n_users: int = 4000,
+    ratio: float | int = 1,
+    sessions_uplift: float | int = 0.0,
+    orders_uplift: float = 0.1,
+    revenue_uplift: float = 0.1,
+    avg_sessions: float | int = 2,
+    avg_orders_per_session: float = 0.25,
+    avg_revenue_per_order: float | int = 10,
+    result_type: Literal["polars"] = "polars",
+) -> PolarsDataFrame:
     ...
 
 def make_sessions_data(
@@ -215,8 +258,8 @@ def make_sessions_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    to_pandas: bool = False,
-) -> pa.Table | DataFrame:
+    result_type: Literal["arrow", "pandas", "polars"] = "arrow",
+) -> pa.Table | PandasDataFrame | PolarsDataFrame:
     """Generate simulated user data for A/B testing scenarios.
 
     Data mimics what you might encounter in an A/B test for an online store,
@@ -250,8 +293,12 @@ def make_sessions_data(
         avg_orders_per_session: Average number of orders per session.
             Should be less than `1`.
         avg_revenue_per_order: Average revenue per order.
-        to_pandas: If set to `True`, returns a Pandas DataFrame; otherwise,
-            returns a PyArrow Table.
+        result_type: Result type.
+
+    Result types:
+        - `"arrow"`: PyArrow Table.
+        - `"pandas"`: Pandas DataFrame.
+        - `"polars"`: Polars DataFrame.
 
     Returns:
         Simulated data for A/B testing scenarios.
@@ -311,7 +358,7 @@ def make_sessions_data(
         avg_sessions=avg_sessions,
         avg_orders_per_session=avg_orders_per_session,
         avg_revenue_per_order=avg_revenue_per_order,
-        to_pandas=to_pandas,
+        result_type=result_type,
         explode_sessions=True,
     )
 
@@ -328,9 +375,9 @@ def _make_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
+    result_type: Literal["arrow", "pandas", "polars"] = "arrow",
     explode_sessions: bool = False,
-    to_pandas: bool = False,
-) -> pa.Table | DataFrame:
+) -> pa.Table | PandasDataFrame | PolarsDataFrame:
     _check_params(
         n_users=n_users,
         ratio=ratio,
@@ -421,9 +468,12 @@ def _make_data(
             "revenue_covariate": revenue_covariate,
         }
 
-    if to_pandas:
+    if result_type == "pandas":
         import pandas as pd
         return pd.DataFrame(data)
+    if result_type == "polars":
+        import polars as pl
+        return pl.DataFrame(data)
     return pa.table(data)
 
 
