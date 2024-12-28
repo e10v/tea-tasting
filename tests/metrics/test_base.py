@@ -110,22 +110,22 @@ def aggr_cols() -> tea_tasting.metrics.base.AggrCols:
 
 @pytest.fixture
 def correct_aggrs(
-    data_pandas: pd.DataFrame,
+    data_arrow: pa.Table,
     aggr_cols: tea_tasting.metrics.base.AggrCols,
 ) -> dict[Any, tea_tasting.aggr.Aggregates]:
     return tea_tasting.aggr.read_aggregates(
-        data_pandas,
+        data_arrow,
         group_col="variant",
         **aggr_cols._asdict(),
     )
 
 @pytest.fixture
 def correct_aggr(
-    data_pandas: pd.DataFrame,
+    data_arrow: pa.Table,
     aggr_cols: tea_tasting.metrics.base.AggrCols,
 ) -> tea_tasting.aggr.Aggregates:
     return tea_tasting.aggr.read_aggregates(
-        data_pandas,
+        data_arrow,
         group_col=None,
         **aggr_cols._asdict(),
     )
@@ -253,11 +253,11 @@ def test_metric_power_results_to_dicts():
 
 def test_metric_base_aggregated_analyze_frame(
     aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]],
-    data_pandas: pd.DataFrame,
+    data_arrow: pa.Table,
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
     aggr_metric.analyze_aggregates = unittest.mock.MagicMock()
-    aggr_metric.analyze(data_pandas, control=0, treatment=1, variant="variant")
+    aggr_metric.analyze(data_arrow, control=0, treatment=1, variant="variant")
     aggr_metric.analyze_aggregates.assert_called_once()
     kwargs = aggr_metric.analyze_aggregates.call_args.kwargs
     _compare_aggrs(kwargs["control"], correct_aggrs[0])
@@ -277,11 +277,11 @@ def test_metric_base_aggregated_analyze_aggrs(
 
 def test_power_base_aggregated_analyze_frame(
     aggr_power: tea_tasting.metrics.base.PowerBaseAggregated[Any],
-    data_pandas: pd.DataFrame,
+    data_arrow: pa.Table,
     correct_aggr: tea_tasting.aggr.Aggregates,
 ):
     aggr_power.solve_power_from_aggregates = unittest.mock.MagicMock()
-    aggr_power.solve_power(data_pandas, "effect_size")
+    aggr_power.solve_power(data_arrow, "effect_size")
     aggr_power.solve_power_from_aggregates.assert_called_once()
     kwargs = aggr_power.solve_power_from_aggregates.call_args.kwargs
     _compare_aggrs(kwargs["data"], correct_aggr)
@@ -300,12 +300,12 @@ def test_power_base_aggregated_analyze_aggr(
 
 
 def test_aggregate_by_variants_frame(
-    data_pandas: pd.DataFrame,
+    data_arrow: pa.Table,
     aggr_cols: tea_tasting.metrics.base.AggrCols,
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
     aggrs = tea_tasting.metrics.base.aggregate_by_variants(
-        data_pandas,
+        data_arrow,
         aggr_cols=aggr_cols,
         variant="variant",
     )
@@ -325,20 +325,20 @@ def test_aggregate_by_variants_aggrs(
     _compare_aggrs(aggrs[1], correct_aggrs[1])
 
 def test_aggregate_by_variants_raises(
-    data_pandas: pd.DataFrame,
+    data_arrow: pa.Table,
     aggr_cols: tea_tasting.metrics.base.AggrCols,
 ):
     with pytest.raises(ValueError, match="variant"):
-        tea_tasting.metrics.base.aggregate_by_variants(data_pandas, aggr_cols=aggr_cols)
+        tea_tasting.metrics.base.aggregate_by_variants(data_arrow, aggr_cols=aggr_cols)
 
 
 def test_metric_base_granular_frame(
     gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, Any]],
-    data_pandas: pd.DataFrame,
+    data_arrow: pa.Table,
     correct_gran: dict[Any, pa.Table],
 ):
     gran_metric.analyze_granular = unittest.mock.MagicMock()
-    gran_metric.analyze(data_pandas, control=0, treatment=1, variant="variant")
+    gran_metric.analyze(data_arrow, control=0, treatment=1, variant="variant")
     gran_metric.analyze_granular.assert_called_once()
     kwargs = gran_metric.analyze_granular.call_args.kwargs
     assert kwargs["control"].equals(correct_gran[0])
@@ -382,8 +382,8 @@ def test_read_granular_dict(
     assert gran[1].equals(correct_gran[1])
 
 def test_read_granular_raises(
-    data_pandas: pd.DataFrame,
+    data_arrow: pa.Table,
     cols: tuple[str, ...],
 ):
     with pytest.raises(ValueError, match="variant"):
-        tea_tasting.metrics.base.read_granular(data_pandas, cols=cols)
+        tea_tasting.metrics.base.read_granular(data_arrow, cols=cols)
