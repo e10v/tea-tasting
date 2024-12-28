@@ -5,6 +5,10 @@ import textwrap
 from typing import TYPE_CHECKING
 
 import pandas as pd
+import pandas.testing
+import polars as pl
+import polars.testing
+import pyarrow as pa
 import pytest
 
 import tea_tasting.utils
@@ -174,10 +178,25 @@ def dicts_repr() -> tea_tasting.utils.DictsReprMixin:
             )
     return DictsRepr()
 
+def test_dicts_repr_mixin_to_arrow(dicts_repr: tea_tasting.utils.DictsReprMixin):
+    assert dicts_repr.to_arrow().equals(pa.table({
+        "a": (0.12345, 0.34567, 0.56789),
+        "b": (0.23456, 0.45678, 0.67890),
+    }))
+
 def test_dicts_repr_mixin_to_pandas(dicts_repr: tea_tasting.utils.DictsReprMixin):
-    pd.testing.assert_frame_equal(
+    pandas.testing.assert_frame_equal(
         dicts_repr.to_pandas(),
         pd.DataFrame({
+            "a": (0.12345, 0.34567, 0.56789),
+            "b": (0.23456, 0.45678, 0.67890),
+        }),
+    )
+
+def test_dicts_repr_mixin_to_polars(dicts_repr: tea_tasting.utils.DictsReprMixin):
+    polars.testing.assert_frame_equal(
+        dicts_repr.to_polars(),
+        pl.DataFrame({
             "a": (0.12345, 0.34567, 0.56789),
             "b": (0.23456, 0.45678, 0.67890),
         }),

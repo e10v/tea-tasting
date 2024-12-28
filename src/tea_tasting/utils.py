@@ -11,15 +11,22 @@ import math
 from typing import TYPE_CHECKING
 import xml.etree.ElementTree as ET
 
+import pyarrow as pa
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
     from typing import Any, Literal, TypeVar
 
     try:
-        from pandas import DataFrame
+        from pandas import DataFrame as PandasDataFrame
     except ImportError:
-        from typing import Any as DataFrame
+        from typing import Any as PandasDataFrame
+
+    try:
+        from polars import DataFrame as PolarsDataFrame
+    except ImportError:
+        from typing import Any as PolarsDataFrame
 
     R = TypeVar("R")
 
@@ -227,10 +234,19 @@ class DictsReprMixin(abc.ABC):
     def to_dicts(self) -> Sequence[dict[str, Any]]:
         """Convert the object to a sequence of dictionaries."""
 
-    def to_pandas(self) -> DataFrame:
+    def to_arrow(self) -> pa.Table:
+        """Convert the object to a PyArrow Table."""
+        return pa.Table.from_pylist(self.to_dicts())
+
+    def to_pandas(self) -> PandasDataFrame:
         """Convert the object to a Pandas DataFrame."""
         import pandas as pd
         return pd.DataFrame.from_records(self.to_dicts())
+
+    def to_polars(self) -> PolarsDataFrame:
+        """Convert the object to a Polars DataFrame."""
+        import polars as pl
+        return pl.from_dicts(self.to_dicts())
 
     def to_pretty_dicts(
         self,
