@@ -29,7 +29,7 @@ def test_make_users_data_default():
 def test_make_users_data_pandas():
     n_users = 100
     data = tea_tasting.datasets.make_users_data(
-        seed=42, n_users=n_users, result_type="pandas")
+        seed=42, n_users=n_users, return_type="pandas")
     assert isinstance(data, pd.DataFrame)
     assert data.columns.to_list() == [
         "user", "variant", "sessions", "orders", "revenue"]
@@ -38,7 +38,7 @@ def test_make_users_data_pandas():
 def test_make_users_data_polars():
     n_users = 100
     data = tea_tasting.datasets.make_users_data(
-        seed=42, n_users=n_users, result_type="polars")
+        seed=42, n_users=n_users, return_type="polars")
     assert isinstance(data, pl.DataFrame)
     assert data.columns == [
         "user", "variant", "sessions", "orders", "revenue"]
@@ -88,7 +88,7 @@ def test_make_sessions_data_default():
 def test_make_sessions_data_pandas():
     n_users = 100
     data = tea_tasting.datasets.make_sessions_data(
-        seed=42, n_users=n_users, result_type="pandas")
+        seed=42, n_users=n_users, return_type="pandas")
     assert isinstance(data, pd.DataFrame)
     assert data.columns.to_list() == [
         "user", "variant", "sessions", "orders", "revenue"]
@@ -97,7 +97,7 @@ def test_make_sessions_data_pandas():
 def test_make_sessions_data_polars():
     n_users = 100
     data = tea_tasting.datasets.make_sessions_data(
-        seed=42, n_users=n_users, result_type="polars")
+        seed=42, n_users=n_users, return_type="polars")
     assert isinstance(data, pl.DataFrame)
     assert data.columns == [
         "user", "variant", "sessions", "orders", "revenue"]

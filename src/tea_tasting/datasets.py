@@ -40,7 +40,7 @@ def make_users_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    result_type: Literal["arrow"] = "arrow",
+    return_type: Literal["arrow"] = "arrow",
 ) -> pa.Table:
     ...
 
@@ -57,7 +57,7 @@ def make_users_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    result_type: Literal["pandas"] = "pandas",
+    return_type: Literal["pandas"] = "pandas",
 ) -> PandasDataFrame:
     ...
 
@@ -74,7 +74,7 @@ def make_users_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    result_type: Literal["polars"] = "polars",
+    return_type: Literal["polars"] = "polars",
 ) -> PolarsDataFrame:
     ...
 
@@ -90,7 +90,7 @@ def make_users_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    result_type: Literal["arrow", "pandas", "polars"] = "arrow",
+    return_type: Literal["arrow", "pandas", "polars"] = "arrow",
 ) -> pa.Table | PandasDataFrame | PolarsDataFrame:
     """Generate simulated data for A/B testing scenarios.
 
@@ -125,7 +125,7 @@ def make_users_data(
         avg_orders_per_session: Average number of orders per session.
             Should be less than `1`.
         avg_revenue_per_order: Average revenue per order.
-        result_type: Result type.
+        return_type: Result type.
 
     Result types:
         - `"arrow"`: PyArrow Table.
@@ -141,7 +141,51 @@ def make_users_data(
 
 
         data = tt.make_users_data(seed=42)
-        data
+        print(data)
+        #> pyarrow.Table
+        #> user: int64
+        #> variant: int64
+        #> sessions: int64
+        #> orders: int64
+        #> revenue: double
+        #> ----
+        #> user: [[0,1,2,3,4,...,3995,3996,3997,3998,3999]]
+        #> variant: [[1,0,1,1,0,...,0,0,0,0,0]]
+        #> sessions: [[2,2,2,2,1,...,2,2,3,1,5]]
+        #> orders: [[1,1,1,1,1,...,0,0,0,0,2]]
+        #> revenue: [[9.166147128806545,6.4340787057460656,7.943873223822707,15.928674729738708,7.136917019113867,...,0,0,0,0,17.162458516177704]]
+        ```
+
+        With covariates:
+
+        ```python
+        data = tt.make_users_data(seed=42, covariates=True)
+        print(data)
+        #> pyarrow.Table
+        #> user: int64
+        #> variant: int64
+        #> sessions: int64
+        #> orders: int64
+        #> revenue: double
+        #> sessions_covariate: int64
+        #> orders_covariate: int64
+        #> revenue_covariate: double
+        #> ----
+        #> user: [[0,1,2,3,4,...,3995,3996,3997,3998,3999]]
+        #> variant: [[1,0,1,1,0,...,0,0,0,0,0]]
+        #> sessions: [[2,2,2,2,1,...,2,2,3,1,5]]
+        #> orders: [[1,1,1,1,1,...,0,0,0,0,2]]
+        #> revenue: [[9.166147128806545,6.4340787057460656,7.943873223822707,15.928674729738708,7.136917019113867,...,0,0,0,0,17.162458516177704]]
+        #> sessions_covariate: [[3,4,4,1,1,...,1,3,2,1,5]]
+        #> orders_covariate: [[2,1,2,0,1,...,0,1,0,0,0]]
+        #> revenue_covariate: [[19.191712010123307,2.7707490091913525,22.56842219448677,0,13.683796263730468,...,0,13.517967243105218,0,0,0]]
+        ```
+
+        As Pandas DataFrame:
+
+        ```python
+        data = tt.make_users_data(seed=42, return_type="pandas")
+        print(data)
         #>       user  variant  sessions  orders    revenue
         #> 0        0        1         2       1   9.166147
         #> 1        1        0         2       1   6.434079
@@ -158,25 +202,34 @@ def make_users_data(
         #> [4000 rows x 5 columns]
         ```
 
-        With covariates:
+        As Polars DataFrame:
 
         ```python
-        data = tt.make_users_data(seed=42, covariates=True)
-        data
-        #>       user  variant  sessions  orders    revenue  sessions_covariate  orders_covariate  revenue_covariate
-        #> 0        0        1         2       1   9.166147                   3                 2          19.191712
-        #> 1        1        0         2       1   6.434079                   4                 1           2.770749
-        #> 2        2        1         2       1   7.943873                   4                 2          22.568422
-        #> 3        3        1         2       1  15.928675                   1                 0           0.000000
-        #> 4        4        0         1       1   7.136917                   1                 1          13.683796
-        #> ...    ...      ...       ...     ...        ...                 ...               ...                ...
-        #> 3995  3995        0         2       0   0.000000                   1                 0           0.000000
-        #> 3996  3996        0         2       0   0.000000                   3                 1          13.517967
-        #> 3997  3997        0         3       0   0.000000                   2                 0           0.000000
-        #> 3998  3998        0         1       0   0.000000                   1                 0           0.000000
-        #> 3999  3999        0         5       2  17.162459                   5                 0           0.000000
-        #>
-        #> [4000 rows x 8 columns]
+        import polars as pl
+
+        data = tt.make_users_data(seed=42, return_type="polars")
+        with pl.Config(
+            float_precision=5,
+            tbl_cell_alignment="RIGHT",
+            tbl_formatting="NOTHING",
+            trim_decimal_zeros=False,
+        ):
+            print(data)
+        #> shape: (4_000, 5)
+        #>  user  variant  sessions  orders   revenue
+        #>   ---      ---       ---     ---       ---
+        #>   i64      i64       i64     i64       f64
+        #>     0        1         2       1   9.16615
+        #>     1        0         2       1   6.43408
+        #>     2        1         2       1   7.94387
+        #>     3        1         2       1  15.92867
+        #>     4        0         1       1   7.13692
+        #>     …        …         …       …         …
+        #>  3995        0         2       0   0.00000
+        #>  3996        0         2       0   0.00000
+        #>  3997        0         3       0   0.00000
+        #>  3998        0         1       0   0.00000
+        #>  3999        0         5       2  17.16246
         ```
     """  # noqa: E501
     return _make_data(
@@ -190,7 +243,7 @@ def make_users_data(
         avg_sessions=avg_sessions,
         avg_orders_per_session=avg_orders_per_session,
         avg_revenue_per_order=avg_revenue_per_order,
-        result_type=result_type,
+        return_type=return_type,
         explode_sessions=False,
     )
 
@@ -208,7 +261,7 @@ def make_sessions_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    result_type: Literal["arrow"] = "arrow",
+    return_type: Literal["arrow"] = "arrow",
 ) -> pa.Table:
     ...
 
@@ -225,7 +278,7 @@ def make_sessions_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    result_type: Literal["pandas"] = "pandas",
+    return_type: Literal["pandas"] = "pandas",
 ) -> PandasDataFrame:
     ...
 
@@ -242,7 +295,7 @@ def make_sessions_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    result_type: Literal["polars"] = "polars",
+    return_type: Literal["polars"] = "polars",
 ) -> PolarsDataFrame:
     ...
 
@@ -258,7 +311,7 @@ def make_sessions_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    result_type: Literal["arrow", "pandas", "polars"] = "arrow",
+    return_type: Literal["arrow", "pandas", "polars"] = "arrow",
 ) -> pa.Table | PandasDataFrame | PolarsDataFrame:
     """Generate simulated user data for A/B testing scenarios.
 
@@ -293,7 +346,7 @@ def make_sessions_data(
         avg_orders_per_session: Average number of orders per session.
             Should be less than `1`.
         avg_revenue_per_order: Average revenue per order.
-        result_type: Result type.
+        return_type: Result type.
 
     Result types:
         - `"arrow"`: PyArrow Table.
@@ -310,6 +363,50 @@ def make_sessions_data(
 
         data = tt.make_sessions_data(seed=42)
         data
+        #> pyarrow.Table
+        #> user: int64
+        #> variant: int64
+        #> sessions: int64
+        #> orders: int64
+        #> revenue: double
+        #> ----
+        #> user: [[0,0,1,1,2,...,3999,3999,3999,3999,3999]]
+        #> variant: [[1,1,0,0,1,...,0,0,0,0,0]]
+        #> sessions: [[1,1,1,1,1,...,1,1,1,1,1]]
+        #> orders: [[1,1,1,1,1,...,1,0,1,1,0]]
+        #> revenue: [[5.88717816119309,6.131079903793326,2.614675492093661,12.296074812201192,11.573409274639534,...,23.63494099585371,0,2.396078290493153,24.538111422839766,0]]
+        ```
+
+        With covariates:
+
+        ```python
+        data = tt.make_sessions_data(seed=42, covariates=True)
+        data
+        #> pyarrow.Table
+        #> user: int64
+        #> variant: int64
+        #> sessions: int64
+        #> orders: int64
+        #> revenue: double
+        #> sessions_covariate: double
+        #> orders_covariate: double
+        #> revenue_covariate: double
+        #> ----
+        #> user: [[0,0,1,1,2,...,3999,3999,3999,3999,3999]]
+        #> variant: [[1,1,0,0,1,...,0,0,0,0,0]]
+        #> sessions: [[1,1,1,1,1,...,1,1,1,1,1]]
+        #> orders: [[1,1,1,1,1,...,1,0,1,1,0]]
+        #> revenue: [[5.88717816119309,6.131079903793326,2.614675492093661,12.296074812201192,11.573409274639534,...,23.63494099585371,0,2.396078290493153,24.538111422839766,0]]
+        #> sessions_covariate: [[1.5,1.5,0,0,1.5,...,0.2,0.2,0.2,0.2,0.2]]
+        #> orders_covariate: [[0.5,0.5,0,0,1.5,...,0,0,0,0,0]]
+        #> revenue_covariate: [[1.2367323749905585,1.2367323749905585,0,0,12.324434081065741,...,0,0,0,0,0]]
+        ```
+
+        As Pandas DataFrame:
+
+        ```python
+        data = tt.make_sessions_data(seed=42, return_type="pandas")
+        print(data)
         #>       user  variant  sessions  orders    revenue
         #> 0        0        1         1       1   5.887178
         #> 1        0        1         1       1   6.131080
@@ -326,25 +423,34 @@ def make_sessions_data(
         #> [7958 rows x 5 columns]
         ```
 
-        With covariates:
+        As Polars DataFrame:
 
         ```python
-        data = tt.make_sessions_data(seed=42, covariates=True)
-        data
-        #>       user  variant  sessions  orders    revenue  sessions_covariate  orders_covariate  revenue_covariate
-        #> 0        0        1         1       1   5.887178                 1.5               0.5           1.236732
-        #> 1        0        1         1       1   6.131080                 1.5               0.5           1.236732
-        #> 2        1        0         1       1   2.614675                 0.0               0.0           0.000000
-        #> 3        1        0         1       1  12.296075                 0.0               0.0           0.000000
-        #> 4        2        1         1       1  11.573409                 1.5               1.5          12.324434
-        #> ...    ...      ...       ...     ...        ...                 ...               ...                ...
-        #> 7953  3999        0         1       1  23.634941                 0.2               0.0           0.000000
-        #> 7954  3999        0         1       0   0.000000                 0.2               0.0           0.000000
-        #> 7955  3999        0         1       1   2.396078                 0.2               0.0           0.000000
-        #> 7956  3999        0         1       1  24.538111                 0.2               0.0           0.000000
-        #> 7957  3999        0         1       0   0.000000                 0.2               0.0           0.000000
-        #>
-        #> [7958 rows x 8 columns]
+        import polars as pl
+
+        data = tt.make_sessions_data(seed=42, return_type="polars")
+        with pl.Config(
+            float_precision=5,
+            tbl_cell_alignment="RIGHT",
+            tbl_formatting="NOTHING",
+            trim_decimal_zeros=False,
+        ):
+            print(data)
+        #> shape: (7_958, 5)
+        #>  user  variant  sessions  orders   revenue
+        #>   ---      ---       ---     ---       ---
+        #>   i64      i64       i64     i64       f64
+        #>     0        1         1       1   5.88718
+        #>     0        1         1       1   6.13108
+        #>     1        0         1       1   2.61468
+        #>     1        0         1       1  12.29607
+        #>     2        1         1       1  11.57341
+        #>     …        …         …       …         …
+        #>  3999        0         1       1  23.63494
+        #>  3999        0         1       0   0.00000
+        #>  3999        0         1       1   2.39608
+        #>  3999        0         1       1  24.53811
+        #>  3999        0         1       0   0.00000
         ```
     """  # noqa: E501
     return _make_data(
@@ -358,7 +464,7 @@ def make_sessions_data(
         avg_sessions=avg_sessions,
         avg_orders_per_session=avg_orders_per_session,
         avg_revenue_per_order=avg_revenue_per_order,
-        result_type=result_type,
+        return_type=return_type,
         explode_sessions=True,
     )
 
@@ -375,7 +481,7 @@ def _make_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    result_type: Literal["arrow", "pandas", "polars"] = "arrow",
+    return_type: Literal["arrow", "pandas", "polars"] = "arrow",
     explode_sessions: bool = False,
 ) -> pa.Table | PandasDataFrame | PolarsDataFrame:
     _check_params(
@@ -468,10 +574,10 @@ def _make_data(
             "revenue_covariate": revenue_covariate,
         }
 
-    if result_type == "pandas":
+    if return_type == "pandas":
         import pandas as pd
         return pd.DataFrame(data)
-    if result_type == "polars":
+    if return_type == "polars":
         import polars as pl
         return pl.DataFrame(data)
     return pa.table(data)

@@ -27,6 +27,7 @@ First, let's prepare a demo database:
 
 ```python
 import ibis
+import polars as pl
 import tea_tasting as tt
 
 
@@ -35,7 +36,7 @@ con = ibis.duckdb.connect()
 con.create_table("users_data", users_data)
 #> DatabaseTable: memory.main.users_data
 #>   user     int64
-#>   variant  uint8
+#>   variant  int64
 #>   sessions int64
 #>   orders   int64
 #>   revenue  float64
@@ -51,7 +52,7 @@ See the [Ibis documentation on how to create connections](https://ibis-project.o
 
 ## Querying experimental data
 
-Method `con.create_table` in the example above returns an instance of Ibis Table which already can be used in the analysis of the experiment. But let's see how to use an SQL query to create Ibis Table:
+Method `con.create_table` in the example above returns an Ibis Table which already can be used in the analysis of the experiment. But let's see how to use an SQL query to create an Ibis Table:
 
 ```python
 data = con.sql("select * from users_data")
@@ -61,30 +62,39 @@ print(data)
 #>     select * from users_data
 #>   schema:
 #>     user     int64
-#>     variant  uint8
+#>     variant  int64
 #>     sessions int64
 #>     orders   int64
 #>     revenue  float64
 ```
 
-It's a very simple query. In real world, you might need to use joins, aggregations, and CTEs to get the data. You can define any SQL query supported by your data backend and use it to create Ibis Table.
+It's a very simple query. In the real world, you might need to use joins, aggregations, and CTEs to get the data. You can define any SQL query supported by your data backend and use it to create Ibis Table.
 
 Keep in mind that **tea-tasting** assumes that:
 
 - Data is grouped by randomization units, such as individual users.
-- There is a column indicating variant of the A/B test (typically labeled as A, B, etc.).
+- There is a column indicating the variant of the A/B test (typically labeled as A, B, etc.).
 - All necessary columns for metric calculations (like the number of orders, revenue, etc.) are included in the table.
 
 Ibis Table is a lazy object. It doesn't fetch the data when created. You can use Ibis DataFrame API to query the table and fetch the result:
 
 ```python
-print(data.head(5).to_pandas())
-#>    user  variant  sessions  orders    revenue
-#> 0     0        1         2       1   9.166147
-#> 1     1        0         2       1   6.434079
-#> 2     2        1         2       1   7.943873
-#> 3     3        1         2       1  15.928675
-#> 4     4        0         1       1   7.136917
+with pl.Config(
+    float_precision=5,
+    tbl_cell_alignment="RIGHT",
+    tbl_formatting="NOTHING",
+    trim_decimal_zeros=False,
+):
+    print(data.head(5).to_polars())
+#> shape: (5, 5)
+#>  user  variant  sessions  orders   revenue
+#>   ---      ---       ---     ---       ---
+#>   i64      i64       i64     i64       f64
+#>     0        1         2       1   9.16615
+#>     1        0         2       1   6.43408
+#>     2        1         2       1   7.94387
+#>     3        1         2       1  15.92867
+#>     4        0         1       1   7.13692
 ```
 
 ## Ibis example
@@ -104,7 +114,7 @@ print(aggr_data)
 #>     select * from users_data
 #>   schema:
 #>     user     int64
-#>     variant  uint8
+#>     variant  int64
 #>     sessions int64
 #>     orders   int64
 #>     revenue  float64
@@ -122,10 +132,19 @@ print(aggr_data)
 `aggr_data` is another Ibis Table defined as a query over the previously defined `data`. Let's fetch the result:
 
 ```python
-print(aggr_data.to_pandas())
-#>    variant  sessions_per_user  orders_per_session  orders_per_user  revenue_per_user
-#> 0        0           1.996045            0.265726         0.530400          5.241079
-#> 1        1           1.982802            0.289031         0.573091          5.730132
+with pl.Config(
+    float_precision=5,
+    tbl_cell_alignment="RIGHT",
+    tbl_formatting="NOTHING",
+    trim_decimal_zeros=False,
+):
+    print(aggr_data.to_polars())
+#> shape: (2, 5)
+#>  variant  sessions_per_user  orders_per_session  orders_per_user  revenue_per_user
+#>      ---                ---                 ---              ---               ---
+#>      i64                f64                 f64              f64               f64
+#>        0            1.99605             0.26573          0.53040           5.24108
+#>        1            1.98280             0.28903          0.57309           5.73013
 ```
 
 Internally, Ibis compiles a Table to an SQL query supported by the backend:
@@ -151,7 +170,7 @@ See [Ibis documentation](https://ibis-project.org/tutorials/getting_started) for
 
 ## Experiment analysis
 
-The example above shows how to query the metric averages. But for statistical inference it's not enough. For example, Student's t-test and Z-test also require number of rows and variance. And analysis of ratio metrics and variance reduction with CUPED require covariances.
+The example above shows how to query the metric averages. But for statistical inference, it's not enough. For example, Student's t-test and Z-test also require number of rows and variance. Additionally, analysis of ratio metrics and variance reduction with CUPED requires covariances.
 
 Querying all the required statistics manually can be a daunting and error-prone task. But don't worry—**tea-tasting** does this work for you. You just need to specify the metrics:
 
@@ -171,9 +190,9 @@ print(result)
 #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 ```
 
-In the example above, **tea-tasting** fetches all the required statistics with a single query and then uses them to analyse the experiment.
+In the example above, **tea-tasting** fetches all the required statistics with a single query and then uses them to analyze the experiment.
 
-Some statistical methods, like Bootstrap, require granular data for the analysis. In this case, **tea-tasting** fetches the detailed data as well.
+Some statistical methods, like bootstrap, require granular data for analysis. In this case, **tea-tasting** fetches the detailed data as well.
 
 ## Example with CUPED
 
@@ -184,7 +203,7 @@ users_data_with_cov = tt.make_users_data(seed=42, covariates=True)
 con.create_table("users_data_with_cov", users_data_with_cov)
 #> DatabaseTable: memory.main.users_data_with_cov
 #>   user               int64
-#>   variant            uint8
+#>   variant            int64
 #>   sessions           int64
 #>   orders             int64
 #>   revenue            float64
@@ -215,14 +234,11 @@ print(result_with_cov)
 
 ## Polars example
 
-An example of analysis using a Polars DataFrame as input data:
+Here’s an example of how to analyze data using a Polars DataFrame:
 
 ```python
-import polars as pl
-
-
-polars_data = pl.from_pandas(users_data)
-print(experiment.analyze(polars_data))
+data_polars = pl.from_arrow(users_data)
+print(experiment.analyze(data_polars))
 #>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
 #>  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
 #> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762

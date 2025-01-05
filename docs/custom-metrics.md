@@ -2,12 +2,12 @@
 
 ## Intro
 
-**tea-tasting** supports Student's t-test, Z-test, and [some other statistical tests](api/metrics/index.md) out of the box. However, you might want to analyze an experiment using other statistical criteria. In this case you can define a custom metric with statistical test of your choice.
+**tea-tasting** supports Student's t-test, Z-test, and [some other statistical tests](api/metrics/index.md) out of the box. However, you might want to analyze an experiment using other statistical criteria. In this case, you can define a custom metric with a statistical test of your choice.
 
 In **tea-tasting**, there are two types of metrics:
 
-- Metrics that require only aggregated statistics for analysis.
-- Metrics that require granular data for analysis.
+- Metrics that require only aggregated statistics for the analysis.
+- Metrics that require granular data for the analysis.
 
 This guide explains how to define a custom metric for each type.
 
@@ -17,7 +17,7 @@ First, let's import all the required modules and prepare the data:
 from typing import Literal, NamedTuple
 
 import numpy as np
-import pandas as pd
+import pyarrow as pa
 import scipy.stats
 import tea_tasting as tt
 import tea_tasting.aggr
@@ -26,7 +26,7 @@ import tea_tasting.metrics
 import tea_tasting.utils
 
 
-data = tt.make_users_data(seed=42)
+data = tt.make_users_data(seed=42, return_type="pandas")
 data["has_order"] = data.orders.gt(0).astype(int)
 print(data)
 #>       user  variant  sessions  orders    revenue  has_order
@@ -63,7 +63,7 @@ class ProportionResult(NamedTuple):
     statistic: float
 ```
 
-The second step is defining the metric class itself. Metric based on aggregated statistics should be a subclass of [`MetricBaseAggregated`](api/metrics/base.md#tea_tasting.metrics.base.MetricBaseAggregated). `MetricBaseAggregated` is a generic class with the result class as a type variable.
+The second step is defining the metric class itself. A metric based on aggregated statistics should be a subclass of [`MetricBaseAggregated`](api/metrics/base.md#tea_tasting.metrics.base.MetricBaseAggregated). `MetricBaseAggregated` is a generic class with the result class as a type variable.
 
 The metric should have the following methods and properties defined:
 
@@ -119,15 +119,15 @@ class Proportion(tea_tasting.metrics.MetricBaseAggregated[ProportionResult]):
         )
 ```
 
-Method `__init__` save metric parameters to be used in analysis. You can use utility functions [`check_scalar`](api/utils.md#tea_tasting.utils.check_scalar) and [`auto_check`](api/utils.md#tea_tasting.utils.auto_check) to check parameter values.
+Method `__init__` saves metric parameters to be used in the analysis. You can use utility functions [`check_scalar`](api/utils.md#tea_tasting.utils.check_scalar) and [`auto_check`](api/utils.md#tea_tasting.utils.auto_check) to check parameter values.
 
 Property `aggr_cols` returns an instance of [`AggrCols`](api/metrics/base.md#tea_tasting.metrics.base.AggrCols). Analysis of proportion requires the number of rows (`has_count=True`) and the average value for the column of interest (`mean_cols=(self.column,)`) for each variant.
 
 Method `analyze_aggregates` accepts two parameters: `control` and `treatment` data as instances of class [`Aggregates`](api/aggr.md#tea_tasting.aggr.Aggregates). They contain values for statistics and columns specified in `aggr_cols`.
 
-Method `analyze_aggregates` returns an instance of `ProportionResult`, defined earlier, with analysis result.
+Method `analyze_aggregates` returns an instance of `ProportionResult`, defined earlier, with the analysis result.
 
-Now we can analyze the proportion of users who created at least one order during the experiment. For comparison, let's also add a metric that performs Z-test on the same column.
+Now we can analyze the proportion of users who created at least one order during the experiment. For comparison, let's also add a metric that performs a Z-test on the same column.
 
 ```python
 experiment_prop = tt.Experiment(
@@ -142,7 +142,7 @@ print(experiment_prop.analyze(data))
 
 ## Metrics based on granular data
 
-Now let's define a metric that performs the Mann-Whitney U test. While it's possible to use the aggregated sum of ranks in the test, this example will use granular data for analysis.
+Now let's define a metric that performs the Mann-Whitney U test. While it's possible to use the aggregated sum of ranks for the test, this example uses granular data for analysis.
 
 The result class:
 
@@ -152,13 +152,13 @@ class MannWhitneyUResult(NamedTuple):
     statistic: float
 ```
 
-Metric that analyses granular data should be a subclass of [`MetricBaseGranular`](api/metrics/base.md#tea_tasting.metrics.base.MetricBaseGranular). `MetricBaseGranular` is a generic class with the result class as a type variable.
+A metric that analyzes granular data should be a subclass of [`MetricBaseGranular`](api/metrics/base.md#tea_tasting.metrics.base.MetricBaseGranular). `MetricBaseGranular` is a generic class with the result class as a type variable.
 
 Metric should have the following methods and properties defined:
 
 - Method `__init__` checks and saves metric parameters.
 - Property `cols` returns columns to be fetched for an analysis.
-- Method `analyze_dataframes` analyzes the metric using granular data.
+- Method `analyze_granular` analyzes the metric using granular data.
 
 ```python
 class MannWhitneyU(tea_tasting.metrics.MetricBaseGranular[MannWhitneyUResult]):
@@ -181,14 +181,14 @@ class MannWhitneyU(tea_tasting.metrics.MetricBaseGranular[MannWhitneyUResult]):
     def cols(self) -> tuple[str]:
         return (self.column,)
 
-    def analyze_dataframes(
+    def analyze_granular(
         self,
-        control: pd.DataFrame,
-        treatment: pd.DataFrame,
+        control: pa.Table,
+        treatment: pa.Table,
     ) -> MannWhitneyUResult:
         res = scipy.stats.mannwhitneyu(
-            treatment[self.column],
-            control[self.column],
+            treatment[self.column].combine_chunks().to_numpy(zero_copy_only=False),
+            control[self.column].combine_chunks().to_numpy(zero_copy_only=False),
             use_continuity=self.correction,
             alternative=self.alternative,
         )
@@ -200,9 +200,9 @@ class MannWhitneyU(tea_tasting.metrics.MetricBaseGranular[MannWhitneyUResult]):
 
 Property `cols` should return a sequence of strings.
 
-Method `analyze_dataframes` accepts two parameters: control and treatment data as Pandas DataFrames. Even with [data backend](data-backends.md) different from Pandas, **tea-tasting** will retrieve the data and transform into a Pandas DataFrame.
+Method `analyze_granular` accepts two parameters: control and treatment data as PyArrow Tables. Even with [data backend](data-backends.md) different from PyArrow, **tea-tasting** will retrieve the data and transform into a PyArrow Table.
 
-Method `analyze_dataframes` returns an instance of `MannWhitneyUResult`, defined earlier, with analysis result.
+Method `analyze_granular` returns an instance of `MannWhitneyUResult`, defined earlier, with analysis result.
 
 Now we can perform the Mann-Whitney U test:
 
@@ -237,7 +237,7 @@ print(experiment.analyze(data))
 #>            mwu_revenue       -         -               -             [-, -] 0.0300
 ```
 
-In this case, **tea-tasting** perform two queries on experimental data:
+In this case, **tea-tasting** performs two queries on the experimental data:
 
 - With aggregated statistics required for analysis of metrics of type `MetricBaseAggregated`.
 - With detailed data with columns required for analysis of metrics of type `MetricBaseGranular`.
@@ -249,4 +249,4 @@ Follow these recommendations when defining custom metrics:
 - Use parameter and attribute names consistent with the ones that are already defined in **tea-tasting**. For example, use `pvalue` instead of `p_value` or `correction` instead of `use_continuity`.
 - End confidence interval boundary names with `"_ci_lower"` and `"_ci_upper"`.
 - During initialization, save parameter values in metric attributes using the same names. For example, use `self.correction = correction` instead of `self.use_continuity = correction`.
-- Use globals settings as default values for standard parameters, such as `alternative` or `confidence_level`. See the [reference](api/config.md#tea_tasting.config.config_context) for the full list of standard parameters. You can also define and use your own global parameters.
+- Use global settings as default values for standard parameters, such as `alternative` or `confidence_level`. See the [reference](api/config.md#tea_tasting.config.config_context) for the full list of standard parameters. You can also define and use your own global parameters.

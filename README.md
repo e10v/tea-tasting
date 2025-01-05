@@ -9,11 +9,11 @@
 
 **tea-tasting** is a Python package for the statistical analysis of A/B tests featuring:
 
-- Student's t-test, Z-test, Bootstrap, and quantile metrics out of the box.
+- Student's t-test, Z-test, bootstrap, and quantile metrics out of the box.
 - Extensible API: define and use statistical tests of your choice.
 - [Delta method](https://alexdeng.github.io/public/files/kdd2018-dm.pdf) for ratio metrics.
-- Variance reduction with [CUPED](https://exp-platform.com/Documents/2013-02-CUPED-ImprovingSensitivityOfControlledExperiments.pdf)/[CUPAC](https://doordash.engineering/2020/06/08/improving-experimental-power-through-control-using-predictions-as-covariate-cupac/) (also in combination with the delta method for ratio metrics).
-- Confidence intervals for both absolute and percentage change.
+- Variance reduction using [CUPED](https://exp-platform.com/Documents/2013-02-CUPED-ImprovingSensitivityOfControlledExperiments.pdf)/[CUPAC](https://doordash.engineering/2020/06/08/improving-experimental-power-through-control-using-predictions-as-covariate-cupac/) (which can also be combined with the delta method for ratio metrics).
+- Confidence intervals for both absolute and percentage changes.
 - Sample ratio mismatch check.
 - Power analysis.
 - Multiple hypothesis testing (family-wise error rate and false discovery rate).
@@ -56,7 +56,6 @@ Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/)
 
 ## Roadmap
 
-- Switch from Pandas DataFrames to PyArrow Tables for internal data. Make Pandas dependency optional.
 - A/A tests and simulations.
 - More statistical tests:
     - Asymptotic and exact tests for frequency data.

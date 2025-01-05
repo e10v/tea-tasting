@@ -157,7 +157,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
             ```
 
-            Using the first argument `metrics` which accepts metrics if a form of dictionary:
+            Using the first argument `metrics` which accepts metrics in a form of dictionary:
 
             ```python
             experiment = tt.Experiment({

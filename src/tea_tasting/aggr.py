@@ -264,7 +264,7 @@ def read_aggregates(
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
 ) -> dict[Any, Aggregates] | Aggregates:
-    """Extract aggregated statistics from an Ibis Table or a Pandas DataFrame.
+    """Extract aggregated statistics.
 
     Args:
         data: Granular data.

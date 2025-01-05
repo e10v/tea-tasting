@@ -42,7 +42,7 @@ def get_config(option: str | None = None) -> Any:
         import tea_tasting as tt
 
 
-        tt.get_config("equal_var")
+        print(tt.get_config("equal_var"))
         #> False
         ```
     """
@@ -83,7 +83,7 @@ def set_config(
             relative to the control. Default is 1.
         use_t: Defines whether to use the Student's t-distribution (`True`) or
             the Normal distribution (`False`) by default. Default is `True`.
-        kwargs: User-defined global parameters.
+        **kwargs: User-defined global parameters.
 
     Alternative hypothesis options:
         - `"two-sided"`: the means are unequal,
@@ -106,9 +106,10 @@ def set_config(
             revenue_per_user=tt.Mean("revenue"),
         )
 
-        experiment.metrics["orders_per_user"]
+        print(experiment.metrics["orders_per_user"])
         #> Mean(value='orders', covariate=None, alternative='two-sided',
-        #> confidence_level=0.95, equal_var=True, use_t=False)
+        #> confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1,
+        #> power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
         ```
     """
     params = {k: v for k, v in locals().items() if k != "kwargs"} | kwargs
@@ -150,7 +151,7 @@ def config_context(
             relative to the control. Default is 1.
         use_t: Defines whether to use the Student's t-distribution (`True`) or
             the Normal distribution (`False`) by default. Default is `True`.
-        kwargs: User-defined global parameters.
+        **kwargs: User-defined global parameters.
 
     Alternative hypothesis options:
         - `"two-sided"`: the means are unequal,
@@ -172,9 +173,10 @@ def config_context(
                 revenue_per_user=tt.Mean("revenue"),
             )
 
-        experiment.metrics["orders_per_user"]
+        print(experiment.metrics["orders_per_user"])
         #> Mean(value='orders', covariate=None, alternative='two-sided',
-        #> confidence_level=0.95, equal_var=True, use_t=False)
+        #> confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1,
+        #> power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
         ```
     """
     new_config = {k: v for k, v in locals().items() if k != "kwargs"} | kwargs

@@ -71,7 +71,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
 
             data = tt.make_users_data(seed=42)
             result = experiment.analyze(data)
-            print(result.to_string(("control", "treatment", "pvalue")))
+            print(result.to_string(("metric", "control", "treatment", "pvalue")))
             #>       metric control treatment pvalue
             #> sample_ratio    2023      1977  0.477
             ```
@@ -88,7 +88,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
 
             data = tt.make_users_data(seed=42)
             result = experiment.analyze(data)
-            print(result.to_string(("control", "treatment", "pvalue")))
+            print(result.to_string(("metric", "control", "treatment", "pvalue")))
             #>       metric control treatment    pvalue
             #> sample_ratio    2023      1977 3.26e-103
             ```
