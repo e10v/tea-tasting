@@ -51,7 +51,7 @@ build-backend = "pdm.backend"
 package-dir = "src"
 
 [tool.pdm.dev-dependencies]
-docs = ["mkdocs-material", "mkdocstrings[crystal,python]"]
+docs = ["mkdocs-material", "mkdocstrings[python]"]
 lint = ["pyright", "ruff"]
 test = ["coverage[toml]", "ibis-framework[duckdb,sqlite]", "pandas", "polars", "pytest"]
 
