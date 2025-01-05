@@ -20,7 +20,7 @@ from tea_tasting.metrics.base import (
     PowerBase,
     PowerBaseAggregated,
     aggregate_by_variants,
-    read_dataframes,
+    read_granular,
 )
 from tea_tasting.metrics.mean import Mean, RatioOfMeans
 from tea_tasting.metrics.proportion import SampleRatio

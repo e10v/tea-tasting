@@ -9,13 +9,24 @@ import inspect
 import locale
 import math
 from typing import TYPE_CHECKING
+import xml.etree.ElementTree as ET
 
-import pandas as pd
+import pyarrow as pa
 
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
     from typing import Any, Literal, TypeVar
+
+    try:
+        from pandas import DataFrame as PandasDataFrame
+    except ImportError:
+        from typing import Any as PandasDataFrame
+
+    try:
+        from polars import DataFrame as PolarsDataFrame
+    except ImportError:
+        from typing import Any as PolarsDataFrame
 
     R = TypeVar("R")
 
@@ -204,8 +215,8 @@ def get_and_format_num(data: dict[str, Any], key: str) -> str:
     return format_num(val, sig=sig, pct=pct)
 
 
-class PrettyDictsMixin(abc.ABC):
-    """Pretty representation of a sequence of dictionaries.
+class DictsReprMixin(abc.ABC):
+    """Representation and conversion of a sequence of dictionaries.
 
     Default formatting rules:
         - If a name starts with `"rel_"` or equals to `"power"` consider it
@@ -223,16 +234,26 @@ class PrettyDictsMixin(abc.ABC):
     def to_dicts(self) -> Sequence[dict[str, Any]]:
         """Convert the object to a sequence of dictionaries."""
 
-    def to_pandas(self) -> pd.DataFrame:
+    def to_arrow(self) -> pa.Table:
+        """Convert the object to a PyArrow Table."""
+        return pa.Table.from_pylist(self.to_dicts())
+
+    def to_pandas(self) -> PandasDataFrame:
         """Convert the object to a Pandas DataFrame."""
+        import pandas as pd
         return pd.DataFrame.from_records(self.to_dicts())
 
-    def to_pretty(
+    def to_polars(self) -> PolarsDataFrame:
+        """Convert the object to a Polars DataFrame."""
+        import polars as pl
+        return pl.from_dicts(self.to_dicts())
+
+    def to_pretty_dicts(
         self,
         keys: Sequence[str] | None = None,
         formatter: Callable[[dict[str, Any], str], str] = get_and_format_num,
-    ) -> pd.DataFrame:
-        """Convert the object to a Pandas Dataframe with formatted values.
+    ) -> list[dict[str, str]]:
+        """Convert the object to a list of dictionaries with formatted values.
 
         Args:
             keys: Keys to convert. If a key is not defined in the dictionary
@@ -242,7 +263,7 @@ class PrettyDictsMixin(abc.ABC):
                 a formatted attribute value.
 
         Returns:
-            Pandas Dataframe with formatted values.
+            List of dictionaries with formatted values.
 
         Default formatting rules:
             - If a name starts with `"rel_"` or equals to `"power"` consider it
@@ -256,10 +277,7 @@ class PrettyDictsMixin(abc.ABC):
         """
         if keys is None:
             keys = self.default_keys
-        return pd.DataFrame.from_records(
-            {key: formatter(data, key) for key in keys}
-            for data in self.to_dicts()
-        )
+        return [{key: formatter(data, key) for key in keys} for data in self.to_dicts()]
 
     def to_string(
         self,
@@ -288,12 +306,33 @@ class PrettyDictsMixin(abc.ABC):
                 Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
                 and format the interval as `"[{lower_bound}, {lower_bound}]"`.
         """
-        return self.to_pretty(keys, formatter).to_string(index=False)
+        if keys is None:
+            keys = self.default_keys
+        widths = {key: len(key) for key in keys}
+
+        pretty_dicts = []
+        for data in self.to_dicts():
+            pretty_dict = {}
+            for key in keys:
+                val = formatter(data, key)
+                widths[key] = max(widths[key], len(val))
+                pretty_dict |= {key: val}
+            pretty_dicts.append(pretty_dict)
+
+        sep = " "
+        rows = [sep.join(key.rjust(widths[key]) for key in keys)]
+        rows.extend(
+            sep.join(pretty_dict[key].rjust(widths[key]) for key in keys)
+            for pretty_dict in pretty_dicts
+        )
+        return "\n".join(rows)
 
     def to_html(
         self,
         keys: Sequence[str] | None = None,
         formatter: Callable[[dict[str, Any], str], str] = get_and_format_num,
+        *,
+        indent: str | None = None,
     ) -> str:
         """Convert the object to HTML.
 
@@ -303,6 +342,8 @@ class PrettyDictsMixin(abc.ABC):
             formatter: Custom formatter function. It should accept a dictionary
                 of metric result attributes and an attribute name, and return
                 a formatted attribute value.
+            indent: Whitespace to insert for each indentation level. If `None`,
+                do not indent.
 
         Returns:
             A table with results rendered as HTML.
@@ -317,7 +358,26 @@ class PrettyDictsMixin(abc.ABC):
                 Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
                 and format the interval as `"[{lower_bound}, {lower_bound}]"`.
         """
-        return self.to_pretty(keys, formatter).to_html(index=False)
+        if keys is None:
+            keys = self.default_keys
+        table = ET.Element(
+            "table",
+            {"class": "dataframe", "style": "text-align: right;"},
+        )
+        thead = ET.SubElement(table, "thead")
+        thead_tr = ET.SubElement(thead, "tr")
+        for key in keys:
+            th = ET.SubElement(thead_tr, "th")
+            th.text = key
+        tbody = ET.SubElement(table, "tbody")
+        for data in self.to_dicts():
+            tr = ET.SubElement(tbody, "tr")
+            for key in keys:
+                td = ET.SubElement(tr, "td")
+                td.text = formatter(data, key)
+        if indent is not None:
+            ET.indent(table, space=indent)
+        return ET.tostring(table, encoding="unicode", method="html")
 
     def __str__(self) -> str:
         """Object string representation."""

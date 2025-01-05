@@ -13,7 +13,7 @@ The [multiple hypothesis testing problem](https://en.wikipedia.org/wiki/Multiple
     - Holm's step-down procedure, assuming arbitrary dependence between hypotheses.
     - Hochberg's step-up procedure, assuming non-negative correlation between hypotheses.
 
-As an example, let's consider an experiment with three variants, a control and two treatments:
+As an example, consider an experiment with three variants, a control and two treatments:
 
 ```python
 import pandas as pd
@@ -21,8 +21,18 @@ import tea_tasting as tt
 
 
 data = pd.concat((
-    tt.make_users_data(seed=42, orders_uplift=0.10, revenue_uplift=0.15),
-    tt.make_users_data(seed=21, orders_uplift=0.15, revenue_uplift=0.20)
+    tt.make_users_data(
+        seed=42,
+        orders_uplift=0.10,
+        revenue_uplift=0.15,
+        return_type="pandas",
+    ),
+    tt.make_users_data(
+        seed=21,
+        orders_uplift=0.15,
+        revenue_uplift=0.20,
+        return_type="pandas",
+    )
         .query("variant==1")
         .assign(variant=2),
 ))
@@ -66,13 +76,13 @@ print(results)
 #>   (0, 2)   revenue_per_user    5.24      6.25             19%        [6.6%, 33%] 0.00218
 ```
 
-Suppose only the two metrics `orders_per_user` and `revenue_per_user` are considered as success metrics, while the two other metrics `sessions_per_user` and `orders_per_session` are second-orders diagnostic metrics.
+Suppose only the two metrics `orders_per_user` and `revenue_per_user` are considered as success metrics, while the other two metrics `sessions_per_user` and `orders_per_session` are second-order diagnostic metrics.
 
 ```python
 metrics = {"orders_per_user", "revenue_per_user"}
 ```
 
-With two treatment variants and two success metrics, there are four hypotheses in total, which increases the probability of false positives (also called "false discoveries"). It's recommended to adjust the p-values or the significance level alpha in this case. Let's explore the correction methods provided by **tea-tasting**.
+With two treatment variants and two success metrics, there are four hypotheses in total, which increases the probability of false positives (also called "false discoveries"). It's recommended to adjust the p-values or the significance level (alpha) in this case. Let's explore the correction methods provided by **tea-tasting**.
 
 ## False discovery rate
 

@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from typing import Any, Literal
 
     import numpy.typing as npt
-    import pandas as pd
+    import pyarrow as pa
 
 
 class BootstrapResult(NamedTuple):
@@ -195,10 +195,10 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
         return self.columns
 
 
-    def analyze_dataframes(
+    def analyze_granular(
         self,
-        control: pd.DataFrame,
-        treatment: pd.DataFrame,
+        control: pa.Table,
+        treatment: pa.Table,
     ) -> BootstrapResult:
         """Analyze metric in an experiment using granular data.
 
@@ -223,8 +223,8 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
 
             return np.stack((effect_size, rel_effect_size), axis=0)
 
-        contr = control.loc[:, self.columns].to_numpy()  # type: ignore
-        treat = treatment.loc[:, self.columns].to_numpy()  # type: ignore
+        contr = _select_as_numpy(control, self.columns)
+        treat = _select_as_numpy(treatment, self.columns)
         stat = statistic(contr, treat, axis=0)
 
         result = scipy.stats.bootstrap(
@@ -250,6 +250,18 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
             rel_effect_size_ci_lower=ci.low[1],
             rel_effect_size_ci_upper=ci.high[1],
         )
+
+
+def _select_as_numpy(
+    data: pa.Table,
+    columns: str | Sequence[str],
+) -> npt.NDArray[np.number[Any]]:
+    if isinstance(columns, str):
+        columns = (columns,)
+    return np.column_stack([
+        data[col].combine_chunks().to_numpy(zero_copy_only=False)
+        for col in columns
+    ])
 
 
 class Quantile(Bootstrap):  # noqa: D101

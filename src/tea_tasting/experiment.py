@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any, overload
 
 import ibis.expr.types
 import narwhals as nw
-import pandas as pd
 
 import tea_tasting.aggr
 import tea_tasting.metrics
@@ -15,15 +14,15 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
     from typing import Literal
 
     import narwhals.typing  # noqa: TC004
+    import pyarrow as pa
 
 
 class ExperimentResult(
     UserDict[str, tea_tasting.metrics.MetricResult],
-    tea_tasting.utils.PrettyDictsMixin,
+    tea_tasting.utils.DictsReprMixin,
 ):
     """Experiment result for a pair of variants."""
     default_keys = (
@@ -82,236 +81,10 @@ class ExperimentResult(
             for k, v in self.items()
         )
 
-    def to_pandas(self) -> pd.DataFrame:
-        """Convert the result to a Pandas DataFrame.
-
-        Examples:
-            ```python
-            import tea_tasting as tt
-
-
-            experiment = tt.Experiment(
-                sessions_per_user=tt.Mean("sessions"),
-                orders_per_session=tt.RatioOfMeans("orders", "sessions"),
-                orders_per_user=tt.Mean("orders"),
-                revenue_per_user=tt.Mean("revenue"),
-            )
-
-            data = tt.make_users_data(seed=42)
-            result = experiment.analyze(data)
-            print(result.to_pandas())
-            #>                metric   control  ...    pvalue  statistic
-            #> 0   sessions_per_user  1.996045  ...  0.674021  -0.420667
-            #> 1  orders_per_session  0.265726  ...  0.076238   1.773406
-            #> 2     orders_per_user  0.530400  ...  0.117732   1.564703
-            #> 3    revenue_per_user  5.241079  ...  0.123097   1.542231
-            #>
-            #> [4 rows x 11 columns]
-            ```
-        """
-        return tea_tasting.utils.PrettyDictsMixin.to_pandas(self)
-
-    def to_pretty(
-        self,
-        keys: Sequence[str] | None = None,
-        formatter: Callable[
-            [dict[str, Any], str], str] = tea_tasting.utils.get_and_format_num,
-    ) -> pd.DataFrame:
-        """Convert the result to a Pandas Dataframe with formatted values.
-
-        Metric result attribute values are converted to strings in a "pretty" format.
-
-        Args:
-            keys: Metric attribute names. If an attribute is not defined
-                for a metric it's assumed to be `None`.
-            formatter: Custom formatter function. It should accept a dictionary
-                of metric result attributes and an attribute name, and return
-                a formatted attribute value.
-
-        Returns:
-            Pandas Dataframe with formatted values.
-
-        Default formatting rules:
-            - If a name starts with `"rel_"` consider it a percentage value.
-                Round percentage values to 2 significant digits, multiply by `100`
-                and add `"%"`.
-            - Round other values to 3 significant values.
-            - If value is less than `0.001`, format it in exponential presentation.
-            - If a name ends with `"_ci"`, consider it a confidence interval.
-                Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
-                and format the interval as `"[{lower_bound}, {lower_bound}]"`.
-
-        Examples:
-            ```python
-            import tea_tasting as tt
-
-
-            experiment = tt.Experiment(
-                sessions_per_user=tt.Mean("sessions"),
-                orders_per_session=tt.RatioOfMeans("orders", "sessions"),
-                orders_per_user=tt.Mean("orders"),
-                revenue_per_user=tt.Mean("revenue"),
-            )
-
-            data = tt.make_users_data(seed=42)
-            result = experiment.analyze(data)
-            print(result.to_pretty(keys=(
-                "metric",
-                "control",
-                "treatment",
-                "effect_size",
-                "effect_size_ci",
-            )))
-            #>                metric control treatment effect_size      effect_size_ci
-            #> 0   sessions_per_user    2.00      1.98     -0.0132   [-0.0750, 0.0485]
-            #> 1  orders_per_session   0.266     0.289      0.0233  [-0.00246, 0.0491]
-            #> 2     orders_per_user   0.530     0.573      0.0427   [-0.0108, 0.0962]
-            #> 3    revenue_per_user    5.24      5.73       0.489      [-0.133, 1.11]
-            ```
-        """
-        return tea_tasting.utils.PrettyDictsMixin.to_pretty(self, keys, formatter)
-
-    def to_string(
-        self,
-        keys: Sequence[str] | None = None,
-        formatter: Callable[
-            [dict[str, Any], str], str] = tea_tasting.utils.get_and_format_num,
-    ) -> str:
-        """Convert the result to a string.
-
-        Metric result attribute values are converted to strings in a "pretty" format.
-
-        Args:
-            keys: Metric attribute names. If an attribute is not defined
-                for a metric it's assumed to be `None`.
-            formatter: Custom formatter function. It should accept a dictionary
-                of metric result attributes and an attribute name, and return
-                a formatted attribute value.
-
-        Returns:
-            A string with formatted values.
-
-        Default formatting rules:
-            - If a name starts with `"rel_"` consider it a percentage value.
-                Round percentage values to 2 significant digits, multiply by `100`
-                and add `"%"`.
-            - Round other values to 3 significant values.
-            - If value is less than `0.001`, format it in exponential presentation.
-            - If a name ends with `"_ci"`, consider it a confidence interval.
-                Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
-                and format the interval as `"[{lower_bound}, {lower_bound}]"`.
-
-        Examples:
-            ```python
-            import tea_tasting as tt
-
-
-            experiment = tt.Experiment(
-                sessions_per_user=tt.Mean("sessions"),
-                orders_per_session=tt.RatioOfMeans("orders", "sessions"),
-                orders_per_user=tt.Mean("orders"),
-                revenue_per_user=tt.Mean("revenue"),
-            )
-
-            data = tt.make_users_data(seed=42)
-            result = experiment.analyze(data)
-            print(result.to_string(keys=(
-                "metric",
-                "control",
-                "treatment",
-                "effect_size",
-                "effect_size_ci",
-            )))
-            #>             metric control treatment effect_size     effect_size_ci
-            #>  sessions_per_user    2.00      1.98     -0.0132  [-0.0750, 0.0485]
-            #> orders_per_session   0.266     0.289      0.0233 [-0.00246, 0.0491]
-            #>    orders_per_user   0.530     0.573      0.0427  [-0.0108, 0.0962]
-            #>   revenue_per_user    5.24      5.73       0.489     [-0.133, 1.11]
-            ```
-        """
-        return tea_tasting.utils.PrettyDictsMixin.to_string(self, keys, formatter)
-
-    def to_html(
-        self,
-        keys: Sequence[str] | None = None,
-        formatter: Callable[
-            [dict[str, Any], str], str] = tea_tasting.utils.get_and_format_num,
-    ) -> str:
-        """Convert the result to HTML.
-
-        Metric result attribute values are converted to strings in a "pretty" format.
-
-        Args:
-            keys: Metric attribute names. If an attribute is not defined
-                for a metric it's assumed to be `None`.
-            formatter: Custom formatter function. It should accept a dictionary
-                of metric result attributes and an attribute name, and return
-                a formatted attribute value.
-
-        Returns:
-            A table with results rendered as HTML.
-
-        Default formatting rules:
-            - If a name starts with `"rel_"` consider it a percentage value.
-                Round percentage values to 2 significant digits, multiply by `100`
-                and add `"%"`.
-            - Round other values to 3 significant values.
-            - If value is less than `0.001`, format it in exponential presentation.
-            - If a name ends with `"_ci"`, consider it a confidence interval.
-                Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
-                and format the interval as `"[{lower_bound}, {lower_bound}]"`.
-
-        Examples:
-            ```python
-            import tea_tasting as tt
-
-
-            experiment = tt.Experiment(
-                orders_per_user=tt.Mean("orders"),
-                revenue_per_user=tt.Mean("revenue"),
-            )
-
-            data = tt.make_users_data(seed=42)
-            result = experiment.analyze(data)
-            print(result.to_html())
-            #> <table border="1" class="dataframe">
-            #>   <thead>
-            #>     <tr style="text-align: right;">
-            #>       <th>metric</th>
-            #>       <th>control</th>
-            #>       <th>treatment</th>
-            #>       <th>rel_effect_size</th>
-            #>       <th>rel_effect_size_ci</th>
-            #>       <th>pvalue</th>
-            #>     </tr>
-            #>   </thead>
-            #>   <tbody>
-            #>     <tr>
-            #>       <td>orders_per_user</td>
-            #>       <td>0.530</td>
-            #>       <td>0.573</td>
-            #>       <td>8.0%</td>
-            #>       <td>[-2.0%, 19%]</td>
-            #>       <td>0.118</td>
-            #>     </tr>
-            #>     <tr>
-            #>       <td>revenue_per_user</td>
-            #>       <td>5.24</td>
-            #>       <td>5.73</td>
-            #>       <td>9.3%</td>
-            #>       <td>[-2.4%, 22%]</td>
-            #>       <td>0.123</td>
-            #>     </tr>
-            #>   </tbody>
-            #> </table>
-            ```
-        """
-        return tea_tasting.utils.PrettyDictsMixin.to_html(self, keys, formatter)
-
 
 class ExperimentResults(
     UserDict[tuple[Any, Any], ExperimentResult],
-    tea_tasting.utils.PrettyDictsMixin,
+    tea_tasting.utils.DictsReprMixin,
 ):
     """Experiment results for multiple pairs of variants."""
     default_keys = (
@@ -335,7 +108,7 @@ class ExperimentResults(
 
 class ExperimentPowerResult(
     UserDict[str, tea_tasting.metrics.MetricPowerResults[Any]],
-    tea_tasting.utils.PrettyDictsMixin,
+    tea_tasting.utils.DictsReprMixin,
 ):
     """Result of the analysis of power in a experiment."""
     default_keys = ("metric", "power", "effect_size", "rel_effect_size", "n_obs")
@@ -384,7 +157,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
             ```
 
-            Using the first argument `metrics` which accepts metrics if a form of dictionary:
+            Using the first argument `metrics` which accepts metrics in a form of dictionary:
 
             ```python
             experiment = tt.Experiment({
@@ -549,7 +322,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         metric: tea_tasting.metrics.MetricBase[Any],
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
         aggregated_data: dict[Any, tea_tasting.aggr.Aggregates] | None,
-        granular_data: dict[Any, pd.DataFrame] | None,
+        granular_data: dict[Any, pa.Table] | None,
         control: Any,
         treatment: Any,
     ) -> tea_tasting.metrics.MetricResult:
@@ -573,7 +346,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
     ) -> tuple[
         dict[Any, tea_tasting.aggr.Aggregates] | None,
-        dict[Any, pd.DataFrame] | None,
+        dict[Any, pa.Table] | None,
     ]:
         aggr_cols = tea_tasting.metrics.AggrCols()
         gran_cols = set()
@@ -589,7 +362,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             variant=self.variant,
         ) if len(aggr_cols) > 0 else None
 
-        granular_data = tea_tasting.metrics.read_dataframes(
+        granular_data = tea_tasting.metrics.read_granular(
             data,
             cols=tuple(gran_cols),
             variant=self.variant,
@@ -601,22 +374,19 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     def _read_variants(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
-    ) -> pd.Series[Any]:  # type: ignore
-        if isinstance(data, pd.DataFrame):
-            return data.loc[:, self.variant].drop_duplicates()  # type: ignore
-
+    ) -> list[Any]:
         if isinstance(data, ibis.expr.types.Table):
             return (
                 data.select(self.variant)
                 .distinct()
-                .to_pandas()
-                .loc[:, self.variant]
+                .to_pyarrow()[self.variant]
+                .to_pylist()
             )
 
         data = nw.from_native(data)
         if not isinstance(data, nw.LazyFrame):
             data = data.lazy()
-        return data.unique(self.variant).collect().to_pandas().loc[:, self.variant]
+        return data.unique(self.variant).collect().get_column(self.variant).to_list()
 
 
     def solve_power(

@@ -4,8 +4,9 @@ from typing import TYPE_CHECKING, Any, NamedTuple
 import unittest.mock
 
 import ibis
-import pandas as pd
 import polars as pl
+import pyarrow as pa
+import pyarrow.compute as pc
 import pytest
 
 import tea_tasting.aggr
@@ -17,9 +18,10 @@ if TYPE_CHECKING:
     from typing import Literal
 
     import ibis.expr.types  # noqa: TC004
+    import pandas as pd
 
 
-    Frame = ibis.expr.types.Table | pd.DataFrame | pl.LazyFrame
+    Frame = ibis.expr.types.Table | pa.Table | pd.DataFrame | pl.LazyFrame
 
 
 def test_aggr_cols_or():
@@ -65,28 +67,34 @@ def test_aggr_cols_len():
 
 
 @pytest.fixture
-def data_pandas() -> pd.DataFrame:
-    return tea_tasting.datasets.make_users_data(n_users=100, seed=42).astype(
-        {"variant": "int64"})
+def data_arrow() -> pa.Table:
+    return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
 
 @pytest.fixture
-def data_polars(data_pandas: pd.DataFrame) -> pl.DataFrame:
-    return pl.from_pandas(data_pandas)
+def data_pandas(data_arrow: pa.Table) -> pd.DataFrame:
+    return data_arrow.to_pandas()
+
+@pytest.fixture
+def data_polars(data_arrow: pa.Table) -> pl.DataFrame:
+    return pl.from_arrow(data_arrow)  # type: ignore
 
 @pytest.fixture
 def data_polars_lazy(data_polars: pl.DataFrame) -> pl.LazyFrame:
     return data_polars.lazy()
 
 @pytest.fixture
-def data_duckdb(data_pandas: pd.DataFrame) -> ibis.expr.types.Table:
-    return ibis.connect("duckdb://").create_table("data", data_pandas)
+def data_duckdb(data_arrow: pa.Table) -> ibis.expr.types.Table:
+    return ibis.connect("duckdb://").create_table("data", data_arrow)
 
 @pytest.fixture
-def data_sqlite(data_pandas: pd.DataFrame) -> ibis.expr.types.Table:
-    return ibis.connect("sqlite://").create_table("data", data_pandas)
+def data_sqlite(data_arrow: pa.Table) -> ibis.expr.types.Table:
+    return ibis.connect("sqlite://").create_table("data", data_arrow)
 
 @pytest.fixture(params=[
-    "data_pandas", "data_polars", "data_polars_lazy", "data_duckdb", "data_sqlite"])
+    "data_arrow", "data_pandas",
+    "data_polars", "data_polars_lazy",
+    "data_duckdb", "data_sqlite",
+])
 def data(request: pytest.FixtureRequest) -> Frame:
     return request.getfixturevalue(request.param)
 
@@ -102,22 +110,22 @@ def aggr_cols() -> tea_tasting.metrics.base.AggrCols:
 
 @pytest.fixture
 def correct_aggrs(
-    data_pandas: pd.DataFrame,
+    data_arrow: pa.Table,
     aggr_cols: tea_tasting.metrics.base.AggrCols,
 ) -> dict[Any, tea_tasting.aggr.Aggregates]:
     return tea_tasting.aggr.read_aggregates(
-        data_pandas,
+        data_arrow,
         group_col="variant",
         **aggr_cols._asdict(),
     )
 
 @pytest.fixture
 def correct_aggr(
-    data_pandas: pd.DataFrame,
+    data_arrow: pa.Table,
     aggr_cols: tea_tasting.metrics.base.AggrCols,
 ) -> tea_tasting.aggr.Aggregates:
     return tea_tasting.aggr.read_aggregates(
-        data_pandas,
+        data_arrow,
         group_col=None,
         **aggr_cols._asdict(),
     )
@@ -127,11 +135,16 @@ def cols() -> tuple[str, ...]:
     return ("sessions", "orders", "revenue")
 
 @pytest.fixture
-def correct_dfs(
-    data_pandas: pd.DataFrame,
+def correct_gran(
+    data_arrow: pa.Table,
     cols: tuple[str, ...],
-) -> dict[Any, pd.DataFrame]:
-    return dict(tuple(data_pandas.loc[:, [*cols, "variant"]].groupby("variant")))
+) -> dict[Any, pa.Table]:
+    variant_col = data_arrow["variant"]
+    table = data_arrow.select(cols)
+    return {
+        var: table.filter(pc.equal(variant_col, pa.scalar(var)))  # type: ignore
+        for var in variant_col.unique().to_pylist()
+    }
 
 @pytest.fixture
 def aggr_metric(
@@ -188,10 +201,10 @@ def gran_metric(
         def cols(self) -> tuple[str, ...]:
             return cols
 
-        def analyze_dataframes(
+        def analyze_granular(
             self,
-            control: pd.DataFrame,  # noqa: ARG002
-            treatment: pd.DataFrame,  # noqa: ARG002
+            control: pa.Table,  # noqa: ARG002
+            treatment: pa.Table,  # noqa: ARG002
         ) -> dict[str, Any]:
             return {}
 
@@ -240,11 +253,11 @@ def test_metric_power_results_to_dicts():
 
 def test_metric_base_aggregated_analyze_frame(
     aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]],
-    data_pandas: pd.DataFrame,
+    data_arrow: pa.Table,
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
     aggr_metric.analyze_aggregates = unittest.mock.MagicMock()
-    aggr_metric.analyze(data_pandas, control=0, treatment=1, variant="variant")
+    aggr_metric.analyze(data_arrow, control=0, treatment=1, variant="variant")
     aggr_metric.analyze_aggregates.assert_called_once()
     kwargs = aggr_metric.analyze_aggregates.call_args.kwargs
     _compare_aggrs(kwargs["control"], correct_aggrs[0])
@@ -264,11 +277,11 @@ def test_metric_base_aggregated_analyze_aggrs(
 
 def test_power_base_aggregated_analyze_frame(
     aggr_power: tea_tasting.metrics.base.PowerBaseAggregated[Any],
-    data_pandas: pd.DataFrame,
+    data_arrow: pa.Table,
     correct_aggr: tea_tasting.aggr.Aggregates,
 ):
     aggr_power.solve_power_from_aggregates = unittest.mock.MagicMock()
-    aggr_power.solve_power(data_pandas, "effect_size")
+    aggr_power.solve_power(data_arrow, "effect_size")
     aggr_power.solve_power_from_aggregates.assert_called_once()
     kwargs = aggr_power.solve_power_from_aggregates.call_args.kwargs
     _compare_aggrs(kwargs["data"], correct_aggr)
@@ -287,12 +300,12 @@ def test_power_base_aggregated_analyze_aggr(
 
 
 def test_aggregate_by_variants_frame(
-    data_pandas: pd.DataFrame,
+    data_arrow: pa.Table,
     aggr_cols: tea_tasting.metrics.base.AggrCols,
     correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
 ):
     aggrs = tea_tasting.metrics.base.aggregate_by_variants(
-        data_pandas,
+        data_arrow,
         aggr_cols=aggr_cols,
         variant="variant",
     )
@@ -312,65 +325,65 @@ def test_aggregate_by_variants_aggrs(
     _compare_aggrs(aggrs[1], correct_aggrs[1])
 
 def test_aggregate_by_variants_raises(
-    data_pandas: pd.DataFrame,
+    data_arrow: pa.Table,
     aggr_cols: tea_tasting.metrics.base.AggrCols,
 ):
     with pytest.raises(ValueError, match="variant"):
-        tea_tasting.metrics.base.aggregate_by_variants(data_pandas, aggr_cols=aggr_cols)
+        tea_tasting.metrics.base.aggregate_by_variants(data_arrow, aggr_cols=aggr_cols)
 
 
 def test_metric_base_granular_frame(
     gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, Any]],
-    data_pandas: pd.DataFrame,
-    correct_dfs: dict[Any, pd.DataFrame],
+    data_arrow: pa.Table,
+    correct_gran: dict[Any, pa.Table],
 ):
-    gran_metric.analyze_dataframes = unittest.mock.MagicMock()
-    gran_metric.analyze(data_pandas, control=0, treatment=1, variant="variant")
-    gran_metric.analyze_dataframes.assert_called_once()
-    kwargs = gran_metric.analyze_dataframes.call_args.kwargs
-    pd.testing.assert_frame_equal(kwargs["control"], correct_dfs[0])
-    pd.testing.assert_frame_equal(kwargs["treatment"], correct_dfs[1])
+    gran_metric.analyze_granular = unittest.mock.MagicMock()
+    gran_metric.analyze(data_arrow, control=0, treatment=1, variant="variant")
+    gran_metric.analyze_granular.assert_called_once()
+    kwargs = gran_metric.analyze_granular.call_args.kwargs
+    assert kwargs["control"].equals(correct_gran[0])
+    assert kwargs["treatment"].equals(correct_gran[1])
 
-def test_metric_base_granular_dfs(
+def test_metric_base_granular_gran(
     gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, Any]],
-    correct_dfs: dict[Any, pd.DataFrame],
+    correct_gran: dict[Any, pa.Table],
 ):
-    gran_metric.analyze_dataframes = unittest.mock.MagicMock()
-    gran_metric.analyze(correct_dfs, control=0, treatment=1)
-    gran_metric.analyze_dataframes.assert_called_once()
-    kwargs = gran_metric.analyze_dataframes.call_args.kwargs
-    pd.testing.assert_frame_equal(kwargs["control"], correct_dfs[0])
-    pd.testing.assert_frame_equal(kwargs["treatment"], correct_dfs[1])
+    gran_metric.analyze_granular = unittest.mock.MagicMock()
+    gran_metric.analyze(correct_gran, control=0, treatment=1)
+    gran_metric.analyze_granular.assert_called_once()
+    kwargs = gran_metric.analyze_granular.call_args.kwargs
+    assert kwargs["control"].equals(correct_gran[0])
+    assert kwargs["treatment"].equals(correct_gran[1])
 
 
-def test_read_dataframes_frame(
+def test_read_granular_frame(
     data: Frame,
     cols: tuple[str, ...],
-    correct_dfs: dict[Any, pd.DataFrame],
+    correct_gran: dict[Any, pa.Table],
 ):
-    dfs = tea_tasting.metrics.base.read_dataframes(
+    gran = tea_tasting.metrics.base.read_granular(
         data,
         cols=cols,
         variant="variant",
     )
-    pd.testing.assert_frame_equal(dfs[0], correct_dfs[0])
-    pd.testing.assert_frame_equal(dfs[1], correct_dfs[1])
+    assert gran[0].equals(correct_gran[0])
+    assert gran[1].equals(correct_gran[1])
 
-def test_read_dataframes_dfs(
+def test_read_granular_dict(
     cols: tuple[str, ...],
-    correct_dfs: dict[Any, pd.DataFrame],
+    correct_gran: dict[Any, pa.Table],
 ):
-    dfs = tea_tasting.metrics.base.read_dataframes(
-        correct_dfs,
+    gran = tea_tasting.metrics.base.read_granular(
+        correct_gran,
         cols=cols,
         variant="variant",
     )
-    pd.testing.assert_frame_equal(dfs[0], correct_dfs[0])
-    pd.testing.assert_frame_equal(dfs[1], correct_dfs[1])
+    assert gran[0].equals(correct_gran[0])
+    assert gran[1].equals(correct_gran[1])
 
-def test_read_dataframes_raises(
-    data_pandas: ibis.expr.types.Table,
+def test_read_granular_raises(
+    data_arrow: pa.Table,
     cols: tuple[str, ...],
 ):
     with pytest.raises(ValueError, match="variant"):
-        tea_tasting.metrics.base.read_dataframes(data_pandas, cols=cols)
+        tea_tasting.metrics.base.read_granular(data_arrow, cols=cols)

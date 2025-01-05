@@ -1,12 +1,13 @@
+# pyright: reportAttributeAccessIssue=false
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, NamedTuple, TypedDict
 
 import ibis
 import ibis.expr.types
-import narwhals as nw
-import pandas as pd
 import polars as pl
+import pyarrow as pa
+import pyarrow.compute as pc
 import pytest
 
 import tea_tasting.aggr
@@ -20,10 +21,11 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from typing import Literal
 
-    import narwhals.typing  # noqa: TC004
+    import narwhals.typing
+    import pandas as pd
 
 
-    Frame = ibis.expr.types.Table | pd.DataFrame | pl.LazyFrame
+    Frame = ibis.expr.types.Table | pa.Table | pd.DataFrame | pl.LazyFrame
 
 
 class _MetricResultTuple(NamedTuple):
@@ -58,20 +60,20 @@ class _Metric(
         treatment: int,
         variant: str,
     ) -> _MetricResultTuple:
-        if not isinstance(data, pd.DataFrame):
-            if not isinstance(data, ibis.expr.types.Table):
-                data = nw.from_native(data)
-                if isinstance(data, nw.LazyFrame):
-                    data = data.collect()
-            data = data.to_pandas()
-
-        agg_data = data.loc[:, [variant, self.value]].groupby(variant).agg("mean")
-        contr_mean = agg_data.loc[control, self.value]
-        treat_mean = agg_data.loc[treatment, self.value]
+        if not isinstance(data, dict):
+            data = tea_tasting.aggr.read_aggregates(
+                data,
+                variant,
+                has_count=False,
+                mean_cols=(self.value,),
+                var_cols=(),
+                cov_cols=(),
+            )
         return _MetricResultTuple(
-            control=contr_mean,  # type: ignore
-            treatment=treat_mean,  # type: ignore
-            effect_size=treat_mean - contr_mean,  # type: ignore
+            control=data[control].mean(self.value),
+            treatment=data[treatment].mean(self.value),
+            effect_size=data[treatment].mean(self.value) -
+                data[control].mean(self.value),
         )
 
     def solve_power(
@@ -131,13 +133,13 @@ class _MetricGranular(tea_tasting.metrics.MetricBaseGranular[_MetricResultDict])
     def cols(self) -> tuple[str, ...]:
         return (self.value,)
 
-    def analyze_dataframes(
+    def analyze_granular(
         self,
-        control: pd.DataFrame,
-        treatment: pd.DataFrame,
+        control: pa.Table,
+        treatment: pa.Table,
     ) -> _MetricResultDict:
-        contr_mean = control.loc[:, self.value].mean()
-        treat_mean = treatment.loc[:, self.value].mean()
+        contr_mean = pc.mean(control[self.value]).as_py()  # type: ignore
+        treat_mean = pc.mean(treatment[self.value]).as_py()  # type: ignore
         return _MetricResultDict(
             control=contr_mean,
             treatment=treat_mean,
@@ -225,49 +227,61 @@ def results2(
 
 
 @pytest.fixture
-def data_pandas() -> pd.DataFrame:
+def data_arrow() -> pa.Table:
     return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
 
 @pytest.fixture
-def data_polars(data_pandas: pd.DataFrame) -> pl.DataFrame:
-    return pl.from_pandas(data_pandas)
+def data_pandas(data_arrow: pa.Table) -> pd.DataFrame:
+    return data_arrow.to_pandas()
+
+@pytest.fixture
+def data_polars(data_arrow: pa.Table) -> pl.DataFrame:
+    return pl.from_arrow(data_arrow)  # type: ignore
 
 @pytest.fixture
 def data_polars_lazy(data_polars: pl.DataFrame) -> pl.LazyFrame:
     return data_polars.lazy()
 
 @pytest.fixture
-def data_duckdb(data_pandas: pd.DataFrame) -> ibis.expr.types.Table:
-    return ibis.connect("duckdb://").create_table("data", data_pandas)
+def data_duckdb(data_arrow: pa.Table) -> ibis.expr.types.Table:
+    return ibis.connect("duckdb://").create_table("data", data_arrow)
 
 @pytest.fixture
-def data_sqlite(data_pandas: pd.DataFrame) -> ibis.expr.types.Table:
-    return ibis.connect("sqlite://").create_table("data", data_pandas)
+def data_sqlite(data_arrow: pa.Table) -> ibis.expr.types.Table:
+    return ibis.connect("sqlite://").create_table("data", data_arrow)
 
 @pytest.fixture(params=[
-    "data_pandas", "data_polars", "data_polars_lazy", "data_duckdb", "data_sqlite"])
+    "data_arrow", "data_pandas",
+    "data_polars", "data_polars_lazy",
+    "data_duckdb", "data_sqlite",
+])
 def data(request: pytest.FixtureRequest) -> Frame:
     return request.getfixturevalue(request.param)
 
 @pytest.fixture
-def data_pandas_multi(data_pandas: pd.DataFrame) -> pd.DataFrame:
-    return pd.concat((
-        data_pandas,
-        data_pandas.query("variant==1").assign(variant=2),
+def data_arrow_multi(data_arrow: pa.Table) -> pa.Table:
+    data2 = data_arrow.filter(pc.equal(data_arrow["variant"], pa.scalar(1)))
+    return pa.concat_tables((
+        data_arrow,
+        data2.set_column(
+            data_arrow.schema.get_field_index("variant"),
+            "variant",
+            pa.array([2] * data2.num_rows),
+        ),
     ))
 
 
 @pytest.fixture
 def ref_result(
-    data_pandas: pd.DataFrame,
+    data_arrow: pa.Table,
 ) -> tea_tasting.experiment.ExperimentResults:
     sessions = _Metric("sessions")
     orders = _MetricAggregated("orders")
     revenue = _MetricGranular("revenue")
     return tea_tasting.experiment.ExperimentResult(
-        avg_sessions=sessions.analyze(data_pandas, 0, 1, "variant"),
-        avg_orders=orders.analyze(data_pandas, 0, 1, "variant"),
-        avg_revenue=revenue.analyze(data_pandas, 0, 1, "variant"),  # type: ignore
+        avg_sessions=sessions.analyze(data_arrow, 0, 1, "variant"),
+        avg_orders=orders.analyze(data_arrow, 0, 1, "variant"),
+        avg_revenue=revenue.analyze(data_arrow, 0, 1, "variant"),  # type: ignore
     )
 
 
@@ -276,80 +290,6 @@ def test_experiment_result_to_dicts(result: tea_tasting.experiment.ExperimentRes
         {"metric": "metric_tuple", "control": 10, "treatment": 11, "effect_size": 1},
         {"metric": "metric_dict", "control": 20, "treatment": 22, "effect_size": 2},
     )
-
-def test_experiment_result_to_pandas(result: tea_tasting.experiment.ExperimentResult):
-    pd.testing.assert_frame_equal(
-        result.to_pandas(),
-        pd.DataFrame({
-            "metric": ("metric_tuple", "metric_dict"),
-            "control": (10, 20),
-            "treatment": (11, 22),
-            "effect_size": (1, 2),
-        }),
-    )
-
-def test_experiment_result_to_pretty(result2: tea_tasting.experiment.ExperimentResult):
-    pd.testing.assert_frame_equal(
-        result2.to_pretty(),
-        pd.DataFrame((
-            {
-                "metric": "metric_tuple",
-                "control": "4.44",
-                "treatment": "5.56",
-                "rel_effect_size": "20%",
-                "rel_effect_size_ci": "[12%, ∞]",
-                "pvalue": "0.235",
-            },
-            {
-                "metric": "metric_dict",
-                "control": "10.0",
-                "treatment": "11.1",
-                "rel_effect_size": "11%",
-                "rel_effect_size_ci": "[0.0%, -]",
-                "pvalue": "-",
-            },
-        )),
-    )
-
-def test_experiment_result_to_string(result2: tea_tasting.experiment.ExperimentResult):
-    assert result2.to_string() == pd.DataFrame((
-        {
-            "metric": "metric_tuple",
-            "control": "4.44",
-            "treatment": "5.56",
-            "rel_effect_size": "20%",
-            "rel_effect_size_ci": "[12%, ∞]",
-            "pvalue": "0.235",
-        },
-        {
-            "metric": "metric_dict",
-            "control": "10.0",
-            "treatment": "11.1",
-            "rel_effect_size": "11%",
-            "rel_effect_size_ci": "[0.0%, -]",
-            "pvalue": "-",
-        },
-    )).to_string(index=False)
-
-def test_experiment_result_to_html(result2: tea_tasting.experiment.ExperimentResult):
-    assert result2.to_html() == pd.DataFrame((
-        {
-            "metric": "metric_tuple",
-            "control": "4.44",
-            "treatment": "5.56",
-            "rel_effect_size": "20%",
-            "rel_effect_size_ci": "[12%, ∞]",
-            "pvalue": "0.235",
-        },
-        {
-            "metric": "metric_dict",
-            "control": "10.0",
-            "treatment": "11.1",
-            "rel_effect_size": "11%",
-            "rel_effect_size_ci": "[0.0%, -]",
-            "pvalue": "-",
-        },
-    )).to_html(index=False)
 
 
 def test_experiment_results_to_dicts(
@@ -402,7 +342,7 @@ def test_experiment_power_result_to_dicts():
             _PowerResult(**raw_results[3]),
         ]),
     })
-    assert isinstance(result, tea_tasting.utils.PrettyDictsMixin)
+    assert isinstance(result, tea_tasting.utils.DictsReprMixin)
     assert result.default_keys == (
         "metric", "power", "effect_size", "rel_effect_size", "n_obs")
     assert result.to_dicts() == (
@@ -490,7 +430,7 @@ def test_experiment_analyze_gran(
         avg_revenue=ref_result["avg_revenue"])
 
 def test_experiment_analyze_all_pairs(
-    data_pandas_multi: pd.DataFrame,
+    data_arrow_multi: pa.Table,
     ref_result: tea_tasting.experiment.ExperimentResult,
 ):
     experiment = tea_tasting.experiment.Experiment({
@@ -498,22 +438,22 @@ def test_experiment_analyze_all_pairs(
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     })
-    results = experiment.analyze(data_pandas_multi, all_variants=True)
+    results = experiment.analyze(data_arrow_multi, all_variants=True)
     assert set(results.keys()) == {(0, 1), (0, 2), (1, 2)}
     assert results[0, 1] == ref_result
     assert results[0, 2] == ref_result
 
-def test_experiment_analyze_all_pairs_raises(data_pandas_multi: pd.DataFrame):
+def test_experiment_analyze_all_pairs_raises(data_arrow_multi: pa.Table):
     experiment = tea_tasting.experiment.Experiment({
         "avg_sessions": _Metric("sessions"),
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     })
     with pytest.raises(ValueError, match="all_variants"):
-        experiment.analyze(data_pandas_multi)
+        experiment.analyze(data_arrow_multi)
 
 def test_experiment_analyze_two_treatments(
-    data_pandas_multi: pd.DataFrame,
+    data_arrow_multi: pa.Table,
     ref_result: tea_tasting.experiment.ExperimentResult,
 ):
     experiment = tea_tasting.experiment.Experiment(
@@ -523,19 +463,19 @@ def test_experiment_analyze_two_treatments(
             "avg_revenue": _MetricGranular("revenue"),
         },
     )
-    results = experiment.analyze(data_pandas_multi, control=0, all_variants=True)
+    results = experiment.analyze(data_arrow_multi, control=0, all_variants=True)
     assert results == tea_tasting.experiment.ExperimentResults({
         (0, 1): ref_result,
         (0, 2): ref_result,
     })
 
 
-def test_experiment_solve_power(data_pandas: pd.DataFrame):
+def test_experiment_solve_power(data_arrow: pa.Table):
     experiment = tea_tasting.experiment.Experiment(
         metric=_Metric("sessions"),
         metric_aggr=_MetricAggregated("orders"),
     )
-    result = experiment.solve_power(data_pandas)
+    result = experiment.solve_power(data_arrow)
     assert result == tea_tasting.experiment.ExperimentPowerResult({
         "metric": tea_tasting.metrics.MetricPowerResults((
             _PowerResult(power=0.8, effect_size=1, rel_effect_size=0.05, n_obs=10_000),

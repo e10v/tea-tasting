@@ -15,21 +15,21 @@ import tea_tasting.metrics.mean
 if TYPE_CHECKING:
     from typing import Any
 
-    import pandas as pd
+    import pyarrow as pa
 
 
 @pytest.fixture
-def data_pandas() -> pd.DataFrame:
+def data_arrow() -> pa.Table:
     return tea_tasting.datasets.make_users_data(n_users=100, covariates=True, seed=42)
 
 @pytest.fixture
-def data_aggr(data_pandas: pd.DataFrame) -> dict[Any, tea_tasting.aggr.Aggregates]:
+def data_aggr(data_arrow: pa.Table) -> dict[Any, tea_tasting.aggr.Aggregates]:
     cols = (
         "sessions", "orders", "revenue",
         "sessions_covariate", "orders_covariate", "revenue_covariate",
     )
     return tea_tasting.aggr.read_aggregates(
-        data_pandas,
+        data_arrow,
         group_col="variant",
         has_count=True,
         mean_cols=cols,
@@ -43,20 +43,20 @@ def data_aggr(data_pandas: pd.DataFrame) -> dict[Any, tea_tasting.aggr.Aggregate
     )
 
 @pytest.fixture
-def power_data_pandas() -> pd.DataFrame:
+def power_data_arrow() -> pa.Table:
     return tea_tasting.datasets.make_users_data(
         n_users=100, covariates=True, seed=42,
         sessions_uplift=0, orders_uplift=0, revenue_uplift=0,
     )
 
 @pytest.fixture
-def power_data_aggr(power_data_pandas: pd.DataFrame) -> tea_tasting.aggr.Aggregates:
+def power_data_aggr(power_data_arrow: pa.Table) -> tea_tasting.aggr.Aggregates:
     cols = (
         "sessions", "orders", "revenue",
         "sessions_covariate", "orders_covariate", "revenue_covariate",
     )
     return tea_tasting.aggr.read_aggregates(
-        power_data_pandas,
+        power_data_arrow,
         group_col=None,
         has_count=True,
         mean_cols=cols,
@@ -157,12 +157,12 @@ def test_ratio_of_means_aggr_cols():
     assert set(aggr_cols.cov_cols) == {("a", "b"), ("a", "c"), ("b", "c")}
 
 
-def test_ratio_of_means_analyze_frame(data_pandas: pd.DataFrame):
+def test_ratio_of_means_analyze_frame(data_arrow: pa.Table):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
         denom="sessions",
     )
-    result = metric.analyze(data_pandas, 0, 1, variant="variant")
+    result = metric.analyze(data_arrow, 0, 1, variant="variant")
     assert isinstance(result, tea_tasting.metrics.mean.MeanResult)
 
 def test_ratio_of_means_analyze_basic(
@@ -229,13 +229,13 @@ def test_ratio_of_means_analyze_ratio_less_use_norm(
     assert result.statistic == pytest.approx(-0.3573188986307722)
 
 
-def test_ratio_of_means_solve_power_frame(power_data_pandas: pd.DataFrame):
+def test_ratio_of_means_solve_power_frame(power_data_arrow: pa.Table):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
         denom="sessions",
         rel_effect_size=0.1,
     )
-    results = metric.solve_power(power_data_pandas, "power")
+    results = metric.solve_power(power_data_arrow, "power")
     assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
     assert len(results) == 1
     result = results[0]
