@@ -38,6 +38,7 @@ classifiers = [
 homepage = "https://tea-tasting.e10v.me"
 documentation = "https://tea-tasting.e10v.me/user-guide"
 source = "https://github.com/e10v/tea-tasting"
+"release notes" = "https://github.com/e10v/tea-tasting/releases"
 
 
 [build-system]
