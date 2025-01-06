@@ -277,6 +277,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             variants = granular_data.keys()
         else:
             variants = self._read_variants(data)
+        variants = sorted(variants)
 
         if control is not None:
             variant_pairs = tuple(
