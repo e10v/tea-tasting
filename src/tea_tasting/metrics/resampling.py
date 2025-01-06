@@ -257,7 +257,7 @@ def _select_as_numpy(
     columns: str | Sequence[str],
 ) -> npt.NDArray[np.number[Any]]:
     if isinstance(columns, str):
-        columns = (columns,)
+        return data[columns].combine_chunks().to_numpy(zero_copy_only=False)
     return np.column_stack([
         data[col].combine_chunks().to_numpy(zero_copy_only=False)
         for col in columns
