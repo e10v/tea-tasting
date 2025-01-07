@@ -1,0 +1,10 @@
+:root {
+  --md-code-font: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --md-text-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+.md-typeset code {
+  font-size: .875em;
+}
+.md-typeset ol li,.md-typeset ul li {
+  margin-bottom: .25em
+}
