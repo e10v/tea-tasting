@@ -49,6 +49,10 @@ build-backend = "pdm.backend"
 [tool]
 [tool.pdm]
 [tool.pdm.build]
+excludes = [
+  "src/_strip_doctest_artifacts",
+  "src/_strip_doctest_artifacts/**/*"
+]
 package-dir = "src"
 
 [tool.pdm.dev-dependencies]
