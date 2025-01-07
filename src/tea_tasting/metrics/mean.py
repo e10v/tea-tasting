@@ -823,7 +823,7 @@ class Mean(RatioOfMeans):  # noqa: D101
             >>> print(result)
                       metric control treatment rel_effect_size rel_effect_size_ci  pvalue
              orders_per_user   0.523     0.581             11%        [2.9%, 20%] 0.00733
-            revenue_per_user    5.12      5.85             14%        [3.8%, 26%] 0.00675
+            revenue_per_user    5.12      5.85             14%        [3.8%, 26%] 0.00674
 
             ```
 

@@ -333,7 +333,7 @@ class Quantile(Bootstrap):  # noqa: D101
             >>> result = experiment.analyze(data)
             >>> print(result)
                           metric control treatment rel_effect_size rel_effect_size_ci pvalue
-            revenue_per_user_p80    10.6      11.6            9.1%       [-1.3%, 21%]      -
+            revenue_per_user_p80    10.6      11.6            9.1%       [-1.2%, 21%]      -
 
             ```
         """  # noqa: E501

@@ -63,17 +63,17 @@ class ExperimentResult(
               'rel_effect_size_ci_upper': 0.1906880061278886,
               'statistic': 1.5647028839586707,
               'treatment': 0.5730905412240769},
-             {'control': 5.241078645860599,
-              'effect_size': 0.48905301100469245,
-              'effect_size_ci_lower': -0.13265634499246626,
-              'effect_size_ci_upper': 1.1107623670018512,
+             {'control': 5.241028175976273,
+              'effect_size': 0.4890831037404775,
+              'effect_size_ci_lower': -0.13261881482742033,
+              'effect_size_ci_upper': 1.1107850223083753,
               'metric': 'revenue_per_user',
-              'pvalue': np.float64(0.1230974173674023),
-              'rel_effect_size': 0.09331151925967496,
-              'rel_effect_size_ci_lower': -0.023744208691728885,
-              'rel_effect_size_ci_upper': 0.22440254776265967,
-              'statistic': 1.5422307220453753,
-              'treatment': 5.730131656865291})
+              'pvalue': np.float64(0.1230698855425058),
+              'rel_effect_size': 0.09331815958981626,
+              'rel_effect_size_ci_lower': -0.02373770894855798,
+              'rel_effect_size_ci_upper': 0.22440926894909308,
+              'statistic': 1.5423440700784083,
+              'treatment': 5.73011127971675})
 
             ```
         """
