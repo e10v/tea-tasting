@@ -38,23 +38,23 @@ As an example, consider an experiment with three variants, a control and two tre
 ... ))
 >>> print(data)
 shape: (6_046, 5)
-┌──────┬─────────┬──────────┬────────┬───────────┐
-│ user ┆ variant ┆ sessions ┆ orders ┆ revenue   │
-│ ---  ┆ ---     ┆ ---      ┆ ---    ┆ ---       │
-│ i64  ┆ i64     ┆ i64      ┆ i64    ┆ f64       │
-╞══════╪═════════╪══════════╪════════╪═══════════╡
-│ 0    ┆ 1       ┆ 2        ┆ 1      ┆ 9.58279   │
-│ 1    ┆ 0       ┆ 2        ┆ 1      ┆ 6.434079  │
-│ 2    ┆ 1       ┆ 2        ┆ 1      ┆ 8.304958  │
-│ 3    ┆ 1       ┆ 2        ┆ 1      ┆ 16.652705 │
-│ 4    ┆ 0       ┆ 1        ┆ 1      ┆ 7.136917  │
-│ …    ┆ …       ┆ …        ┆ …      ┆ …         │
-│ 3989 ┆ 2       ┆ 4        ┆ 4      ┆ 34.931448 │
-│ 3991 ┆ 2       ┆ 1        ┆ 0      ┆ 0.0       │
-│ 3992 ┆ 2       ┆ 3        ┆ 3      ┆ 27.964647 │
-│ 3994 ┆ 2       ┆ 2        ┆ 1      ┆ 17.217892 │
-│ 3998 ┆ 2       ┆ 3        ┆ 0      ┆ 0.0       │
-└──────┴─────────┴──────────┴────────┴───────────┘
+┌──────┬─────────┬──────────┬────────┬─────────┐
+│ user ┆ variant ┆ sessions ┆ orders ┆ revenue │
+│ ---  ┆ ---     ┆ ---      ┆ ---    ┆ ---     │
+│ i64  ┆ i64     ┆ i64      ┆ i64    ┆ f64     │
+╞══════╪═════════╪══════════╪════════╪═════════╡
+│ 0    ┆ 1       ┆ 2        ┆ 1      ┆ 9.58    │
+│ 1    ┆ 0       ┆ 2        ┆ 1      ┆ 6.43    │
+│ 2    ┆ 1       ┆ 2        ┆ 1      ┆ 8.3     │
+│ 3    ┆ 1       ┆ 2        ┆ 1      ┆ 16.65   │
+│ 4    ┆ 0       ┆ 1        ┆ 1      ┆ 7.14    │
+│ …    ┆ …       ┆ …        ┆ …      ┆ …       │
+│ 3989 ┆ 2       ┆ 4        ┆ 4      ┆ 34.93   │
+│ 3991 ┆ 2       ┆ 1        ┆ 0      ┆ 0.0     │
+│ 3992 ┆ 2       ┆ 3        ┆ 3      ┆ 27.96   │
+│ 3994 ┆ 2       ┆ 2        ┆ 1      ┆ 17.22   │
+│ 3998 ┆ 2       ┆ 3        ┆ 0      ┆ 0.0     │
+└──────┴─────────┴──────────┴────────┴─────────┘
 
 ```
 
@@ -74,7 +74,7 @@ variants             metric control treatment rel_effect_size rel_effect_size_ci
   (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]   0.674
   (0, 1) orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%]  0.0762
   (0, 1)    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]   0.118
-  (0, 1)   revenue_per_user    5.24      5.99             14%        [2.1%, 28%]  0.0212
+  (0, 1)   revenue_per_user    5.24      5.99             14%        [2.1%, 28%]  0.0211
   (0, 2)  sessions_per_user    2.00      2.02           0.98%      [-2.1%, 4.1%]   0.532
   (0, 2) orders_per_session   0.266     0.295             11%        [1.2%, 22%]  0.0273
   (0, 2)    orders_per_user   0.530     0.594             12%        [1.7%, 23%]  0.0213
@@ -100,7 +100,7 @@ False discovery rate (FDR) is the expected value of the proportion of false disc
 >>> print(adjusted_results_fdr)
 comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.245
-    (0, 1) revenue_per_user    5.24      5.99             14%  0.0212     0.0592
+    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0592
     (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0592
     (0, 2) revenue_per_user    5.24      6.25             19% 0.00218     0.0182
 
@@ -122,7 +122,7 @@ The method also adjusts the significance level alpha and saves it as `alpha_adj`
 ... )))
 comparison           metric control treatment rel_effect_size  pvalue alpha_adj
     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118    0.0240
-    (0, 1) revenue_per_user    5.24      5.99             14%  0.0212    0.0120
+    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211    0.0120
     (0, 2)  orders_per_user   0.530     0.594             12%  0.0213    0.0180
     (0, 2) revenue_per_user    5.24      6.25             19% 0.00218   0.00600
 
@@ -134,9 +134,9 @@ By default, **tea-tasting** assumes arbitrary dependence between hypotheses and 
 >>> print(tt.adjust_fdr(results, metrics, arbitrary_dependence=False))
 comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
-    (0, 1) revenue_per_user    5.24      5.99             14%  0.0212     0.0284
+    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0284
     (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0284
-    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00873
+    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00872
 
 ```
 
@@ -148,9 +148,9 @@ Family-wise error rate (FWER) is the probability of making at least one type I e
 >>> print(tt.adjust_fwer(results, metrics))
 comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
-    (0, 1) revenue_per_user    5.24      5.99             14%  0.0212     0.0635
-    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0635
-    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00873
+    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0634
+    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0634
+    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00872
 
 ```
 
@@ -165,9 +165,9 @@ By default, **tea-tasting** assumes arbitrary dependence between hypotheses and 
 ... ))
 comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
-    (0, 1) revenue_per_user    5.24      5.99             14%  0.0212     0.0422
+    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0422
     (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0422
-    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00870
+    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00869
 
 ```
 
@@ -188,9 +188,9 @@ In the examples above, the methods `adjust_fdr` and `adjust_fwer` received resul
 ... ))
   comparison           metric control treatment rel_effect_size   pvalue pvalue_adj
 Experiment 1  orders_per_user   0.530     0.573            8.0%    0.118      0.245
-Experiment 1 revenue_per_user    5.24      5.99             14%   0.0212     0.0588
+Experiment 1 revenue_per_user    5.24      5.99             14%   0.0211     0.0587
 Experiment 2  orders_per_user   0.514     0.594             16%  0.00427     0.0178
-Experiment 2 revenue_per_user    5.10      6.25             22% 6.27e-04    0.00523
+Experiment 2 revenue_per_user    5.10      6.25             22% 6.27e-04    0.00522
 
 ```
 
