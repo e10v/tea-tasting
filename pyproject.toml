@@ -59,7 +59,7 @@ test = ["coverage[toml]", "ibis-framework[duckdb,sqlite]", "pandas", "polars", "
 [tool.pdm.scripts]
 all.composite = ["doctest", "test", "cover", "lint", "type"]
 all.keep_going = true
-cover = "pdm run coverage report -m"
+cover = "coverage report -m"
 docserv = "mkdocs serve -w docs -w src -w mkdocs.yml"
 doctest = "pytest --doctest-modules --doctest-continue-on-failure --doctest-glob=\"*.md\" --ignore=tests/"
 lint = "ruff check ."
