@@ -238,7 +238,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
             confidence_level=self.confidence_level,
             alternative=self.alternative,
             method=self.method,
-            random_state=self.random_state,
+            random_state=self.random_state,  # type: ignore
         )
         ci = result.confidence_interval
 
