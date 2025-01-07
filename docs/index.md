@@ -31,26 +31,27 @@ pip install tea-tasting
 
 ## Basic example
 
-```python
-import tea_tasting as tt
+```pycon
+>>> import tea_tasting as tt
 
 
-data = tt.make_users_data(seed=42)
+>>> data = tt.make_users_data(seed=42)
 
-experiment = tt.Experiment(
-    sessions_per_user=tt.Mean("sessions"),
-    orders_per_session=tt.RatioOfMeans("orders", "sessions"),
-    orders_per_user=tt.Mean("orders"),
-    revenue_per_user=tt.Mean("revenue"),
-)
+>>> experiment = tt.Experiment(
+...     sessions_per_user=tt.Mean("sessions"),
+...     orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+...     orders_per_user=tt.Mean("orders"),
+...     revenue_per_user=tt.Mean("revenue"),
+... )
 
-result = experiment.analyze(data)
-print(result)
-#>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
-#>  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
-#> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
-#>    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
-#>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+>>> result = experiment.analyze(data)
+>>> print(result)
+            metric control treatment rel_effect_size rel_effect_size_ci pvalue
+ sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+   orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+  revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+
 ```
 
 Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/). Additionally, see the guides on [data backends](https://tea-tasting.e10v.me/data-backends/), [power analysis](https://tea-tasting.e10v.me/power-analysis/), [multiple hypothesis testing](https://tea-tasting.e10v.me/multiple-testing/), and [custom metrics](https://tea-tasting.e10v.me/custom-metrics/).

@@ -38,42 +38,43 @@ class ExperimentResult(
         """Convert the result to a sequence of dictionaries.
 
         Examples:
-            ```python
-            import pprint
+            ```pycon
+            >>> import pprint
 
-            import tea_tasting as tt
+            >>> import tea_tasting as tt
 
 
-            experiment = tt.Experiment(
-                orders_per_user=tt.Mean("orders"),
-                revenue_per_user=tt.Mean("revenue"),
-            )
+            >>> experiment = tt.Experiment(
+            ...     orders_per_user=tt.Mean("orders"),
+            ...     revenue_per_user=tt.Mean("revenue"),
+            ... )
 
-            data = tt.make_users_data(seed=42)
-            result = experiment.analyze(data)
-            pprint.pprint(result.to_dicts())
-            #> ({'control': 0.5304003954522986,
-            #>   'effect_size': 0.04269014577177832,
-            #>   'effect_size_ci_lower': -0.010800201598205564,
-            #>   'effect_size_ci_upper': 0.0961804931417622,
-            #>   'metric': 'orders_per_user',
-            #>   'pvalue': 0.11773177998716244,
-            #>   'rel_effect_size': 0.08048664016431273,
-            #>   'rel_effect_size_ci_lower': -0.019515294044062048,
-            #>   'rel_effect_size_ci_upper': 0.19068800612788883,
-            #>   'statistic': 1.5647028839586694,
-            #>   'treatment': 0.5730905412240769},
-            #>  {'control': 5.2410786458606005,
-            #>   'effect_size': 0.4890530110046889,
-            #>   'effect_size_ci_lower': -0.13265634499246826,
-            #>   'effect_size_ci_upper': 1.110762367001846,
-            #>   'metric': 'revenue_per_user',
-            #>   'pvalue': 0.123097417367404,
-            #>   'rel_effect_size': 0.09331151925967429,
-            #>   'rel_effect_size_ci_lower': -0.023744208691729107,
-            #>   'rel_effect_size_ci_upper': 0.22440254776265856,
-            #>   'statistic': 1.5422307220453677,
-            #>   'treatment': 5.730131656865289})
+            >>> data = tt.make_users_data(seed=42)
+            >>> result = experiment.analyze(data)
+            >>> pprint.pprint(result.to_dicts())
+            ({'control': 0.5304003954522986,
+              'effect_size': 0.04269014577177832,
+              'effect_size_ci_lower': -0.010800201598205515,
+              'effect_size_ci_upper': 0.09618049314176216,
+              'metric': 'orders_per_user',
+              'pvalue': np.float64(0.11773177998716214),
+              'rel_effect_size': 0.08048664016431273,
+              'rel_effect_size_ci_lower': -0.019515294044061937,
+              'rel_effect_size_ci_upper': 0.1906880061278886,
+              'statistic': 1.5647028839586707,
+              'treatment': 0.5730905412240769},
+             {'control': 5.241078645860599,
+              'effect_size': 0.48905301100469245,
+              'effect_size_ci_lower': -0.13265634499246626,
+              'effect_size_ci_upper': 1.1107623670018512,
+              'metric': 'revenue_per_user',
+              'pvalue': np.float64(0.1230974173674023),
+              'rel_effect_size': 0.09331151925967496,
+              'rel_effect_size_ci_lower': -0.023744208691728885,
+              'rel_effect_size_ci_upper': 0.22440254776265967,
+              'statistic': 1.5422307220453753,
+              'treatment': 5.730131656865291})
+
             ```
         """
         return tuple(
@@ -136,82 +137,85 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             kw_metrics: Metrics with metric names as parameter names.
 
         Examples:
-            ```python
-            import tea_tasting as tt
+            ```pycon
+            >>> import tea_tasting as tt
 
 
-            experiment = tt.Experiment(
-                sessions_per_user=tt.Mean("sessions"),
-                orders_per_session=tt.RatioOfMeans("orders", "sessions"),
-                orders_per_user=tt.Mean("orders"),
-                revenue_per_user=tt.Mean("revenue"),
-            )
+            >>> experiment = tt.Experiment(
+            ...     sessions_per_user=tt.Mean("sessions"),
+            ...     orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+            ...     orders_per_user=tt.Mean("orders"),
+            ...     revenue_per_user=tt.Mean("revenue"),
+            ... )
 
-            data = tt.make_users_data(seed=42)
-            result = experiment.analyze(data)
-            print(result)
-            #>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
-            #>  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
-            #> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
-            #>    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
-            #>   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+            >>> data = tt.make_users_data(seed=42)
+            >>> result = experiment.analyze(data)
+            >>> print(result)
+                        metric control treatment rel_effect_size rel_effect_size_ci pvalue
+             sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+            orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+               orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+              revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+
             ```
 
             Using the first argument `metrics` which accepts metrics in a form of dictionary:
 
-            ```python
-            experiment = tt.Experiment({
-                "sessions per user": tt.Mean("sessions"),
-                "orders per session": tt.RatioOfMeans("orders", "sessions"),
-                "orders per user": tt.Mean("orders"),
-                "revenue per user": tt.Mean("revenue"),
-            })
+            ```pycon
+            >>> experiment = tt.Experiment({
+            ...     "sessions per user": tt.Mean("sessions"),
+            ...     "orders per session": tt.RatioOfMeans("orders", "sessions"),
+            ...     "orders per user": tt.Mean("orders"),
+            ...     "revenue per user": tt.Mean("revenue"),
+            ... })
 
-            data = tt.make_users_data(seed=42)
-            result = experiment.analyze(data)
-            print(result)
-            #>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
-            #>  sessions per user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
-            #> orders per session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
-            #>    orders per user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
-            #>   revenue per user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+            >>> data = tt.make_users_data(seed=42)
+            >>> result = experiment.analyze(data)
+            >>> print(result)
+                        metric control treatment rel_effect_size rel_effect_size_ci pvalue
+             sessions per user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+            orders per session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+               orders per user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+              revenue per user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+
             ```
 
             Power analysis:
 
-            ```python
-            data = tt.make_users_data(
-                seed=42,
-                sessions_uplift=0,
-                orders_uplift=0,
-                revenue_uplift=0,
-                covariates=True,
-            )
+            ```pycon
+            >>> data = tt.make_users_data(
+            ...     seed=42,
+            ...     sessions_uplift=0,
+            ...     orders_uplift=0,
+            ...     revenue_uplift=0,
+            ...     covariates=True,
+            ... )
 
-            with tt.config_context(n_obs=(10_000, 20_000)):
-                experiment = tt.Experiment(
-                    sessions_per_user=tt.Mean("sessions", "sessions_covariate"),
-                    orders_per_session=tt.RatioOfMeans(
-                        numer="orders",
-                        denom="sessions",
-                        numer_covariate="orders_covariate",
-                        denom_covariate="sessions_covariate",
-                    ),
-                    orders_per_user=tt.Mean("orders", "orders_covariate"),
-                    revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
-                )
+            >>> with tt.config_context(n_obs=(10_000, 20_000)):
+            ...     experiment = tt.Experiment(
+            ...         sessions_per_user=tt.Mean("sessions", "sessions_covariate"),
+            ...         orders_per_session=tt.RatioOfMeans(
+            ...             numer="orders",
+            ...             denom="sessions",
+            ...             numer_covariate="orders_covariate",
+            ...             denom_covariate="sessions_covariate",
+            ...         ),
+            ...         orders_per_user=tt.Mean("orders", "orders_covariate"),
+            ...         revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
+            ...     )
 
-            power_result = experiment.solve_power(data)
-            print(power_result)
-            #>             metric power effect_size rel_effect_size n_obs
-            #>  sessions_per_user   80%      0.0458            2.3% 10000
-            #>  sessions_per_user   80%      0.0324            1.6% 20000
-            #> orders_per_session   80%      0.0177            6.8% 10000
-            #> orders_per_session   80%      0.0125            4.8% 20000
-            #>    orders_per_user   80%      0.0374            7.2% 10000
-            #>    orders_per_user   80%      0.0264            5.1% 20000
-            #>   revenue_per_user   80%       0.488            9.2% 10000
-            #>   revenue_per_user   80%       0.345            6.5% 20000
+            >>> power_result = experiment.solve_power(data)
+            >>> print(power_result)
+                        metric power effect_size rel_effect_size n_obs
+             sessions_per_user   80%      0.0458            2.3% 10000
+             sessions_per_user   80%      0.0324            1.6% 20000
+            orders_per_session   80%      0.0177            6.8% 10000
+            orders_per_session   80%      0.0125            4.8% 20000
+               orders_per_user   80%      0.0374            7.2% 10000
+               orders_per_user   80%      0.0264            5.1% 20000
+              revenue_per_user   80%       0.488            9.2% 10000
+              revenue_per_user   80%       0.345            6.5% 20000
+
             ```
         """  # noqa: E501
         if metrics is None:

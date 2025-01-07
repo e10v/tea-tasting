@@ -148,86 +148,89 @@ class RatioOfMeans(  # noqa: D101
             - [Deng, A., Xu, Y., Kohavi, R., & Walker, T. (2013). Improving the Sensitivity of Online Controlled Experiments by Utilizing Pre-Experiment Data](https://exp-platform.com/Documents/2013-02-CUPED-ImprovingSensitivityOfControlledExperiments.pdf).
 
         Examples:
-            ```python
-            import tea_tasting as tt
+            ```pycon
+            >>> import tea_tasting as tt
 
 
-            experiment = tt.Experiment(
-                orders_per_session=tt.RatioOfMeans("orders", "sessions"),
-            )
+            >>> experiment = tt.Experiment(
+            ...     orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+            ... )
 
-            data = tt.make_users_data(seed=42)
-            result = experiment.analyze(data)
-            print(result)
-            #>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
-            #> orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+            >>> data = tt.make_users_data(seed=42)
+            >>> result = experiment.analyze(data)
+            >>> print(result)
+                        metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+
             ```
 
             With CUPED:
 
-            ```python
-            experiment = tt.Experiment(
-                orders_per_session=tt.RatioOfMeans(
-                    "orders",
-                    "sessions",
-                    "orders_covariate",
-                    "sessions_covariate",
-                ),
-            )
+            ```pycon
+            >>> experiment = tt.Experiment(
+            ...     orders_per_session=tt.RatioOfMeans(
+            ...         "orders",
+            ...         "sessions",
+            ...         "orders_covariate",
+            ...         "sessions_covariate",
+            ...     ),
+            ... )
 
-            data = tt.make_users_data(seed=42, covariates=True)
-            result = experiment.analyze(data)
-            print(result)
-            #>             metric control treatment rel_effect_size rel_effect_size_ci  pvalue
-            #> orders_per_session   0.262     0.293             12%        [4.2%, 21%] 0.00229
+            >>> data = tt.make_users_data(seed=42, covariates=True)
+            >>> result = experiment.analyze(data)
+            >>> print(result)
+                        metric control treatment rel_effect_size rel_effect_size_ci  pvalue
+            orders_per_session   0.262     0.293             12%        [4.2%, 21%] 0.00229
+
             ```
 
             Power analysis:
 
-            ```python
-            data = tt.make_users_data(
-                seed=42,
-                sessions_uplift=0,
-                orders_uplift=0,
-                revenue_uplift=0,
-                covariates=True,
-            )
+            ```pycon
+            >>> data = tt.make_users_data(
+            ...     seed=42,
+            ...     sessions_uplift=0,
+            ...     orders_uplift=0,
+            ...     revenue_uplift=0,
+            ...     covariates=True,
+            ... )
 
-            orders_per_session = tt.RatioOfMeans(
-                "orders",
-                "sessions",
-                "orders_covariate",
-                "sessions_covariate",
-                n_obs=(10_000, 20_000),
-            )
-            print(orders_per_session.solve_power(data))  # Solve for effect size.
-            #> power effect_size rel_effect_size n_obs
-            #>   80%      0.0177            6.8% 10000
-            #>   80%      0.0125            4.8% 20000
+            >>> orders_per_session = tt.RatioOfMeans(
+            ...     "orders",
+            ...     "sessions",
+            ...     "orders_covariate",
+            ...     "sessions_covariate",
+            ...     n_obs=(10_000, 20_000),
+            ... )
+            >>> print(orders_per_session.solve_power(data))  # Solve for effect size.
+            power effect_size rel_effect_size n_obs
+              80%      0.0177            6.8% 10000
+              80%      0.0125            4.8% 20000
 
-            orders_per_session = tt.RatioOfMeans(
-                "orders",
-                "sessions",
-                "orders_covariate",
-                "sessions_covariate",
-                rel_effect_size=0.05,
-            )
-            # Solve for the total number of observations.
-            print(orders_per_session.solve_power(data, "n_obs"))
-            #> power effect_size rel_effect_size n_obs
-            #>   80%      0.0130            5.0% 18515
+            >>> orders_per_session = tt.RatioOfMeans(
+            ...     "orders",
+            ...     "sessions",
+            ...     "orders_covariate",
+            ...     "sessions_covariate",
+            ...     rel_effect_size=0.05,
+            ... )
+            >>> # Solve for the total number of observations.
+            >>> print(orders_per_session.solve_power(data, "n_obs"))
+            power effect_size rel_effect_size n_obs
+              80%      0.0130            5.0% 18515
 
-            orders_per_session = tt.RatioOfMeans(
-                "orders",
-                "sessions",
-                "orders_covariate",
-                "sessions_covariate",
-                rel_effect_size=0.1,
-            )
-            # Solve for power. Infer number of observations from the sample.
-            print(orders_per_session.solve_power(data, "power"))
-            #> power effect_size rel_effect_size n_obs
-            #>   74%      0.0261             10%  4000
+            >>> orders_per_session = tt.RatioOfMeans(
+            ...     "orders",
+            ...     "sessions",
+            ...     "orders_covariate",
+            ...     "sessions_covariate",
+            ...     rel_effect_size=0.1,
+            ... )
+            >>> # Solve for power. Infer number of observations from the sample.
+            >>> print(orders_per_session.solve_power(data, "power"))
+            power effect_size rel_effect_size n_obs
+              74%      0.0261             10%  4000
+
             ```
         """  # noqa: E501
         self.numer = tea_tasting.utils.check_scalar(numer, "numer", typ=str)
@@ -789,79 +792,82 @@ class Mean(RatioOfMeans):  # noqa: D101
             - [Deng, A., Xu, Y., Kohavi, R., & Walker, T. (2013). Improving the Sensitivity of Online Controlled Experiments by Utilizing Pre-Experiment Data](https://exp-platform.com/Documents/2013-02-CUPED-ImprovingSensitivityOfControlledExperiments.pdf).
 
         Examples:
-            ```python
-            import tea_tasting as tt
+            ```pycon
+            >>> import tea_tasting as tt
 
 
-            experiment = tt.Experiment(
-                orders_per_user=tt.Mean("orders"),
-                revenue_per_user=tt.Mean("revenue"),
-            )
+            >>> experiment = tt.Experiment(
+            ...     orders_per_user=tt.Mean("orders"),
+            ...     revenue_per_user=tt.Mean("revenue"),
+            ... )
 
-            data = tt.make_users_data(seed=42)
-            result = experiment.analyze(data)
-            print(result)
-            #>           metric control treatment rel_effect_size rel_effect_size_ci pvalue
-            #>  orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
-            #> revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+            >>> data = tt.make_users_data(seed=42)
+            >>> result = experiment.analyze(data)
+            >>> print(result)
+                      metric control treatment rel_effect_size rel_effect_size_ci pvalue
+             orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+            revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+
             ```
 
             With CUPED:
 
-            ```python
-            experiment = tt.Experiment(
-                orders_per_user=tt.Mean("orders", "orders_covariate"),
-                revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
-            )
+            ```pycon
+            >>> experiment = tt.Experiment(
+            ...     orders_per_user=tt.Mean("orders", "orders_covariate"),
+            ...     revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
+            ... )
 
-            data = tt.make_users_data(seed=42, covariates=True)
-            result = experiment.analyze(data)
-            print(result)
-            #>           metric control treatment rel_effect_size rel_effect_size_ci  pvalue
-            #>  orders_per_user   0.523     0.581             11%        [2.9%, 20%] 0.00733
-            #> revenue_per_user    5.12      5.85             14%        [3.8%, 26%] 0.00675
+            >>> data = tt.make_users_data(seed=42, covariates=True)
+            >>> result = experiment.analyze(data)
+            >>> print(result)
+                      metric control treatment rel_effect_size rel_effect_size_ci  pvalue
+             orders_per_user   0.523     0.581             11%        [2.9%, 20%] 0.00733
+            revenue_per_user    5.12      5.85             14%        [3.8%, 26%] 0.00675
+
             ```
 
             Power analysis:
 
-            ```python
-            data = tt.make_users_data(
-                seed=42,
-                sessions_uplift=0,
-                orders_uplift=0,
-                revenue_uplift=0,
-                covariates=True,
-            )
+            ```pycon
+            >>> data = tt.make_users_data(
+            ...     seed=42,
+            ...     sessions_uplift=0,
+            ...     orders_uplift=0,
+            ...     revenue_uplift=0,
+            ...     covariates=True,
+            ... )
 
-            orders_per_user = tt.Mean(
-                "orders",
-                "orders_covariate",
-                n_obs=(10_000, 20_000),
-            )
-            print(orders_per_user.solve_power(data))  # Solve for effect size.
-            #> power effect_size rel_effect_size n_obs
-            #>   80%      0.0374            7.2% 10000
-            #>   80%      0.0264            5.1% 20000
+            >>> orders_per_user = tt.Mean(
+            ...     "orders",
+            ...     "orders_covariate",
+            ...     n_obs=(10_000, 20_000),
+            ... )
+            >>> print(orders_per_user.solve_power(data))  # Solve for effect size.
+            power effect_size rel_effect_size n_obs
+              80%      0.0374            7.2% 10000
+              80%      0.0264            5.1% 20000
 
-            orders_per_user = tt.Mean(
-                "orders",
-                "orders_covariate",
-                rel_effect_size=0.05,
-            )
-            # Solve for the total number of observations.
-            print(orders_per_user.solve_power(data, "n_obs"))
-            #> power effect_size rel_effect_size n_obs
-            #>   80%      0.0260            5.0% 20733
+            >>> orders_per_user = tt.Mean(
+            ...     "orders",
+            ...     "orders_covariate",
+            ...     rel_effect_size=0.05,
+            ... )
+            >>> # Solve for the total number of observations.
+            >>> print(orders_per_user.solve_power(data, "n_obs"))
+            power effect_size rel_effect_size n_obs
+              80%      0.0260            5.0% 20733
 
-            orders_per_user = tt.Mean(
-                "orders",
-                "orders_covariate",
-                rel_effect_size=0.1,
-            )
-            # Solve for power. Infer number of observations from the sample.
-            print(orders_per_user.solve_power(data, "power"))
-            #> power effect_size rel_effect_size n_obs
-            #>   69%      0.0519             10%  4000
+            >>> orders_per_user = tt.Mean(
+            ...     "orders",
+            ...     "orders_covariate",
+            ...     rel_effect_size=0.1,
+            ... )
+            >>> # Solve for power. Infer number of observations from the sample.
+            >>> print(orders_per_user.solve_power(data, "power"))
+            power effect_size rel_effect_size n_obs
+              69%      0.0519             10%  4000
+
             ```
         """  # noqa: E501
         super().__init__(
