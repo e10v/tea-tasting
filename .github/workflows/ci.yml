@@ -4,10 +4,12 @@ on:
     paths:
       - '**.py'
       - '.github/workflows/ci.yml'
+      - 'pdm.lock'
   pull_request:
     paths:
       - '**.py'
       - '.github/workflows/ci.yml'
+      - 'pdm.lock'
   workflow_dispatch:
 jobs:
   test:
