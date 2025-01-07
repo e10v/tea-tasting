@@ -81,3 +81,6 @@ markdown_extensions:
   - pymdownx.superfences
   - toc:
       permalink: "#"
+
+extra_css:
+  - stylesheets/extra.css
