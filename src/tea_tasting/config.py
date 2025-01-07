@@ -38,12 +38,13 @@ def get_config(option: str | None = None) -> Any:
             or a dictionary containing all options otherwise.
 
     Examples:
-        ```python
-        import tea_tasting as tt
+        ```pycon
+        >>> import tea_tasting as tt
 
 
-        print(tt.get_config("equal_var"))
-        #> False
+        >>> print(tt.get_config("equal_var"))
+        False
+
         ```
     """
     if option is not None:
@@ -93,25 +94,26 @@ def set_config(
             in the control variant.
 
     Examples:
-        ```python
-        import tea_tasting as tt
+        ```pycon
+        >>> import tea_tasting as tt
 
 
-        tt.set_config(equal_var=True, use_t=False)
+        >>> tt.set_config(equal_var=True, use_t=False)
 
-        experiment = tt.Experiment(
-            sessions_per_user=tt.Mean("sessions"),
-            orders_per_session=tt.RatioOfMeans("orders", "sessions"),
-            orders_per_user=tt.Mean("orders"),
-            revenue_per_user=tt.Mean("revenue"),
-        )
+        >>> experiment = tt.Experiment(
+        ...     sessions_per_user=tt.Mean("sessions"),
+        ...     orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+        ...     orders_per_user=tt.Mean("orders"),
+        ...     revenue_per_user=tt.Mean("revenue"),
+        ... )
 
-        print(experiment.metrics["orders_per_user"])
-        #> Mean(value='orders', covariate=None, alternative='two-sided',
-        #> confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1,
-        #> power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
+        >>> print(experiment.metrics["orders_per_user"])
+        Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
+
+        >>> tt.set_config(equal_var=False, use_t=True)
+
         ```
-    """
+    """  # noqa: E501
     params = {k: v for k, v in locals().items() if k != "kwargs"} | kwargs
     for name, value in params.items():
         if value is not None:
@@ -161,24 +163,23 @@ def config_context(
             in the control variant.
 
     Examples:
-        ```python
-        import tea_tasting as tt
+        ```pycon
+        >>> import tea_tasting as tt
 
 
-        with tt.config_context(equal_var=True, use_t=False):
-            experiment = tt.Experiment(
-                sessions_per_user=tt.Mean("sessions"),
-                orders_per_session=tt.RatioOfMeans("orders", "sessions"),
-                orders_per_user=tt.Mean("orders"),
-                revenue_per_user=tt.Mean("revenue"),
-            )
+        >>> with tt.config_context(equal_var=True, use_t=False):
+        ...     experiment = tt.Experiment(
+        ...         sessions_per_user=tt.Mean("sessions"),
+        ...         orders_per_session=tt.RatioOfMeans("orders", "sessions"),
+        ...         orders_per_user=tt.Mean("orders"),
+        ...         revenue_per_user=tt.Mean("revenue"),
+        ...     )
 
-        print(experiment.metrics["orders_per_user"])
-        #> Mean(value='orders', covariate=None, alternative='two-sided',
-        #> confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1,
-        #> power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
+        >>> print(experiment.metrics["orders_per_user"])
+        Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
+
         ```
-    """
+    """  # noqa: E501
     new_config = {k: v for k, v in locals().items() if k != "kwargs"} | kwargs
     old_config = get_config()
     set_config(**new_config)

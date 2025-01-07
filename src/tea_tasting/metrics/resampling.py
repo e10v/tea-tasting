@@ -110,42 +110,44 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
             - [scipy.stats.bootstrap &#8212; SciPy Manual](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.bootstrap.html#scipy-stats-bootstrap).
 
         Examples:
-            ```python
-            import numpy as np
-            import tea_tasting as tt
+            ```pycon
+            >>> import numpy as np
+            >>> import tea_tasting as tt
 
 
-            experiment = tt.Experiment(
-                orders_per_user=tt.Bootstrap("orders", np.mean, random_state=42),
-            )
+            >>> experiment = tt.Experiment(
+            ...     orders_per_user=tt.Bootstrap("orders", np.mean, random_state=42),
+            ... )
 
-            data = tt.make_users_data(seed=42)
-            result = experiment.analyze(data)
-            print(result)
-            #>          metric control treatment rel_effect_size rel_effect_size_ci pvalue
-            #> orders_per_user   0.530     0.573            8.0%       [-1.8%, 19%]      -
+            >>> data = tt.make_users_data(seed=42)
+            >>> result = experiment.analyze(data)
+            >>> print(result)
+                     metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            orders_per_user   0.530     0.573            8.0%       [-1.8%, 19%]      -
+
             ```
 
             With multiple columns:
 
-            ```python
-            def ratio_of_means(sample, axis):
-                means = np.mean(sample, axis=axis)
-                return means[0] / means[1]
+            ```pycon
+            >>> def ratio_of_means(sample, axis):
+            ...     means = np.mean(sample, axis=axis)
+            ...     return means[0] / means[1]
 
-            experiment = tt.Experiment(
-                orders_per_session=tt.Bootstrap(
-                    ("orders", "sessions"),
-                    ratio_of_means,
-                    random_state=42,
-                ),
-            )
+            >>> experiment = tt.Experiment(
+            ...     orders_per_session=tt.Bootstrap(
+            ...         ("orders", "sessions"),
+            ...         ratio_of_means,
+            ...         random_state=42,
+            ...     ),
+            ... )
 
-            data = tt.make_users_data(seed=42)
-            result = experiment.analyze(data)
-            print(result)
-            #>             metric control treatment rel_effect_size rel_effect_size_ci pvalue
-            #> orders_per_session   0.266     0.289            8.8%      [-0.61%, 20%]      -
+            >>> data = tt.make_users_data(seed=42)
+            >>> result = experiment.analyze(data)
+            >>> print(result)
+                        metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            orders_per_session   0.266     0.289            8.8%      [-0.61%, 20%]      -
+
             ```
         """  # noqa: E501
         tea_tasting.utils.check_scalar(columns, "columns", typ=str | Sequence)
@@ -319,19 +321,20 @@ class Quantile(Bootstrap):  # noqa: D101
             quantile metrics.
 
         Examples:
-            ```python
-            import tea_tasting as tt
+            ```pycon
+            >>> import tea_tasting as tt
 
 
-            experiment = tt.Experiment(
-                revenue_per_user_p80=tt.Quantile("revenue", 0.8, random_state=42),
-            )
+            >>> experiment = tt.Experiment(
+            ...     revenue_per_user_p80=tt.Quantile("revenue", 0.8, random_state=42),
+            ... )
 
-            data = tt.make_users_data(seed=42)
-            result = experiment.analyze(data)
-            print(result)
-            #>               metric control treatment rel_effect_size rel_effect_size_ci pvalue
-            #> revenue_per_user_p80    10.6      11.6            9.1%       [-1.3%, 21%]      -
+            >>> data = tt.make_users_data(seed=42)
+            >>> result = experiment.analyze(data)
+            >>> print(result)
+                          metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            revenue_per_user_p80    10.6      11.6            9.1%       [-1.3%, 21%]      -
+
             ```
         """  # noqa: E501
         self.column = tea_tasting.utils.check_scalar(column, "column", typ=str)
