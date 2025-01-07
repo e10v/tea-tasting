@@ -18,6 +18,7 @@ from typing import Literal, NamedTuple
 
 import numpy as np
 import pyarrow as pa
+import pyarrow.compute as pc
 import scipy.stats
 import tea_tasting as tt
 import tea_tasting.aggr
@@ -26,26 +27,29 @@ import tea_tasting.metrics
 import tea_tasting.utils
 
 
-data = tt.make_users_data(seed=42, return_type="pandas")
-data["has_order"] = data.orders.gt(0).astype(int)
+data = tt.make_users_data(seed=42)
+data = data.append_column(
+    "has_order",
+    pc.greater(data["orders"], 0).cast(pa.int64()),
+)
 print(data)
-#>       user  variant  sessions  orders    revenue  has_order
-#> 0        0        1         2       1   9.166147          1
-#> 1        1        0         2       1   6.434079          1
-#> 2        2        1         2       1   7.943873          1
-#> 3        3        1         2       1  15.928675          1
-#> 4        4        0         1       1   7.136917          1
-#> ...    ...      ...       ...     ...        ...        ...
-#> 3995  3995        0         2       0   0.000000          0
-#> 3996  3996        0         2       0   0.000000          0
-#> 3997  3997        0         3       0   0.000000          0
-#> 3998  3998        0         1       0   0.000000          0
-#> 3999  3999        0         5       2  17.162459          1
-#>
-#> [4000 rows x 6 columns]
+#> pyarrow.Table
+#> user: int64
+#> variant: int64
+#> sessions: int64
+#> orders: int64
+#> revenue: double
+#> has_order: int64
+#> ----
+#> user: [[0,1,2,3,4,...,3995,3996,3997,3998,3999]]
+#> variant: [[1,0,1,1,0,...,0,0,0,0,0]]
+#> sessions: [[2,2,2,2,1,...,2,2,3,1,5]]
+#> orders: [[1,1,1,1,1,...,0,0,0,0,2]]
+#> revenue: [[9.166147128806545,6.4340787057460656,7.943873223822707,15.928674729738708,7.136917019113867,...,0,0,0,0,17.162458516177704]]
+#> has_order: [[1,1,1,1,1,...,0,0,0,0,1]]
 ```
 
-This guide uses Pandas as the data backend, but it's valid for other backends as well. See the [guide on data backends](data-backends.md) for more details.
+This guide uses PyArrow as the data backend, but it's valid for other backends as well. See the [guide on data backends](data-backends.md) for more details.
 
 ## Metrics based on aggregated statistics
 

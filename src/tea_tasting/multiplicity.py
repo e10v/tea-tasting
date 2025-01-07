@@ -97,41 +97,45 @@ def adjust_fdr(
 
     Examples:
         ```python
-        import pandas as pd
+        import polars as pl
         import tea_tasting as tt
 
 
-        data = pd.concat((
+        data = pl.concat((
             tt.make_users_data(
                 seed=42,
                 orders_uplift=0.10,
                 revenue_uplift=0.15,
-                return_type="pandas",
+                return_type="polars",
             ),
             tt.make_users_data(
                 seed=21,
                 orders_uplift=0.15,
                 revenue_uplift=0.20,
-                return_type="pandas",
+                return_type="polars",
             )
-                .query("variant==1")
-                .assign(variant=2),
+                .filter(pl.col("variant").eq(1))
+                .with_columns(variant=pl.lit(2, pl.Int64)),
         ))
         print(data)
-        #>       user  variant  sessions  orders    revenue
-        #> 0        0        1         2       1   9.582790
-        #> 1        1        0         2       1   6.434079
-        #> 2        2        1         2       1   8.304958
-        #> 3        3        1         2       1  16.652705
-        #> 4        4        0         1       1   7.136917
-        #> ...    ...      ...       ...     ...        ...
-        #> 3989  3989        2         4       4  34.931448
-        #> 3991  3991        2         1       0   0.000000
-        #> 3992  3992        2         3       3  27.964647
-        #> 3994  3994        2         2       1  17.217892
-        #> 3998  3998        2         3       0   0.000000
-        #>
-        #> [6046 rows x 5 columns]
+        #> shape: (6_046, 5)
+        #> ┌──────┬─────────┬──────────┬────────┬───────────┐
+        #> │ user ┆ variant ┆ sessions ┆ orders ┆ revenue   │
+        #> │ ---  ┆ ---     ┆ ---      ┆ ---    ┆ ---       │
+        #> │ i64  ┆ i64     ┆ i64      ┆ i64    ┆ f64       │
+        #> ╞══════╪═════════╪══════════╪════════╪═══════════╡
+        #> │ 0    ┆ 1       ┆ 2        ┆ 1      ┆ 9.58279   │
+        #> │ 1    ┆ 0       ┆ 2        ┆ 1      ┆ 6.434079  │
+        #> │ 2    ┆ 1       ┆ 2        ┆ 1      ┆ 8.304958  │
+        #> │ 3    ┆ 1       ┆ 2        ┆ 1      ┆ 16.652705 │
+        #> │ 4    ┆ 0       ┆ 1        ┆ 1      ┆ 7.136917  │
+        #> │ …    ┆ …       ┆ …        ┆ …      ┆ …         │
+        #> │ 3989 ┆ 2       ┆ 4        ┆ 4      ┆ 34.931448 │
+        #> │ 3991 ┆ 2       ┆ 1        ┆ 0      ┆ 0.0       │
+        #> │ 3992 ┆ 2       ┆ 3        ┆ 3      ┆ 27.964647 │
+        #> │ 3994 ┆ 2       ┆ 2        ┆ 1      ┆ 17.217892 │
+        #> │ 3998 ┆ 2       ┆ 3        ┆ 0      ┆ 0.0       │
+        #> └──────┴─────────┴──────────┴────────┴───────────┘
 
         experiment = tt.Experiment(
             sessions_per_user=tt.Mean("sessions"),
@@ -270,41 +274,45 @@ def adjust_fwer(
 
     Examples:
         ```python
-        import pandas as pd
+        import polars as pl
         import tea_tasting as tt
 
 
-        data = pd.concat((
+        data = pl.concat((
             tt.make_users_data(
                 seed=42,
                 orders_uplift=0.10,
                 revenue_uplift=0.15,
-                return_type="pandas",
+                return_type="polars",
             ),
             tt.make_users_data(
                 seed=21,
                 orders_uplift=0.15,
                 revenue_uplift=0.20,
-                return_type="pandas",
+                return_type="polars",
             )
-                .query("variant==1")
-                .assign(variant=2),
+                .filter(pl.col("variant").eq(1))
+                .with_columns(variant=pl.lit(2, pl.Int64)),
         ))
         print(data)
-        #>       user  variant  sessions  orders    revenue
-        #> 0        0        1         2       1   9.582790
-        #> 1        1        0         2       1   6.434079
-        #> 2        2        1         2       1   8.304958
-        #> 3        3        1         2       1  16.652705
-        #> 4        4        0         1       1   7.136917
-        #> ...    ...      ...       ...     ...        ...
-        #> 3989  3989        2         4       4  34.931448
-        #> 3991  3991        2         1       0   0.000000
-        #> 3992  3992        2         3       3  27.964647
-        #> 3994  3994        2         2       1  17.217892
-        #> 3998  3998        2         3       0   0.000000
-        #>
-        #> [6046 rows x 5 columns]
+        #> shape: (6_046, 5)
+        #> ┌──────┬─────────┬──────────┬────────┬───────────┐
+        #> │ user ┆ variant ┆ sessions ┆ orders ┆ revenue   │
+        #> │ ---  ┆ ---     ┆ ---      ┆ ---    ┆ ---       │
+        #> │ i64  ┆ i64     ┆ i64      ┆ i64    ┆ f64       │
+        #> ╞══════╪═════════╪══════════╪════════╪═══════════╡
+        #> │ 0    ┆ 1       ┆ 2        ┆ 1      ┆ 9.58279   │
+        #> │ 1    ┆ 0       ┆ 2        ┆ 1      ┆ 6.434079  │
+        #> │ 2    ┆ 1       ┆ 2        ┆ 1      ┆ 8.304958  │
+        #> │ 3    ┆ 1       ┆ 2        ┆ 1      ┆ 16.652705 │
+        #> │ 4    ┆ 0       ┆ 1        ┆ 1      ┆ 7.136917  │
+        #> │ …    ┆ …       ┆ …        ┆ …      ┆ …         │
+        #> │ 3989 ┆ 2       ┆ 4        ┆ 4      ┆ 34.931448 │
+        #> │ 3991 ┆ 2       ┆ 1        ┆ 0      ┆ 0.0       │
+        #> │ 3992 ┆ 2       ┆ 3        ┆ 3      ┆ 27.964647 │
+        #> │ 3994 ┆ 2       ┆ 2        ┆ 1      ┆ 17.217892 │
+        #> │ 3998 ┆ 2       ┆ 3        ┆ 0      ┆ 0.0       │
+        #> └──────┴─────────┴──────────┴────────┴───────────┘
 
         experiment = tt.Experiment(
             sessions_per_user=tt.Mean("sessions"),

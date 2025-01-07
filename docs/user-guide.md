@@ -383,14 +383,15 @@ In **tea-tasting**, it's possible to analyze experiments with more than two vari
 Example usage:
 
 ```python
-import pandas as pd
+import polars as pl
 import tea_tasting as tt
 
 
-data = pd.concat((
-    tt.make_users_data(seed=42, return_type="pandas"),
-    tt.make_users_data(seed=21, return_type="pandas")
-        .query("variant==1").assign(variant=2),
+data = pl.concat((
+    tt.make_users_data(seed=42, return_type="polars"),
+    tt.make_users_data(seed=21, return_type="polars")
+        .filter(pl.col("variant").eq(1))
+        .with_columns(variant=pl.lit(2, pl.Int64)),
 ))
 
 experiment = tt.Experiment(

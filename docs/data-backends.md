@@ -79,22 +79,21 @@ Keep in mind that **tea-tasting** assumes that:
 Ibis Table is a lazy object. It doesn't fetch the data when created. You can use Ibis DataFrame API to query the table and fetch the result:
 
 ```python
-with pl.Config(
-    float_precision=5,
-    tbl_cell_alignment="RIGHT",
-    tbl_formatting="NOTHING",
-    trim_decimal_zeros=False,
-):
-    print(data.head(5).to_polars())
-#> shape: (5, 5)
-#>  user  variant  sessions  orders   revenue
-#>   ---      ---       ---     ---       ---
-#>   i64      i64       i64     i64       f64
-#>     0        1         2       1   9.16615
-#>     1        0         2       1   6.43408
-#>     2        1         2       1   7.94387
-#>     3        1         2       1  15.92867
-#>     4        0         1       1   7.13692
+ibis.options.interactive = True
+print(data.head(5))
+#> ┏━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━┓
+#> ┃ user  ┃ variant ┃ sessions ┃ orders ┃ revenue   ┃
+#> ┡━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━┩
+#> │ int64 │ int64   │ int64    │ int64  │ float64   │
+#> ├───────┼─────────┼──────────┼────────┼───────────┤
+#> │     0 │       1 │        2 │      1 │  9.166147 │
+#> │     1 │       0 │        2 │      1 │  6.434079 │
+#> │     2 │       1 │        2 │      1 │  7.943873 │
+#> │     3 │       1 │        2 │      1 │ 15.928675 │
+#> │     4 │       0 │        1 │      1 │  7.136917 │
+#> └───────┴─────────┴──────────┴────────┴───────────┘
+
+ibis.options.interactive = False
 ```
 
 ## Ibis example
@@ -132,19 +131,18 @@ print(aggr_data)
 `aggr_data` is another Ibis Table defined as a query over the previously defined `data`. Let's fetch the result:
 
 ```python
-with pl.Config(
-    float_precision=5,
-    tbl_cell_alignment="RIGHT",
-    tbl_formatting="NOTHING",
-    trim_decimal_zeros=False,
-):
-    print(aggr_data.to_polars())
-#> shape: (2, 5)
-#>  variant  sessions_per_user  orders_per_session  orders_per_user  revenue_per_user
-#>      ---                ---                 ---              ---               ---
-#>      i64                f64                 f64              f64               f64
-#>        0            1.99605             0.26573          0.53040           5.24108
-#>        1            1.98280             0.28903          0.57309           5.73013
+ibis.options.interactive = True
+print(aggr_data)
+#> ┏━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┓
+#> ┃ variant ┃ sessions_per_user ┃ orders_per_session ┃ orders_per_user ┃ revenue_per_user ┃
+#> ┡━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━┩
+#> │ int64   │ float64           │ float64            │ float64         │ float64          │
+#> ├─────────┼───────────────────┼────────────────────┼─────────────────┼──────────────────┤
+#> │       0 │          1.996045 │           0.265726 │        0.530400 │         5.241079 │
+#> │       1 │          1.982802 │           0.289031 │        0.573091 │         5.730132 │
+#> └─────────┴───────────────────┴────────────────────┴─────────────────┴──────────────────┘
+
+ibis.options.interactive = False
 ```
 
 Internally, Ibis compiles a Table to an SQL query supported by the backend:
