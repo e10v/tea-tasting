@@ -12,16 +12,15 @@ function handleCopy(event) {
   event.preventDefault();
   const button = event.currentTarget;
   const codeBlock = document.querySelector(button.getAttribute('data-clipboard-target'));
-
   const codeBlockClone = codeBlock.cloneNode(true);
+  codeBlockClone.querySelectorAll('.go').forEach(span => {
+    const prev = span.previousSibling;
+    if (prev && prev.nodeType === Node.TEXT_NODE) {
+      prev.textContent = prev.textContent.replace(/[\r\n]+$/, '');
+    }
+  });
   codeBlockClone.querySelectorAll('.gp, .go').forEach(span => span.remove());
-  let rawText = codeBlockClone.textContent || codeBlockClone.innerText;
-
-  let lines = rawText.split(/\r?\n/);
-  while (lines.length > 0 && lines[lines.length - 1].trim() === '') {
-    lines.pop();
-  }
-  navigator.clipboard.writeText(lines.join('\n'));
+  navigator.clipboard.writeText(codeBlockClone.textContent || codeBlockClone.innerText);
 }
 
 document$.subscribe(() => {
