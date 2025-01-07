@@ -57,6 +57,7 @@ lint = ["pyright", "ruff"]
 test = ["coverage[toml]", "ibis-framework[duckdb,sqlite]", "pandas", "polars", "pytest"]
 
 [tool.pdm.scripts]
+doctest = "pytest --doctest-modules --doctest-continue-on-failure --doctest-glob=\"*.md\" --ignore=tests/"
 lint = "ruff check ."
 test = "coverage run -m pytest"
 type = "pyright"
@@ -64,6 +65,13 @@ type = "pyright"
 [tool.pdm.version]
 source = "scm"
 write_to = "tea_tasting/_version.txt"
+
+
+[tool.coverage]
+[tool.coverage.run]
+source = ["src/tea_tasting"]
+[tool.coverage.report]
+exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover", "@overload", "@abc.abstractmethod"]
 
 
 [tool.ruff]
@@ -92,17 +100,6 @@ convention = "google"
 
 [tool.ruff.lint.pylint]
 max-args = 8
-
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-
-
-[tool.coverage]
-[tool.coverage.run]
-source = ["src/tea_tasting"]
-[tool.coverage.report]
-exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover", "@overload", "@abc.abstractmethod"]
 
 
 [tool.pyright]

@@ -55,3 +55,22 @@ jobs:
         run: pdm run lint
       - name: Check with pyright
         run: pdm run type
+
+  doctest:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: true
+      - name: Install dependencies
+        run: pdm sync -G test
+      - name: Doctest
+        run: pdm run doctest
