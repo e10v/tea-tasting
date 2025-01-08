@@ -64,6 +64,10 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
     ) -> None:
         """Metric for analysis of a statistic using bootstrap resampling.
 
+        If `columns` is a sequence of strings, then the sample passed
+        to the statistic callable contains an extra dimension in the first axis.
+        See examples below.
+
         Args:
             columns: Names of the columns to be used in the analysis.
             statistic: Statistic. It must be a vectorized callable
@@ -71,7 +75,14 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
                 the resulting statistic.
                 It must also accept a keyword argument `axis` and be vectorized
                 to compute the statistic along the provided axis.
-            alternative: Alternative hypothesis.
+            alternative: Alternative hypothesis:
+
+                - `"two-sided"`: the means are unequal,
+                - `"greater"`: the mean in the treatment variant is greater than the mean
+                    in the control variant,
+                - `"less"`: the mean in the treatment variant is less than the mean
+                    in the control variant.
+
             confidence_level: Confidence level for the confidence interval.
             n_resamples: The number of resamples performed to form
                 the bootstrap distribution of the statistic.
@@ -85,18 +96,6 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
                 (or `batch = max(n_resamples, n)` for method="bca").
             random_state: Pseudorandom number generator state used
                 to generate resamples.
-
-        Multiple columns:
-            If `columns` is a sequence of strings, then the sample passed
-            to the statistic callable contains an extra dimension in the first axis.
-            See examples below.
-
-        Alternative hypothesis options:
-            - `"two-sided"`: the means are unequal,
-            - `"greater"`: the mean in the treatment variant is greater than the mean
-                in the control variant,
-            - `"less"`: the mean in the treatment variant is less than the mean
-                in the control variant.
 
         Parameter defaults:
             Defaults for parameters `alternative`, `confidence_level`,
@@ -284,7 +283,14 @@ class Quantile(Bootstrap):  # noqa: D101
         Args:
             column: Name of the column for the quantiles to compute.
             q: Probability for the quantiles to compute.
-            alternative: Alternative hypothesis.
+            alternative: Alternative hypothesis:
+
+                - `"two-sided"`: the means are unequal,
+                - `"greater"`: the mean in the treatment variant is greater than the mean
+                    in the control variant,
+                - `"less"`: the mean in the treatment variant is less than the mean
+                    in the control variant.
+
             confidence_level: Confidence level for the confidence interval.
             n_resamples: The number of resamples performed to form
                 the bootstrap distribution of the statistic.
@@ -292,6 +298,13 @@ class Quantile(Bootstrap):  # noqa: D101
                 interval (`"percentile"`), the "basic" (AKA "reverse") bootstrap
                 confidence interval (`"basic"`), or the bias-corrected
                 and accelerated bootstrap confidence interval (`"bca"`).
+
+                Default method is "basic" which is different from default
+                method "bca" in `Bootstrap`. The "bca" confidence intervals cannot
+                be calculated when the bootstrap distribution is degenerate
+                (e.g. all elements are identical). This is often the case for the
+                quantile metrics.
+
             batch: The number of resamples to process in each vectorized call
                 to statistic. Memory usage is O(`batch * n`), where `n` is
                 the sample size. Default is `None`, in which case `batch = n_resamples`
@@ -299,26 +312,12 @@ class Quantile(Bootstrap):  # noqa: D101
             random_state: Pseudorandom number generator state used
                 to generate resamples.
 
-        Alternative hypothesis options:
-            - `"two-sided"`: the means are unequal,
-            - `"greater"`: the mean in the treatment variant is greater than the mean
-                in the control variant,
-            - `"less"`: the mean in the treatment variant is less than the mean
-                in the control variant.
-
         Parameter defaults:
             Defaults for parameters `alternative`, `confidence_level`,
             and `n_resamples` can be changed using the
             `config_context` and `set_context` functions.
             See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
             reference for details.
-
-        Default method:
-            Default method is "basic" which is different from default
-            method "bca" in `Bootstrap`. The "bca" confidence intervals cannot
-            be calculated when the bootstrap distribution is degenerate
-            (e.g. all elements are identical). This is often the case for the
-            quantile metrics.
 
         Examples:
             ```pycon

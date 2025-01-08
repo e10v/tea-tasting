@@ -2,6 +2,14 @@
 
 ## Multiple hypothesis testing problem
 
+???+ note
+
+    This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. To be able to reproduce the example code, install Polars in addition to **tea-tasting**:
+
+    ```bash
+    pip install polars
+    ```
+
 The [multiple hypothesis testing problem](https://en.wikipedia.org/wiki/Multiple_comparisons_problem) arises when there is more than one success metric or more than one treatment variant in an A/B test.
 
 **tea-tasting** provides the following methods for multiple testing correction:

@@ -17,11 +17,13 @@ This guide:
 
 ## Demo database
 
-This guide uses [DuckDB](https://github.com/duckdb/duckdb), an in-process analytical database, and [Polars](https://github.com/pola-rs/polars) as example data backends. To be able to reproduce the example code, install **tea-tasting**, Ibis with DuckDB extra, and Polars:
+???+ note
 
-```bash
-pip install tea-tasting ibis-framework[duckdb] polars
-```
+    This guide uses [DuckDB](https://github.com/duckdb/duckdb), an in-process analytical database, and [Polars](https://github.com/pola-rs/polars) as example data backends. To be able to reproduce the example code, install Ibis with DuckDB extra and Polars in addition to **tea-tasting**:
+
+    ```bash
+    pip install ibis-framework[duckdb] polars
+    ```
 
 First, let's prepare a demo database:
 

@@ -69,7 +69,16 @@ def set_config(
 
     Args:
         alpha: Significance level. Default is 0.05.
-        alternative: Alternative hypothesis. Default is `"two-sided"`.
+        alternative: Alternative hypothesis:
+
+            - `"two-sided"`: the means are unequal,
+            - `"greater"`: the mean in the treatment variant is greater than the mean
+                in the control variant,
+            - `"less"`: the mean in the treatment variant is less than the mean
+                in the control variant.
+
+            Default is `"two-sided"`.
+
         confidence_level: Confidence level for the confidence interval.
             Default is `0.95`.
         equal_var: Defines whether equal variance is assumed. If `True`,
@@ -85,13 +94,6 @@ def set_config(
         use_t: Defines whether to use the Student's t-distribution (`True`) or
             the Normal distribution (`False`) by default. Default is `True`.
         **kwargs: User-defined global parameters.
-
-    Alternative hypothesis options:
-        - `"two-sided"`: the means are unequal,
-        - `"greater"`: the mean in the treatment variant is greater than the mean
-            in the control variant,
-        - `"less"`: the mean in the treatment variant is less than the mean
-            in the control variant.
 
     Examples:
         ```pycon
@@ -138,7 +140,16 @@ def config_context(
 
     Args:
         alpha: Significance level. Default is 0.05.
-        alternative: Alternative hypothesis. Default is `"two-sided"`.
+        alternative: Alternative hypothesis:
+
+            - `"two-sided"`: the means are unequal,
+            - `"greater"`: the mean in the treatment variant is greater than the mean
+                in the control variant,
+            - `"less"`: the mean in the treatment variant is less than the mean
+                in the control variant.
+
+            Default is `"two-sided"`.
+
         confidence_level: Confidence level for the confidence interval.
             Default is `0.95`.
         equal_var: Defines whether equal variance is assumed. If `True`,
@@ -154,13 +165,6 @@ def config_context(
         use_t: Defines whether to use the Student's t-distribution (`True`) or
             the Normal distribution (`False`) by default. Default is `True`.
         **kwargs: User-defined global parameters.
-
-    Alternative hypothesis options:
-        - `"two-sided"`: the means are unequal,
-        - `"greater"`: the mean in the treatment variant is greater than the mean
-            in the control variant,
-        - `"less"`: the mean in the treatment variant is less than the mean
-            in the control variant.
 
     Examples:
         ```pycon

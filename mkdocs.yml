@@ -79,6 +79,8 @@ plugins:
 
 markdown_extensions:
   - _strip_doctest_artifacts
+  - admonition
+  - pymdownx.details
   - pymdownx.superfences
   - toc:
       permalink: "#"

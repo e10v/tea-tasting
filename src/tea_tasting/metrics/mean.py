@@ -111,7 +111,14 @@ class RatioOfMeans(  # noqa: D101
             denom: Denominator column name.
             numer_covariate: Covariate numerator column name.
             denom_covariate: Covariate denominator column name.
-            alternative: Alternative hypothesis.
+            alternative: Alternative hypothesis:
+
+                - `"two-sided"`: the means are unequal,
+                - `"greater"`: the mean in the treatment variant is greater than the mean
+                    in the control variant,
+                - `"less"`: the mean in the treatment variant is less than the mean
+                    in the control variant.
+
             confidence_level: Confidence level for the confidence interval.
             equal_var: Defines whether equal variance is assumed. If `True`,
                 pooled variance is used for the calculation of the standard error
@@ -128,13 +135,6 @@ class RatioOfMeans(  # noqa: D101
                 divided by the control mean. Only for the analysis of power.
             n_obs: Number of observations in the control and in the treatment together.
                 Only for the analysis of power.
-
-        Alternative hypothesis options:
-            - `"two-sided"`: the means are unequal,
-            - `"greater"`: the mean in the treatment variant is greater than the mean
-                in the control variant,
-            - `"less"`: the mean in the treatment variant is less than the mean
-                in the control variant.
 
         Parameter defaults:
             Defaults for parameters `alpha`, `alternative`, `confidence_level`,
@@ -755,7 +755,14 @@ class Mean(RatioOfMeans):  # noqa: D101
         Args:
             value: Metric value column name.
             covariate: Metric covariate column name.
-            alternative: Alternative hypothesis.
+            alternative: Alternative hypothesis:
+
+                - `"two-sided"`: the means are unequal,
+                - `"greater"`: the mean in the treatment variant is greater than the mean
+                    in the control variant,
+                - `"less"`: the mean in the treatment variant is less than the mean
+                    in the control variant.
+
             confidence_level: Confidence level for the confidence interval.
             equal_var: Defines whether equal variance is assumed. If `True`,
                 pooled variance is used for the calculation of the standard error
@@ -772,13 +779,6 @@ class Mean(RatioOfMeans):  # noqa: D101
                 divided by the control mean. Only for the analysis of power.
             n_obs: Number of observations in the control and in the treatment together.
                 Only for the analysis of power.
-
-        Alternative hypothesis options:
-            - `"two-sided"`: the means are unequal,
-            - `"greater"`: the mean in the treatment variant is greater than the mean
-                in the control variant,
-            - `"less"`: the mean in the treatment variant is less than the mean
-                in the control variant.
 
         Parameter defaults:
             Defaults for parameters `alpha`, `alternative`, `confidence_level`,

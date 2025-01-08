@@ -50,15 +50,15 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
         Args:
             ratio: Expected ratio of the number of observations in the treatment
                 relative to the control.
-            method: Statistical test used for calculation of p-value.
+            method: Statistical test used for calculation of p-value:
+
+                - `"auto"`: Apply exact binomial test if the total number
+                    of observations is < 1000; or normal approximation otherwise.
+                - `"binom"`: Apply exact binomial test.
+                - `"norm"`: Apply normal approximation of the binomial distribution.
+
             correction: If `True`, add continuity correction.
                 Only for normal approximation.
-
-        Method options:
-            - `"auto"`: Apply exact binomial test if the total number of observations
-                is < 1000; or normal approximation otherwise.
-            - `"binom"`: Apply exact binomial test.
-            - `"norm"`: Apply normal approximation of the binomial distribution.
 
         Examples:
             ```pycon

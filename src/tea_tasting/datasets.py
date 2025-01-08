@@ -125,12 +125,11 @@ def make_users_data(
         avg_orders_per_session: Average number of orders per session.
             Should be less than `1`.
         avg_revenue_per_order: Average revenue per order.
-        return_type: Result type.
+        return_type: Return type:
 
-    Result types:
-        - `"arrow"`: PyArrow Table.
-        - `"pandas"`: Pandas DataFrame.
-        - `"polars"`: Polars DataFrame.
+            - `"arrow"`: PyArrow Table.
+            - `"pandas"`: Pandas DataFrame.
+            - `"polars"`: Polars DataFrame.
 
     Returns:
         Simulated data for A/B testing scenarios.
@@ -345,12 +344,11 @@ def make_sessions_data(
         avg_orders_per_session: Average number of orders per session.
             Should be less than `1`.
         avg_revenue_per_order: Average revenue per order.
-        return_type: Result type.
+        return_type: Return type:
 
-    Result types:
-        - `"arrow"`: PyArrow Table.
-        - `"pandas"`: Pandas DataFrame.
-        - `"polars"`: Polars DataFrame.
+            - `"arrow"`: PyArrow Table.
+            - `"pandas"`: Pandas DataFrame.
+            - `"polars"`: Polars DataFrame.
 
     Returns:
         Simulated data for A/B testing scenarios.
