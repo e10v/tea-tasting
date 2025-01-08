@@ -269,11 +269,6 @@ def aggregate_by_variants(
         aggr_cols: Columns to be aggregated.
         variant: Variant column name.
 
-    Raises:
-        ValueError: The variant parameter is required but was not provided.
-        TypeError: data is not an instance of DataFrame, Table,
-            or a dictionary of Aggregates.
-
     Returns:
         Experimental data as a dictionary of Aggregates.
     """
@@ -381,9 +376,6 @@ def read_granular(
         data: Experimental data.
         cols: Columns to read.
         variant: Variant column name.
-
-    Raises:
-        ValueError: The variant parameter is required but was not provided.
 
     Returns:
         Experimental data as a dictionary of PyArrow Tables.

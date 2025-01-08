@@ -56,8 +56,9 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
         """Return aggregates that do not raise an error on division by zero.
 
         Division by zero returns:
-            - `inf` if numerator is greater than `0`,
-            - `nan` if numerator is equal to or less than `0`.
+
+        - `inf` if numerator is greater than `0`,
+        - `nan` if numerator is equal to or less than `0`.
         """
         return Aggregates(
             count_=None if self.count_ is None else tea_tasting.utils.Int(self.count_),
@@ -68,9 +69,6 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
 
     def count(self) -> int:
         """Sample size (number of observations).
-
-        Raises:
-            RuntimeError: Count is `None` (if it was not defined during initialization).
 
         Returns:
             Sample size (number of observations).

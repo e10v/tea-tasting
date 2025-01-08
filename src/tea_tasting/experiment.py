@@ -40,15 +40,12 @@ class ExperimentResult(
         Examples:
             ```pycon
             >>> import pprint
-
             >>> import tea_tasting as tt
-
 
             >>> experiment = tt.Experiment(
             ...     orders_per_user=tt.Mean("orders"),
             ...     revenue_per_user=tt.Mean("revenue"),
             ... )
-
             >>> data = tt.make_users_data(seed=42)
             >>> result = experiment.analyze(data)
             >>> pprint.pprint(result.to_dicts())
@@ -140,14 +137,12 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             ```pycon
             >>> import tea_tasting as tt
 
-
             >>> experiment = tt.Experiment(
             ...     sessions_per_user=tt.Mean("sessions"),
             ...     orders_per_session=tt.RatioOfMeans("orders", "sessions"),
             ...     orders_per_user=tt.Mean("orders"),
             ...     revenue_per_user=tt.Mean("revenue"),
             ... )
-
             >>> data = tt.make_users_data(seed=42)
             >>> result = experiment.analyze(data)
             >>> print(result)
@@ -168,7 +163,6 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             ...     "orders per user": tt.Mean("orders"),
             ...     "revenue per user": tt.Mean("revenue"),
             ... })
-
             >>> data = tt.make_users_data(seed=42)
             >>> result = experiment.analyze(data)
             >>> print(result)
@@ -190,7 +184,6 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             ...     revenue_uplift=0,
             ...     covariates=True,
             ... )
-
             >>> with tt.config_context(n_obs=(10_000, 20_000)):
             ...     experiment = tt.Experiment(
             ...         sessions_per_user=tt.Mean("sessions", "sessions_covariate"),
@@ -203,7 +196,6 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             ...         orders_per_user=tt.Mean("orders", "orders_covariate"),
             ...         revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
             ...     )
-
             >>> power_result = experiment.solve_power(data)
             >>> print(power_result)
                         metric power effect_size rel_effect_size n_obs

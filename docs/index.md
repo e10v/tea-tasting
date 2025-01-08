@@ -34,16 +34,13 @@ pip install tea-tasting
 ```pycon
 >>> import tea_tasting as tt
 
-
 >>> data = tt.make_users_data(seed=42)
-
 >>> experiment = tt.Experiment(
 ...     sessions_per_user=tt.Mean("sessions"),
 ...     orders_per_session=tt.RatioOfMeans("orders", "sessions"),
 ...     orders_per_user=tt.Mean("orders"),
 ...     revenue_per_user=tt.Mean("revenue"),
 ... )
-
 >>> result = experiment.analyze(data)
 >>> print(result)
             metric control treatment rel_effect_size rel_effect_size_ci pvalue

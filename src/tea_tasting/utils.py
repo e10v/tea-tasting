@@ -185,22 +185,23 @@ def format_num(
 def get_and_format_num(data: dict[str, Any], key: str) -> str:
     """Get and format dictionary value.
 
+    Formatting rules:
+
+    - If a name starts with `"rel_"` or equals to `"power"` consider it
+        a percentage value. Round percentage values to 2 significant digits,
+        multiply by `100` and add `"%"`.
+    - Round other values to 3 significant values.
+    - If value is less than `0.001`, format it in exponential presentation.
+    - If a name ends with `"_ci"`, consider it a confidence interval.
+        Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
+        and format the interval as `"[{lower_bound}, {lower_bound}]"`.
+
     Args:
         data: Dictionary.
         key: Key.
 
     Returns:
         Formatted value.
-
-    Formatting rules:
-        - If a name starts with `"rel_"` or equals to `"power"` consider it
-            a percentage value. Round percentage values to 2 significant digits,
-            multiply by `100` and add `"%"`.
-        - Round other values to 3 significant values.
-        - If value is less than `0.001`, format it in exponential presentation.
-        - If a name ends with `"_ci"`, consider it a confidence interval.
-            Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
-            and format the interval as `"[{lower_bound}, {lower_bound}]"`.
     """
     if key.endswith("_ci"):
         ci_lower = get_and_format_num(data, key + "_lower")
@@ -219,14 +220,15 @@ class DictsReprMixin(abc.ABC):
     """Representation and conversion of a sequence of dictionaries.
 
     Default formatting rules:
-        - If a name starts with `"rel_"` or equals to `"power"` consider it
-            a percentage value. Round percentage values to 2 significant digits,
-            multiply by `100` and add `"%"`.
-        - Round other values to 3 significant values.
-        - If value is less than `0.001`, format it in exponential presentation.
-        - If a name ends with `"_ci"`, consider it a confidence interval.
-            Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
-            and format the interval as `"[{lower_bound}, {lower_bound}]"`.
+
+    - If a name starts with `"rel_"` or equals to `"power"` consider it
+        a percentage value. Round percentage values to 2 significant digits,
+        multiply by `100` and add `"%"`.
+    - Round other values to 3 significant values.
+    - If value is less than `0.001`, format it in exponential presentation.
+    - If a name ends with `"_ci"`, consider it a confidence interval.
+        Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
+        and format the interval as `"[{lower_bound}, {lower_bound}]"`.
     """
     default_keys: Sequence[str]
 
@@ -255,6 +257,17 @@ class DictsReprMixin(abc.ABC):
     ) -> list[dict[str, str]]:
         """Convert the object to a list of dictionaries with formatted values.
 
+        Default formatting rules:
+
+        - If a name starts with `"rel_"` or equals to `"power"` consider it
+            a percentage value. Round percentage values to 2 significant digits,
+            multiply by `100` and add `"%"`.
+        - Round other values to 3 significant values.
+        - If value is less than `0.001`, format it in exponential presentation.
+        - If a name ends with `"_ci"`, consider it a confidence interval.
+            Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
+            and format the interval as `"[{lower_bound}, {lower_bound}]"`.
+
         Args:
             keys: Keys to convert. If a key is not defined in the dictionary
                 it's assumed to be `None`.
@@ -264,16 +277,6 @@ class DictsReprMixin(abc.ABC):
 
         Returns:
             List of dictionaries with formatted values.
-
-        Default formatting rules:
-            - If a name starts with `"rel_"` or equals to `"power"` consider it
-                a percentage value. Round percentage values to 2 significant digits,
-                multiply by `100` and add `"%"`.
-            - Round other values to 3 significant values.
-            - If value is less than `0.001`, format it in exponential presentation.
-            - If a name ends with `"_ci"`, consider it a confidence interval.
-                Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
-                and format the interval as `"[{lower_bound}, {lower_bound}]"`.
         """
         if keys is None:
             keys = self.default_keys
@@ -286,6 +289,17 @@ class DictsReprMixin(abc.ABC):
     ) -> str:
         """Convert the object to a string.
 
+        Default formatting rules:
+
+        - If a name starts with `"rel_"` or equals to `"power"` consider it
+            a percentage value. Round percentage values to 2 significant digits,
+            multiply by `100` and add `"%"`.
+        - Round other values to 3 significant values.
+        - If value is less than `0.001`, format it in exponential presentation.
+        - If a name ends with `"_ci"`, consider it a confidence interval.
+            Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
+            and format the interval as `"[{lower_bound}, {lower_bound}]"`.
+
         Args:
             keys: Keys to convert. If a key is not defined in the dictionary
                 it's assumed to be `None`.
@@ -295,16 +309,6 @@ class DictsReprMixin(abc.ABC):
 
         Returns:
             A table with results rendered as string.
-
-        Default formatting rules:
-            - If a name starts with `"rel_"` or equals to `"power"` consider it
-                a percentage value. Round percentage values to 2 significant digits,
-                multiply by `100` and add `"%"`.
-            - Round other values to 3 significant values.
-            - If value is less than `0.001`, format it in exponential presentation.
-            - If a name ends with `"_ci"`, consider it a confidence interval.
-                Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
-                and format the interval as `"[{lower_bound}, {lower_bound}]"`.
         """
         if keys is None:
             keys = self.default_keys
@@ -336,6 +340,17 @@ class DictsReprMixin(abc.ABC):
     ) -> str:
         """Convert the object to HTML.
 
+        Default formatting rules:
+
+        - If a name starts with `"rel_"` or equals to `"power"` consider it
+            a percentage value. Round percentage values to 2 significant digits,
+            multiply by `100` and add `"%"`.
+        - Round other values to 3 significant values.
+        - If value is less than `0.001`, format it in exponential presentation.
+        - If a name ends with `"_ci"`, consider it a confidence interval.
+            Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
+            and format the interval as `"[{lower_bound}, {lower_bound}]"`.
+
         Args:
             keys: Keys to convert. If a key is not defined in the dictionary
                 it's assumed to be `None`.
@@ -347,16 +362,6 @@ class DictsReprMixin(abc.ABC):
 
         Returns:
             A table with results rendered as HTML.
-
-        Default formatting rules:
-            - If a name starts with `"rel_"` or equals to `"power"` consider it
-                a percentage value. Round percentage values to 2 significant digits,
-                multiply by `100` and add `"%"`.
-            - Round other values to 3 significant values.
-            - If value is less than `0.001`, format it in exponential presentation.
-            - If a name ends with `"_ci"`, consider it a confidence interval.
-                Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
-                and format the interval as `"[{lower_bound}, {lower_bound}]"`.
         """
         if keys is None:
             keys = self.default_keys

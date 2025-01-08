@@ -50,25 +50,23 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
         Args:
             ratio: Expected ratio of the number of observations in the treatment
                 relative to the control.
-            method: Statistical test used for calculation of p-value.
+            method: Statistical test used for calculation of p-value:
+
+                - `"auto"`: Apply exact binomial test if the total number
+                    of observations is < 1000; or normal approximation otherwise.
+                - `"binom"`: Apply exact binomial test.
+                - `"norm"`: Apply normal approximation of the binomial distribution.
+
             correction: If `True`, add continuity correction.
                 Only for normal approximation.
-
-        Method options:
-            - `"auto"`: Apply exact binomial test if the total number of observations
-                is < 1000; or normal approximation otherwise.
-            - `"binom"`: Apply exact binomial test.
-            - `"norm"`: Apply normal approximation of the binomial distribution.
 
         Examples:
             ```pycon
             >>> import tea_tasting as tt
 
-
             >>> experiment = tt.Experiment(
             ...     sample_ratio=tt.SampleRatio(),
             ... )
-
             >>> data = tt.make_users_data(seed=42)
             >>> result = experiment.analyze(data)
             >>> print(result.to_string(("metric", "control", "treatment", "pvalue")))
@@ -80,13 +78,9 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
             Different expected ratio:
 
             ```pycon
-            >>> import tea_tasting as tt
-
-
             >>> experiment = tt.Experiment(
             ...     sample_ratio=tt.SampleRatio(0.5),
             ... )
-
             >>> data = tt.make_users_data(seed=42)
             >>> result = experiment.analyze(data)
             >>> print(result.to_string(("metric", "control", "treatment", "pvalue")))

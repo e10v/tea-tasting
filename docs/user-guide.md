@@ -15,16 +15,13 @@ Begin with this simple example to understand the basic functionality:
 ```pycon
 >>> import tea_tasting as tt
 
-
 >>> data = tt.make_users_data(seed=42)
-
 >>> experiment = tt.Experiment(
 ...     sessions_per_user=tt.Mean("sessions"),
 ...     orders_per_session=tt.RatioOfMeans("orders", "sessions"),
 ...     orders_per_user=tt.Mean("orders"),
 ...     revenue_per_user=tt.Mean("revenue"),
 ... )
-
 >>> result = experiment.analyze(data)
 >>> print(result)
             metric control treatment rel_effect_size rel_effect_size_ci pvalue
@@ -230,9 +227,7 @@ Example usage:
 ```pycon
 >>> import tea_tasting as tt
 
-
 >>> data = tt.make_users_data(seed=42, covariates=True)
-
 >>> experiment = tt.Experiment(
 ...     sessions_per_user=tt.Mean("sessions", "sessions_covariate"),
 ...     orders_per_session=tt.RatioOfMeans(
@@ -244,7 +239,6 @@ Example usage:
 ...     orders_per_user=tt.Mean("orders", "orders_covariate"),
 ...     revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
 ... )
-
 >>> result = experiment.analyze(data)
 >>> print(result)
             metric control treatment rel_effect_size rel_effect_size_ci  pvalue
@@ -275,13 +269,11 @@ Example usage:
 ```pycon
 >>> import tea_tasting as tt
 
-
 >>> experiment = tt.Experiment(
 ...     orders_per_user=tt.Mean("orders"),
 ...     revenue_per_user=tt.Mean("revenue"),
 ...     sample_ratio=tt.SampleRatio(),
 ... )
-
 >>> data = tt.make_users_data(seed=42)
 >>> result = experiment.analyze(data)
 >>> print(result)
@@ -326,7 +318,6 @@ Use [`get_config`](api/config.md#tea_tasting.config.get_config) with the option 
 ```pycon
 >>> import tea_tasting as tt
 
-
 >>> print(tt.get_config("equal_var"))
 False
 
@@ -343,14 +334,13 @@ Use [`set_config`](api/config.md#tea_tasting.config.set_config) to set a global 
 
 ```pycon
 >>> tt.set_config(equal_var=True, use_t=False)
-
 >>> experiment = tt.Experiment(
 ...     sessions_per_user=tt.Mean("sessions"),
 ...     orders_per_session=tt.RatioOfMeans("orders", "sessions"),
 ...     orders_per_user=tt.Mean("orders"),
 ...     revenue_per_user=tt.Mean("revenue"),
 ... )
-
+>>> tt.set_config(equal_var=False, use_t=True)
 >>> print(experiment.metrics["orders_per_user"])
 Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
 
@@ -359,8 +349,6 @@ Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0
 Use [`config_context`](api/config.md#tea_tasting.config.config_context) to temporarily set a global option value within a context:
 
 ```pycon
->>> tt.set_config(equal_var=False, use_t=True)
-
 >>> with tt.config_context(equal_var=True, use_t=False):
 ...     experiment = tt.Experiment(
 ...         sessions_per_user=tt.Mean("sessions"),
@@ -368,7 +356,6 @@ Use [`config_context`](api/config.md#tea_tasting.config.config_context) to tempo
 ...         orders_per_user=tt.Mean("orders"),
 ...         revenue_per_user=tt.Mean("revenue"),
 ...     )
-
 >>> print(tt.get_config("equal_var"))
 False
 
@@ -382,6 +369,14 @@ Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0
 
 ### More than two variants
 
+???+ note
+
+    This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. To be able to reproduce the example code, install Polars in addition to **tea-tasting**:
+
+    ```bash
+    pip install polars
+    ```
+
 In **tea-tasting**, it's possible to analyze experiments with more than two variants. However, the variants will be compared in pairs through two-sample statistical tests.
 
 Example usage:
@@ -390,21 +385,18 @@ Example usage:
 >>> import polars as pl
 >>> import tea_tasting as tt
 
-
 >>> data = pl.concat((
 ...     tt.make_users_data(seed=42, return_type="polars"),
 ...     tt.make_users_data(seed=21, return_type="polars")
 ...         .filter(pl.col("variant").eq(1))
 ...         .with_columns(variant=pl.lit(2, pl.Int64)),
 ... ))
-
 >>> experiment = tt.Experiment(
 ...     sessions_per_user=tt.Mean("sessions"),
 ...     orders_per_session=tt.RatioOfMeans("orders", "sessions"),
 ...     orders_per_user=tt.Mean("orders"),
 ...     revenue_per_user=tt.Mean("revenue"),
 ... )
-
 >>> results = experiment.analyze(data, control=0, all_variants=True)
 >>> print(results)
 variants             metric control treatment rel_effect_size rel_effect_size_ci pvalue

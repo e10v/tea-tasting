@@ -65,12 +65,13 @@ def adjust_fdr(
         hypotheses (`arbitrary_dependence=False`).
 
     The function adds the following attributes to the results:
-        - `pvalue_adj`: The adjusted p-value, which should be compared with
-            the unadjusted FDR (`alpha`).
-        - `alpha_adj`: The adjusted FDR, which should be compared with the unadjusted
-            p-value (`pvalue`).
-        - `null_rejected`: A binary indicator (`0` or `1`) that shows whether
-            the null hypothesis is rejected.
+
+    - `pvalue_adj`: The adjusted p-value, which should be compared with
+        the unadjusted FDR (`alpha`).
+    - `alpha_adj`: The adjusted FDR, which should be compared with the unadjusted
+        p-value (`pvalue`).
+    - `null_rejected`: A binary indicator (`0` or `1`) that shows whether
+        the null hypothesis is rejected.
 
     Args:
         experiment_results: Experiment results.
@@ -86,7 +87,7 @@ def adjust_fdr(
         The experiments results with adjusted p-values and alphas.
 
     Parameter defaults:
-        Default for parameters `alpha` can be changed using the `config_context`
+        Default for parameter `alpha` can be changed using the `config_context`
         and `set_context` functions.
         See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
         reference for details.
@@ -99,7 +100,6 @@ def adjust_fdr(
         ```pycon
         >>> import polars as pl
         >>> import tea_tasting as tt
-
 
         >>> data = pl.concat((
         ...     tt.make_users_data(
@@ -241,12 +241,13 @@ def adjust_fwer(
         hypotheses (`arbitrary_dependence=False`).
 
     The function adds the following attributes to the results:
-        - `pvalue_adj`: The adjusted p-value, which should be compared with
-            the unadjusted FDR (`alpha`).
-        - `alpha_adj`: The adjusted FWER, which should be compared with the unadjusted
-            p-value (`pvalue`).
-        - `null_rejected`: A binary indicator (`0` or `1`) that shows whether
-            the null hypothesis is rejected.
+
+    - `pvalue_adj`: The adjusted p-value, which should be compared with
+        the unadjusted FDR (`alpha`).
+    - `alpha_adj`: The adjusted FWER, which should be compared with the unadjusted
+        p-value (`pvalue`).
+    - `null_rejected`: A binary indicator (`0` or `1`) that shows whether
+        the null hypothesis is rejected.
 
     Args:
         experiment_results: Experiment results.
@@ -263,7 +264,7 @@ def adjust_fwer(
         The experiments results with adjusted p-values and alphas.
 
     Parameter defaults:
-        Default for parameters `alpha` can be changed using the `config_context`
+        Default for parameter `alpha` can be changed using the `config_context`
         and `set_context` functions.
         See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
         reference for details.
@@ -277,7 +278,6 @@ def adjust_fwer(
         ```pycon
         >>> import polars as pl
         >>> import tea_tasting as tt
-
 
         >>> data = pl.concat((
         ...     tt.make_users_data(
