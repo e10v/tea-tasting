@@ -27,7 +27,6 @@ As an example, consider an experiment with three variants, a control and two tre
 >>> import polars as pl
 >>> import tea_tasting as tt
 
-
 >>> data = pl.concat((
 ...     tt.make_users_data(
 ...         seed=42,
@@ -75,7 +74,6 @@ Let's calculate the experiment results:
 ...     orders_per_user=tt.Mean("orders"),
 ...     revenue_per_user=tt.Mean("revenue"),
 ... )
-
 >>> results = experiment.analyze(data, control=0, all_variants=True)
 >>> print(results)
 variants             metric control treatment rel_effect_size rel_effect_size_ci  pvalue
@@ -186,10 +184,8 @@ In the examples above, the methods `adjust_fdr` and `adjust_fwer` received resul
 ```pycon
 >>> data1 = tt.make_users_data(seed=42, orders_uplift=0.10, revenue_uplift=0.15)
 >>> data2 = tt.make_users_data(seed=21, orders_uplift=0.15, revenue_uplift=0.20)
-
 >>> result1 = experiment.analyze(data1)
 >>> result2 = experiment.analyze(data2)
-
 >>> print(tt.adjust_fdr(
 ...     {"Experiment 1": result1, "Experiment 2": result2},
 ...     metrics,

@@ -32,7 +32,6 @@ First, let's prepare a demo database:
 >>> import polars as pl
 >>> import tea_tasting as tt
 
-
 >>> users_data = tt.make_users_data(seed=42)
 >>> con = ibis.duckdb.connect()
 >>> con.create_table("users_data", users_data)

@@ -113,11 +113,9 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
             >>> import numpy as np
             >>> import tea_tasting as tt
 
-
             >>> experiment = tt.Experiment(
             ...     orders_per_user=tt.Bootstrap("orders", np.mean, random_state=42),
             ... )
-
             >>> data = tt.make_users_data(seed=42)
             >>> result = experiment.analyze(data)
             >>> print(result)
@@ -140,7 +138,6 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
             ...         random_state=42,
             ...     ),
             ... )
-
             >>> data = tt.make_users_data(seed=42)
             >>> result = experiment.analyze(data)
             >>> print(result)
@@ -323,11 +320,9 @@ class Quantile(Bootstrap):  # noqa: D101
             ```pycon
             >>> import tea_tasting as tt
 
-
             >>> experiment = tt.Experiment(
             ...     revenue_per_user_p80=tt.Quantile("revenue", 0.8, random_state=42),
             ... )
-
             >>> data = tt.make_users_data(seed=42)
             >>> result = experiment.analyze(data)
             >>> print(result)

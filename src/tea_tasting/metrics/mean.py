@@ -151,11 +151,9 @@ class RatioOfMeans(  # noqa: D101
             ```pycon
             >>> import tea_tasting as tt
 
-
             >>> experiment = tt.Experiment(
             ...     orders_per_session=tt.RatioOfMeans("orders", "sessions"),
             ... )
-
             >>> data = tt.make_users_data(seed=42)
             >>> result = experiment.analyze(data)
             >>> print(result)
@@ -175,7 +173,6 @@ class RatioOfMeans(  # noqa: D101
             ...         "sessions_covariate",
             ...     ),
             ... )
-
             >>> data = tt.make_users_data(seed=42, covariates=True)
             >>> result = experiment.analyze(data)
             >>> print(result)
@@ -194,7 +191,6 @@ class RatioOfMeans(  # noqa: D101
             ...     revenue_uplift=0,
             ...     covariates=True,
             ... )
-
             >>> orders_per_session = tt.RatioOfMeans(
             ...     "orders",
             ...     "sessions",
@@ -202,7 +198,8 @@ class RatioOfMeans(  # noqa: D101
             ...     "sessions_covariate",
             ...     n_obs=(10_000, 20_000),
             ... )
-            >>> print(orders_per_session.solve_power(data))  # Solve for effect size.
+            >>> # Solve for effect size.
+            >>> print(orders_per_session.solve_power(data))
             power effect_size rel_effect_size n_obs
               80%      0.0177            6.8% 10000
               80%      0.0125            4.8% 20000
@@ -795,12 +792,10 @@ class Mean(RatioOfMeans):  # noqa: D101
             ```pycon
             >>> import tea_tasting as tt
 
-
             >>> experiment = tt.Experiment(
             ...     orders_per_user=tt.Mean("orders"),
             ...     revenue_per_user=tt.Mean("revenue"),
             ... )
-
             >>> data = tt.make_users_data(seed=42)
             >>> result = experiment.analyze(data)
             >>> print(result)
@@ -817,7 +812,6 @@ class Mean(RatioOfMeans):  # noqa: D101
             ...     orders_per_user=tt.Mean("orders", "orders_covariate"),
             ...     revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
             ... )
-
             >>> data = tt.make_users_data(seed=42, covariates=True)
             >>> result = experiment.analyze(data)
             >>> print(result)
@@ -837,13 +831,13 @@ class Mean(RatioOfMeans):  # noqa: D101
             ...     revenue_uplift=0,
             ...     covariates=True,
             ... )
-
             >>> orders_per_user = tt.Mean(
             ...     "orders",
             ...     "orders_covariate",
             ...     n_obs=(10_000, 20_000),
             ... )
-            >>> print(orders_per_user.solve_power(data))  # Solve for effect size.
+            >>> # Solve for effect size.
+            >>> print(orders_per_user.solve_power(data))
             power effect_size rel_effect_size n_obs
               80%      0.0374            7.2% 10000
               80%      0.0264            5.1% 20000

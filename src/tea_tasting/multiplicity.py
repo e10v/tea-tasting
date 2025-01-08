@@ -101,7 +101,6 @@ def adjust_fdr(
         >>> import polars as pl
         >>> import tea_tasting as tt
 
-
         >>> data = pl.concat((
         ...     tt.make_users_data(
         ...         seed=42,
@@ -279,7 +278,6 @@ def adjust_fwer(
         ```pycon
         >>> import polars as pl
         >>> import tea_tasting as tt
-
 
         >>> data = pl.concat((
         ...     tt.make_users_data(

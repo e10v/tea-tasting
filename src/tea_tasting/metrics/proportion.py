@@ -64,11 +64,9 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
             ```pycon
             >>> import tea_tasting as tt
 
-
             >>> experiment = tt.Experiment(
             ...     sample_ratio=tt.SampleRatio(),
             ... )
-
             >>> data = tt.make_users_data(seed=42)
             >>> result = experiment.analyze(data)
             >>> print(result.to_string(("metric", "control", "treatment", "pvalue")))
@@ -80,13 +78,9 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
             Different expected ratio:
 
             ```pycon
-            >>> import tea_tasting as tt
-
-
             >>> experiment = tt.Experiment(
             ...     sample_ratio=tt.SampleRatio(0.5),
             ... )
-
             >>> data = tt.make_users_data(seed=42)
             >>> result = experiment.analyze(data)
             >>> print(result.to_string(("metric", "control", "treatment", "pvalue")))

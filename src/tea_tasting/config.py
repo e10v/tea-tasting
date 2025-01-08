@@ -41,7 +41,6 @@ def get_config(option: str | None = None) -> Any:
         ```pycon
         >>> import tea_tasting as tt
 
-
         >>> print(tt.get_config("equal_var"))
         False
 
@@ -99,20 +98,16 @@ def set_config(
         ```pycon
         >>> import tea_tasting as tt
 
-
         >>> tt.set_config(equal_var=True, use_t=False)
-
         >>> experiment = tt.Experiment(
         ...     sessions_per_user=tt.Mean("sessions"),
         ...     orders_per_session=tt.RatioOfMeans("orders", "sessions"),
         ...     orders_per_user=tt.Mean("orders"),
         ...     revenue_per_user=tt.Mean("revenue"),
         ... )
-
+        >>> tt.set_config(equal_var=False, use_t=True)
         >>> print(experiment.metrics["orders_per_user"])
         Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
-
-        >>> tt.set_config(equal_var=False, use_t=True)
 
         ```
     """  # noqa: E501
@@ -170,7 +165,6 @@ def config_context(
         ```pycon
         >>> import tea_tasting as tt
 
-
         >>> with tt.config_context(equal_var=True, use_t=False):
         ...     experiment = tt.Experiment(
         ...         sessions_per_user=tt.Mean("sessions"),
@@ -178,7 +172,6 @@ def config_context(
         ...         orders_per_user=tt.Mean("orders"),
         ...         revenue_per_user=tt.Mean("revenue"),
         ...     )
-
         >>> print(experiment.metrics["orders_per_user"])
         Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
 

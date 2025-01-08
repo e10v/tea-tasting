@@ -138,7 +138,6 @@ def make_users_data(
         ```pycon
         >>> import tea_tasting as tt
 
-
         >>> data = tt.make_users_data(seed=42)
         >>> print(data)
         pyarrow.Table
@@ -356,7 +355,6 @@ def make_sessions_data(
     Examples:
         ```pycon
         >>> import tea_tasting as tt
-
 
         >>> data = tt.make_sessions_data(seed=42)
         >>> data

@@ -15,7 +15,6 @@ First, let's import all the required modules and prepare the data:
 
 ```pycon
 >>> from typing import Literal, NamedTuple
-
 >>> import numpy as np
 >>> import pyarrow as pa
 >>> import pyarrow.compute as pc
@@ -25,7 +24,6 @@ First, let's import all the required modules and prepare the data:
 >>> import tea_tasting.config
 >>> import tea_tasting.metrics
 >>> import tea_tasting.utils
-
 
 >>> data = tt.make_users_data(seed=42)
 >>> data = data.append_column(
@@ -92,14 +90,12 @@ Let's define the metric and discuss each method in details:
 ...         self.correction = tea_tasting.utils.auto_check(correction, "correction")
 ...         self.method = tea_tasting.utils.check_scalar(
 ...             method, "method", typ=str, in_={"g-test", "pearson"})
-... 
 ...     @property
 ...     def aggr_cols(self) -> tea_tasting.metrics.AggrCols:
 ...         return tea_tasting.metrics.AggrCols(
 ...             has_count=True,
 ...             mean_cols=(self.column,),
 ...         )
-... 
 ...     def analyze_aggregates(
 ...         self,
 ...         control: tea_tasting.aggr.Aggregates,
@@ -185,11 +181,9 @@ Metric should have the following methods and properties defined:
 ...             if alternative is not None
 ...             else tea_tasting.config.get_config("alternative")
 ...         )
-... 
 ...     @property
 ...     def cols(self) -> tuple[str]:
 ...         return (self.column,)
-... 
 ...     def analyze_granular(
 ...         self,
 ...         control: pa.Table,
