@@ -46,9 +46,9 @@ DatabaseTable: memory.main.users_data
 
 In the example above:
 
-- Function `tt.make_users_data` returns a Pandas DataFrame with example experimental data.
+- Function `tt.make_users_data` returns a PyArrow Table with example experimental data.
 - Function `ibis.duckdb.connect` creates a DuckDB in-process database using Ibis API.
-- Method `con.create_table` creates and populates a table in the database based on the DataFrame.
+- Method `con.create_table` creates and populates a table in the database based on the PyArrow Table.
 
 See the [Ibis documentation on how to create connections](https://ibis-project.org/reference/connection) to other data backends.
 
@@ -102,7 +102,7 @@ Ibis Table is a lazy object. It doesn't fetch the data when created. You can use
 
 ## Ibis example
 
-To better understand what Ibis does, let's consider the following example:
+To better understand what Ibis does, let's consider the example with grouping and aggregation by variants:
 
 ```pycon
 >>> aggr_data = data.group_by("variant").aggregate(
