@@ -49,7 +49,7 @@ def adjust_fdr(
     metrics: str | set[str] | Sequence[str] | None = None,
     *,
     alpha: float | None = None,
-    arbitrary_dependence: bool = True,
+    arbitrary_dependence: bool = False,
 ) -> MultipleComparisonsResults:
     """Adjust p-value and alpha to control the false discovery rate (FDR).
 
@@ -59,10 +59,10 @@ def adjust_fdr(
 
     The function performs one of the following corrections, depending on parameters:
 
-    - Benjamini-Yekutieli procedure, assuming arbitrary dependence between
-        hypotheses (`arbitrary_dependence=True`).
     - Benjamini-Hochberg procedure, assuming non-negative correlation between
         hypotheses (`arbitrary_dependence=False`).
+    - Benjamini-Yekutieli procedure, assuming arbitrary dependence between
+        hypotheses (`arbitrary_dependence=True`).
 
     The function adds the following attributes to the results:
 
@@ -160,15 +160,15 @@ def adjust_fdr(
         >>> # Success metrics.
         >>> metrics = {"orders_per_user", "revenue_per_user"}
 
-        >>> # Benjamini-Yekutieli procedure,
-        >>> # assuming arbitrary dependence between hypotheses.
+        >>> # Benjamini-Hochberg procedure,
+        >>> # assuming non-negative correlation between hypotheses.
         >>> adjusted_results_fdr = tt.adjust_fdr(results, metrics)
         >>> print(adjusted_results_fdr)
         comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
-            (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.245
-            (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0592
-            (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0592
-            (0, 2) revenue_per_user    5.24      6.25             19% 0.00218     0.0182
+            (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
+            (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0284
+            (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0284
+            (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00872
 
         >>> # The adjusted confidence level alpha.
         >>> print(adjusted_results_fdr.to_string(keys=(
@@ -181,19 +181,19 @@ def adjust_fdr(
         ...     "alpha_adj",
         ... )))
         comparison           metric control treatment rel_effect_size  pvalue alpha_adj
-            (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118    0.0240
-            (0, 1) revenue_per_user    5.24      5.99             14%  0.0211    0.0120
-            (0, 2)  orders_per_user   0.530     0.594             12%  0.0213    0.0180
-            (0, 2) revenue_per_user    5.24      6.25             19% 0.00218   0.00600
+            (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118    0.0500
+            (0, 1) revenue_per_user    5.24      5.99             14%  0.0211    0.0375
+            (0, 2)  orders_per_user   0.530     0.594             12%  0.0213    0.0375
+            (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.0375
 
-        >>> # Benjamini-Hochberg procedure,
-        >>> # assuming non-negative correlation between hypotheses.
-        >>> print(tt.adjust_fdr(results, metrics, arbitrary_dependence=False))
+        >>> # Benjamini-Yekutieli procedure,
+        >>> # assuming arbitrary dependence between hypotheses.
+        >>> print(tt.adjust_fdr(results, metrics, arbitrary_dependence=True))
         comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
-            (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
-            (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0284
-            (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0284
-            (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00872
+            (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.245
+            (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0592
+            (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0592
+            (0, 2) revenue_per_user    5.24      6.25             19% 0.00218     0.0182
 
         ```
     """  # noqa: E501
@@ -224,8 +224,8 @@ def adjust_fwer(
     metrics: str | set[str] | Sequence[str] | None = None,
     *,
     alpha: float | None = None,
-    arbitrary_dependence: bool = True,
-    method: Literal["bonferroni", "sidak"] = "bonferroni",
+    arbitrary_dependence: bool = False,
+    method: Literal["bonferroni", "sidak"] = "sidak",
 ) -> MultipleComparisonsResults:
     """Adjust p-value and alpha to control the family-wise error rate (FWER).
 
@@ -235,10 +235,10 @@ def adjust_fwer(
 
     The function performs one of the following procedures, depending on parameters:
 
-    - Holm's step-down procedure, assuming arbitrary dependence between
-        hypotheses (`arbitrary_dependence=True`).
     - Hochberg's step-up procedure, assuming non-negative correlation between
         hypotheses (`arbitrary_dependence=False`).
+    - Holm's step-down procedure, assuming arbitrary dependence between
+        hypotheses (`arbitrary_dependence=True`).
 
     The function adds the following attributes to the results:
 
@@ -338,15 +338,15 @@ def adjust_fwer(
         >>> # Success metrics.
         >>> metrics = {"orders_per_user", "revenue_per_user"}
 
-        >>> # Holm's step-down procedure with Bonferroni correction,
-        >>> # assuming arbitrary dependence between hypotheses.
+        >>> # Hochberg's step-up procedure with Šidák correction,
+        >>> # assuming non-negative correlation between hypotheses.
         >>> adjusted_results_fwer = tt.adjust_fwer(results, metrics)
         >>> print(adjusted_results_fwer)
         comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
             (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
-            (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0634
-            (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0634
-            (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00872
+            (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0422
+            (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0422
+            (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00869
 
         >>> # The adjusted confidence level alpha.
         >>> print(adjusted_results_fwer.to_string(keys=(
@@ -359,24 +359,24 @@ def adjust_fwer(
         ...     "alpha_adj",
         ... )))
         comparison           metric control treatment rel_effect_size  pvalue alpha_adj
-            (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118    0.0167
-            (0, 1) revenue_per_user    5.24      5.99             14%  0.0211    0.0167
-            (0, 2)  orders_per_user   0.530     0.594             12%  0.0213    0.0167
-            (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.0125
+            (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118    0.0500
+            (0, 1) revenue_per_user    5.24      5.99             14%  0.0211    0.0253
+            (0, 2)  orders_per_user   0.530     0.594             12%  0.0213    0.0253
+            (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.0253
 
-        >>> # Hochberg's step-up procedure with Šidák correction,
-        >>> # assuming non-negative correlation between hypotheses.
+        >>> # Holm's step-down procedure with Bonferroni correction,
+        >>> # assuming arbitrary dependence between hypotheses.
         >>> print(tt.adjust_fwer(
         ...     results,
         ...     metrics,
-        ...     arbitrary_dependence=False,
-        ...     method="sidak",
+        ...     arbitrary_dependence=True,
+        ...     method="bonferroni",
         ... ))
         comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
             (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
-            (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0422
-            (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0422
-            (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00869
+            (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0634
+            (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0634
+            (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00872
 
         ```
     """  # noqa: E501, RUF002
