@@ -126,7 +126,7 @@ def format_num(
     pct: bool = False,
     nan: str = "-",
     inf: str = "∞",
-    fixed_point_limit: float = 0.001,
+    fixed_point_range: tuple[float | None, float | None] = (0.001, 10_000_000),
     thousands_sep: str | None = None,
     decimal_point: str | None = None,
 ) -> str:
@@ -138,7 +138,10 @@ def format_num(
         pct: If `True`, format as a percentage.
         nan: Replacement for `None` and `nan` values.
         inf: Replacement for infinite values.
-        fixed_point_limit: Limit, below which number is formatted as exponential.
+        fixed_point_range: The range within which the number is formatted
+            as fixed point.
+            Number outside of the range is formatted as exponential.
+            `None` means no boundary.
         thousands_sep: Thousands separator. If `None`, the value from locales is used.
         decimal_point: Decimal point symbol. If `None`, the value from locales is used.
 
@@ -154,7 +157,10 @@ def format_num(
     if pct:
         val = val * 100
 
-    if abs(val) < fixed_point_limit:
+    if (
+        (fixed_point_range[0] is not None and abs(val) < fixed_point_range[0]) or
+        (fixed_point_range[1] is not None and abs(val) >= fixed_point_range[1])
+    ):
         precision = max(0, sig - 1)
         typ = "e" if val != 0 else "f"
     else:
@@ -191,7 +197,8 @@ def get_and_format_num(data: dict[str, Any], key: str) -> str:
         a percentage value. Round percentage values to 2 significant digits,
         multiply by `100` and add `"%"`.
     - Round other values to 3 significant values.
-    - If value is less than `0.001`, format it in exponential presentation.
+    - If value is less than `0.001` or is greater than or equal to `10_000_000`,
+        format it in exponential presentation.
     - If a name ends with `"_ci"`, consider it a confidence interval.
         Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
         and format the interval as `"[{lower_bound}, {lower_bound}]"`.
@@ -225,7 +232,8 @@ class DictsReprMixin(abc.ABC):
         a percentage value. Round percentage values to 2 significant digits,
         multiply by `100` and add `"%"`.
     - Round other values to 3 significant values.
-    - If value is less than `0.001`, format it in exponential presentation.
+    - If value is less than `0.001` or is greater than or equal to `10_000_000`,
+        format it in exponential presentation.
     - If a name ends with `"_ci"`, consider it a confidence interval.
         Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
         and format the interval as `"[{lower_bound}, {lower_bound}]"`.
@@ -263,7 +271,8 @@ class DictsReprMixin(abc.ABC):
             a percentage value. Round percentage values to 2 significant digits,
             multiply by `100` and add `"%"`.
         - Round other values to 3 significant values.
-        - If value is less than `0.001`, format it in exponential presentation.
+        - If value is less than `0.001` or is greater than or equal to `10_000_000`,
+            format it in exponential presentation.
         - If a name ends with `"_ci"`, consider it a confidence interval.
             Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
             and format the interval as `"[{lower_bound}, {lower_bound}]"`.
@@ -295,7 +304,8 @@ class DictsReprMixin(abc.ABC):
             a percentage value. Round percentage values to 2 significant digits,
             multiply by `100` and add `"%"`.
         - Round other values to 3 significant values.
-        - If value is less than `0.001`, format it in exponential presentation.
+        - If value is less than `0.001` or is greater than or equal to `10_000_000`,
+            format it in exponential presentation.
         - If a name ends with `"_ci"`, consider it a confidence interval.
             Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
             and format the interval as `"[{lower_bound}, {lower_bound}]"`.
@@ -346,7 +356,8 @@ class DictsReprMixin(abc.ABC):
             a percentage value. Round percentage values to 2 significant digits,
             multiply by `100` and add `"%"`.
         - Round other values to 3 significant values.
-        - If value is less than `0.001`, format it in exponential presentation.
+        - If value is less than `0.001` or is greater than or equal to `10_000_000`,
+            format it in exponential presentation.
         - If a name ends with `"_ci"`, consider it a confidence interval.
             Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
             and format the interval as `"[{lower_bound}, {lower_bound}]"`.

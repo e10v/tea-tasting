@@ -142,6 +142,8 @@ def test_format_num():
     assert tea_tasting.utils.format_num(float("-inf")) == "-∞"
     assert tea_tasting.utils.format_num(0.00012345) == "1.23e-04"
     assert tea_tasting.utils.format_num(0.00099999) == "1.00e-03"
+    assert tea_tasting.utils.format_num(9_999_999) == "9999999"
+    assert tea_tasting.utils.format_num(10_000_000) == "1.00e+07"
     assert tea_tasting.utils.format_num(12345, thousands_sep=" ") == "12 345"
     assert tea_tasting.utils.format_num(1.2345, decimal_point=",") == "1,23"
     assert tea_tasting.utils.format_num(0) == "0.00"
