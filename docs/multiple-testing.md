@@ -15,11 +15,11 @@ The [multiple hypothesis testing problem](https://en.wikipedia.org/wiki/Multiple
 **tea-tasting** provides the following methods for multiple testing correction:
 
 - [False discovery rate](https://en.wikipedia.org/wiki/False_discovery_rate) (FDR) controlling procedures:
-    - Benjamini-Yekutieli procedure, assuming arbitrary dependence between hypotheses.
     - Benjamini-Hochberg procedure, assuming non-negative correlation between hypotheses.
+    - Benjamini-Yekutieli procedure, assuming arbitrary dependence between hypotheses.
 - [Family-wise error rate](https://en.wikipedia.org/wiki/Family-wise_error_rate) (FWER) controlling procedures:
-    - Holm's step-down procedure, assuming arbitrary dependence between hypotheses.
     - Hochberg's step-up procedure, assuming non-negative correlation between hypotheses.
+    - Holm's step-down procedure, assuming arbitrary dependence between hypotheses.
 
 As an example, consider an experiment with three variants, a control and two treatments:
 
@@ -105,10 +105,10 @@ False discovery rate (FDR) is the expected value of the proportion of false disc
 >>> adjusted_results_fdr = tt.adjust_fdr(results, metrics)
 >>> print(adjusted_results_fdr)
 comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
-    (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.245
-    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0592
-    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0592
-    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218     0.0182
+    (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
+    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0284
+    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0284
+    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00872
 
 ```
 
@@ -127,22 +127,22 @@ The method also adjusts the significance level alpha and saves it as `alpha_adj`
 ...     "alpha_adj",
 ... )))
 comparison           metric control treatment rel_effect_size  pvalue alpha_adj
-    (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118    0.0240
-    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211    0.0120
-    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213    0.0180
-    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218   0.00600
+    (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118    0.0500
+    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211    0.0375
+    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213    0.0375
+    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.0375
 
 ```
 
-By default, **tea-tasting** assumes arbitrary dependence between hypotheses and performs the Benjamini-Yekutieli procedure. To perform the Benjamini-Hochberg procedure, assuming non-negative correlation between hypotheses, set the `arbitrary_dependence` parameter to `False`:
+By default, **tea-tasting** assumes non-negative correlation between hypotheses and performs the Benjamini-Hochberg procedure. To perform the Benjamini-Yekutieli procedure, assuming arbitrary dependence between hypotheses, set the `arbitrary_dependence` parameter to `True`:
 
 ```pycon
->>> print(tt.adjust_fdr(results, metrics, arbitrary_dependence=False))
+>>> print(tt.adjust_fdr(results, metrics, arbitrary_dependence=True))
 comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
-    (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
-    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0284
-    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0284
-    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00872
+    (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.245
+    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0592
+    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0592
+    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218     0.0182
 
 ```
 
@@ -154,26 +154,28 @@ Family-wise error rate (FWER) is the probability of making at least one type I e
 >>> print(tt.adjust_fwer(results, metrics))
 comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
-    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0634
-    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0634
-    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00872
+    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0422
+    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0422
+    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00869
 
 ```
 
-By default, **tea-tasting** assumes arbitrary dependence between hypotheses and performs the Holm's step-down procedure with Bonferroni correction. To perform the Hochberg's step-up procedure, assuming non-negative correlation between hypotheses, set the `arbitrary_dependence` parameter to `False`. In this case, you can also use the slightly more powerful Šidák correction instead of the Bonferroni correction:
+By default, **tea-tasting** assumes non-negative correlation between hypotheses and performs the Hochberg's step-up procedure with the Šidák correction, which is slightly more powerful than the Bonferroni correction.
+
+To perform the Holm's step-down procedure, assuming arbitrary dependence between hypotheses, set the `arbitrary_dependence` parameter to `True`. In this case, it's recommended to use the Bonferroni correction, since the Šidák correction assumes non-negative correlation between hypotheses:
 
 ```pycon
 >>> print(tt.adjust_fwer(
 ...     results,
 ...     metrics,
-...     arbitrary_dependence=False,
-...     method="sidak",
+...     arbitrary_dependence=True,
+...     method="bonferroni",
 ... ))
 comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
-    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0422
-    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0422
-    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00869
+    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0634
+    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0634
+    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00872
 
 ```
 
@@ -191,10 +193,10 @@ In the examples above, the methods `adjust_fdr` and `adjust_fwer` received resul
 ...     metrics,
 ... ))
   comparison           metric control treatment rel_effect_size   pvalue pvalue_adj
-Experiment 1  orders_per_user   0.530     0.573            8.0%    0.118      0.245
-Experiment 1 revenue_per_user    5.24      5.99             14%   0.0211     0.0587
-Experiment 2  orders_per_user   0.514     0.594             16%  0.00427     0.0178
-Experiment 2 revenue_per_user    5.10      6.25             22% 6.27e-04    0.00522
+Experiment 1  orders_per_user   0.530     0.573            8.0%    0.118      0.118
+Experiment 1 revenue_per_user    5.24      5.99             14%   0.0211     0.0282
+Experiment 2  orders_per_user   0.514     0.594             16%  0.00427    0.00853
+Experiment 2 revenue_per_user    5.10      6.25             22% 6.27e-04    0.00251
 
 ```
 
