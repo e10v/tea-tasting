@@ -201,7 +201,7 @@ def get_and_format_num(data: dict[str, Any], key: str) -> str:
         format it in exponential presentation.
     - If a name ends with `"_ci"`, consider it a confidence interval.
         Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
-        and format the interval as `"[{lower_bound}, {lower_bound}]"`.
+        and format the interval as `"[{lower_bound}, {upper_bound}]"`.
 
     Args:
         data: Dictionary.
@@ -236,7 +236,7 @@ class DictsReprMixin(abc.ABC):
         format it in exponential presentation.
     - If a name ends with `"_ci"`, consider it a confidence interval.
         Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
-        and format the interval as `"[{lower_bound}, {lower_bound}]"`.
+        and format the interval as `"[{lower_bound}, {upper_bound}]"`.
     """
     default_keys: Sequence[str]
 
@@ -275,7 +275,7 @@ class DictsReprMixin(abc.ABC):
             format it in exponential presentation.
         - If a name ends with `"_ci"`, consider it a confidence interval.
             Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
-            and format the interval as `"[{lower_bound}, {lower_bound}]"`.
+            and format the interval as `"[{lower_bound}, {upper_bound}]"`.
 
         Args:
             keys: Keys to convert. If a key is not defined in the dictionary
@@ -308,7 +308,7 @@ class DictsReprMixin(abc.ABC):
             format it in exponential presentation.
         - If a name ends with `"_ci"`, consider it a confidence interval.
             Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
-            and format the interval as `"[{lower_bound}, {lower_bound}]"`.
+            and format the interval as `"[{lower_bound}, {upper_bound}]"`.
 
         Args:
             keys: Keys to convert. If a key is not defined in the dictionary
@@ -360,7 +360,7 @@ class DictsReprMixin(abc.ABC):
             format it in exponential presentation.
         - If a name ends with `"_ci"`, consider it a confidence interval.
             Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
-            and format the interval as `"[{lower_bound}, {lower_bound}]"`.
+            and format the interval as `"[{lower_bound}, {upper_bound}]"`.
 
         Args:
             keys: Keys to convert. If a key is not defined in the dictionary
