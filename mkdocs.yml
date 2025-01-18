@@ -2,7 +2,7 @@ site_name: "tea-tasting: statistical analysis of A/B tests"
 site_url: https://tea-tasting.e10v.me/
 site_description: A Python package for the statistical analysis of A/B tests
 site_author: Evgeny Ivanov
-copyright: © Evgeny Ivanov
+copyright: © Evgeny Ivanov <br> The logo is designed by <a href="http://www.freepik.com/">Freepik</a>
 repo_name: e10v/tea-tasting
 repo_url: https://github.com/e10v/tea-tasting
 
