@@ -640,7 +640,20 @@ def numeric(
     value: object,
     fill_zero_div: float | int | Literal["auto"] = "auto",
 ) -> Numeric:
-    """Float or integer that gracefully handles division by zero errors."""
+    """Convert an object to numeric that gracefully handles division by zero errors.
+
+    Args:
+        value: Object to convert.
+        fill_zero_div: Result if denominator is zero.
+
+    If `fill_zero_div` is equal `"auto"`, division by zero will return:
+
+    - `inf` if numerator is greater than `0`,
+    - `nan` if numerator is equal to or less than `0`.
+
+    Returns:
+        Float or integer that gracefully handles division by zero errors.
+    """
     if isinstance(value, int):
         return Int(value, fill_zero_div)
     if isinstance(value, float):
