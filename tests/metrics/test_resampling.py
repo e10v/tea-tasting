@@ -13,8 +13,6 @@ import tea_tasting.metrics.resampling
 
 
 if TYPE_CHECKING:
-    from typing import Any
-
     import numpy.typing as npt
     import pyarrow as pa
 
@@ -24,7 +22,7 @@ def data_arrow() -> pa.Table:
     return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
 
 @pytest.fixture
-def data_gran(data_arrow: pa.Table) -> dict[Any, pa.Table]:
+def data_gran(data_arrow: pa.Table) -> dict[object, pa.Table]:
     return tea_tasting.metrics.base.read_granular(
         data_arrow,
         ("sessions", "orders", "revenue"),
@@ -78,7 +76,7 @@ def test_bootstrap_analyze_frame(data_arrow: pa.Table):
     assert isinstance(result, tea_tasting.metrics.resampling.BootstrapResult)
 
 
-def test_bootstrap_analyze_default(data_gran: dict[Any, pa.Table]):
+def test_bootstrap_analyze_default(data_gran: dict[object, pa.Table]):
     metric = tea_tasting.metrics.resampling.Bootstrap(
         "revenue",
         np.mean,
@@ -96,11 +94,11 @@ def test_bootstrap_analyze_default(data_gran: dict[Any, pa.Table]):
     assert result.rel_effect_size_ci_lower == pytest.approx(-0.5658493834599828)
     assert result.rel_effect_size_ci_upper == pytest.approx(1.8185473860534842)
 
-def test_bootstrap_analyze_multiple_columns(data_gran: dict[Any, pa.Table]):
+def test_bootstrap_analyze_multiple_columns(data_gran: dict[object, pa.Table]):
     def ratio_of_means(
-        sample: npt.NDArray[np.number[Any]],
+        sample: npt.NDArray[np.number],
         axis: int,
-    ) -> npt.NDArray[np.number[Any]]:
+    ) -> npt.NDArray[np.number]:
         stat = np.mean(sample, axis=axis)  # type: ignore
         return stat[0] / stat[1]
 
@@ -121,7 +119,7 @@ def test_bootstrap_analyze_multiple_columns(data_gran: dict[Any, pa.Table]):
     assert result.rel_effect_size_ci_lower == pytest.approx(-0.6424902672606227)
     assert result.rel_effect_size_ci_upper == pytest.approx(0.4374404130492657)
 
-def test_bootstrap_analyze_division_by_zero(data_gran: dict[Any, pa.Table]):
+def test_bootstrap_analyze_division_by_zero(data_gran: dict[object, pa.Table]):
     metric = tea_tasting.metrics.resampling.Bootstrap(
         "orders",
         np.median,
@@ -140,7 +138,7 @@ def test_bootstrap_analyze_division_by_zero(data_gran: dict[Any, pa.Table]):
     assert np.isnan(result.rel_effect_size_ci_lower)
     assert np.isnan(result.rel_effect_size_ci_upper)
 
-def test_quantile(data_gran: dict[Any, pa.Table]):
+def test_quantile(data_gran: dict[object, pa.Table]):
     metric = tea_tasting.metrics.resampling.Quantile(
         "revenue",
         q=0.8,

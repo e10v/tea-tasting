@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NamedTuple
+from typing import NamedTuple
 
 import pytest
 
@@ -8,16 +8,12 @@ import tea_tasting.experiment
 import tea_tasting.multiplicity
 
 
-if TYPE_CHECKING:
-    from typing import Any
-
-
 class _MetricResult(NamedTuple):
     pvalue: float
 
 
 @pytest.fixture
-def experiment_results() -> dict[Any, tea_tasting.experiment.ExperimentResult]:
+def experiment_results() -> dict[object, tea_tasting.experiment.ExperimentResult]:
     return {
         (0, 1): tea_tasting.experiment.ExperimentResult({
             "metric1": _MetricResult(pvalue=0.005),
@@ -54,7 +50,7 @@ def test_multiple_comparisons_results_to_dicts():
 
 
 def test_adjust_fdr_default(
-    experiment_results: dict[Any, tea_tasting.experiment.ExperimentResult],
+    experiment_results: dict[object, tea_tasting.experiment.ExperimentResult],
 ):
     results = tea_tasting.multiplicity.adjust_fdr(experiment_results)
     assert results[(0, 1)]["metric1"]["pvalue_adj"] == pytest.approx(0.02)  # type: ignore
@@ -77,7 +73,7 @@ def test_adjust_fdr_default(
     assert results[(0, 3)]["metric3"]["null_rejected"] == 1  # type: ignore
 
 def test_adjust_fdr_arbitrary_dependence(
-    experiment_results: dict[Any, tea_tasting.experiment.ExperimentResult],
+    experiment_results: dict[object, tea_tasting.experiment.ExperimentResult],
 ):
     results = tea_tasting.multiplicity.adjust_fdr(
         experiment_results,
@@ -119,7 +115,7 @@ def test_adjust_fdr_single_experiment():
     assert results["-"]["metric2"]["null_rejected"] == 0  # type: ignore
 
 def test_adjust_fdr_single_metric(
-    experiment_results: dict[Any, tea_tasting.experiment.ExperimentResult],
+    experiment_results: dict[object, tea_tasting.experiment.ExperimentResult],
 ):
     results = tea_tasting.multiplicity.adjust_fdr(
         experiment_results,
@@ -135,7 +131,7 @@ def test_adjust_fdr_single_metric(
 
 
 def test_adjust_fwer_default(
-    experiment_results: dict[Any, tea_tasting.experiment.ExperimentResult],
+    experiment_results: dict[object, tea_tasting.experiment.ExperimentResult],
 ):
     results = tea_tasting.multiplicity.adjust_fwer(experiment_results)
     assert results[(0, 1)]["metric1"]["pvalue_adj"] == pytest.approx(0.0296274906437343)  # type: ignore
@@ -158,7 +154,7 @@ def test_adjust_fwer_default(
     assert results[(0, 3)]["metric3"]["null_rejected"] == 0  # type: ignore
 
 def test_adjust_fwer_arbitrary_dependence(
-    experiment_results: dict[Any, tea_tasting.experiment.ExperimentResult],
+    experiment_results: dict[object, tea_tasting.experiment.ExperimentResult],
 ):
     results = tea_tasting.multiplicity.adjust_fwer(
         experiment_results,
@@ -184,7 +180,7 @@ def test_adjust_fwer_arbitrary_dependence(
     assert results[(0, 3)]["metric3"]["null_rejected"] == 0  # type: ignore
 
 def test_adjust_fwer_bonferroni(
-    experiment_results: dict[Any, tea_tasting.experiment.ExperimentResult],
+    experiment_results: dict[object, tea_tasting.experiment.ExperimentResult],
 ):
     results = tea_tasting.multiplicity.adjust_fwer(
         experiment_results,
@@ -210,7 +206,7 @@ def test_adjust_fwer_bonferroni(
     assert results[(0, 3)]["metric3"]["null_rejected"] == 0  # type: ignore
 
 def test_adjust_fwer_arbitrary_dependence_bonferroni(
-    experiment_results: dict[Any, tea_tasting.experiment.ExperimentResult],
+    experiment_results: dict[object, tea_tasting.experiment.ExperimentResult],
 ):
     results = tea_tasting.multiplicity.adjust_fwer(
         experiment_results,

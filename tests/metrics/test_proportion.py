@@ -12,8 +12,6 @@ import tea_tasting.metrics.proportion
 
 
 if TYPE_CHECKING:
-    from typing import Any
-
     import pyarrow as pa
 
 
@@ -22,7 +20,7 @@ def data_arrow() -> pa.Table:
     return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
 
 @pytest.fixture
-def data_aggr(data_arrow: pa.Table) -> dict[Any, tea_tasting.aggr.Aggregates]:
+def data_aggr(data_arrow: pa.Table) -> dict[object, tea_tasting.aggr.Aggregates]:
     return tea_tasting.aggr.read_aggregates(
         data_arrow,
         group_col="variant",
@@ -79,7 +77,9 @@ def test_sample_ratio_analyze_auto():
         metric.analyze(data, 0, 1, variant="variant")
         mock.assert_called_once()
 
-def test_sample_ratio_analyze_binom(data_aggr: dict[str, tea_tasting.aggr.Aggregates]):
+def test_sample_ratio_analyze_binom(
+    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+):
     metric = tea_tasting.metrics.proportion.SampleRatio(method="binom")
     result = metric.analyze(data_aggr, 0, 1, variant="variant")
     assert result.control == 53
@@ -87,7 +87,7 @@ def test_sample_ratio_analyze_binom(data_aggr: dict[str, tea_tasting.aggr.Aggreg
     assert result.pvalue == pytest.approx(0.6172994135892521)
 
 def test_sample_ratio_analyze_norm_corr(
-    data_aggr: dict[str, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
 ):
     metric = tea_tasting.metrics.proportion.SampleRatio(method="norm", correction=True)
     result = metric.analyze(data_aggr, 0, 1, variant="variant")
@@ -96,7 +96,7 @@ def test_sample_ratio_analyze_norm_corr(
     assert result.pvalue == pytest.approx(0.6170750774519738)
 
 def test_sample_ratio_analyze_norm_no_corr(
-    data_aggr: dict[str, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
 ):
     metric = tea_tasting.metrics.proportion.SampleRatio(method="norm", correction=False)
     result = metric.analyze(data_aggr, 0, 1, variant="variant")
@@ -105,7 +105,7 @@ def test_sample_ratio_analyze_norm_no_corr(
     assert result.pvalue == pytest.approx(0.5485062355001472)
 
 def test_sample_ratio_analyze_aggregates(
-    data_aggr: dict[Any, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
 ):
     metric = tea_tasting.metrics.proportion.SampleRatio()
     with pytest.raises(NotImplementedError):

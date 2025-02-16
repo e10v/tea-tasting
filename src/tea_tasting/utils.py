@@ -1,5 +1,6 @@
 """Useful functions and classes."""
 # ruff: noqa: SIM114
+# pyright: reportOperatorIssue=false
 
 from __future__ import annotations
 
@@ -8,7 +9,7 @@ from collections.abc import Sequence
 import inspect
 import locale
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 import xml.etree.ElementTree as ET
 
 import pyarrow as pa
@@ -16,17 +17,20 @@ import pyarrow as pa
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
-    from typing import Any, Literal, TypeVar
+    from typing import Literal, TypeAlias, TypeVar
 
     try:
-        from pandas import DataFrame as PandasDataFrame
+        from pandas import DataFrame as _PandasDataFrame
     except ImportError:
-        from typing import Any as PandasDataFrame
+        _PandasDataFrame = object
 
     try:
-        from polars import DataFrame as PolarsDataFrame
+        from polars import DataFrame as _PolarsDataFrame
     except ImportError:
-        from typing import Any as PolarsDataFrame
+        _PolarsDataFrame = object
+
+    PandasDataFrame: TypeAlias = _PandasDataFrame  # type: ignore
+    PolarsDataFrame: TypeAlias = _PolarsDataFrame  # type: ignore
 
     R = TypeVar("R")
 
@@ -35,13 +39,13 @@ def check_scalar(  # noqa: PLR0913
     value: R,
     name: str = "value",
     *,
-    typ: Any = None,
-    ge: Any = None,
-    gt: Any = None,
-    le: Any = None,
-    lt: Any = None,
-    ne: Any = None,
-    in_: Any = None,
+    typ: object = None,
+    ge: object = None,
+    gt: object = None,
+    le: object = None,
+    lt: object = None,
+    ne: object = None,
+    in_: object = None,
 ) -> R:
     """Check if a scalar parameter meets specified type and value constraints.
 
@@ -60,7 +64,7 @@ def check_scalar(  # noqa: PLR0913
     Returns:
         Parameter value.
     """
-    if typ is not None and not isinstance(value, typ):
+    if typ is not None and not isinstance(value, typ):  # type: ignore
         raise TypeError(f"{name} must be an instance of {typ}.")
     if ge is not None and value < ge:
         raise ValueError(f"{name} == {value}, must be >= {ge}.")
@@ -76,6 +80,53 @@ def check_scalar(  # noqa: PLR0913
         raise ValueError(f"{name} == {value}, must be in {in_}.")
     return value
 
+
+@overload
+def auto_check(value: float, name: Literal["alpha"]) -> float:
+    ...
+
+@overload
+def auto_check(value: str, name: Literal["alternative"]) -> str:
+    ...
+
+@overload
+def auto_check(value: float, name: Literal["confidence_level"]) -> float:
+    ...
+
+@overload
+def auto_check(value: bool, name: Literal["correction"]) -> bool:  # noqa: FBT001
+    ...
+
+@overload
+def auto_check(value: bool, name: Literal["equal_var"]) -> bool:  # noqa: FBT001
+    ...
+
+@overload
+def auto_check(
+    value: int | Sequence[int] | None,
+    name: Literal["n_obs"],
+) -> int | Sequence[int] | None:
+    ...
+
+@overload
+def auto_check(value: int, name: Literal["n_resamples"]) -> int:
+    ...
+
+@overload
+def auto_check(value: float, name: Literal["power"]) -> float:
+    ...
+
+@overload
+def auto_check(value: float | int, name: Literal["ratio"]) -> float | int:
+    ...
+
+@overload
+def auto_check(value: bool, name: Literal["use_t"]) -> bool:  # noqa: FBT001
+    ...
+
+@overload
+def auto_check(value: R, name: str) -> R:
+    ...
 
 def auto_check(value: R, name: str) -> R:  # noqa: C901, PLR0912
     """Automatically check a parameter's type and value based on its name.
@@ -188,7 +239,7 @@ def format_num(
     return result
 
 
-def get_and_format_num(data: dict[str, Any], key: str) -> str:
+def get_and_format_num(data: dict[str, object], key: str) -> str:
     """Get and format dictionary value.
 
     Formatting rules:
@@ -241,7 +292,7 @@ class DictsReprMixin(abc.ABC):
     default_keys: Sequence[str]
 
     @abc.abstractmethod
-    def to_dicts(self) -> Sequence[dict[str, Any]]:
+    def to_dicts(self) -> Sequence[dict[str, object]]:
         """Convert the object to a sequence of dictionaries."""
 
     def to_arrow(self) -> pa.Table:
@@ -261,7 +312,7 @@ class DictsReprMixin(abc.ABC):
     def to_pretty_dicts(
         self,
         keys: Sequence[str] | None = None,
-        formatter: Callable[[dict[str, Any], str], str] = get_and_format_num,
+        formatter: Callable[[dict[str, object], str], str] = get_and_format_num,
     ) -> list[dict[str, str]]:
         """Convert the object to a list of dictionaries with formatted values.
 
@@ -294,7 +345,7 @@ class DictsReprMixin(abc.ABC):
     def to_string(
         self,
         keys: Sequence[str] | None = None,
-        formatter: Callable[[dict[str, Any], str], str] = get_and_format_num,
+        formatter: Callable[[dict[str, object], str], str] = get_and_format_num,
     ) -> str:
         """Convert the object to a string.
 
@@ -344,7 +395,7 @@ class DictsReprMixin(abc.ABC):
     def to_html(
         self,
         keys: Sequence[str] | None = None,
-        formatter: Callable[[dict[str, Any], str], str] = get_and_format_num,
+        formatter: Callable[[dict[str, object], str], str] = get_and_format_num,
         *,
         indent: str | None = None,
     ) -> str:
@@ -457,76 +508,76 @@ def div(
 
 
 class _NumericBase:
-    value: Any
+    value: float | int
     fill_zero_div: float | int | Literal["auto"] = "auto"
 
-    def __add__(self, other: Any) -> Numeric:
+    def __add__(self, other: object) -> Numeric:
         x, y = self.value, getattr(other, "value", other)
         return numeric(x + y, self.fill_zero_div)
 
-    def __sub__(self, other: Any) -> Numeric:
+    def __sub__(self, other: object) -> Numeric:
         x, y = self.value, getattr(other, "value", other)
         return numeric(x - y, self.fill_zero_div)
 
-    def __mul__(self, other: Any) -> Numeric:
+    def __mul__(self, other: object) -> Numeric:
         x, y = self.value, getattr(other, "value", other)
         return numeric(x * y, self.fill_zero_div)
 
-    def __truediv__(self, other: Any) -> Numeric:
+    def __truediv__(self, other: object) -> Numeric:
         x, y = self.value, getattr(other, "value", other)
-        return numeric(div(x, y, self.fill_zero_div), self.fill_zero_div)
+        return numeric(div(x, y, self.fill_zero_div), self.fill_zero_div)  # type: ignore
 
-    def __floordiv__(self, other: Any) -> Numeric:
+    def __floordiv__(self, other: object) -> Numeric:
         x, y = self.value, getattr(other, "value", other)
         return numeric(x // y, self.fill_zero_div)
 
-    def __mod__(self, other: Any) -> Numeric:
+    def __mod__(self, other: object) -> Numeric:
         x, y = self.value, getattr(other, "value", other)
         return numeric(x % y, self.fill_zero_div)
 
-    def __divmod__(self, other: Any) -> tuple[Numeric, Numeric]:
+    def __divmod__(self, other: object) -> tuple[Numeric, Numeric]:
         x, y = self.value, getattr(other, "value", other)
-        d, m = divmod(x, y)
+        d, m = divmod(x, y)  # type: ignore
         return numeric(d, self.fill_zero_div), numeric(m, self.fill_zero_div)
 
-    def __pow__(self, other: Any, mod: Any = None) -> Numeric:
+    def __pow__(self, other: object, mod: object = None) -> Numeric:
         x, y = self.value, getattr(other, "value", other)
         z = getattr(mod, "value", mod)
-        return numeric(pow(x, y, z), self.fill_zero_div)
+        return numeric(pow(x, y, z), self.fill_zero_div)  # type: ignore
 
-    def __radd__(self, other: Any) -> Numeric:
+    def __radd__(self, other: object) -> Numeric:
         y, x = self.value, getattr(other, "value", other)
         return numeric(x + y, self.fill_zero_div)
 
-    def __rsub__(self, other: Any) -> Numeric:
+    def __rsub__(self, other: object) -> Numeric:
         y, x = self.value, getattr(other, "value", other)
         return numeric(x - y, self.fill_zero_div)
 
-    def __rmul__(self, other: Any) -> Numeric:
+    def __rmul__(self, other: object) -> Numeric:
         y, x = self.value, getattr(other, "value", other)
         return numeric(x * y, self.fill_zero_div)
 
-    def __rtruediv__(self, other: Any) -> Numeric:
+    def __rtruediv__(self, other: object) -> Numeric:
         y, x = self.value, getattr(other, "value", other)
-        return numeric(div(x, y, self.fill_zero_div), self.fill_zero_div)
+        return numeric(div(x, y, self.fill_zero_div), self.fill_zero_div)  # type: ignore
 
-    def __rfloordiv__(self, other: Any) -> Numeric:
+    def __rfloordiv__(self, other: object) -> Numeric:
         y, x = self.value, getattr(other, "value", other)
         return numeric(x // y, self.fill_zero_div)
 
-    def __rmod__(self, other: Any) -> Numeric:
+    def __rmod__(self, other: object) -> Numeric:
         y, x = self.value, getattr(other, "value", other)
         return numeric(x % y, self.fill_zero_div)
 
-    def __rdivmod__(self, other: Any) -> tuple[Numeric, Numeric]:
+    def __rdivmod__(self, other: object) -> tuple[Numeric, Numeric]:
         y, x = self.value, getattr(other, "value", other)
-        d, m = divmod(x, y)
+        d, m = divmod(x, y)  # type: ignore
         return numeric(d, self.fill_zero_div), numeric(m, self.fill_zero_div)
 
-    def __rpow__(self, other: Any, mod: Any = None) -> Numeric:
+    def __rpow__(self, other: object, mod: object = None) -> Numeric:
         y, x = self.value, getattr(other, "value", other)
         z = getattr(mod, "value", mod)
-        return numeric(pow(x, y, z), self.fill_zero_div)
+        return numeric(pow(x, y, z), self.fill_zero_div)  # type: ignore
 
     def __neg__(self) -> Numeric:
         return numeric(-self.value, self.fill_zero_div)
@@ -560,12 +611,12 @@ class Float(_NumericBase, float):
     """Float that gracefully handles division by zero errors."""
     def __new__(
         cls,
-        value: Any,
+        value: object,
         fill_zero_div: float | int | Literal["auto"] = "auto",
     ) -> Float:
         """Float that gracefully handles division by zero errors."""
-        instance = float.__new__(cls, value)
-        instance.value = float(value)
+        instance = float.__new__(cls, value)  # type: ignore
+        instance.value = float(value)  # type: ignore
         instance.fill_zero_div = fill_zero_div
         return instance
 
@@ -573,12 +624,12 @@ class Int(_NumericBase, int):
     """Integer that gracefully handles division by zero errors."""
     def __new__(
         cls,
-        value: Any,
+        value: object,
         fill_zero_div: float | int | Literal["auto"] = "auto",
     ) -> Int:
         """Integer that gracefully handles division by zero errors."""
-        instance = int.__new__(cls, value)
-        instance.value = int(value)
+        instance = int.__new__(cls, value)  # type: ignore
+        instance.value = int(value)  # type: ignore
         instance.fill_zero_div = fill_zero_div
         return instance
 
@@ -586,7 +637,7 @@ Numeric = Float | Int
 
 
 def numeric(
-    value: Any,
+    value: object,
     fill_zero_div: float | int | Literal["auto"] = "auto",
 ) -> Numeric:
     """Float or integer that gracefully handles division by zero errors."""

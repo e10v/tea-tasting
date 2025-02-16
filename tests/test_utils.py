@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import math
 import textwrap
-from typing import TYPE_CHECKING
 
 import pandas as pd
 import pandas.testing
@@ -12,10 +11,6 @@ import pyarrow as pa
 import pytest
 
 import tea_tasting.utils
-
-
-if TYPE_CHECKING:
-    from typing import Any
 
 
 def test_check_scalar_typ():
@@ -150,7 +145,7 @@ def test_format_num():
 
 
 def test_get_and_format_num():
-    data = {
+    data: dict[str, object] = {
         "name": "metric",
         "metric": 0.12345,
         "rel_metric": 0.12345,
@@ -172,7 +167,7 @@ def test_get_and_format_num():
 def dicts_repr() -> tea_tasting.utils.DictsReprMixin:
     class DictsRepr(tea_tasting.utils.DictsReprMixin):
         default_keys = ("a", "b")
-        def to_dicts(self) -> tuple[dict[str, Any], ...]:
+        def to_dicts(self) -> tuple[dict[str, object], ...]:
             return (
                 {"a": 0.12345, "b": 0.23456},
                 {"a": 0.34567, "b": 0.45678},

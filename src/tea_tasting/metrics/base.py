@@ -4,7 +4,15 @@ from __future__ import annotations
 
 import abc
 from collections import UserList
-from typing import TYPE_CHECKING, Any, Generic, NamedTuple, TypeVar, Union, overload
+from typing import (
+    TYPE_CHECKING,
+    Generic,
+    NamedTuple,
+    TypeAlias,
+    TypeVar,
+    Union,
+    overload,
+)
 
 import ibis
 import ibis.expr.types
@@ -24,8 +32,8 @@ if TYPE_CHECKING:
 
 
 # The | operator doesn't work for NamedTuple, but Union works.
-MetricResult = Union[NamedTuple, dict[str, Any]]  # noqa: UP007
-MetricPowerResult = Union[NamedTuple, dict[str, Any]]  # noqa: UP007
+MetricResult: TypeAlias = Union[NamedTuple, dict[str, object]]  # noqa: UP007
+MetricPowerResult: TypeAlias = Union[NamedTuple, dict[str, object]]  # noqa: UP007
 
 R = TypeVar("R", bound=MetricResult)
 P = TypeVar("P", bound=MetricPowerResult)
@@ -35,7 +43,7 @@ class MetricPowerResults(UserList[P], tea_tasting.utils.DictsReprMixin):
     """Power analysis results."""
     default_keys = ("power", "effect_size", "rel_effect_size", "n_obs")
 
-    def to_dicts(self) -> tuple[dict[str, Any], ...]:
+    def to_dicts(self) -> tuple[dict[str, object], ...]:
         """"Convert the results to a sequence of dictionaries."""
         return tuple((v if isinstance(v, dict) else v._asdict()) for v in self)
 
@@ -48,8 +56,8 @@ class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
     def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
-        control: Any,
-        treatment: Any,
+        control: object,
+        treatment: object,
         variant: str,
     ) -> R:
         """Analyze a metric in an experiment.
@@ -143,9 +151,9 @@ class MetricBaseAggregated(MetricBase[R], _HasAggrCols):
     @overload
     def analyze(
         self,
-        data: dict[Any, tea_tasting.aggr.Aggregates],
-        control: Any,
-        treatment: Any,
+        data: dict[object, tea_tasting.aggr.Aggregates],
+        control: object,
+        treatment: object,
         variant: str | None = None,
     ) -> R:
         ...
@@ -154,8 +162,8 @@ class MetricBaseAggregated(MetricBase[R], _HasAggrCols):
     def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
-        control: Any,
-        treatment: Any,
+        control: object,
+        treatment: object,
         variant: str,
     ) -> R:
         ...
@@ -163,9 +171,9 @@ class MetricBaseAggregated(MetricBase[R], _HasAggrCols):
     def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[
-            Any, tea_tasting.aggr.Aggregates],
-        control: Any,
-        treatment: Any,
+            object, tea_tasting.aggr.Aggregates],
+        control: object,
+        treatment: object,
         variant: str | None = None,
     ) -> R:
         """Analyze a metric in an experiment.
@@ -257,11 +265,11 @@ def aggregate_by_variants(
     data: (
         narwhals.typing.IntoFrame |
         ibis.expr.types.Table |
-        dict[Any, tea_tasting.aggr.Aggregates]
+        dict[object, tea_tasting.aggr.Aggregates]
     ),
     aggr_cols: AggrCols,
     variant: str | None = None,
-) ->  dict[Any, tea_tasting.aggr.Aggregates]:
+) ->  dict[object, tea_tasting.aggr.Aggregates]:
     """Aggregate experimental data by variants.
 
     Args:
@@ -299,9 +307,9 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
     @overload
     def analyze(
         self,
-        data: dict[Any, pa.Table],
-        control: Any,
-        treatment: Any,
+        data: dict[object, pa.Table],
+        control: object,
+        treatment: object,
         variant: str | None = None,
     ) -> R:
         ...
@@ -310,8 +318,8 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
     def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
-        control: Any,
-        treatment: Any,
+        control: object,
+        treatment: object,
         variant: str,
     ) -> R:
         ...
@@ -321,10 +329,10 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
         data: (
             narwhals.typing.IntoFrame |
             ibis.expr.types.Table |
-            dict[Any, pa.Table]
+            dict[object, pa.Table]
         ),
-        control: Any,
-        treatment: Any,
+        control: object,
+        treatment: object,
         variant: str | None = None,
     ) -> R:
         """Analyze a metric in an experiment.
@@ -366,10 +374,10 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
 
 
 def read_granular(
-    data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[Any, pa.Table],
+    data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[object, pa.Table],
     cols: Sequence[str],
     variant: str | None = None,
-) -> dict[Any, pa.Table]:
+) -> dict[object, pa.Table]:
     """Read granular experimental data.
 
     Args:

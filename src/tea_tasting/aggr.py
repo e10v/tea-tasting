@@ -14,7 +14,6 @@ import tea_tasting.utils
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-    from typing import Any
 
     import narwhals.typing  # noqa: TC004
 
@@ -238,7 +237,7 @@ def read_aggregates(
     mean_cols: Sequence[str],
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
-) -> dict[Any, Aggregates]:
+) -> dict[object, Aggregates]:
     ...
 
 @overload
@@ -261,7 +260,7 @@ def read_aggregates(
     mean_cols: Sequence[str],
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
-) -> dict[Any, Aggregates] | Aggregates:
+) -> dict[object, Aggregates] | Aggregates:
     """Extract aggregated statistics.
 
     Args:
@@ -346,7 +345,7 @@ def _read_aggr_ibis(
     mean_cols: Sequence[str],
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
-) -> list[dict[str, Any]]:
+) -> list[dict[str, int | float]]:
     covar_cols = tuple({*var_cols, *itertools.chain(*cov_cols)})
     backend = ibis.get_backend(data)
     var_op = ibis.expr.operations.Variance
@@ -402,7 +401,7 @@ def _read_aggr_narwhals(
     mean_cols: Sequence[str],
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
-) -> list[dict[str, Any]]:
+) -> list[dict[str, int | float]]:
     data = nw.from_native(data)
     if not isinstance(data, nw.LazyFrame):
         data = data.lazy()
@@ -464,7 +463,7 @@ def _demean_nw_col(col: str, group_col: str | None) -> nw.Expr:
 
 
 def _get_aggregates(
-    data: dict[str, Any],
+    data: dict[str, float | int],
     *,
     has_count: bool,
     mean_cols: Sequence[str],
@@ -472,7 +471,7 @@ def _get_aggregates(
     cov_cols: Sequence[tuple[str, str]],
 ) -> Aggregates:
     return Aggregates(
-        count_=data[_COUNT] if has_count else None,
+        count_=data[_COUNT] if has_count else None,  # type: ignore
         mean_={col: data[_MEAN.format(col)] for col in mean_cols},
         var_={col: data[_VAR.format(col)] for col in var_cols},
         cov_={cols: data[_COV.format(*cols)] for cols in cov_cols},

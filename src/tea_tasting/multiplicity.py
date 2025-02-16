@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import abc
 from collections import UserDict
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import tea_tasting.config
 import tea_tasting.experiment
@@ -20,7 +20,7 @@ NO_NAME_COMPARISON = "-"
 
 
 class MultipleComparisonsResults(
-    UserDict[Any, tea_tasting.experiment.ExperimentResult],
+    UserDict[object, tea_tasting.experiment.ExperimentResult],
     tea_tasting.utils.DictsReprMixin,
 ):
     """Multiple comparisons result."""
@@ -34,7 +34,7 @@ class MultipleComparisonsResults(
         "pvalue_adj",
     )
 
-    def to_dicts(self) -> tuple[dict[str, Any], ...]:
+    def to_dicts(self) -> tuple[dict[str, object], ...]:
         """Convert the result to a sequence of dictionaries."""
         return tuple(
             {"comparison": str(comparison)} | metric_result
@@ -45,7 +45,7 @@ class MultipleComparisonsResults(
 
 def adjust_fdr(
     experiment_results: tea_tasting.experiment.ExperimentResult | Mapping[
-        Any, tea_tasting.experiment.ExperimentResult],
+        object, tea_tasting.experiment.ExperimentResult],
     metrics: str | set[str] | Sequence[str] | None = None,
     *,
     alpha: float | None = None,
@@ -220,7 +220,7 @@ def adjust_fdr(
 
 def adjust_fwer(
     experiment_results: tea_tasting.experiment.ExperimentResult | Mapping[
-        Any, tea_tasting.experiment.ExperimentResult],
+        object, tea_tasting.experiment.ExperimentResult],
     metrics: str | set[str] | Sequence[str] | None = None,
     *,
     alpha: float | None = None,
@@ -403,11 +403,11 @@ def adjust_fwer(
 
 def _copy_results(
     experiment_results: tea_tasting.experiment.ExperimentResult | Mapping[
-        Any, tea_tasting.experiment.ExperimentResult],
+        object, tea_tasting.experiment.ExperimentResult],
     metrics: str | set[str] | Sequence[str] | None = None,
 ) -> tuple[
-    dict[Any, tea_tasting.experiment.ExperimentResult],
-    list[dict[str, Any]],
+    dict[object, tea_tasting.experiment.ExperimentResult],
+    list[dict[str, object]],
 ]:
     if isinstance(experiment_results, tea_tasting.experiment.ExperimentResult):
         experiment_results = {NO_NAME_COMPARISON: experiment_results}
@@ -438,17 +438,17 @@ def _copy_results(
 
 
 def _hochberg_stepup(
-    metric_results: Sequence[dict[str, Any]],
+    metric_results: Sequence[dict[str, object]],
     adjust: Callable[[float, int], tuple[float, float]],
 ) -> None:
     pvalue_adj_max = 1
     alpha_adj_min = 0
     m = len(metric_results)
     for i, metric_result in enumerate(
-        sorted(metric_results, key=lambda d: -d["pvalue"]),
+        sorted(metric_results, key=lambda d: -d["pvalue"]),  # type: ignore
     ):
         k = m - i
-        pvalue = metric_result["pvalue"]
+        pvalue: float = metric_result["pvalue"]  # type: ignore
         pvalue_adj, alpha_adj = adjust(pvalue, k)
 
         if alpha_adj_min == 0 and pvalue <= alpha_adj:
@@ -464,16 +464,16 @@ def _hochberg_stepup(
 
 
 def _holm_stepdown(
-    metric_results: Sequence[dict[str, Any]],
+    metric_results: Sequence[dict[str, object]],
     adjust: Callable[[float, int], tuple[float, float]],
 ) -> None:
     pvalue_adj_min = 0
     alpha_adj_max = 1
     for k, metric_result in enumerate(
-        sorted(metric_results, key=lambda d: d["pvalue"]),
+        sorted(metric_results, key=lambda d: d["pvalue"]),  # type: ignore
         start=1,
     ):
-        pvalue = metric_result["pvalue"]
+        pvalue: float = metric_result["pvalue"]
         pvalue_adj, alpha_adj = adjust(pvalue, k)
 
         if alpha_adj_max == 1 and pvalue > alpha_adj:
