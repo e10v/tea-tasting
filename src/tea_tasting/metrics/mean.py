@@ -23,7 +23,7 @@ import tea_tasting.utils
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from typing import Literal, TypeVar
+    from typing import Literal, TypeAlias, TypeVar
 
 
     N = TypeVar("N", bound=float | int | None)
@@ -79,7 +79,7 @@ class MeanPowerResult(NamedTuple):
     rel_effect_size: float
     n_obs: float
 
-MeanPowerResults = MetricPowerResults[MeanPowerResult]
+MeanPowerResults: TypeAlias = MetricPowerResults[MeanPowerResult]
 
 
 class RatioOfMeans(  # noqa: D101

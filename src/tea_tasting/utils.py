@@ -633,7 +633,7 @@ class Int(_NumericBase, int):
         instance.fill_zero_div = fill_zero_div
         return instance
 
-Numeric = Float | Int
+Numeric: TypeAlias = Float | Int
 
 
 def numeric(
