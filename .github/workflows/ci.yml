@@ -5,6 +5,12 @@ on:
       - '**.py'
       - '.github/workflows/ci.yml'
       - 'pdm.lock'
+  push:
+    branches: [main]
+    paths:
+      - '**.py'
+      - '.github/workflows/ci.yml'
+      - 'pdm.lock'
   workflow_dispatch:
 jobs:
   test:
