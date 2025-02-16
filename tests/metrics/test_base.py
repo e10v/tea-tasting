@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 import unittest.mock
 
 import ibis
@@ -15,7 +15,7 @@ import tea_tasting.metrics.base
 
 
 if TYPE_CHECKING:
-    from typing import Literal
+    from typing import Any, Literal
 
     import ibis.expr.types  # noqa: TC004
     import pandas as pd
@@ -112,7 +112,7 @@ def aggr_cols() -> tea_tasting.metrics.base.AggrCols:
 def correct_aggrs(
     data_arrow: pa.Table,
     aggr_cols: tea_tasting.metrics.base.AggrCols,
-) -> dict[Any, tea_tasting.aggr.Aggregates]:
+) -> dict[object, tea_tasting.aggr.Aggregates]:
     return tea_tasting.aggr.read_aggregates(
         data_arrow,
         group_col="variant",
@@ -138,7 +138,7 @@ def cols() -> tuple[str, ...]:
 def correct_gran(
     data_arrow: pa.Table,
     cols: tuple[str, ...],
-) -> dict[Any, pa.Table]:
+) -> dict[object, pa.Table]:
     variant_col = data_arrow["variant"]
     table = data_arrow.select(cols)
     return {
@@ -149,8 +149,8 @@ def correct_gran(
 @pytest.fixture
 def aggr_metric(
     aggr_cols: tea_tasting.metrics.base.AggrCols,
-) -> tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]]:
-    class AggrMetric(tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]]):
+) -> tea_tasting.metrics.base.MetricBaseAggregated[dict[str, object]]:
+    class AggrMetric(tea_tasting.metrics.base.MetricBaseAggregated[dict[str, object]]):
         @property
         def aggr_cols(self) -> tea_tasting.metrics.base.AggrCols:
             return aggr_cols
@@ -159,7 +159,7 @@ def aggr_metric(
             self,
             control: tea_tasting.aggr.Aggregates,  # noqa: ARG002
             treatment: tea_tasting.aggr.Aggregates,  # noqa: ARG002
-        ) -> dict[str, Any]:
+        ) -> dict[str, object]:
             return {}
 
     return AggrMetric()
@@ -168,11 +168,11 @@ def aggr_metric(
 def aggr_power(
     aggr_cols: tea_tasting.metrics.base.AggrCols,
 ) -> tea_tasting.metrics.base.PowerBaseAggregated[
-    tea_tasting.metrics.base.MetricPowerResults[dict[str, Any]]
+    tea_tasting.metrics.base.MetricPowerResults[dict[str, object]]
 ]:
     class AggrPower(
         tea_tasting.metrics.base.PowerBaseAggregated[
-            tea_tasting.metrics.base.MetricPowerResults[dict[str, Any]]
+            tea_tasting.metrics.base.MetricPowerResults[dict[str, object]]
         ],
     ):
         @property
@@ -188,15 +188,15 @@ def aggr_power(
                 "rel_effect_size",
                 "n_obs",
             ] = "power",
-        ) -> tea_tasting.metrics.base.MetricPowerResults[dict[str, Any]]:
+        ) -> tea_tasting.metrics.base.MetricPowerResults[dict[str, object]]:
             return tea_tasting.metrics.base.MetricPowerResults()
     return AggrPower()
 
 @pytest.fixture
 def gran_metric(
     cols: tuple[str, ...],
-) -> tea_tasting.metrics.base.MetricBaseGranular[dict[str, Any]]:
-    class GranMetric(tea_tasting.metrics.base.MetricBaseGranular[dict[str, Any]]):
+) -> tea_tasting.metrics.base.MetricBaseGranular[dict[str, object]]:
+    class GranMetric(tea_tasting.metrics.base.MetricBaseGranular[dict[str, object]]):
         @property
         def cols(self) -> tuple[str, ...]:
             return cols
@@ -205,7 +205,7 @@ def gran_metric(
             self,
             control: pa.Table,  # noqa: ARG002
             treatment: pa.Table,  # noqa: ARG002
-        ) -> dict[str, Any]:
+        ) -> dict[str, object]:
             return {}
 
     return GranMetric()
@@ -235,7 +235,7 @@ def test_metric_power_results_to_dicts():
         "n_obs": 20_000,
     }
 
-    results = tea_tasting.metrics.base.MetricPowerResults[dict[str, Any]](
+    results = tea_tasting.metrics.base.MetricPowerResults[dict[str, float | int]](  # type: ignore
         [result0, result1])
     assert results.to_dicts() == (result0, result1)
 
@@ -252,9 +252,9 @@ def test_metric_power_results_to_dicts():
 
 
 def test_metric_base_aggregated_analyze_frame(
-    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]],
+    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated[dict[str, object]],
     data_arrow: pa.Table,
-    correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
+    correct_aggrs: dict[object, tea_tasting.aggr.Aggregates],
 ):
     aggr_metric.analyze_aggregates = unittest.mock.MagicMock()
     aggr_metric.analyze(data_arrow, control=0, treatment=1, variant="variant")
@@ -264,8 +264,8 @@ def test_metric_base_aggregated_analyze_frame(
     _compare_aggrs(kwargs["treatment"], correct_aggrs[1])
 
 def test_metric_base_aggregated_analyze_aggrs(
-    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated[dict[str, Any]],
-    correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
+    aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated[dict[str, object]],
+    correct_aggrs: dict[object, tea_tasting.aggr.Aggregates],
 ):
     aggr_metric.analyze_aggregates = unittest.mock.MagicMock()
     aggr_metric.analyze(correct_aggrs, control=0, treatment=1)
@@ -302,7 +302,7 @@ def test_power_base_aggregated_analyze_aggr(
 def test_aggregate_by_variants_frame(
     data_arrow: pa.Table,
     aggr_cols: tea_tasting.metrics.base.AggrCols,
-    correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
+    correct_aggrs: dict[object, tea_tasting.aggr.Aggregates],
 ):
     aggrs = tea_tasting.metrics.base.aggregate_by_variants(
         data_arrow,
@@ -314,7 +314,7 @@ def test_aggregate_by_variants_frame(
 
 def test_aggregate_by_variants_aggrs(
     aggr_cols: tea_tasting.metrics.base.AggrCols,
-    correct_aggrs: dict[Any, tea_tasting.aggr.Aggregates],
+    correct_aggrs: dict[object, tea_tasting.aggr.Aggregates],
 ):
     aggrs = tea_tasting.metrics.base.aggregate_by_variants(
         correct_aggrs,
@@ -333,9 +333,9 @@ def test_aggregate_by_variants_raises(
 
 
 def test_metric_base_granular_frame(
-    gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, Any]],
+    gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, object]],
     data_arrow: pa.Table,
-    correct_gran: dict[Any, pa.Table],
+    correct_gran: dict[object, pa.Table],
 ):
     gran_metric.analyze_granular = unittest.mock.MagicMock()
     gran_metric.analyze(data_arrow, control=0, treatment=1, variant="variant")
@@ -345,8 +345,8 @@ def test_metric_base_granular_frame(
     assert kwargs["treatment"].equals(correct_gran[1])
 
 def test_metric_base_granular_gran(
-    gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, Any]],
-    correct_gran: dict[Any, pa.Table],
+    gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, object]],
+    correct_gran: dict[object, pa.Table],
 ):
     gran_metric.analyze_granular = unittest.mock.MagicMock()
     gran_metric.analyze(correct_gran, control=0, treatment=1)
@@ -359,7 +359,7 @@ def test_metric_base_granular_gran(
 def test_read_granular_frame(
     data: Frame,
     cols: tuple[str, ...],
-    correct_gran: dict[Any, pa.Table],
+    correct_gran: dict[object, pa.Table],
 ):
     gran = tea_tasting.metrics.base.read_granular(
         data,
@@ -371,7 +371,7 @@ def test_read_granular_frame(
 
 def test_read_granular_dict(
     cols: tuple[str, ...],
-    correct_gran: dict[Any, pa.Table],
+    correct_gran: dict[object, pa.Table],
 ):
     gran = tea_tasting.metrics.base.read_granular(
         correct_gran,

@@ -12,19 +12,22 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from typing import Any, Literal
+    from typing import Literal, TypeAlias
 
     import numpy.typing as npt
 
     try:
-        from pandas import DataFrame as PandasDataFrame
+        from pandas import DataFrame as _PandasDataFrame
     except ImportError:
-        from typing import Any as PandasDataFrame
+        _PandasDataFrame = object
 
     try:
-        from polars import DataFrame as PolarsDataFrame
+        from polars import DataFrame as _PolarsDataFrame
     except ImportError:
-        from typing import Any as PolarsDataFrame
+        _PolarsDataFrame = object
+
+    PandasDataFrame: TypeAlias = _PandasDataFrame  # type: ignore
+    PolarsDataFrame: TypeAlias = _PolarsDataFrame  # type: ignore
 
 
 @overload
@@ -610,9 +613,9 @@ def _check_params(
 
 
 def _avg_by_groups(
-    values: npt.NDArray[np.number[Any]],
-    groups: npt.NDArray[np.number[Any]],
-) -> npt.NDArray[np.number[Any]]:
+    values: npt.NDArray[np.number],
+    groups: npt.NDArray[np.number],
+) -> npt.NDArray[np.number]:
     return np.concatenate([
         np.full(v.shape, v.mean())
         for v in np.split(values, np.unique(groups, return_index=True)[1])

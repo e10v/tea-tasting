@@ -4,17 +4,17 @@
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import tea_tasting.utils
 
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Sequence
-    from typing import Any, Literal
+    from typing import Literal
 
 
-_global_config = {
+_global_config: dict[str, object] = {
     "alpha": 0.05,
     "alternative": "two-sided",
     "confidence_level": 0.95,
@@ -27,7 +27,51 @@ _global_config = {
 }
 
 
-def get_config(option: str | None = None) -> Any:
+@overload
+def get_config(option: Literal["alpha"]) -> float:
+    ...
+
+@overload
+def get_config(option: Literal["alternative"]) -> str:
+    ...
+
+@overload
+def get_config(option: Literal["confidence_level"]) -> float:
+    ...
+
+@overload
+def get_config(option: Literal["equal_var"]) -> bool:
+    ...
+
+@overload
+def get_config(option: Literal["n_obs"]) -> int | Sequence[int] | None:
+    ...
+
+@overload
+def get_config(option: Literal["n_resamples"]) -> str:
+    ...
+
+@overload
+def get_config(option: Literal["power"]) -> float:
+    ...
+
+@overload
+def get_config(option: Literal["ratio"]) -> float | int:
+    ...
+
+@overload
+def get_config(option: Literal["use_t"]) -> bool:
+    ...
+
+@overload
+def get_config(option: str) -> object:
+    ...
+
+@overload
+def get_config(option: None = None) -> dict[str, object]:
+    ...
+
+def get_config(option: str | None = None) -> object:
     """Retrieve the current settings of the global configuration.
 
     Args:
@@ -62,7 +106,7 @@ def set_config(
     power: float | None = None,
     ratio: float | int | None = None,
     use_t: bool | None = None,
-    **kwargs: Any,
+    **kwargs: object,
 ) -> None:
     """Update the global configuration with specified settings.
 
@@ -129,8 +173,8 @@ def config_context(
     power: float | None = None,
     ratio: float | int | None = None,
     use_t: bool | None = None,
-    **kwargs: Any,
-) -> Iterator[Any]:
+    **kwargs: object,
+) -> Iterator[object]:
     """A context manager that temporarily modifies the global configuration.
 
     Args:

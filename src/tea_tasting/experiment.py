@@ -34,7 +34,7 @@ class ExperimentResult(
         "pvalue",
     )
 
-    def to_dicts(self) -> tuple[dict[str, Any], ...]:
+    def to_dicts(self) -> tuple[dict[str, object], ...]:
         """Convert the result to a sequence of dictionaries.
 
         Examples:
@@ -77,11 +77,11 @@ class ExperimentResult(
         return tuple(
             {"metric": k} | (v if isinstance(v, dict) else v._asdict())
             for k, v in self.items()
-        )
+        )  # type: ignore
 
 
 class ExperimentResults(
-    UserDict[tuple[Any, Any], ExperimentResult],
+    UserDict[tuple[object, object], ExperimentResult],
     tea_tasting.utils.DictsReprMixin,
 ):
     """Experiment results for multiple pairs of variants."""
@@ -95,7 +95,7 @@ class ExperimentResults(
         "pvalue",
     )
 
-    def to_dicts(self) -> tuple[dict[str, Any], ...]:
+    def to_dicts(self) -> tuple[dict[str, object], ...]:
         """Convert the result to a sequence of dictionaries."""
         return tuple(
             {"variants": str(variants)} | metric_result
@@ -111,7 +111,7 @@ class ExperimentPowerResult(
     """Result of the analysis of power in a experiment."""
     default_keys = ("metric", "power", "effect_size", "rel_effect_size", "n_obs")
 
-    def to_dicts(self) -> tuple[dict[str, Any], ...]:
+    def to_dicts(self) -> tuple[dict[str, object], ...]:
         """Convert the result to a sequence of dictionaries."""
         dicts = ()
         for metric, results in self.items():
@@ -230,7 +230,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
-        control: Any = None,
+        control: object = None,
         *,
         all_variants: Literal[False] = False,
     ) -> ExperimentResult:
@@ -240,7 +240,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
-        control: Any = None,
+        control: object = None,
         *,
         all_variants: Literal[True] = True,
     ) -> ExperimentResults:
@@ -249,7 +249,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
-        control: Any = None,
+        control: object = None,
         *,
         all_variants: bool = False,
     ) -> ExperimentResult | ExperimentResults:
@@ -273,7 +273,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             variants = granular_data.keys()
         else:
             variants = self._read_variants(data)
-        variants = sorted(variants)
+        variants = sorted(variants)  # type: ignore
 
         if control is not None:
             variant_pairs = tuple(
@@ -318,10 +318,10 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         self,
         metric: tea_tasting.metrics.MetricBase[Any],
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
-        aggregated_data: dict[Any, tea_tasting.aggr.Aggregates] | None,
-        granular_data: dict[Any, pa.Table] | None,
-        control: Any,
-        treatment: Any,
+        aggregated_data: dict[object, tea_tasting.aggr.Aggregates] | None,
+        granular_data: dict[object, pa.Table] | None,
+        control: object,
+        treatment: object,
     ) -> tea_tasting.metrics.MetricResult:
         if (
             isinstance(metric, tea_tasting.metrics.MetricBaseAggregated)
@@ -342,8 +342,8 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
     ) -> tuple[
-        dict[Any, tea_tasting.aggr.Aggregates] | None,
-        dict[Any, pa.Table] | None,
+        dict[object, tea_tasting.aggr.Aggregates] | None,
+        dict[object, pa.Table] | None,
     ]:
         aggr_cols = tea_tasting.metrics.AggrCols()
         gran_cols = set()
@@ -371,7 +371,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     def _read_variants(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
-    ) -> list[Any]:
+    ) -> list[object]:
         if isinstance(data, ibis.expr.types.Table):
             return (
                 data.select(self.variant)

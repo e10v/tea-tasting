@@ -15,7 +15,7 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from typing import Any, Literal
+    from typing import Literal
 
     import numpy.typing as npt
     import pyarrow as pa
@@ -53,7 +53,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
     def __init__(
         self,
         columns: str | Sequence[str],
-        statistic: Callable[..., npt.NDArray[np.number[Any]]],
+        statistic: Callable[..., npt.NDArray[np.number]],
         *,
         alternative: Literal["two-sided", "greater", "less"] | None = None,
         confidence_level: float | None = None,
@@ -208,10 +208,10 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
             Analysis result.
         """
         def statistic(
-            contr: npt.NDArray[np.number[Any]],
-            treat: npt.NDArray[np.number[Any]],
+            contr: npt.NDArray[np.number],
+            treat: npt.NDArray[np.number],
             axis: int = -1,
-        ) -> npt.NDArray[np.number[Any]]:
+        ) -> npt.NDArray[np.number]:
             contr_stat = self.statistic(contr, axis=axis)
             treat_stat = self.statistic(treat, axis=axis)
 
@@ -253,7 +253,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
 def _select_as_numpy(
     data: pa.Table,
     columns: str | Sequence[str],
-) -> npt.NDArray[np.number[Any]]:
+) -> npt.NDArray[np.number]:
     if isinstance(columns, str):
         return data[columns].combine_chunks().to_numpy(zero_copy_only=False)
     return np.column_stack([

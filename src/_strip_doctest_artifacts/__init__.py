@@ -3,22 +3,17 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
 
 import markdown
 import markdown.extensions
 import markdown.preprocessors
 
 
-if TYPE_CHECKING:
-    from typing import Any
-
-
 class StripDoctestArtifactsPreprocessor(markdown.preprocessors.Preprocessor):
     """A preprocessor that removes doctest artifacts."""
 
     def run(self, lines: list[str]) -> list[str]:
-        """Run th preprocessor."""
+        """Run the preprocessor."""
         return [_strip(line) for line in lines]
 
 
@@ -39,6 +34,6 @@ class StripDoctestArtifactsExtension(markdown.extensions.Extension):
         )
 
 
-def makeExtension(**kwargs: dict[str, Any]) -> StripDoctestArtifactsExtension:
+def makeExtension(**kwargs: dict[str, object]) -> StripDoctestArtifactsExtension:
     """A factory function for the extension, required by Python-Markdown."""
     return StripDoctestArtifactsExtension(**kwargs)

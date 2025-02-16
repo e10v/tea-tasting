@@ -1,7 +1,7 @@
 # pyright: reportAttributeAccessIssue=false
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, NamedTuple, TypedDict
+from typing import TYPE_CHECKING, NamedTuple, TypedDict
 
 import ibis
 import ibis.expr.types
@@ -55,9 +55,9 @@ class _Metric(
     def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[
-            Any, tea_tasting.aggr.Aggregates],
-        control: int,
-        treatment: int,
+            object, tea_tasting.aggr.Aggregates],
+        control: object,
+        treatment: object,
         variant: str,
     ) -> _MetricResultTuple:
         if not isinstance(data, dict):
@@ -91,7 +91,7 @@ class _Metric(
 class _MetricAggregated(
     tea_tasting.metrics.MetricBaseAggregated[_MetricResultTuple],
     tea_tasting.metrics.PowerBaseAggregated[
-        tea_tasting.metrics.MetricPowerResults[dict[str, Any]]],
+        tea_tasting.metrics.MetricPowerResults[dict[str, object]]],
 ):
     def __init__(self, value: str) -> None:
         self.value = value
@@ -118,7 +118,7 @@ class _MetricAggregated(
         data: tea_tasting.aggr.Aggregates,  # noqa: ARG002
         parameter: Literal[  # noqa: ARG002
             "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
-    ) -> tea_tasting.metrics.MetricPowerResults[dict[str, Any]]:
+    ) -> tea_tasting.metrics.MetricPowerResults[dict[str, object]]:
         return tea_tasting.metrics.MetricPowerResults((
             {"power": 0.8, "effect_size": 1, "rel_effect_size": 0.05, "n_obs": 10_000},
             {"power": 0.9, "effect_size": 2, "rel_effect_size": 0.1, "n_obs": 20_000},
@@ -335,7 +335,7 @@ def test_experiment_power_result_to_dicts():
         {"power": 0.9, "effect_size": 2, "rel_effect_size": 0.1, "n_obs": 20_000},
     )
     result = tea_tasting.experiment.ExperimentPowerResult({
-        "metric_dict": tea_tasting.metrics.MetricPowerResults[dict[str, Any]](
+        "metric_dict": tea_tasting.metrics.MetricPowerResults[dict[str, float | int]](  # type: ignore
             raw_results[0:2]),
         "metric_tuple": tea_tasting.metrics.MetricPowerResults[_PowerResult]([
             _PowerResult(**raw_results[2]),

@@ -13,8 +13,6 @@ import tea_tasting.metrics.mean
 
 
 if TYPE_CHECKING:
-    from typing import Any
-
     import pyarrow as pa
 
 
@@ -23,7 +21,7 @@ def data_arrow() -> pa.Table:
     return tea_tasting.datasets.make_users_data(n_users=100, covariates=True, seed=42)
 
 @pytest.fixture
-def data_aggr(data_arrow: pa.Table) -> dict[Any, tea_tasting.aggr.Aggregates]:
+def data_aggr(data_arrow: pa.Table) -> dict[object, tea_tasting.aggr.Aggregates]:
     cols = (
         "sessions", "orders", "revenue",
         "sessions_covariate", "orders_covariate", "revenue_covariate",
@@ -166,7 +164,7 @@ def test_ratio_of_means_analyze_frame(data_arrow: pa.Table):
     assert isinstance(result, tea_tasting.metrics.mean.MeanResult)
 
 def test_ratio_of_means_analyze_basic(
-    data_aggr: dict[str, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
 ):
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders")
     result = metric.analyze(data_aggr, 0, 1)
@@ -183,7 +181,7 @@ def test_ratio_of_means_analyze_basic(
     assert result.statistic == pytest.approx(-1.1447678040118034)
 
 def test_ratio_of_means_analyze_ratio_greater_equal_var(
-    data_aggr: dict[str, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
 ):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
@@ -205,7 +203,7 @@ def test_ratio_of_means_analyze_ratio_greater_equal_var(
     assert result.statistic == pytest.approx(-1.0794048813446926)
 
 def test_ratio_of_means_analyze_ratio_less_use_norm(
-    data_aggr: dict[str, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
 ):
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
@@ -335,7 +333,7 @@ def test_ratio_of_means_solve_power_raises_max_iter(
         metric.solve_power(power_data_aggr, "n_obs")
 
 
-def test_mean_analyze(data_aggr: dict[str, tea_tasting.aggr.Aggregates]):
+def test_mean_analyze(data_aggr: dict[object, tea_tasting.aggr.Aggregates]):
     metric = tea_tasting.metrics.mean.Mean(
         "orders",
         covariate="orders_covariate",

@@ -9,11 +9,10 @@ import tea_tasting.config
 
 if TYPE_CHECKING:
     from collections.abc import Generator
-    from typing import Any
 
 
 @pytest.fixture
-def reset_config() -> Generator[None, Any, None]:
+def reset_config() -> Generator[None, object, None]:
     old_config = tea_tasting.config._global_config.copy()
 
     try:
