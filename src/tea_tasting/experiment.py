@@ -227,7 +227,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
 
     @overload
-    def analyze(
+    def analyze(  # type: ignore
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
         control: object = None,
