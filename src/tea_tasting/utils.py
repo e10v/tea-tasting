@@ -215,10 +215,10 @@ def format_num(
         precision = max(0, sig - 1)
         typ = "e" if val != 0 else "f"
     else:
-        precision = max(0, sig - 1 - int(math.floor(math.log10(abs(val)))))
+        precision = max(0, sig - 1 - math.floor(math.log10(abs(val))))
         val = round(val, precision)
         # Repeat in order to format 99.999 as "100", not "100.0".
-        precision = max(0, sig - 1 - int(math.floor(math.log10(abs(val)))))
+        precision = max(0, sig - 1 - math.floor(math.log10(abs(val))))
         typ = "f"
 
     result = format(val, f"_.{precision}{typ}")
