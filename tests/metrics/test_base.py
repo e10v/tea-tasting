@@ -381,9 +381,10 @@ def test_read_granular_dict(
     assert gran[0].equals(correct_gran[0])
     assert gran[1].equals(correct_gran[1])
 
-def test_read_granular_raises(
-    data_arrow: pa.Table,
+def test_read_granular_none(
+    data: Frame,
     cols: tuple[str, ...],
+    data_arrow: pa.Table,
 ):
-    with pytest.raises(ValueError, match="variant"):
-        tea_tasting.metrics.base.read_granular(data_arrow, cols=cols)
+    gran = tea_tasting.metrics.base.read_granular(data, cols=cols)
+    assert gran.equals(data_arrow.select(cols))

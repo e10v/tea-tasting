@@ -373,11 +373,35 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
         """
 
 
+@overload
+def read_granular(
+    data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
+    cols: Sequence[str],
+    variant: None = None,
+) -> pa.Table:
+    ...
+
+@overload
+def read_granular(
+    data: dict[object, pa.Table],
+    cols: Sequence[str],
+    variant: None = None,
+) -> dict[object, pa.Table]:
+    ...
+
+@overload
+def read_granular(
+    data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[object, pa.Table],
+    cols: Sequence[str],
+    variant: str,
+) -> dict[object, pa.Table]:
+    ...
+
 def read_granular(
     data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[object, pa.Table],
     cols: Sequence[str],
     variant: str | None = None,
-) -> dict[object, pa.Table]:
+) -> pa.Table | dict[object, pa.Table]:
     """Read granular experimental data.
 
     Args:
@@ -393,16 +417,17 @@ def read_granular(
     ):
         return data
 
-    if variant is None:
-        raise ValueError("The variant parameter is required but was not provided.")
-
+    cols_to_read = cols if variant is None else (*cols, variant)
     if isinstance(data, ibis.expr.types.Table):
-        table = data.select(*cols, variant).to_pyarrow()
+        table = data.select(*cols_to_read).to_pyarrow()
     else:
         data = nw.from_native(data)
         if not isinstance(data, nw.LazyFrame):
             data = data.lazy()
-        table = data.select(*cols, variant).collect().to_arrow()
+        table = data.select(*cols_to_read).collect().to_arrow()
+
+    if variant is None:
+        return table
 
     variant_col = table[variant]
     table = table.select(cols)
