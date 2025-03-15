@@ -8,6 +8,9 @@ from typing import TYPE_CHECKING, Any, overload
 
 import ibis.expr.types
 import narwhals as nw
+import numpy as np
+import pyarrow as pa
+import pyarrow.compute as pc
 
 import tea_tasting.aggr
 import tea_tasting.metrics
@@ -19,19 +22,17 @@ if TYPE_CHECKING:
     from typing import Concatenate, Literal, Protocol, TypeAlias, TypeVar
 
     import narwhals.typing  # noqa: TC004
-    import numpy as np
-    import pyarrow as pa
 
 
     T = TypeVar("T")
 
     MapLike: TypeAlias = Callable[Concatenate[Callable[..., T], ...], Iterator[T]]
-    TSQMLike: TypeAlias = Callable[Concatenate[Iterable[T], ...], Iterator[T]]
+    TQDMLike: TypeAlias = Callable[Concatenate[Iterable[T], ...], Iterator[T]]
 
     class _SeededDataGenerator(Protocol):
         def __call__(
             self,
-            *,
+            *args: object,
             seed: int | np.random.Generator | np.random.SeedSequence | None,
             **kwargs: object,
         ) -> narwhals.typing.IntoFrame | ibis.expr.types.Table:
@@ -432,9 +433,10 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         *,
         n_simulations: int = 10_000,
         seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+        ratio: float | int = 1,
         treat: Callable[[pa.Table], pa.Table] | None = None,
-        map_: MapLike[Any] = map,
-        tqdm_: TSQMLike[Any] | None = None,
+        map_: MapLike[ExperimentResult] = map,
+        tqdm_: TQDMLike[ExperimentResult] | None = None,
     ) -> SimulationResults:
         gran_cols: set[str] = set()
         for metric in self.metrics.values():
@@ -451,6 +453,36 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
         if not callable(data):
             data = tea_tasting.metrics.read_granular(data, cols)
+
+        def sim(
+            rng: np.random.Generator,
+            experiment: Experiment = self,
+            data: pa.Table | _SeededDataGenerator = data,  # type: ignore
+            cols: tuple[str, ...] = cols,
+            ratio: float | int = ratio,
+            treat: Callable[[pa.Table], pa.Table] | None = treat,
+        ) -> ExperimentResult:
+            if callable(data):
+                data: pa.Table = tea_tasting.metrics.read_granular(data(seed=rng), cols)  # type: ignore
+
+            if experiment.variant not in data.column_names:
+                data = data.append_column(
+                    experiment.variant,
+                    rng.binomial(n=1, p=ratio / (1 + ratio), size=data.num_rows),
+                )
+
+            if treat is not None:
+                variant_col = data[experiment.variant]
+                contr_data = data.filter(pc.equal(variant_col, pa.scalar(0)))  # type: ignore
+                treat_data = data.filter(pc.equal(variant_col, pa.scalar(1)))  # type: ignore
+                data = pa.concat_tables((contr_data, treat(treat_data)))
+
+            return experiment.analyze(data)
+
+        results = map_(sim, np.random.default_rng(seed).spawn(n_simulations))
+        if tqdm_ is not None:
+            results = tqdm_(results)
+        return SimulationResults(results)
 
 
     def solve_power(
