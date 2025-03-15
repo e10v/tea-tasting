@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections import UserDict
+from collections import UserDict, UserList
+import itertools
 from typing import TYPE_CHECKING, Any, overload
 
 import ibis.expr.types
@@ -96,12 +97,34 @@ class ExperimentResults(
     )
 
     def to_dicts(self) -> tuple[dict[str, object], ...]:
-        """Convert the result to a sequence of dictionaries."""
+        """Convert the results to a sequence of dictionaries."""
         return tuple(
             {"variants": str(variants)} | metric_result
             for variants, experiment_result in self.items()
             for metric_result in experiment_result.to_dicts()
         )
+
+
+class SimulationResults(UserList[ExperimentResult], tea_tasting.utils.DictsReprMixin):
+    """Simulation results.
+
+    Simulations are not enumerated for better performance.
+    """
+    default_keys = (
+        "metric",
+        "control",
+        "treatment",
+        "rel_effect_size",
+        "rel_effect_size_ci",
+        "pvalue",
+    )
+
+    def to_dicts(self) -> tuple[dict[str, object], ...]:
+        """Convert the results to a sequence of dictionaries."""
+        return tuple(itertools.chain.from_iterable(
+            experiment_result.to_dicts()
+            for experiment_result in self
+        ))
 
 
 class ExperimentPowerResult(
