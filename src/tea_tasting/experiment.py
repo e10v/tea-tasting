@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, overload
 
 import ibis.expr.types
 import narwhals as nw
+import numpy as np
 
 import tea_tasting.aggr
 import tea_tasting.metrics
@@ -15,10 +16,26 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from typing import Literal
+    from collections.abc import Callable, Iterable, Iterator
+    from typing import Concatenate, Literal, Protocol, TypeAlias, TypeVar
 
     import narwhals.typing  # noqa: TC004
     import pyarrow as pa
+
+
+    T = TypeVar("T")
+
+    MapLike: TypeAlias = Callable[Concatenate[Callable[..., T], ...], Iterator[T]]
+    TSQMLike: TypeAlias = Callable[Concatenate[Iterable[T], ...], Iterator[T]]
+
+    class _SeededDataGenerator(Protocol):
+        def __call__(
+            self,
+            *,
+            seed: int | np.random.Generator | np.random.SeedSequence | None,
+            **kwargs: object,
+        ) -> narwhals.typing.IntoFrame | ibis.expr.types.Table:
+            ...
 
 
 class ExperimentResult(
@@ -407,6 +424,19 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         if not isinstance(data, nw.LazyFrame):
             data = data.lazy()
         return data.unique(self.variant).collect().get_column(self.variant).to_list()
+
+
+    def simulate(
+        self,
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table | _SeededDataGenerator,
+        *,
+        n_simulations: int = 10_000,
+        seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+        treat: Callable[[pa.Table], pa.Table] | None = None,
+        map_: MapLike[Any] = map,
+        tqdm_: TSQMLike[Any] | None = None,
+    ) -> SimulationResults:
+        ...
 
 
     def solve_power(
