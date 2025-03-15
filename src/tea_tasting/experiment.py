@@ -436,7 +436,21 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         map_: MapLike[Any] = map,
         tqdm_: TSQMLike[Any] | None = None,
     ) -> SimulationResults:
-        ...
+        gran_cols: set[str] = set()
+        for metric in self.metrics.values():
+            if isinstance(metric, tea_tasting.metrics.MetricBaseAggregated):
+                aggr_cols = metric.aggr_cols
+                gran_cols |= (
+                    set(aggr_cols.mean_cols) |
+                    set(aggr_cols.var_cols) |
+                    set(itertools.chain.from_iterable(aggr_cols.cov_cols))
+                )
+            if isinstance(metric, tea_tasting.metrics.MetricBaseGranular):
+                gran_cols |= set(metric.cols)
+        cols = tuple(gran_cols)
+
+        if not callable(data):
+            data = tea_tasting.metrics.read_granular(data, cols)
 
 
     def solve_power(
