@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Any, overload
 
 import ibis.expr.types
 import narwhals as nw
-import numpy as np
 
 import tea_tasting.aggr
 import tea_tasting.metrics
@@ -20,6 +19,7 @@ if TYPE_CHECKING:
     from typing import Concatenate, Literal, Protocol, TypeAlias, TypeVar
 
     import narwhals.typing  # noqa: TC004
+    import numpy as np
     import pyarrow as pa
 
 
