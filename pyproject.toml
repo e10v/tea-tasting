@@ -56,7 +56,14 @@ package-dir = "src"
 [tool.pdm.dev-dependencies]
 docs = ["mkdocs-material", "mkdocstrings[python]"]
 lint = ["pyright", "ruff"]
-test = ["coverage[toml]", "ibis-framework[duckdb,sqlite]", "pandas", "polars", "pytest"]
+test = [
+    "coverage[toml]",
+    "ibis-framework[duckdb,sqlite]",
+    "pandas",
+    "polars",
+    "pytest",
+    "tqdm",
+]
 
 [tool.pdm.scripts]
 all.composite = ["doctest", "test", "cover", "lint", "type"]
