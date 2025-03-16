@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import UserDict, UserList
+import functools
 import itertools
 from typing import TYPE_CHECKING, Any, overload
 
@@ -19,24 +20,16 @@ import tea_tasting.utils
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
-    from typing import Concatenate, Literal, Protocol, TypeAlias, TypeVar
+    from typing import Concatenate, Literal, TypeAlias, TypeVar
 
     import narwhals.typing  # noqa: TC004
 
 
     T = TypeVar("T")
-
     MapLike: TypeAlias = Callable[Concatenate[Callable[..., T], ...], Iterator[T]]
     TQDMLike: TypeAlias = Callable[Concatenate[Iterable[T], ...], Iterator[T]]
-
-    class _SeededDataGenerator(Protocol):
-        def __call__(
-            self,
-            *args: object,
-            seed: int | np.random.Generator | np.random.SeedSequence | None,
-            **kwargs: object,
-        ) -> narwhals.typing.IntoFrame | ibis.expr.types.Table:
-            ...
+    DataGenerator: TypeAlias =  Callable[
+        ..., narwhals.typing.IntoFrame | ibis.expr.types.Table]
 
 
 class ExperimentResult(
@@ -427,64 +420,6 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         return data.unique(self.variant).collect().get_column(self.variant).to_list()
 
 
-    def simulate(
-        self,
-        data: narwhals.typing.IntoFrame | ibis.expr.types.Table | _SeededDataGenerator,
-        *,
-        n_simulations: int = 10_000,
-        seed: int | np.random.Generator | np.random.SeedSequence | None = None,
-        ratio: float | int = 1,
-        treat: Callable[[pa.Table], pa.Table] | None = None,
-        map_: MapLike[ExperimentResult] = map,
-        tqdm_: TQDMLike[ExperimentResult] | None = None,
-    ) -> SimulationResults:
-        gran_cols: set[str] = set()
-        for metric in self.metrics.values():
-            if isinstance(metric, tea_tasting.metrics.MetricBaseAggregated):
-                aggr_cols = metric.aggr_cols
-                gran_cols |= (
-                    set(aggr_cols.mean_cols) |
-                    set(aggr_cols.var_cols) |
-                    set(itertools.chain.from_iterable(aggr_cols.cov_cols))
-                )
-            if isinstance(metric, tea_tasting.metrics.MetricBaseGranular):
-                gran_cols |= set(metric.cols)
-        cols = tuple(gran_cols)
-
-        if not callable(data):
-            data = tea_tasting.metrics.read_granular(data, cols)
-
-        def sim(
-            rng: np.random.Generator,
-            experiment: Experiment = self,
-            data: pa.Table | _SeededDataGenerator = data,  # type: ignore
-            cols: tuple[str, ...] = cols,
-            ratio: float | int = ratio,
-            treat: Callable[[pa.Table], pa.Table] | None = treat,
-        ) -> ExperimentResult:
-            if callable(data):
-                data: pa.Table = tea_tasting.metrics.read_granular(data(seed=rng), cols)  # type: ignore
-
-            if experiment.variant not in data.column_names:
-                data = data.append_column(
-                    experiment.variant,
-                    rng.binomial(n=1, p=ratio / (1 + ratio), size=data.num_rows),
-                )
-
-            if treat is not None:
-                variant_col = data[experiment.variant]
-                contr_data = data.filter(pc.equal(variant_col, pa.scalar(0)))  # type: ignore
-                treat_data = data.filter(pc.equal(variant_col, pa.scalar(1)))  # type: ignore
-                data = pa.concat_tables((contr_data, treat(treat_data)))
-
-            return experiment.analyze(data)
-
-        results = map_(sim, np.random.default_rng(seed).spawn(n_simulations))
-        if tqdm_ is not None:
-            results = tqdm_(results)
-        return SimulationResults(results)
-
-
     def solve_power(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
@@ -519,3 +454,80 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
                 result |= {name: metric.solve_power(data, parameter=parameter)}
 
         return result
+
+
+    def simulate(
+        self,
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table | DataGenerator,  # type: ignore
+        n_simulations: int = 10_000,
+        *,
+        seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+        ratio: float | int = 1,
+        treat: Callable[[pa.Table], pa.Table] | None = None,
+        map_: MapLike[ExperimentResult] = map,
+        tqdm_: TQDMLike[Any] | type[Iterable[Any]] | None = None,
+    ) -> SimulationResults:
+        if not callable(data):
+            gran_cols: set[str] = set()
+            for metric in self.metrics.values():
+                if isinstance(metric, tea_tasting.metrics.MetricBaseAggregated):
+                    aggr_cols = metric.aggr_cols
+                    gran_cols |= (
+                        set(aggr_cols.mean_cols) |
+                        set(aggr_cols.var_cols) |
+                        set(itertools.chain.from_iterable(aggr_cols.cov_cols))
+                    )
+                elif isinstance(metric, tea_tasting.metrics.MetricBaseGranular):
+                    gran_cols |= set(metric.cols)
+                else:
+                    gran_cols = set()
+                    break
+            cols = tuple(gran_cols)
+            data: pa.Table = tea_tasting.metrics.read_granular(data, cols)
+            if self.variant in data.column_names:
+                data = data.drop_columns(self.variant)
+
+        sim = functools.partial(
+            _simulate_once,
+            experiment=self,
+            data=data,
+            ratio=ratio,
+            treat=treat,
+        )
+
+        results = map_(sim, np.random.default_rng(seed).spawn(n_simulations))
+        if tqdm_ is not None:
+            results = tqdm_(results)  # type: ignore
+        return SimulationResults(results)
+
+
+def _simulate_once(
+    rng: np.random.Generator,
+    experiment: Experiment,
+    data: pa.Table | DataGenerator,  # type: ignore
+    ratio: float | int,
+    treat: Callable[[pa.Table], pa.Table] | None,
+) -> ExperimentResult:
+    if callable(data):
+        data: pa.Table = tea_tasting.metrics.read_granular(data(seed=rng))  # type: ignore
+
+    if experiment.variant not in data.column_names:
+        data = data.append_column(
+            experiment.variant,
+            [rng.binomial(n=1, p=ratio / (1 + ratio), size=data.num_rows)],
+        )
+
+    if treat is not None:
+        variant_array = data[experiment.variant]
+        contr_data = data.filter(pc.equal(variant_array, pa.scalar(0)))  # type: ignore
+        treat_data = treat(data.filter(pc.equal(variant_array, pa.scalar(1))))  # type: ignore
+        if not contr_data.schema.equals(treat_data.schema):
+            schema = pa.unify_schemas(
+                [contr_data.schema, treat_data.schema],
+                promote_options="permissive",
+            )
+            contr_data = contr_data.select(schema.names).cast(schema)
+            treat_data = treat_data.select(schema.names).cast(schema)
+        data = pa.concat_tables((contr_data, treat_data))
+
+    return experiment.analyze(data)
