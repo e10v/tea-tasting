@@ -464,7 +464,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         seed: int | np.random.Generator | np.random.SeedSequence | None = None,
         ratio: float | int = 1,
         treat: Callable[[pa.Table], pa.Table] | None = None,
-        map_: MapLike[ExperimentResult] = map,
+        map_: MapLike[Any] = map,
         tqdm_: TQDMLike[Any] | type[Iterable[Any]] | None = None,
     ) -> SimulationResults:
         if not callable(data):
