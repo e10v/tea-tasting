@@ -19,15 +19,15 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable, Iterator
+    from collections.abc import Callable, Iterable
     from typing import Concatenate, Literal, TypeAlias, TypeVar
 
     import narwhals.typing  # noqa: TC004
 
 
     T = TypeVar("T")
-    MapLike: TypeAlias = Callable[Concatenate[Callable[..., T], ...], Iterator[T]]
-    TQDMLike: TypeAlias = Callable[Concatenate[Iterable[T], ...], Iterator[T]]
+    MapLike: TypeAlias = Callable[Concatenate[Callable[..., T], ...], Iterable[T]]
+    ProgressFn: TypeAlias = Callable[Concatenate[Iterable[T], ...], Iterable[T]]
     DataGenerator: TypeAlias =  Callable[
         ..., narwhals.typing.IntoFrame | ibis.expr.types.Table]
 
@@ -465,7 +465,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         ratio: float | int = 1,
         treat: Callable[[pa.Table], pa.Table] | None = None,
         map_: MapLike[Any] = map,
-        tqdm_: TQDMLike[Any] | type[Iterable[Any]] | None = None,
+        progress: ProgressFn[Any] | type[Iterable[Any]] | None = None,
     ) -> SimulationResults:
         if not callable(data):
             gran_cols: set[str] = set()
@@ -496,8 +496,8 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         )
 
         results = map_(sim, np.random.default_rng(seed).spawn(n_simulations))
-        if tqdm_ is not None:
-            results = tqdm_(results)  # type: ignore
+        if progress is not None:
+            results = progress(results)  # type: ignore
         return SimulationResults(results)
 
 
