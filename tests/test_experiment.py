@@ -1,6 +1,7 @@
 # pyright: reportAttributeAccessIssue=false
 from __future__ import annotations
 
+import concurrent.futures
 from typing import TYPE_CHECKING, NamedTuple, TypedDict
 
 import ibis
@@ -18,10 +19,11 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterable
     from typing import Literal
 
     import narwhals.typing
+    import numpy as np
     import pandas as pd
 
 
@@ -518,3 +520,115 @@ def test_experiment_solve_power(data_arrow: pa.Table):
             {"power": 0.9, "effect_size": 2, "rel_effect_size": 0.1, "n_obs": 20_000},
         )),
     })
+
+
+class ExperimentWithSimulationResults(tea_tasting.experiment.Experiment):
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        self.simulation_results = tea_tasting.experiment.SimulationResults()
+        self.data = []
+        super().__init__(*args, **kwargs)  # type: ignore
+
+    def analyze(  # type: ignore
+        self,
+        *args: object,
+        **kwargs: object,
+    ) -> tea_tasting.experiment.ExperimentResult:
+        self.data.append(args[0])
+        result = super().analyze(*args, **kwargs)  # type: ignore
+        self.simulation_results.append(result)
+        return result
+
+def test_experiment_simulate_default(data: Frame):
+    experiment = ExperimentWithSimulationResults({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricGranular("orders"),
+        "avg_revenue": _Metric("revenue"),
+    })
+    assert experiment.simulate(data, 10, seed=42) == experiment.simulation_results
+
+def test_experiment_simulate_cols(data: Frame, data_arrow: pa.Arrow):
+    experiment = ExperimentWithSimulationResults({
+        "avg_sessions": _MetricAggregated("sessions"),
+    })
+    assert experiment.simulate(data, 10, seed=42) == experiment.simulation_results
+    assert experiment.data[0].column_names == ["sessions", "variant"]
+    experiment = ExperimentWithSimulationResults({
+        "avg_orders": _MetricGranular("orders"),
+    })
+    assert experiment.simulate(data, 10, seed=42) == experiment.simulation_results
+    assert experiment.data[0].column_names == ["orders", "variant"]
+    experiment = ExperimentWithSimulationResults({
+        "avg_revenue": _Metric("revenue"),
+    })
+    assert experiment.simulate(data, 10, seed=42) == experiment.simulation_results
+    assert set(experiment.data[0].column_names) == set(data_arrow.column_names)
+
+def test_experiment_simulate_callable():
+    experiment = ExperimentWithSimulationResults({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricGranular("orders"),
+        "avg_revenue": _Metric("revenue"),
+    })
+    tables = []
+    def make_data(seed: np.random.Generator) -> pa.Table:
+        table = tea_tasting.datasets.make_users_data(seed=seed, n_users=100)
+        tables.append(table)
+        return table
+    results = experiment.simulate(make_data, 10, seed=42)
+    assert results == experiment.simulation_results
+    assert results[0] == experiment.analyze(tables[0])
+
+def test_experiment_simulate_map(data_arrow: pa.Table):
+    experiment = tea_tasting.experiment.Experiment({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricGranular("orders"),
+        "avg_revenue": _Metric("revenue"),
+    })
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        results = experiment.simulate(data_arrow, 10, seed=42, map_=executor.map)
+    assert results == experiment.simulate(data_arrow, 10, seed=42)
+
+def test_experiment_simulate_progress(data_arrow: pa.Table):
+    experiment = tea_tasting.experiment.Experiment({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricGranular("orders"),
+        "avg_revenue": _Metric("revenue"),
+    })
+    simulation_results = tea_tasting.experiment.SimulationResults()
+    def progress(
+        results: Iterable[tea_tasting.experiment.ExperimentResult],
+    ) -> Iterable[tea_tasting.experiment.ExperimentResult]:
+        results = tuple(results)
+        simulation_results.extend(results)
+        return results
+    results = experiment.simulate(data_arrow, 10, seed=42, progress=progress)
+    assert results == simulation_results
+
+def test_experiment_simulate_treat():
+    experiment = tea_tasting.experiment.Experiment({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricGranular("orders"),
+        "avg_revenue": _Metric("revenue"),
+    })
+    data = tea_tasting.datasets.make_users_data(
+        seed=42,
+        n_users=1000,
+        orders_uplift=0,
+        revenue_uplift=0,
+    )
+    def treat(data: pa.Table) -> pa.Table:
+        return (
+            data.drop_columns(["orders", "revenue"])
+            .append_column("orders", pc.multiply(data["orders"], pa.scalar(1.1)))  # type: ignore
+            .append_column("revenue", pc.multiply(data["revenue"], pa.scalar(1.1)))  # type: ignore
+        )
+    results = experiment.simulate(data, 100, seed=42, treat=treat)
+    means = (
+        results.to_polars()
+        .select("metric", "effect_size")
+        .group_by("metric").mean()
+        .sort("metric")
+    )
+    assert means.item(2, "effect_size") == pytest.approx(0, abs=0.001)
+    assert means.item(0, "effect_size") == pytest.approx(0.05, rel=0.1)
+    assert means.item(1, "effect_size") == pytest.approx(0.5, rel=0.1)

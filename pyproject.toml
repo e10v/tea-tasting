@@ -109,7 +109,9 @@ ignore = ["ANN401", "PGH003", "SLF001", "TRY003"]
 
 [tool.ruff.lint.per-file-ignores]
 "*/__init__.py" = ["F401"]
-"tests/*" = ["ANN201", "D100", "D103", "D104", "FBT003", "PLR2004", "PT001", "S101"]
+"tests/*" = [
+    "ANN201", "D", "FBT003", "PLR2004", "PT001", "S101",
+]
 
 [tool.ruff.lint.isort]
 force-sort-within-sections = true
