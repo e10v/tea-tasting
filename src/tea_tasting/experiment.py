@@ -467,6 +467,21 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         map_: MapLike[Any] = map,
         progress: ProgressFn[Any] | type[Iterable[Any]] | None = None,
     ) -> SimulationResults:
+        """Simulate the experiment analysis multiple times.
+
+        Args:
+            data: Experimental data.
+            n_simulations: Number of simulations.
+            seed: Random seed.
+            ratio: Ratio of the number of users in treatment relative to control.
+            treat: Treatment function that takes a PyArrow Table as an input
+                and returns an updated PyArrow Table.
+            map_: Map-like function to run simulations.
+            progress: tqdm-like callable to show progress of simulations.
+
+        Returns:
+            Simulation results.
+        """
         if not callable(data):
             gran_cols: set[str] = set()
             for metric in self.metrics.values():
