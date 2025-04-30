@@ -2,7 +2,7 @@
 
 ## Intro
 
-In **tea-tasting**, you can run multiple simulated A/A or A/B tests. In each single simulation, **tea-tasting** splits the data into control and treatment and, optionally, modifies the treatment data. A simulation when treatment data is not modified is called A/A test. A/A tests can be used to uncover potential problems before running the actual A/B test. Simulations with modified treatment can be used for power analysis with a specific uplift distribution or when an analytical solution doesn't exist.
+In **tea-tasting**, you can run multiple simulated A/A or A/B tests. In each single simulation, **tea-tasting** splits the data into control and treatment and, optionally, modifies the treatment data. A simulation without changing the treatment data is called an A/A test. A/A tests can be used to uncover potential problems before running the actual A/B test. Simulations with modified treatment can be used for power analysis with a specific uplift distribution or when an analytical solution isn't possible.
 
 ???+ note
 
@@ -38,7 +38,7 @@ revenue: [[19.06,12.09,8.84,0,9.9,...,0,4.8,9.63,0,12.7]]
 
 ```
 
-To run A/A tests, define the experiment metrics and call the `simulate` method with the data and a number of simulations as arguments:
+To run A/A tests, define the experiment metrics and call the [`simulate`](api/experiment.md#tea_tasting.experiment.Experiment.simulate) method with the data and a number of simulations as arguments:
 
 ```pycon
 >>> experiment = tt.Experiment(
@@ -81,11 +81,11 @@ shape: (500, 7)
 
 ```
 
-The `simulate` method accepts data in the same formats as the `analyze` method. But internally it converts the data to a PyArrow Table before running simulations.
+The `simulate` method accepts data in the same formats as [`analyze`](api/experiment.md#tea_tasting.experiment.Experiment.analyze). But internally it converts the data to a PyArrow Table before running the simulations.
 
-The method returns an instance of the `SimulationResults` class that contains the results of all simulations for all metrics. The resulting object provides the serialization methods similar to the experiment result: `to_dicts`, `to_arrow`, `to_pandas`, `to_polars`, `to_pretty_dicts`, `to_string`, `to_html`.
+The method returns an instance of the [`SimulationResults`](api/experiment.md#tea_tasting.experiment.SimulationResults) class that contains the results of all simulations for all metrics. The resulting object provides the serialization methods similar to the experiment result: `to_dicts`, `to_arrow`, `to_pandas`, `to_polars`, `to_pretty_dicts`, `to_string`, `to_html`.
 
-As an example, now we can calculate the proportion of simulations in which the null hypothesis has been rejected for all metrics with several values of the significance level (`alpha`). In case of A/A tests, it's an estimation of the type I error.
+As an example, now we can calculate the proportion of rejected null hypotheses for all metrics, with several values of the significance level (`alpha`). In case of A/A tests, it estimates the type I error.
 
 ```pycon
 >>> def null_rejected(
@@ -116,7 +116,7 @@ shape: (5, 4)
 
 ## Simulated experiments with treatment
 
-To simulate experiments with treatment, define the treatment function that takes a treatment data in the form of a PyArrow Table and returns a PyArrow Table with the modified data:
+To simulate experiments with treatment, define the treatment function that takes data in the form of a PyArrow Table and returns a PyArrow Table with the modified data:
 
 ```pycon
 >>> import pyarrow as pa
@@ -149,9 +149,9 @@ In the example above, we've defined a function that increases the number of orde
 
 ## Data generating function
 
-You can use a function instead of a static dataset, as an input data. The functions should take a instance of the `numpy.random.Generator` class as a named parameter `seed` and return experimental data in any format supported by **tea-tasting**.
+You can use a function instead of a static dataset, as an input data. The functions should take a instance of `numpy.random.Generator` as a named parameter `seed` and return experimental data in any format supported by **tea-tasting**.
 
-As an example, let's us the `make_users_data` function:
+As an example, let's use the `make_users_data` function:
 
 ```pycon
 >>> results = experiment.simulate(tt.make_users_data, 100, seed=42)
@@ -171,7 +171,7 @@ shape: (5, 4)
 
 ```
 
-In each iteration, **tea-tasting** called the `make_users_data` function with a new seed and used the returned data for the analysis of the experiment. Data returned by `make_users_data` already contain the `"variant"` column, so **tea-tasting** reused that split. By default, `make_users_data` also adds the treatment uplift, and you can see it in the proportion of the rejected null hypotheses.
+In each iteration, **tea-tasting** calls `make_users_data` with a new `seed` and uses the returned data for the analysis of the experiment. Data returned by `make_users_data` already contain the `"variant"` column, so **tea-tasting** reuses that split. By default, `make_users_data` also adds the treatment uplift, and you can see it in the proportion of the rejected null hypotheses.
 
 ## Progress
 
