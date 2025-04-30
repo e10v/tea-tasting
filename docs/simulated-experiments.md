@@ -38,7 +38,7 @@ revenue: [[19.06,12.09,8.84,0,9.9,...,0,4.8,9.63,0,12.7]]
 
 ```
 
-To run A/A tests, define the experiment metrics and call the method `simulate` with the data and a number of simulations as arguments:
+To run A/A tests, define the experiment metrics and call the `simulate` method with the data and a number of simulations as arguments:
 
 ```pycon
 >>> experiment = tt.Experiment(
@@ -81,9 +81,9 @@ shape: (500, 7)
 
 ```
 
-The method `simulate` accepts data in the same formats as the method `analyze`. But internally it converts the data to a PyArrow Table before running simulations.
+The `simulate` method accepts data in the same formats as the `analyze` method. But internally it converts the data to a PyArrow Table before running simulations.
 
-The method returns an instance of the class `SimulationResults` that contains the results of all simulations for all metrics. The resulting object provides the serialization methods similar to the experiment result: `to_dicts`, `to_arrow`, `to_pandas`, `to_polars`, `to_pretty_dicts`, `to_string`, `to_html`.
+The method returns an instance of the `SimulationResults` class that contains the results of all simulations for all metrics. The resulting object provides the serialization methods similar to the experiment result: `to_dicts`, `to_arrow`, `to_pandas`, `to_polars`, `to_pretty_dicts`, `to_string`, `to_html`.
 
 As an example, now we can calculate the proportion of simulations in which the null hypothesis has been rejected for all metrics with several values of the significance level (`alpha`). In case of A/A tests, it's an estimation of the type I error.
 
@@ -114,7 +114,9 @@ shape: (5, 4)
 
 100 simulations, as in example above, usually produce a rough estimation. In practice, a larger number of simulations is recommended. The default is `10_000`.
 
-## Simulated treatment
+## Simulated experiments with treatment
+
+To simulate experiments with treatment, define the treatment function that takes a treatment data in the form of a PyArrow Table and returns a PyArrow Table with the modified data:
 
 ```pycon
 >>> import pyarrow as pa
@@ -143,7 +145,13 @@ shape: (5, 4)
 
 ```
 
-## Data generator
+In the example above, we've defined a function that increases the number of orders and the revenue by 10%. For these metrics, the proportion of simulations with rejected null hypothesis is an estimation of statistical power.
+
+## Data generating function
+
+You can use a function instead of a static dataset, as an input data. The functions should take a instance of the `numpy.random.Generator` class as a named parameter `seed` and return experimental data in any format supported by **tea-tasting**.
+
+As an example, let's us the `make_users_data` function:
 
 ```pycon
 >>> results = experiment.simulate(tt.make_users_data, 100, seed=42)
@@ -162,6 +170,8 @@ shape: (5, 4)
 └────────────────────┴────────────────────┴────────────────────┴────────────────────┘
 
 ```
+
+In each iteration, **tea-tasting** called the `make_users_data` function with a new seed and used the returned data for the analysis of the experiment. Data returned by `make_users_data` already contain the `"variant"` column, so **tea-tasting** reused that split. By default, `make_users_data` also adds the treatment uplift, and you can see it in the proportion of the rejected null hypotheses.
 
 ## Progress
 
