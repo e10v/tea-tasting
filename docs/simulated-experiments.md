@@ -12,7 +12,7 @@ In **tea-tasting**, you can run multiple simulated A/A or A/B tests. In each sin
     pip install polars tqdm
     ```
 
-## A/A tests
+## Running A/A tests
 
 First, let's prepare the data without any uplift and drop the `"variant"` column.
 
@@ -114,7 +114,7 @@ shape: (5, 4)
 
 100 simulations, as in example above, usually produce a rough estimation. In practice, a larger number of simulations is recommended. The default is `10_000`.
 
-## Simulated experiments with treatment
+## Simulating experiments with treatment
 
 To simulate experiments with treatment, define the treatment function that takes data in the form of a PyArrow Table and returns a PyArrow Table with the modified data:
 
@@ -147,7 +147,7 @@ shape: (5, 4)
 
 In the example above, we've defined a function that increases the number of orders and the revenue by 10%. For these metrics, the proportion of simulations with rejected null hypothesis is an estimation of statistical power.
 
-## Data generating function
+## Using function instead of data
 
 You can use a function instead of a static dataset, as an input data. The functions should take a instance of `numpy.random.Generator` as a named parameter `seed` and return experimental data in any format supported by **tea-tasting**.
 
@@ -173,7 +173,7 @@ shape: (5, 4)
 
 In each iteration, **tea-tasting** calls `make_users_data` with a new `seed` and uses the returned data for the analysis of the experiment. Data returned by `make_users_data` already contain the `"variant"` column, so **tea-tasting** reuses that split. By default, `make_users_data` also adds the treatment uplift, and you can see it in the proportion of the rejected null hypotheses.
 
-## Progress
+## Tracking progress
 
 ```pycon
 >>> import tqdm
