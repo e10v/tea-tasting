@@ -280,16 +280,14 @@ def aggregate_by_variants(
     Returns:
         Experimental data as a dictionary of Aggregates.
     """
-    if isinstance(data, dict) and all(
-        isinstance(v, tea_tasting.aggr.Aggregates) for v in data.values()  # type: ignore
-    ):
+    if isinstance(data, dict):
         return data
 
     if variant is None:
         raise ValueError("The variant parameter is required but was not provided.")
 
     return tea_tasting.aggr.read_aggregates(
-        data=data,  # type: ignore
+        data=data,
         group_col=variant,
         **aggr_cols._asdict(),
     )
@@ -412,9 +410,7 @@ def read_granular(
     Returns:
         Experimental data as a dictionary of PyArrow Tables.
     """
-    if isinstance(data, dict) and all(
-        isinstance(v, pa.Table) for v in data.values()
-    ):
+    if isinstance(data, dict):
         return data
 
     variant_cols = () if variant is None else (variant,)
