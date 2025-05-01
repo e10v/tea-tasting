@@ -201,6 +201,24 @@ orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
 By default, methods `to_pretty_dicts`, `to_string`, and `to_html` return a predefined list of attributes. This list can be customized:
 
 ```pycon
+>>> print(result.with_keys((
+...     "metric",
+...     "control",
+...     "treatment",
+...     "effect_size",
+...     "effect_size_ci",
+... )))
+            metric control treatment effect_size     effect_size_ci
+ sessions_per_user    2.00      1.98     -0.0132  [-0.0750, 0.0485]
+orders_per_session   0.266     0.289      0.0233 [-0.00246, 0.0491]
+   orders_per_user   0.530     0.573      0.0427  [-0.0108, 0.0962]
+  revenue_per_user    5.24      5.73       0.489     [-0.133, 1.11]
+
+```
+
+Or:
+
+```pycon
 >>> print(result.to_string(keys=(
 ...     "metric",
 ...     "control",

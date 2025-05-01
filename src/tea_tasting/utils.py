@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     import polars as pl
 
 
+    DictsReprMixinT = TypeVar("DictsReprMixinT", bound="DictsReprMixin")
     R = TypeVar("R")
 
 
@@ -436,6 +437,21 @@ class DictsReprMixin(abc.ABC):
         if indent is not None:
             ET.indent(table, space=indent)
         return ET.tostring(table, encoding="unicode", method="html")
+
+    def with_keys(self: DictsReprMixinT, keys: Sequence[str]) -> DictsReprMixinT:
+        """Copies the object and sets the new default keys.
+
+        Args:
+            keys: New default keys for the methods `to_pretty_dicts`, `to_string`,
+                and `to_html`.
+
+        Returns:
+            A copy of the object with the new default keys.
+        """
+        new_instance = self.__class__.__new__(self.__class__)
+        new_instance.__dict__.update(self.__dict__)
+        new_instance.default_keys = keys
+        return new_instance
 
     def __str__(self) -> str:
         """Object string representation."""
