@@ -14,8 +14,6 @@ jobs:
         uses: astral-sh/setup-uv@v6
         with:
           activate-environment: true
-          cache-suffix: 3.12
-          enable-cache: true
           python-version: 3.12
       - name: install dependencies
         run: uv sync --no-dev
