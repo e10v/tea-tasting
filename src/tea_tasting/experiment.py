@@ -470,14 +470,14 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         """Simulate the experiment analysis multiple times.
 
         Args:
-            data: Experimental data.
+            data: Experimental data or a callable that generates the data.
             n_simulations: Number of simulations.
             seed: Random seed.
             ratio: Ratio of the number of users in treatment relative to control.
             treat: Treatment function that takes a PyArrow Table as an input
                 and returns an updated PyArrow Table.
             map_: Map-like function to run simulations.
-            progress: tqdm-like callable to show progress of simulations.
+            progress: tqdm-like class or function to show the progress of simulations.
 
         Returns:
             Simulation results.
