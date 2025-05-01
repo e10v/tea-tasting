@@ -13,6 +13,7 @@ nav:
   - Power analysis: power-analysis.md
   - Multiple testing: multiple-testing.md
   - Custom metrics: custom-metrics.md
+  - Simulated experiments: simulated-experiments.md
   - API reference:
     - API reference: api/index.md
     - Metrics:

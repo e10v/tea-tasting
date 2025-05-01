@@ -373,11 +373,35 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
         """
 
 
+@overload
+def read_granular(
+    data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
+    cols: Sequence[str] = (),
+    variant: None = None,
+) -> pa.Table:
+    ...
+
+@overload
+def read_granular(
+    data: dict[object, pa.Table],
+    cols: Sequence[str] = (),
+    variant: None = None,
+) -> dict[object, pa.Table]:
+    ...
+
+@overload
 def read_granular(
     data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[object, pa.Table],
     cols: Sequence[str],
-    variant: str | None = None,
+    variant: str,
 ) -> dict[object, pa.Table]:
+    ...
+
+def read_granular(
+    data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[object, pa.Table],
+    cols: Sequence[str] = (),
+    variant: str | None = None,
+) -> pa.Table | dict[object, pa.Table]:
     """Read granular experimental data.
 
     Args:
@@ -393,20 +417,26 @@ def read_granular(
     ):
         return data
 
-    if variant is None:
-        raise ValueError("The variant parameter is required but was not provided.")
-
+    variant_cols = () if variant is None else (variant,)
     if isinstance(data, ibis.expr.types.Table):
-        table = data.select(*cols, variant).to_pyarrow()
+        if len(cols) + len(variant_cols) > 0:
+            data = data.select(*cols, *variant_cols)
+        table = data.to_pyarrow()
     else:
         data = nw.from_native(data)
-        if not isinstance(data, nw.LazyFrame):
-            data = data.lazy()
-        table = data.select(*cols, variant).collect().to_arrow()
+        if isinstance(data, nw.LazyFrame):
+            data = data.collect()
+        if len(cols) + len(variant_cols) > 0:
+            data = data.select(*cols, *variant_cols)
+        table = data.to_arrow()
 
-    variant_col = table[variant]
-    table = table.select(cols)
+    if variant is None:
+        return table
+
+    variant_array = table[variant]
+    if len(cols) > 0:
+        table = table.select(cols)
     return {
-        var: table.filter(pc.equal(variant_col, pa.scalar(var)))  # type: ignore
-        for var in variant_col.unique().to_pylist()
+        var: table.filter(pc.equal(variant_array, pa.scalar(var)))  # type: ignore
+        for var in variant_array.unique().to_pylist()
     }

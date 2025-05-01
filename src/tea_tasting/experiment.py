@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
-from collections import UserDict
+from collections import UserDict, UserList
+import functools
+import itertools
 from typing import TYPE_CHECKING, Any, overload
 
 import ibis.expr.types
 import narwhals as nw
+import numpy as np
+import pyarrow as pa
+import pyarrow.compute as pc
 
 import tea_tasting.aggr
 import tea_tasting.metrics
@@ -14,10 +19,17 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from typing import Literal
+    from collections.abc import Callable, Iterable
+    from typing import Concatenate, Literal, TypeAlias, TypeVar
 
     import narwhals.typing  # noqa: TC004
-    import pyarrow as pa
+
+
+    T = TypeVar("T")
+    MapLike: TypeAlias = Callable[Concatenate[Callable[..., T], ...], Iterable[T]]
+    ProgressFn: TypeAlias = Callable[Concatenate[Iterable[T], ...], Iterable[T]]
+    DataGenerator: TypeAlias =  Callable[
+        ..., narwhals.typing.IntoFrame | ibis.expr.types.Table]
 
 
 class ExperimentResult(
@@ -96,12 +108,34 @@ class ExperimentResults(
     )
 
     def to_dicts(self) -> tuple[dict[str, object], ...]:
-        """Convert the result to a sequence of dictionaries."""
+        """Convert the results to a sequence of dictionaries."""
         return tuple(
             {"variants": str(variants)} | metric_result
             for variants, experiment_result in self.items()
             for metric_result in experiment_result.to_dicts()
         )
+
+
+class SimulationResults(UserList[ExperimentResult], tea_tasting.utils.DictsReprMixin):
+    """Simulation results.
+
+    Simulations are not enumerated for better performance.
+    """
+    default_keys = (
+        "metric",
+        "control",
+        "treatment",
+        "rel_effect_size",
+        "rel_effect_size_ci",
+        "pvalue",
+    )
+
+    def to_dicts(self) -> tuple[dict[str, object], ...]:
+        """Convert the results to a sequence of dictionaries."""
+        return tuple(itertools.chain.from_iterable(
+            experiment_result.to_dicts()
+            for experiment_result in self
+        ))
 
 
 class ExperimentPowerResult(
@@ -420,3 +454,95 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
                 result |= {name: metric.solve_power(data, parameter=parameter)}
 
         return result
+
+
+    def simulate(
+        self,
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table | DataGenerator,  # type: ignore
+        n_simulations: int = 10_000,
+        *,
+        seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+        ratio: float | int = 1,
+        treat: Callable[[pa.Table], pa.Table] | None = None,
+        map_: MapLike[Any] = map,
+        progress: ProgressFn[Any] | type[Iterable[Any]] | None = None,
+    ) -> SimulationResults:
+        """Simulate the experiment analysis multiple times.
+
+        Args:
+            data: Experimental data or a callable that generates the data.
+            n_simulations: Number of simulations.
+            seed: Random seed.
+            ratio: Ratio of the number of users in treatment relative to control.
+            treat: Treatment function that takes a PyArrow Table as an input
+                and returns an updated PyArrow Table.
+            map_: Map-like function to run simulations.
+            progress: tqdm-like class or function to show the progress of simulations.
+
+        Returns:
+            Simulation results.
+        """
+        if not callable(data):
+            gran_cols: set[str] = set()
+            for metric in self.metrics.values():
+                if isinstance(metric, tea_tasting.metrics.MetricBaseAggregated):
+                    aggr_cols = metric.aggr_cols
+                    gran_cols |= (
+                        set(aggr_cols.mean_cols) |
+                        set(aggr_cols.var_cols) |
+                        set(itertools.chain.from_iterable(aggr_cols.cov_cols))
+                    )
+                elif isinstance(metric, tea_tasting.metrics.MetricBaseGranular):
+                    gran_cols |= set(metric.cols)
+                else:
+                    gran_cols = set()
+                    break
+            cols = tuple(gran_cols)
+            data: pa.Table = tea_tasting.metrics.read_granular(data, cols)
+            if self.variant in data.column_names:
+                data = data.drop_columns(self.variant)
+
+        sim = functools.partial(
+            _simulate_once,
+            experiment=self,
+            data=data,
+            ratio=ratio,
+            treat=treat,
+        )
+
+        results = map_(sim, np.random.default_rng(seed).spawn(n_simulations))
+        if progress is not None:
+            results = progress(results)  # type: ignore
+        return SimulationResults(results)
+
+
+def _simulate_once(
+    rng: np.random.Generator,
+    experiment: Experiment,
+    data: pa.Table | DataGenerator,  # type: ignore
+    ratio: float | int,
+    treat: Callable[[pa.Table], pa.Table] | None,
+) -> ExperimentResult:
+    if callable(data):
+        data: pa.Table = tea_tasting.metrics.read_granular(data(seed=rng))  # type: ignore
+
+    if experiment.variant not in data.column_names:
+        data = data.append_column(
+            experiment.variant,
+            [rng.binomial(n=1, p=ratio / (1 + ratio), size=data.num_rows)],
+        )
+
+    if treat is not None:
+        variant_array = data[experiment.variant]
+        contr_data = data.filter(pc.equal(variant_array, pa.scalar(0)))  # type: ignore
+        treat_data = treat(data.filter(pc.equal(variant_array, pa.scalar(1))))  # type: ignore
+        if not contr_data.schema.equals(treat_data.schema):
+            schema = pa.unify_schemas(
+                [contr_data.schema, treat_data.schema],
+                promote_options="permissive",
+            )
+            contr_data = contr_data.select(schema.names).cast(schema)
+            treat_data = treat_data.select(schema.names).cast(schema)
+        data = pa.concat_tables((contr_data, treat_data))
+
+    return experiment.analyze(data)

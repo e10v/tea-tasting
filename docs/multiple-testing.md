@@ -4,7 +4,7 @@
 
 ???+ note
 
-    This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. To be able to reproduce the example code, install Polars in addition to **tea-tasting**:
+    This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. Install Polars in addition to **tea-tasting** to reproduce the examples:
 
     ```bash
     pip install polars
