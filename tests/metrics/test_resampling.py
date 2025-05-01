@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pytest
 
-import tea_tasting.aggr
 import tea_tasting.config
 import tea_tasting.datasets
 import tea_tasting.metrics.base
