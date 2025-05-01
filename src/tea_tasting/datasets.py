@@ -12,22 +12,11 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from typing import Literal, TypeAlias
+    from typing import Literal
 
     import numpy.typing as npt
-
-    try:
-        from pandas import DataFrame as _PandasDataFrame
-    except ImportError:
-        _PandasDataFrame = object
-
-    try:
-        from polars import DataFrame as _PolarsDataFrame
-    except ImportError:
-        _PolarsDataFrame = object
-
-    PandasDataFrame: TypeAlias = _PandasDataFrame  # type: ignore
-    PolarsDataFrame: TypeAlias = _PolarsDataFrame  # type: ignore
+    import pandas as pd
+    import polars as pl
 
 
 @overload
@@ -60,8 +49,8 @@ def make_users_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    return_type: Literal["pandas"] = "pandas",
-) -> PandasDataFrame:
+    return_type: Literal["pandas"],
+) -> pd.DataFrame:
     ...
 
 @overload
@@ -77,8 +66,8 @@ def make_users_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    return_type: Literal["polars"] = "polars",
-) -> PolarsDataFrame:
+    return_type: Literal["polars"],
+) -> pl.DataFrame:
     ...
 
 def make_users_data(
@@ -94,7 +83,7 @@ def make_users_data(
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
     return_type: Literal["arrow", "pandas", "polars"] = "arrow",
-) -> pa.Table | PandasDataFrame | PolarsDataFrame:
+) -> pa.Table | pd.DataFrame | pl.DataFrame:
     """Generate simulated data for A/B testing scenarios.
 
     Data mimics what you might encounter in an A/B test for an online store,
@@ -278,8 +267,8 @@ def make_sessions_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    return_type: Literal["pandas"] = "pandas",
-) -> PandasDataFrame:
+    return_type: Literal["pandas"],
+) -> pd.DataFrame:
     ...
 
 @overload
@@ -295,8 +284,8 @@ def make_sessions_data(
     avg_sessions: float | int = 2,
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
-    return_type: Literal["polars"] = "polars",
-) -> PolarsDataFrame:
+    return_type: Literal["polars"],
+) -> pl.DataFrame:
     ...
 
 def make_sessions_data(
@@ -312,7 +301,7 @@ def make_sessions_data(
     avg_orders_per_session: float = 0.25,
     avg_revenue_per_order: float | int = 10,
     return_type: Literal["arrow", "pandas", "polars"] = "arrow",
-) -> pa.Table | PandasDataFrame | PolarsDataFrame:
+) -> pa.Table | pd.DataFrame | pl.DataFrame:
     """Generate simulated user data for A/B testing scenarios.
 
     Data mimics what you might encounter in an A/B test for an online store,
@@ -480,7 +469,7 @@ def _make_data(
     avg_revenue_per_order: float | int = 10,
     return_type: Literal["arrow", "pandas", "polars"] = "arrow",
     explode_sessions: bool = False,
-) -> pa.Table | PandasDataFrame | PolarsDataFrame:
+) -> pa.Table | pd.DataFrame | pl.DataFrame:
     _check_params(
         n_users=n_users,
         ratio=ratio,

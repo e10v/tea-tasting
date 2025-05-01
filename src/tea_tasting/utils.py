@@ -19,18 +19,9 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
     from typing import Literal, TypeAlias, TypeVar
 
-    try:
-        from pandas import DataFrame as _PandasDataFrame
-    except ImportError:
-        _PandasDataFrame = object
+    import pandas as pd
+    import polars as pl
 
-    try:
-        from polars import DataFrame as _PolarsDataFrame
-    except ImportError:
-        _PolarsDataFrame = object
-
-    PandasDataFrame: TypeAlias = _PandasDataFrame  # type: ignore
-    PolarsDataFrame: TypeAlias = _PolarsDataFrame  # type: ignore
 
     R = TypeVar("R")
 
@@ -299,12 +290,12 @@ class DictsReprMixin(abc.ABC):
         """Convert the object to a PyArrow Table."""
         return pa.Table.from_pylist(self.to_dicts())
 
-    def to_pandas(self) -> PandasDataFrame:
+    def to_pandas(self) -> pd.DataFrame:
         """Convert the object to a Pandas DataFrame."""
         import pandas as pd
         return pd.DataFrame.from_records(self.to_dicts())
 
-    def to_polars(self) -> PolarsDataFrame:
+    def to_polars(self) -> pl.DataFrame:
         """Convert the object to a Polars DataFrame."""
         import polars as pl
         return pl.from_dicts(self.to_dicts())

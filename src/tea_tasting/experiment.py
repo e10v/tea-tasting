@@ -261,7 +261,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
 
     @overload
-    def analyze(  # type: ignore
+    def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
         control: object = None,
@@ -276,7 +276,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
         control: object = None,
         *,
-        all_variants: Literal[True] = True,
+        all_variants: Literal[True],
     ) -> ExperimentResults:
         ...
 
