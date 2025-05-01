@@ -9,14 +9,16 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
-      - name: Set up PDM
-        uses: pdm-project/setup-pdm@v4
+      - name: set up uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: "3.12"
-          cache: true
-      - name: Install dependencies
-        run: pdm sync -G docs
-      - name: Build and publish docs
-        run: pdm run mkdocs gh-deploy --force
+          activate-environment: true
+          cache-suffix: 3.12
+          enable-cache: true
+          python-version: 3.12
+      - name: install dependencies
+        run: uv sync --group docs
+      - name: build and publish docs
+        run: mkdocs gh-deploy --force
