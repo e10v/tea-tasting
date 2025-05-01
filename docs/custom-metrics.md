@@ -2,9 +2,9 @@
 
 ## Intro
 
-**tea-tasting** supports Student's t-test, Z-test, and [some other statistical tests](api/metrics/index.md) out of the box. However, you might want to analyze an experiment using other statistical criteria. In this case, you can define a custom metric with a statistical test of your choice.
+tea-tasting supports Student's t-test, Z-test, and [some other statistical tests](api/metrics/index.md) out of the box. However, you might want to analyze an experiment using other statistical criteria. In this case, you can define a custom metric with a statistical test of your choice.
 
-In **tea-tasting**, there are two types of metrics:
+In tea-tasting, there are two types of metrics:
 
 - Metrics that require only aggregated statistics for the analysis.
 - Metrics that require granular data for the analysis.
@@ -204,7 +204,7 @@ Metric should have the following methods and properties defined:
 
 Property `cols` should return a sequence of strings.
 
-Method `analyze_granular` accepts two parameters: control and treatment data as PyArrow Tables. Even with [data backend](data-backends.md) different from PyArrow, **tea-tasting** will retrieve the data and transform into a PyArrow Table.
+Method `analyze_granular` accepts two parameters: control and treatment data as PyArrow Tables. Even with [data backend](data-backends.md) different from PyArrow, tea-tasting will retrieve the data and transform into a PyArrow Table.
 
 Method `analyze_granular` returns an instance of `MannWhitneyUResult`, defined earlier, with analysis result.
 
@@ -243,7 +243,7 @@ mean_users_with_orders   0.345     0.384             11%        [2.5%, 21%] 0.01
 
 ```
 
-In this case, **tea-tasting** performs two queries on the experimental data:
+In this case, tea-tasting performs two queries on the experimental data:
 
 - With aggregated statistics required for analysis of metrics of type `MetricBaseAggregated`.
 - With detailed data with columns required for analysis of metrics of type `MetricBaseGranular`.
@@ -252,7 +252,7 @@ In this case, **tea-tasting** performs two queries on the experimental data:
 
 Follow these recommendations when defining custom metrics:
 
-- Use parameter and attribute names consistent with the ones that are already defined in **tea-tasting**. For example, use `pvalue` instead of `p_value` or `correction` instead of `use_continuity`.
+- Use parameter and attribute names consistent with the ones that are already defined in tea-tasting. For example, use `pvalue` instead of `p_value` or `correction` instead of `use_continuity`.
 - End confidence interval boundary names with `"_ci_lower"` and `"_ci_upper"`.
 - During initialization, save parameter values in metric attributes using the same names. For example, use `self.correction = correction` instead of `self.use_continuity = correction`.
 - Use global settings as default values for standard parameters, such as `alternative` or `confidence_level`. See the [reference](api/config.md#tea_tasting.config.config_context) for the full list of standard parameters. You can also define and use your own global parameters.

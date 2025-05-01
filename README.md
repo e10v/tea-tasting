@@ -8,7 +8,7 @@
 [![Package Status](https://img.shields.io/pypi/status/tea-tasting.svg)](https://pypi.org/project/tea-tasting/)
 [![PyPI Python Versions](https://img.shields.io/pypi/pyversions/tea-tasting.svg)](https://pypi.org/project/tea-tasting/)
 
-**tea-tasting** is a Python package for the statistical analysis of A/B tests featuring:
+tea-tasting is a Python package for the statistical analysis of A/B tests featuring:
 
 - Student's t-test, Z-test, bootstrap, and quantile metrics out of the box.
 - Extensible API: define and use statistical tests of your choice.
@@ -20,9 +20,9 @@
 - Multiple hypothesis testing (family-wise error rate and false discovery rate).
 - Simulated experiments, including A/A tests.
 
-**tea-tasting** calculates statistics directly within data backends such as BigQuery, ClickHouse, DuckDB, PostgreSQL, Snowflake, Spark, and many other backends supported by [Ibis](https://github.com/ibis-project/ibis). This approach eliminates the need to import granular data into a Python environment.
+tea-tasting calculates statistics directly within data backends such as BigQuery, ClickHouse, DuckDB, PostgreSQL, Snowflake, Spark, and many other backends supported by [Ibis](https://github.com/ibis-project/ibis). This approach eliminates the need to import granular data into a Python environment.
 
-**tea-tasting** also accepts dataframes supported by [Narwhals](https://github.com/narwhals-dev/narwhals): cuDF, Dask, Modin, pandas, Polars, PyArrow.
+tea-tasting also accepts dataframes supported by [Narwhals](https://github.com/narwhals-dev/narwhals): cuDF, Dask, Modin, pandas, Polars, PyArrow.
 
 ## Installation
 
