@@ -24,7 +24,7 @@ First, let's prepare the data without any uplift and drop the `"variant"` column
 ...     tt.make_users_data(seed=42, orders_uplift=0, revenue_uplift=0)
 ...     .drop_columns("variant")
 ... )
->>> print(data)
+>>> data
 pyarrow.Table
 user: int64
 sessions: int64
@@ -50,7 +50,7 @@ To run A/A tests, first define the metrics for the experiment, then call the [`s
 ... )
 >>> results = experiment.simulate(data, 100, seed=42)
 >>> results_data = results.to_polars()
->>> print(results_data.select(
+>>> results_data.select(
 ...     "metric",
 ...     "control",
 ...     "treatment",
@@ -58,7 +58,7 @@ To run A/A tests, first define the metrics for the experiment, then call the [`s
 ...     "rel_effect_size_ci_lower",
 ...     "rel_effect_size_ci_upper",
 ...     "pvalue",
-... ))  # doctest: +SKIP
+... )  # doctest: +SKIP
 shape: (500, 7)
 ┌────────────────────┬──────────┬───────────┬─────────────────┬────────────────────┬────────────────────┬──────────┐
 │ metric             ┆ control  ┆ treatment ┆ rel_effect_size ┆ rel_effect_size_ci ┆ rel_effect_size_ci ┆ pvalue   │
@@ -96,7 +96,7 @@ For instance, we can now calculate the proportion of rejected null hypotheses, u
 ...         pl.col("pvalue").le(alpha).mean().alias(f"null_rejected_{alpha}")
 ...         for alpha in alphas
 ...     )
->>> print(null_rejected(results_data))
+>>> null_rejected(results_data)
 shape: (5, 4)
 ┌────────────────────┬────────────────────┬────────────────────┬────────────────────┐
 │ metric             ┆ null_rejected_0.01 ┆ null_rejected_0.02 ┆ null_rejected_0.05 │
@@ -129,7 +129,7 @@ To simulate experiments with treatment, define a treatment function that takes d
 ...         .append_column("revenue", pc.multiply(data["revenue"], pa.scalar(1.1)))
 ...     )
 >>> results = experiment.simulate(data, 100, seed=42, treat=treat)
->>> print(null_rejected(results.to_polars()))
+>>> null_rejected(results.to_polars())
 shape: (5, 4)
 ┌────────────────────┬────────────────────┬────────────────────┬────────────────────┐
 │ metric             ┆ null_rejected_0.01 ┆ null_rejected_0.02 ┆ null_rejected_0.05 │
@@ -155,7 +155,7 @@ As an example, let's use the `make_users_data` function.
 
 ```pycon
 >>> results = experiment.simulate(tt.make_users_data, 100, seed=42)
->>> print(null_rejected(results.to_polars()))
+>>> null_rejected(results.to_polars())
 shape: (5, 4)
 ┌────────────────────┬────────────────────┬────────────────────┬────────────────────┐
 │ metric             ┆ null_rejected_0.01 ┆ null_rejected_0.02 ┆ null_rejected_0.05 │

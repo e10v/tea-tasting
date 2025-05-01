@@ -33,8 +33,8 @@ if TYPE_CHECKING:
 
 
 class ExperimentResult(
-    UserDict[str, tea_tasting.metrics.MetricResult],
     tea_tasting.utils.DictsReprMixin,
+    UserDict[str, tea_tasting.metrics.MetricResult],
 ):
     """Experiment result for a pair of variants."""
     default_keys = (
@@ -93,8 +93,8 @@ class ExperimentResult(
 
 
 class ExperimentResults(
-    UserDict[tuple[object, object], ExperimentResult],
     tea_tasting.utils.DictsReprMixin,
+    UserDict[tuple[object, object], ExperimentResult],
 ):
     """Experiment results for multiple pairs of variants."""
     default_keys = (
@@ -116,7 +116,7 @@ class ExperimentResults(
         )
 
 
-class SimulationResults(UserList[ExperimentResult], tea_tasting.utils.DictsReprMixin):
+class SimulationResults(tea_tasting.utils.DictsReprMixin, UserList[ExperimentResult]):
     """Simulation results.
 
     Simulations are not enumerated for better performance.
@@ -142,8 +142,8 @@ class SimulationResults(UserList[ExperimentResult], tea_tasting.utils.DictsReprM
 
 
 class ExperimentPowerResult(
-    UserDict[str, tea_tasting.metrics.MetricPowerResults[Any]],
     tea_tasting.utils.DictsReprMixin,
+    UserDict[str, tea_tasting.metrics.MetricPowerResults[Any]],
 ):
     """Result of the analysis of power in a experiment."""
     default_keys = ("metric", "power", "effect_size", "rel_effect_size", "n_obs")
@@ -182,7 +182,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             ... )
             >>> data = tt.make_users_data(seed=42)
             >>> result = experiment.analyze(data)
-            >>> print(result)
+            >>> result
                         metric control treatment rel_effect_size rel_effect_size_ci pvalue
              sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
             orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
@@ -202,7 +202,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             ... })
             >>> data = tt.make_users_data(seed=42)
             >>> result = experiment.analyze(data)
-            >>> print(result)
+            >>> result
                         metric control treatment rel_effect_size rel_effect_size_ci pvalue
              sessions per user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
             orders per session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
@@ -234,7 +234,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             ...         revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
             ...     )
             >>> power_result = experiment.solve_power(data)
-            >>> print(power_result)
+            >>> power_result
                         metric power effect_size rel_effect_size n_obs
              sessions_per_user   80%      0.0458            2.3% 10000
              sessions_per_user   80%      0.0324            1.6% 20000

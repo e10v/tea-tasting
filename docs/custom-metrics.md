@@ -30,7 +30,7 @@ First, let's import all the required modules and prepare the data:
 ...     "has_order",
 ...     pc.greater(data["orders"], 0).cast(pa.int64()),
 ... )
->>> print(data)
+>>> data
 pyarrow.Table
 user: int64
 variant: int64
@@ -137,7 +137,7 @@ Now we can analyze the proportion of users who created at least one order during
 ...     prop_users_with_orders=Proportion("has_order"),
 ...     mean_users_with_orders=tt.Mean("has_order", use_t=False),
 ... )
->>> print(experiment_prop.analyze(data))
+>>> experiment_prop.analyze(data)
                 metric control treatment rel_effect_size rel_effect_size_ci pvalue
 prop_users_with_orders   0.345     0.384             11%             [-, -] 0.0117
 mean_users_with_orders   0.345     0.384             11%        [2.5%, 21%] 0.0106
@@ -216,7 +216,7 @@ Now we can perform the Mann-Whitney U test:
 ...     mwu_revenue=MannWhitneyU("revenue"),
 ... )
 >>> result = experiment_mwu.analyze(data)
->>> print(result.to_string(("metric", "pvalue", "statistic")))
+>>> result.with_keys(("metric", "pvalue", "statistic"))
      metric pvalue statistic
  mwu_orders 0.0263   2069092
 mwu_revenue 0.0300   2068060
@@ -234,7 +234,7 @@ It's also possible to analyze two types of metrics in one experiment:
 ...     mwu_orders=MannWhitneyU("orders"),
 ...     mwu_revenue=MannWhitneyU("revenue"),
 ... )
->>> print(experiment.analyze(data))
+>>> experiment.analyze(data)
                 metric control treatment rel_effect_size rel_effect_size_ci pvalue
 prop_users_with_orders   0.345     0.384             11%             [-, -] 0.0117
 mean_users_with_orders   0.345     0.384             11%        [2.5%, 21%] 0.0106
