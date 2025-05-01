@@ -6,7 +6,7 @@
 pip install tea-tasting
 ```
 
-Install Pandas or Polars to serialize analysis results as a Pandas DataFrame or a Polars DataFrame, respectively. These packages are not installed with **tea-tasting** by default.
+Install Pandas or Polars to serialize analysis results as a Pandas DataFrame or a Polars DataFrame, respectively. These packages are not installed with tea-tasting by default.
 
 ## Basic usage
 
@@ -65,14 +65,14 @@ revenue: [[9.17,6.43,7.94,15.93,7.14,...,0,0,0,0,17.16]]
 
 You can control return type using the `return_type` parameter. The other possible output types are Pandas DataFrame and Polars DataFrame. They require Pandas or Polars packages respectively.
 
-**tea-tasting** can process data in the form of an Ibis Table or a DataFrame supported by Narwhals:
+tea-tasting can process data in the form of an Ibis Table or a DataFrame supported by Narwhals:
 
-- [Ibis](https://github.com/ibis-project/ibis) is a DataFrame API to various data backends. It supports many backends including BigQuery, ClickHouse, DuckDB, PostgreSQL, Snowflake, Spark etc. You can write an SQL query, [wrap](https://ibis-project.org/how-to/extending/sql#backend.sql) it as an Ibis Table and pass it to **tea-tasting**.
-- [Narwhals](https://github.com/narwhals-dev/narwhals) is a compatibility layer between dataframe libraries. It supports cuDF, Dask, Modin, pandas, Polars, PyArrow dataframes. You can use any of these dataframes as an input to **tea-tasting**.
+- [Ibis](https://github.com/ibis-project/ibis) is a DataFrame API to various data backends. It supports many backends including BigQuery, ClickHouse, DuckDB, PostgreSQL, Snowflake, Spark etc. You can write an SQL query, [wrap](https://ibis-project.org/how-to/extending/sql#backend.sql) it as an Ibis Table and pass it to tea-tasting.
+- [Narwhals](https://github.com/narwhals-dev/narwhals) is a compatibility layer between dataframe libraries. It supports cuDF, Dask, Modin, pandas, Polars, PyArrow dataframes. You can use any of these dataframes as an input to tea-tasting.
 
-Many statistical tests, such as the Student's t-test or the Z-test, require only aggregated data for analysis. For these tests, **tea-tasting** retrieves only aggregated statistics like mean and variance instead of downloading all detailed data. See more details in the [guide on data backends](data-backends.md).
+Many statistical tests, such as the Student's t-test or the Z-test, require only aggregated data for analysis. For these tests, tea-tasting retrieves only aggregated statistics like mean and variance instead of downloading all detailed data. See more details in the [guide on data backends](data-backends.md).
 
-**tea-tasting** assumes that:
+tea-tasting assumes that:
 
 - Data is grouped by randomization units, such as individual users.
 - There is a column indicating the variant of the A/B test (typically labeled as A, B, etc.).
@@ -85,7 +85,7 @@ The [`Experiment`](api/experiment.md#tea_tasting.experiment.Experiment) class de
 - Using keyword parameters, with metric names as parameter names, and metric definitions as parameter values, as in example above.
 - Using the first argument `metrics` which accepts metrics in a form of dictionary with metric names as keys and metric definitions as values.
 
-By default, **tea-tasting** assumes that the A/B test variant is stored in a column named `"variant"`. You can change it using the `variant` parameter of the `Experiment` class.
+By default, tea-tasting assumes that the A/B test variant is stored in a column named `"variant"`. You can change it using the `variant` parameter of the `Experiment` class.
 
 Example usage:
 
@@ -145,7 +145,7 @@ After defining an experiment and metrics, you can analyze the experiment data us
 
 ```
 
-By default, **tea-tasting** assumes that the variant with the lowest ID is a control. Change default behavior using the `control` parameter:
+By default, tea-tasting assumes that the variant with the lowest ID is a control. Change default behavior using the `control` parameter:
 
 ```pycon
 >>> result_with_non_default_control = experiment.analyze(data, control=1)
@@ -236,7 +236,7 @@ orders_per_session   0.266     0.289      0.0233 [-0.00246, 0.0491]
 
 ### Variance reduction with CUPED/CUPAC
 
-**tea-tasting** supports variance reduction with CUPED/CUPAC, within both [`Mean`](api/metrics/mean.md#tea_tasting.metrics.mean.Mean) and [`RatioOfMeans`](api/metrics/mean.md#tea_tasting.metrics.mean.RatioOfMeans) classes.
+tea-tasting supports variance reduction with CUPED/CUPAC, within both [`Mean`](api/metrics/mean.md#tea_tasting.metrics.mean.Mean) and [`RatioOfMeans`](api/metrics/mean.md#tea_tasting.metrics.mean.RatioOfMeans) classes.
 
 Example usage:
 
@@ -278,7 +278,7 @@ Define the metrics' covariates:
 
 ### Sample ratio mismatch check
 
-The [`SampleRatio`](api/metrics/proportion.md#tea_tasting.metrics.proportion.SampleRatio) class in **tea-tasting** detects mismatches in the sample ratios of different variants of an A/B test.
+The [`SampleRatio`](api/metrics/proportion.md#tea_tasting.metrics.proportion.SampleRatio) class in tea-tasting detects mismatches in the sample ratios of different variants of an A/B test.
 
 Example usage:
 
@@ -320,7 +320,7 @@ The [result](api/metrics/proportion.md#tea_tasting.metrics.proportion.SampleRati
 
 ### Global settings
 
-In **tea-tasting**, you can change defaults for the following parameters:
+In tea-tasting, you can change defaults for the following parameters:
 
 - `alternative`: Alternative hypothesis.
 - `confidence_level`: Confidence level of the confidence interval.
@@ -387,13 +387,13 @@ Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0
 
 ???+ note
 
-    This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. Install Polars in addition to **tea-tasting** to reproduce the examples:
+    This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. Install Polars in addition to tea-tasting to reproduce the examples:
 
     ```bash
     pip install polars
     ```
 
-In **tea-tasting**, it's possible to analyze experiments with more than two variants. However, the variants will be compared in pairs through two-sample statistical tests.
+In tea-tasting, it's possible to analyze experiments with more than two variants. However, the variants will be compared in pairs through two-sample statistical tests.
 
 Example usage:
 
@@ -430,7 +430,7 @@ variants             metric control treatment rel_effect_size rel_effect_size_ci
 How variant pairs are determined:
 
 - Specified control variant: If a specific variant is set as `control`, as in the example above, it is then compared against each of the other variants.
-- Default control variant: When the `control` parameter of the `analyze` method is set to `None`, **tea-tasting** automatically compares each variant pair. The variant with the lowest ID in each pair is a control.
+- Default control variant: When the `control` parameter of the `analyze` method is set to `None`, tea-tasting automatically compares each variant pair. The variant with the lowest ID in each pair is a control.
 
 Example usage without specifying a control variant:
 
@@ -465,4 +465,4 @@ orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
 
 ```
 
-By default, **tea-tasting** does not adjust for multiple hypothesis testing. However, it provides several methods for multiple testing correction. For more details, see the [guide on multiple hypothesis testing](multiple-testing.md).
+By default, tea-tasting does not adjust for multiple hypothesis testing. However, it provides several methods for multiple testing correction. For more details, see the [guide on multiple hypothesis testing](multiple-testing.md).

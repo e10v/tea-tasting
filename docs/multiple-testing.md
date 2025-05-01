@@ -4,7 +4,7 @@
 
 ???+ note
 
-    This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. Install Polars in addition to **tea-tasting** to reproduce the examples:
+    This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. Install Polars in addition to tea-tasting to reproduce the examples:
 
     ```bash
     pip install polars
@@ -12,7 +12,7 @@
 
 The [multiple hypothesis testing problem](https://en.wikipedia.org/wiki/Multiple_comparisons_problem) arises when there is more than one success metric or more than one treatment variant in an A/B test.
 
-**tea-tasting** provides the following methods for multiple testing correction:
+tea-tasting provides the following methods for multiple testing correction:
 
 - [False discovery rate](https://en.wikipedia.org/wiki/False_discovery_rate) (FDR) controlling procedures:
     - Benjamini-Hochberg procedure, assuming non-negative correlation between hypotheses.
@@ -95,7 +95,7 @@ Suppose only the two metrics `orders_per_user` and `revenue_per_user` are consid
 
 ```
 
-With two treatment variants and two success metrics, there are four hypotheses in total, which increases the probability of false positives (also called "false discoveries"). It's recommended to adjust the p-values or the significance level (alpha) in this case. Let's explore the correction methods provided by **tea-tasting**.
+With two treatment variants and two success metrics, there are four hypotheses in total, which increases the probability of false positives (also called "false discoveries"). It's recommended to adjust the p-values or the significance level (alpha) in this case. Let's explore the correction methods provided by tea-tasting.
 
 ## False discovery rate
 
@@ -134,7 +134,7 @@ comparison           metric control treatment rel_effect_size  pvalue alpha_adj
 
 ```
 
-By default, **tea-tasting** assumes non-negative correlation between hypotheses and performs the Benjamini-Hochberg procedure. To perform the Benjamini-Yekutieli procedure, assuming arbitrary dependence between hypotheses, set the `arbitrary_dependence` parameter to `True`:
+By default, tea-tasting assumes non-negative correlation between hypotheses and performs the Benjamini-Hochberg procedure. To perform the Benjamini-Yekutieli procedure, assuming arbitrary dependence between hypotheses, set the `arbitrary_dependence` parameter to `True`:
 
 ```pycon
 >>> tt.adjust_fdr(results, metrics, arbitrary_dependence=True)
@@ -160,7 +160,7 @@ comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
 
 ```
 
-By default, **tea-tasting** assumes non-negative correlation between hypotheses and performs the Hochberg's step-up procedure with the Šidák correction, which is slightly more powerful than the Bonferroni correction.
+By default, tea-tasting assumes non-negative correlation between hypotheses and performs the Hochberg's step-up procedure with the Šidák correction, which is slightly more powerful than the Bonferroni correction.
 
 To perform the Holm's step-down procedure, assuming arbitrary dependence between hypotheses, set the `arbitrary_dependence` parameter to `True`. In this case, it's recommended to use the Bonferroni correction, since the Šidák correction assumes non-negative correlation between hypotheses:
 

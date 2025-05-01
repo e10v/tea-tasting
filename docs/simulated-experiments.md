@@ -2,11 +2,11 @@
 
 ## Intro
 
-In **tea-tasting**, you can run multiple simulated A/A or A/B tests. In each simulation, **tea-tasting** splits the data into control and treatment groups and can optionally modify the treatment data. A simulation without changing the treatment data is called an A/A test. A/A tests are useful for identifying potential issues before conducting the actual A/B test. Simulations where the treatment data is modified are useful for power analysis, especially when you need a specific uplift distribution or when an analytical solution isn't feasible.
+In tea-tasting, you can run multiple simulated A/A or A/B tests. In each simulation, tea-tasting splits the data into control and treatment groups and can optionally modify the treatment data. A simulation without changing the treatment data is called an A/A test. A/A tests are useful for identifying potential issues before conducting the actual A/B test. Simulations where the treatment data is modified are useful for power analysis, especially when you need a specific uplift distribution or when an analytical solution isn't feasible.
 
 ???+ note
 
-    This guide uses [Polars](https://github.com/pola-rs/polars) and [tqdm](https://github.com/tqdm/tqdm). Install these packages in addition to **tea-tasting** to reproduce the examples:
+    This guide uses [Polars](https://github.com/pola-rs/polars) and [tqdm](https://github.com/tqdm/tqdm). Install these packages in addition to tea-tasting to reproduce the examples:
 
     ```bash
     pip install polars tqdm
@@ -149,7 +149,7 @@ In the example above, we've defined a function that increases the number of orde
 
 ## Using a function instead of static data
 
-You can use a function instead of static data to generate input dynamically. The function should take an instance of `numpy.random.Generator` as a parameter named `seed` and return experimental data in any format supported by **tea-tasting**.
+You can use a function instead of static data to generate input dynamically. The function should take an instance of `numpy.random.Generator` as a parameter named `seed` and return experimental data in any format supported by tea-tasting.
 
 As an example, let's use the `make_users_data` function.
 
@@ -171,7 +171,7 @@ shape: (5, 4)
 
 ```
 
-On each iteration, **tea-tasting** calls `make_users_data` with a new `seed` and uses the returned data for the analysis of the experiment. The data returned by `make_users_data` already contains the `"variant"` column, so **tea-tasting** reuses that split. By default, `make_users_data` also adds the treatment uplift, and you can see it in the proportion of rejected null hypotheses.
+On each iteration, tea-tasting calls `make_users_data` with a new `seed` and uses the returned data for the analysis of the experiment. The data returned by `make_users_data` already contains the `"variant"` column, so tea-tasting reuses that split. By default, `make_users_data` also adds the treatment uplift, and you can see it in the proportion of rejected null hypotheses.
 
 ## Tracking progress
 
