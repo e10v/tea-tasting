@@ -42,18 +42,7 @@ source = "https://github.com/e10v/tea-tasting"
 "release notes" = "https://github.com/e10v/tea-tasting/releases"
 
 
-[build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
-
-
-[tool]
-[tool.pdm]
-[tool.pdm.build]
-excludes = ["src/_*/**/*"]
-package-dir = "src"
-
-[tool.pdm.dev-dependencies]
+[dependency-groups]
 docs = ["mkdocs-material", "mkdocstrings[python]"]
 lint = ["pyright", "ruff"]
 test = [
@@ -64,6 +53,16 @@ test = [
     "pytest",
     "tqdm",
 ]
+
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+
+[tool.pdm.build]
+excludes = ["src/_*/**/*"]
+package-dir = "src"
 
 [tool.pdm.scripts]
 all.composite = ["doctest", "test", "cover", "lint", "type"]
@@ -87,7 +86,6 @@ source = "scm"
 write_to = "tea_tasting/_version.txt"
 
 
-[tool.coverage]
 [tool.coverage.run]
 source = ["src/tea_tasting"]
 [tool.coverage.report]
