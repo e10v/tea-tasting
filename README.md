@@ -52,7 +52,7 @@ orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
 
 ```
 
-Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/). Additionally, see the guides on [data backends](https://tea-tasting.e10v.me/data-backends/), [power analysis](https://tea-tasting.e10v.me/power-analysis/), [multiple hypothesis testing](https://tea-tasting.e10v.me/multiple-testing/), and [custom metrics](https://tea-tasting.e10v.me/custom-metrics/).
+Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/). Additionally, see the guides on [data backends](https://tea-tasting.e10v.me/data-backends/), [power analysis](https://tea-tasting.e10v.me/power-analysis/), [multiple hypothesis testing](https://tea-tasting.e10v.me/multiple-testing/), [custom metrics](https://tea-tasting.e10v.me/custom-metrics/), and [simulated experiments](https://tea-tasting.e10v.me/simulated-experiments/).
 
 ## Roadmap
 
