@@ -4,36 +4,38 @@ on:
     paths:
       - '**.py'
       - '.github/workflows/ci.yml'
-      - 'pdm.lock'
+      - 'pyproject.toml'
   push:
     branches: [main]
     paths:
       - '**.py'
       - '.github/workflows/ci.yml'
-      - 'pdm.lock'
+      - 'pyproject.toml'
   workflow_dispatch:
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-13, windows-latest]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
-      - name: Set up PDM
-        uses: pdm-project/setup-pdm@v4
+      - name: set up uv
+        uses: astral-sh/setup-uv@v6
         with:
+          activate-environment: true
+          cache-suffix: ${{ matrix.python-version }}
+          enable-cache: true
           python-version: ${{ matrix.python-version }}
-          cache: true
-      - name: Install dependencies
-        run: pdm sync -G test
-      - name: Test
-        run: pdm run test
-      - name: Convert coverage report
-        run: pdm run coverage xml
-      - name: Upload coverage reports to Codecov
+      - name: install dependencies
+        run: uv sync --group test
+      - name: test with pytest
+        run: coverage run -m pytest
+      - name: convert coverage report
+        run: coverage xml
+      - name: upload coverage reports to codecov
         uses: codecov/codecov-action@v5
         with:
           files: ./coverage.xml
@@ -45,19 +47,21 @@ jobs:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
-      - name: Set up PDM
-        uses: pdm-project/setup-pdm@v4
+      - name: set up uv
+        uses: astral-sh/setup-uv@v6
         with:
+          activate-environment: true
+          cache-suffix: ${{ matrix.python-version }}
+          enable-cache: true
           python-version: ${{ matrix.python-version }}
-          cache: true
-      - name: Install dependencies
-        run: pdm sync -G lint -G test
-      - name: Check with ruff
-        run: pdm run lint
-      - name: Check with pyright
-        run: pdm run type
+      - name: install dependencies
+        run: uv sync --group lint --group test
+      - name: check with ruff
+        run: ruff check .
+      - name: check with pyright
+        run: pyright
 
   doctest:
     runs-on: ${{ matrix.os }}
@@ -66,14 +70,22 @@ jobs:
         os: [ubuntu-latest]
         python-version: ["3.10"]
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
-      - name: Set up PDM
-        uses: pdm-project/setup-pdm@v4
+      - name: set up uv
+        uses: astral-sh/setup-uv@v6
         with:
+          activate-environment: true
+          cache-suffix: ${{ matrix.python-version }}
+          enable-cache: true
           python-version: ${{ matrix.python-version }}
-          cache: true
-      - name: Install dependencies
-        run: pdm sync -G test
-      - name: Doctest
-        run: pdm run doctest
+      - name: install dependencies
+        run: uv sync --group test
+      - name: doctest with pytest
+        run: |
+          pytest \
+            --doctest-continue-on-failure \
+            --doctest-glob=*.md \
+            --doctest-modules \
+            --ignore=tests/ \
+            --ignore-glob=src/_* \
