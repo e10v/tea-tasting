@@ -129,13 +129,16 @@ class SimulationResults(UserList[ExperimentResult], tea_tasting.utils.DictsReprM
         "rel_effect_size_ci",
         "pvalue",
     )
+    _dicts: tuple[dict[str, object], ...] | None = None
 
     def to_dicts(self) -> tuple[dict[str, object], ...]:
         """Convert the results to a sequence of dictionaries."""
-        return tuple(itertools.chain.from_iterable(
-            experiment_result.to_dicts()
-            for experiment_result in self
-        ))
+        if self._dicts is None:
+            self._dicts = tuple(itertools.chain.from_iterable(
+                experiment_result.to_dicts()
+                for experiment_result in self
+            ))
+        return self._dicts
 
 
 class ExperimentPowerResult(
