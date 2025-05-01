@@ -6,11 +6,11 @@ authors = [
     {name = "Evgeny Ivanov", email = "ivanov.evgeny.n@gmail.com"},
 ]
 dependencies = [
-    "ibis-framework>=7",
-    "narwhals>=1",
+    "ibis-framework>=9",
+    "narwhals>=1.4",
     "numpy>=1.25",
-    "pyarrow>=15",
-    "scipy>=1.10",
+    "pyarrow>=16",
+    "scipy>=1.11",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
@@ -46,12 +46,12 @@ source = "https://github.com/e10v/tea-tasting"
 docs = ["mkdocs-material", "mkdocstrings[python]"]
 lint = ["pyright", "ruff"]
 test = [
-    "coverage[toml]",
+    "coverage[toml]>=7",
     "ibis-framework[duckdb,sqlite]",
-    "pandas",
-    "polars",
-    "pytest",
-    "tqdm",
+    "pandas>=2",
+    "polars>=1",
+    "pytest>=8",
+    "tqdm>=4",
 ]
 
 
