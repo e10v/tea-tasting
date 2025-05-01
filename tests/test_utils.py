@@ -253,6 +253,9 @@ def test_dicts_repr_mixin_to_html_indent(
             </tbody>
         </table>""")
 
+def test_dicts_repr_mixin_with_keys(dicts_repr: tea_tasting.utils.DictsReprMixin):
+    assert dicts_repr.with_keys(("c", "d")).default_keys == ("c", "d")
+
 def test_dicts_repr_mixin_str(dicts_repr: tea_tasting.utils.DictsReprMixin):
     assert str(dicts_repr) == textwrap.dedent("""\
             a     b
