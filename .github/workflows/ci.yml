@@ -13,6 +13,52 @@ on:
       - 'pyproject.toml'
   workflow_dispatch:
 jobs:
+  doctest:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10"]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          activate-environment: true
+          cache-suffix: "${{ matrix.python-version }}-test"
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+      - name: install dependencies
+        run: uv sync --group test
+      - name: doctest with pytest
+        run: |
+          pytest \
+            --doctest-continue-on-failure \
+            --doctest-glob=*.md \
+            --doctest-modules \
+            --ignore=tests/ \
+            --ignore-glob=src/_* \
+  test-lowest:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          activate-environment: true
+          cache-suffix: "${{ matrix.python-version }}-test-lowest"
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+      - name: install dependencies
+        run: uv sync --group test --resolution lowest-direct
+      - name: test-lowest with pytest
+        run: pytest
   test:
     strategy:
       matrix:
@@ -26,7 +72,7 @@ jobs:
         uses: astral-sh/setup-uv@v6
         with:
           activate-environment: true
-          cache-suffix: ${{ matrix.python-version }}
+          cache-suffix: "${{ matrix.python-version }}-test"
           enable-cache: true
           python-version: ${{ matrix.python-version }}
       - name: install dependencies
@@ -53,7 +99,7 @@ jobs:
         uses: astral-sh/setup-uv@v6
         with:
           activate-environment: true
-          cache-suffix: ${{ matrix.python-version }}
+          cache-suffix: "${{ matrix.python-version }}-lint"
           enable-cache: true
           python-version: ${{ matrix.python-version }}
       - name: install dependencies
@@ -62,30 +108,3 @@ jobs:
         run: ruff check .
       - name: check with pyright
         run: pyright
-
-  doctest:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.10"]
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-      - name: set up uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          activate-environment: true
-          cache-suffix: ${{ matrix.python-version }}
-          enable-cache: true
-          python-version: ${{ matrix.python-version }}
-      - name: install dependencies
-        run: uv sync --group test
-      - name: doctest with pytest
-        run: |
-          pytest \
-            --doctest-continue-on-failure \
-            --doctest-glob=*.md \
-            --doctest-modules \
-            --ignore=tests/ \
-            --ignore-glob=src/_* \
