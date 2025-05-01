@@ -8,14 +8,18 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
-      - name: Set up PDM
-        uses: pdm-project/setup-pdm@v4
+      - name: set up uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: "3.12"
-          cache: true
-      - name: Install dependencies
-        run: pdm sync
-      - name: Build and publish
-        run: pdm publish -v
+          activate-environment: true
+          cache-suffix: 3.12
+          enable-cache: true
+          python-version: 3.12
+      - name: install dependencies
+        run: uv sync --no-dev
+      - name: build
+        run: uv build
+      - name: publish
+        run: uv publish
