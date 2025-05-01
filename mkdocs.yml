@@ -75,6 +75,7 @@ plugins:
             heading_level: 1
             inherited_members: true
             merge_init_into_class: true
+            show_overloads: false
             show_root_heading: true
   - search
 
