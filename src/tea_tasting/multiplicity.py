@@ -20,8 +20,8 @@ NO_NAME_COMPARISON = "-"
 
 
 class MultipleComparisonsResults(
-    UserDict[object, tea_tasting.experiment.ExperimentResult],
     tea_tasting.utils.DictsReprMixin,
+    UserDict[object, tea_tasting.experiment.ExperimentResult],
 ):
     """Multiple comparisons result."""
     default_keys = (
@@ -117,7 +117,7 @@ def adjust_fdr(
         ...         .filter(pl.col("variant").eq(1))
         ...         .with_columns(variant=pl.lit(2, pl.Int64)),
         ... ))
-        >>> print(data)
+        >>> data
         shape: (6_046, 5)
         ┌──────┬─────────┬──────────┬────────┬─────────┐
         │ user ┆ variant ┆ sessions ┆ orders ┆ revenue │
@@ -146,7 +146,7 @@ def adjust_fdr(
 
         >>> # Results without correction.
         >>> results = experiment.analyze(data, control=0, all_variants=True)
-        >>> print(results)
+        >>> results
         variants             metric control treatment rel_effect_size rel_effect_size_ci  pvalue
           (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]   0.674
           (0, 1) orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%]  0.0762
@@ -163,7 +163,7 @@ def adjust_fdr(
         >>> # Benjamini-Hochberg procedure,
         >>> # assuming non-negative correlation between hypotheses.
         >>> adjusted_results_fdr = tt.adjust_fdr(results, metrics)
-        >>> print(adjusted_results_fdr)
+        >>> adjusted_results_fdr
         comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
             (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
             (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0284
@@ -171,7 +171,7 @@ def adjust_fdr(
             (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00872
 
         >>> # The adjusted confidence level alpha.
-        >>> print(adjusted_results_fdr.to_string(keys=(
+        >>> adjusted_results_fdr.with_keys((
         ...     "comparison",
         ...     "metric",
         ...     "control",
@@ -179,7 +179,7 @@ def adjust_fdr(
         ...     "rel_effect_size",
         ...     "pvalue",
         ...     "alpha_adj",
-        ... )))
+        ... ))
         comparison           metric control treatment rel_effect_size  pvalue alpha_adj
             (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118    0.0500
             (0, 1) revenue_per_user    5.24      5.99             14%  0.0211    0.0375
@@ -188,7 +188,7 @@ def adjust_fdr(
 
         >>> # Benjamini-Yekutieli procedure,
         >>> # assuming arbitrary dependence between hypotheses.
-        >>> print(tt.adjust_fdr(results, metrics, arbitrary_dependence=True))
+        >>> tt.adjust_fdr(results, metrics, arbitrary_dependence=True)
         comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
             (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.245
             (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0592
@@ -295,7 +295,7 @@ def adjust_fwer(
         ...         .filter(pl.col("variant").eq(1))
         ...         .with_columns(variant=pl.lit(2, pl.Int64)),
         ... ))
-        >>> print(data)
+        >>> data
         shape: (6_046, 5)
         ┌──────┬─────────┬──────────┬────────┬─────────┐
         │ user ┆ variant ┆ sessions ┆ orders ┆ revenue │
@@ -324,7 +324,7 @@ def adjust_fwer(
 
         >>> # Results without correction.
         >>> results = experiment.analyze(data, control=0, all_variants=True)
-        >>> print(results)
+        >>> results
         variants             metric control treatment rel_effect_size rel_effect_size_ci  pvalue
           (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]   0.674
           (0, 1) orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%]  0.0762
@@ -341,7 +341,7 @@ def adjust_fwer(
         >>> # Hochberg's step-up procedure with Šidák correction,
         >>> # assuming non-negative correlation between hypotheses.
         >>> adjusted_results_fwer = tt.adjust_fwer(results, metrics)
-        >>> print(adjusted_results_fwer)
+        >>> adjusted_results_fwer
         comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
             (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
             (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0422
@@ -349,7 +349,7 @@ def adjust_fwer(
             (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00869
 
         >>> # The adjusted confidence level alpha.
-        >>> print(adjusted_results_fwer.to_string(keys=(
+        >>> adjusted_results_fwer.with_keys((
         ...     "comparison",
         ...     "metric",
         ...     "control",
@@ -357,7 +357,7 @@ def adjust_fwer(
         ...     "rel_effect_size",
         ...     "pvalue",
         ...     "alpha_adj",
-        ... )))
+        ... ))
         comparison           metric control treatment rel_effect_size  pvalue alpha_adj
             (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118    0.0500
             (0, 1) revenue_per_user    5.24      5.99             14%  0.0211    0.0253
@@ -366,12 +366,12 @@ def adjust_fwer(
 
         >>> # Holm's step-down procedure with Bonferroni correction,
         >>> # assuming arbitrary dependence between hypotheses.
-        >>> print(tt.adjust_fwer(
+        >>> tt.adjust_fwer(
         ...     results,
         ...     metrics,
         ...     arbitrary_dependence=True,
         ...     method="bonferroni",
-        ... ))
+        ... )
         comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
             (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
             (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0634

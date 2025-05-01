@@ -23,7 +23,7 @@ Begin with this simple example to understand the basic functionality:
 ...     revenue_per_user=tt.Mean("revenue"),
 ... )
 >>> result = experiment.analyze(data)
->>> print(result)
+>>> result
             metric control treatment rel_effect_size rel_effect_size_ci pvalue
  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
 orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
@@ -47,7 +47,7 @@ The [`make_users_data`](api/datasets.md#tea_tasting.datasets.make_users_data) fu
 By default, `make_users_data` returns a PyArrow Table:
 
 ```pycon
->>> print(data)
+>>> data
 pyarrow.Table
 user: int64
 variant: int64
@@ -155,7 +155,7 @@ By default, **tea-tasting** assumes that the variant with the lowest ID is a con
 [`ExperimentResult`](api/experiment.md#tea_tasting.experiment.ExperimentResult) is a mapping. Get a metric's analysis result using metric name as a key.
 
 ```pycon
->>> print(result["orders_per_user"])
+>>> result["orders_per_user"]
 MeanResult(control=0.5304003954522986, treatment=0.5730905412240769, effect_size=0.04269014577177832, effect_size_ci_lower=-0.010800201598205515, effect_size_ci_upper=0.09618049314176216, rel_effect_size=0.08048664016431273, rel_effect_size_ci_lower=-0.019515294044061937, rel_effect_size_ci_upper=0.1906880061278886, pvalue=np.float64(0.11773177998716214), statistic=1.5647028839586707)
 
 ```
@@ -184,10 +184,10 @@ Fields in result depend on metrics. For `Mean` and `RatioOfMeans`, the [fields i
 - `to_string`: Convert the result to a string.
 - `to_html`: Convert the result to HTML.
 
-`print(result)` is the same as `print(result.to_string())`.
+`result` is the same as `print(result.to_string())`. `ExperimentResult` provides also the `_repr_html_` method and is rendered as HTML table in IPython, Jupyter, or Marimo.
 
 ```pycon
->>> print(result)
+>>> result
             metric control treatment rel_effect_size rel_effect_size_ci pvalue
  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
 orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
@@ -196,18 +196,16 @@ orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
 
 ```
 
-`ExperimentResult` provides also the `_repr_html_` method and is rendered as HTML table in IPython, Jupyter, or Marimo.
-
 By default, methods `to_pretty_dicts`, `to_string`, and `to_html` return a predefined list of attributes. This list can be customized:
 
 ```pycon
->>> print(result.with_keys((
+>>> result.with_keys((
 ...     "metric",
 ...     "control",
 ...     "treatment",
 ...     "effect_size",
 ...     "effect_size_ci",
-... )))
+... ))
             metric control treatment effect_size     effect_size_ci
  sessions_per_user    2.00      1.98     -0.0132  [-0.0750, 0.0485]
 orders_per_session   0.266     0.289      0.0233 [-0.00246, 0.0491]
@@ -258,7 +256,7 @@ Example usage:
 ...     revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
 ... )
 >>> result = experiment.analyze(data)
->>> print(result)
+>>> result
             metric control treatment rel_effect_size rel_effect_size_ci  pvalue
  sessions_per_user    2.00      1.98          -0.68%      [-3.2%, 1.9%]   0.603
 orders_per_session   0.262     0.293             12%        [4.2%, 21%] 0.00229
@@ -294,7 +292,7 @@ Example usage:
 ... )
 >>> data = tt.make_users_data(seed=42)
 >>> result = experiment.analyze(data)
->>> print(result)
+>>> result
           metric control treatment rel_effect_size rel_effect_size_ci pvalue
  orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
 revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
@@ -336,7 +334,7 @@ Use [`get_config`](api/config.md#tea_tasting.config.get_config) with the option 
 ```pycon
 >>> import tea_tasting as tt
 
->>> print(tt.get_config("equal_var"))
+>>> tt.get_config("equal_var")
 False
 
 ```
@@ -359,7 +357,7 @@ Use [`set_config`](api/config.md#tea_tasting.config.set_config) to set a global 
 ...     revenue_per_user=tt.Mean("revenue"),
 ... )
 >>> tt.set_config(equal_var=False, use_t=True)
->>> print(experiment.metrics["orders_per_user"])
+>>> experiment.metrics["orders_per_user"]
 Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
 
 ```
@@ -374,13 +372,13 @@ Use [`config_context`](api/config.md#tea_tasting.config.config_context) to tempo
 ...         orders_per_user=tt.Mean("orders"),
 ...         revenue_per_user=tt.Mean("revenue"),
 ...     )
->>> print(tt.get_config("equal_var"))
+>>> tt.get_config("equal_var")
 False
 
->>> print(tt.get_config("use_t"))
+>>> tt.get_config("use_t")
 True
 
->>> print(experiment.metrics["orders_per_user"])
+>>> experiment.metrics["orders_per_user"]
 Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
 
 ```
@@ -416,7 +414,7 @@ Example usage:
 ...     revenue_per_user=tt.Mean("revenue"),
 ... )
 >>> results = experiment.analyze(data, control=0, all_variants=True)
->>> print(results)
+>>> results
 variants             metric control treatment rel_effect_size rel_effect_size_ci pvalue
   (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
   (0, 1) orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
@@ -438,7 +436,7 @@ Example usage without specifying a control variant:
 
 ```pycon
 >>> results = experiment.analyze(data, all_variants=True)
->>> print(results)
+>>> results
 variants             metric control treatment rel_effect_size rel_effect_size_ci pvalue
   (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
   (0, 1) orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
@@ -458,7 +456,7 @@ variants             metric control treatment rel_effect_size rel_effect_size_ci
 The result of the analysis is a mapping of `ExperimentResult` objects with tuples (control, treatment) as keys. You can view the result for a selected pair of variants:
 
 ```pycon
->>> print(results[0, 1])
+>>> results[0, 1]
             metric control treatment rel_effect_size rel_effect_size_ci pvalue
  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
 orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762

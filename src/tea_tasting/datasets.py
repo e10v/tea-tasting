@@ -131,7 +131,7 @@ def make_users_data(
         >>> import tea_tasting as tt
 
         >>> data = tt.make_users_data(seed=42)
-        >>> print(data)
+        >>> data
         pyarrow.Table
         user: int64
         variant: int64
@@ -151,7 +151,7 @@ def make_users_data(
 
         ```pycon
         >>> data = tt.make_users_data(seed=42, covariates=True)
-        >>> print(data)
+        >>> data
         pyarrow.Table
         user: int64
         variant: int64
@@ -177,7 +177,7 @@ def make_users_data(
 
         ```pycon
         >>> data = tt.make_users_data(seed=42, return_type="pandas")
-        >>> print(data)
+        >>> data
               user  variant  sessions  orders  revenue
         0        0        1         2       1     9.17
         1        1        0         2       1     6.43
@@ -199,7 +199,7 @@ def make_users_data(
 
         ```pycon
         >>> data = tt.make_users_data(seed=42, return_type="polars")
-        >>> print(data)
+        >>> data
         shape: (4_000, 5)
         ┌──────┬─────────┬──────────┬────────┬─────────┐
         │ user ┆ variant ┆ sessions ┆ orders ┆ revenue │
@@ -395,7 +395,7 @@ def make_sessions_data(
 
         ```pycon
         >>> data = tt.make_sessions_data(seed=42, return_type="pandas")
-        >>> print(data)
+        >>> data
               user  variant  sessions  orders  revenue
         0        0        1         1       1     5.89
         1        0        1         1       1     6.13
@@ -417,7 +417,7 @@ def make_sessions_data(
 
         ```pycon
         >>> data = tt.make_sessions_data(seed=42, return_type="polars")
-        >>> print(data)
+        >>> data
         shape: (7_958, 5)
         ┌──────┬─────────┬──────────┬────────┬─────────┐
         │ user ┆ variant ┆ sessions ┆ orders ┆ revenue │

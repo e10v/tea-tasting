@@ -85,7 +85,7 @@ def get_config(option: str | None = None) -> object:
         ```pycon
         >>> import tea_tasting as tt
 
-        >>> print(tt.get_config("equal_var"))
+        >>> tt.get_config("equal_var")
         False
 
         ```
@@ -150,7 +150,7 @@ def set_config(
         ...     revenue_per_user=tt.Mean("revenue"),
         ... )
         >>> tt.set_config(equal_var=False, use_t=True)
-        >>> print(experiment.metrics["orders_per_user"])
+        >>> experiment.metrics["orders_per_user"]
         Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
 
         ```
@@ -216,7 +216,7 @@ def config_context(
         ...         orders_per_user=tt.Mean("orders"),
         ...         revenue_per_user=tt.Mean("revenue"),
         ...     )
-        >>> print(experiment.metrics["orders_per_user"])
+        >>> experiment.metrics["orders_per_user"]
         Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
 
         ```

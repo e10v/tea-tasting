@@ -19,7 +19,7 @@ In this example, **tea-tasting** calculates statistical power given the relative
 ...     covariates=True,
 ... )
 >>> orders_per_session = tt.RatioOfMeans("orders", "sessions", rel_effect_size=0.1)
->>> print(orders_per_session.solve_power(data, "power"))
+>>> orders_per_session.solve_power(data, "power")
 power effect_size rel_effect_size n_obs
   52%      0.0261             10%  4000
 
@@ -39,7 +39,7 @@ You can change the default values of `alpha`, `ratio`, `power`, and `n_obs` usin
 
 ```pycon
 >>> orders_per_user = tt.Mean("orders", alpha=0.1, power=0.7, n_obs=(10_000, 20_000))
->>> print(orders_per_user.solve_power(data, "rel_effect_size"))
+>>> orders_per_user.solve_power(data, "rel_effect_size")
 power effect_size rel_effect_size n_obs
   70%      0.0367            7.1% 10000
   70%      0.0260            5.0% 20000
@@ -62,7 +62,7 @@ You can analyze power for all metrics in the experiment. Example:
 ...         revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
 ...     )
 >>> power_result = experiment.solve_power(data)
->>> print(power_result)
+>>> power_result
             metric power effect_size rel_effect_size n_obs
  sessions_per_user   80%      0.0458            2.3% 10000
  sessions_per_user   80%      0.0324            1.6% 20000

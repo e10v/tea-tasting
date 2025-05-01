@@ -453,13 +453,17 @@ class DictsReprMixin(abc.ABC):
         new_instance.default_keys = keys
         return new_instance
 
-    def __str__(self) -> str:
-        """Object string representation."""
-        return self.to_string()
-
     def _repr_html_(self) -> str:
         """Object HTML representation."""
         return self.to_html()
+
+    def __repr__(self) -> str:
+        """Object representation."""
+        return self.to_string()
+
+    def __str__(self) -> str:
+        """Object string representation."""
+        return self.to_string()
 
 
 class ReprMixin:

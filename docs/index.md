@@ -43,7 +43,7 @@ pip install tea-tasting
 ...     revenue_per_user=tt.Mean("revenue"),
 ... )
 >>> result = experiment.analyze(data)
->>> print(result)
+>>> result
             metric control treatment rel_effect_size rel_effect_size_ci pvalue
  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
 orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762

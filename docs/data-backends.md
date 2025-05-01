@@ -58,7 +58,7 @@ Method `con.create_table` in the example above returns an Ibis Table which alrea
 
 ```pycon
 >>> data = con.sql("select * from users_data")
->>> print(data)
+>>> data
 SQLQueryResult
   query:
     select * from users_data
@@ -83,7 +83,7 @@ Ibis Table is a lazy object. It doesn't fetch the data when created. You can use
 
 ```pycon
 >>> ibis.options.interactive = True
->>> print(data.head(5))
+>>> data.head(5)
 ┏━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━┓
 ┃ user  ┃ variant ┃ sessions ┃ orders ┃ revenue ┃
 ┡━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━┩
@@ -111,7 +111,7 @@ To better understand what Ibis does, let's consider the example with grouping an
 ...     orders_per_user=data.orders.mean(),
 ...     revenue_per_user=data.revenue.mean(),
 ... )
->>> print(aggr_data)
+>>> aggr_data
 r0 := SQLQueryResult
   query:
     select * from users_data
@@ -137,7 +137,7 @@ Aggregate[r0]
 
 ```pycon
 >>> ibis.options.interactive = True
->>> print(aggr_data)  # doctest: +SKIP
+>>> aggr_data  # doctest: +SKIP
 ┏━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┓
 ┃ variant ┃ sessions_per_user ┃ orders_per_session ┃ orders_per_user ┃ revenue_per_user ┃
 ┡━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━┩
@@ -187,7 +187,7 @@ Querying all the required statistics manually can be a daunting and error-prone 
 ...     revenue_per_user=tt.Mean("revenue"),
 ... )
 >>> result = experiment.analyze(data)
->>> print(result)
+>>> result
             metric control treatment rel_effect_size rel_effect_size_ci pvalue
  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
 orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
@@ -230,7 +230,7 @@ DatabaseTable: memory.main.users_data_with_cov
 ...     revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
 ... )
 >>> result_with_cov = experiment_with_cov.analyze(data_with_cov)
->>> print(result_with_cov)
+>>> result_with_cov
             metric control treatment rel_effect_size rel_effect_size_ci  pvalue
  sessions_per_user    2.00      1.98          -0.68%      [-3.2%, 1.9%]   0.603
 orders_per_session   0.262     0.293             12%        [4.2%, 21%] 0.00229
@@ -245,7 +245,7 @@ Here’s an example of how to analyze data using a Polars DataFrame:
 
 ```pycon
 >>> data_polars = pl.from_arrow(users_data)
->>> print(experiment.analyze(data_polars))
+>>> experiment.analyze(data_polars)
             metric control treatment rel_effect_size rel_effect_size_ci pvalue
  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
 orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762

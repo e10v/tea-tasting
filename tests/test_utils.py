@@ -256,13 +256,6 @@ def test_dicts_repr_mixin_to_html_indent(
 def test_dicts_repr_mixin_with_keys(dicts_repr: tea_tasting.utils.DictsReprMixin):
     assert dicts_repr.with_keys(("c", "d")).default_keys == ("c", "d")
 
-def test_dicts_repr_mixin_str(dicts_repr: tea_tasting.utils.DictsReprMixin):
-    assert str(dicts_repr) == textwrap.dedent("""\
-            a     b
-        0.123 0.235
-        0.346 0.457
-        0.568 0.679""")
-
 def test_dicts_repr_mixin_repr_html(dicts_repr: tea_tasting.utils.DictsReprMixin):
     assert dicts_repr._repr_html_() == (
         '<table class="dataframe" style="text-align: right;">'
@@ -273,6 +266,20 @@ def test_dicts_repr_mixin_repr_html(dicts_repr: tea_tasting.utils.DictsReprMixin
         '<tr><td>0.568</td><td>0.679</td></tr>'
         '</tbody></table>'
     )
+
+def test_dicts_repr_mixin_repr(dicts_repr: tea_tasting.utils.DictsReprMixin):
+    assert repr(dicts_repr) == textwrap.dedent("""\
+            a     b
+        0.123 0.235
+        0.346 0.457
+        0.568 0.679""")
+
+def test_dicts_repr_mixin_str(dicts_repr: tea_tasting.utils.DictsReprMixin):
+    assert str(dicts_repr) == textwrap.dedent("""\
+            a     b
+        0.123 0.235
+        0.346 0.457
+        0.568 0.679""")
 
 
 def test_repr_mixin_repr():

@@ -43,7 +43,7 @@ As an example, consider an experiment with three variants, a control and two tre
 ...         .filter(pl.col("variant").eq(1))
 ...         .with_columns(variant=pl.lit(2, pl.Int64)),
 ... ))
->>> print(data)
+>>> data
 shape: (6_046, 5)
 ┌──────┬─────────┬──────────┬────────┬─────────┐
 │ user ┆ variant ┆ sessions ┆ orders ┆ revenue │
@@ -75,7 +75,7 @@ Let's calculate the experiment results:
 ...     revenue_per_user=tt.Mean("revenue"),
 ... )
 >>> results = experiment.analyze(data, control=0, all_variants=True)
->>> print(results)
+>>> results
 variants             metric control treatment rel_effect_size rel_effect_size_ci  pvalue
   (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]   0.674
   (0, 1) orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%]  0.0762
@@ -103,7 +103,7 @@ False discovery rate (FDR) is the expected value of the proportion of false disc
 
 ```pycon
 >>> adjusted_results_fdr = tt.adjust_fdr(results, metrics)
->>> print(adjusted_results_fdr)
+>>> adjusted_results_fdr
 comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
     (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0284
@@ -117,7 +117,7 @@ The method adjusts p-values and saves them as `pvalue_adj`. Compare these values
 The method also adjusts the significance level alpha and saves it as `alpha_adj`. Compare non-adjusted p-values (`pvalue`) to the `alpha_adj` to determine if the null hypotheses can be rejected:
 
 ```pycon
->>> print(adjusted_results_fdr.to_string(keys=(
+>>> adjusted_results_fdr.with_keys((
 ...     "comparison",
 ...     "metric",
 ...     "control",
@@ -125,7 +125,7 @@ The method also adjusts the significance level alpha and saves it as `alpha_adj`
 ...     "rel_effect_size",
 ...     "pvalue",
 ...     "alpha_adj",
-... )))
+... ))
 comparison           metric control treatment rel_effect_size  pvalue alpha_adj
     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118    0.0500
     (0, 1) revenue_per_user    5.24      5.99             14%  0.0211    0.0375
@@ -137,7 +137,7 @@ comparison           metric control treatment rel_effect_size  pvalue alpha_adj
 By default, **tea-tasting** assumes non-negative correlation between hypotheses and performs the Benjamini-Hochberg procedure. To perform the Benjamini-Yekutieli procedure, assuming arbitrary dependence between hypotheses, set the `arbitrary_dependence` parameter to `True`:
 
 ```pycon
->>> print(tt.adjust_fdr(results, metrics, arbitrary_dependence=True))
+>>> tt.adjust_fdr(results, metrics, arbitrary_dependence=True)
 comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.245
     (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0592
@@ -151,7 +151,7 @@ comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
 Family-wise error rate (FWER) is the probability of making at least one type I error. To control for FWER, use the [`adjust_fwer`](api/multiplicity.md#tea_tasting.multiplicity.adjust_fwer) method:
 
 ```pycon
->>> print(tt.adjust_fwer(results, metrics))
+>>> tt.adjust_fwer(results, metrics)
 comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
     (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0422
@@ -165,12 +165,12 @@ By default, **tea-tasting** assumes non-negative correlation between hypotheses 
 To perform the Holm's step-down procedure, assuming arbitrary dependence between hypotheses, set the `arbitrary_dependence` parameter to `True`. In this case, it's recommended to use the Bonferroni correction, since the Šidák correction assumes non-negative correlation between hypotheses:
 
 ```pycon
->>> print(tt.adjust_fwer(
+>>> tt.adjust_fwer(
 ...     results,
 ...     metrics,
 ...     arbitrary_dependence=True,
 ...     method="bonferroni",
-... ))
+... )
 comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
     (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
     (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0634
@@ -188,10 +188,10 @@ In the examples above, the methods `adjust_fdr` and `adjust_fwer` received resul
 >>> data2 = tt.make_users_data(seed=21, orders_uplift=0.15, revenue_uplift=0.20)
 >>> result1 = experiment.analyze(data1)
 >>> result2 = experiment.analyze(data2)
->>> print(tt.adjust_fdr(
+>>> tt.adjust_fdr(
 ...     {"Experiment 1": result1, "Experiment 2": result2},
 ...     metrics,
-... ))
+... )
   comparison           metric control treatment rel_effect_size   pvalue pvalue_adj
 Experiment 1  orders_per_user   0.530     0.573            8.0%    0.118      0.118
 Experiment 1 revenue_per_user    5.24      5.99             14%   0.0211     0.0282
@@ -203,7 +203,7 @@ Experiment 2 revenue_per_user    5.10      6.25             22% 6.27e-04    0.00
 The methods `adjust_fdr` and `adjust_fwer` can also accept the result of *a single experiment with two variants*:
 
 ```pycon
->>> print(tt.adjust_fwer(result2, metrics))
+>>> tt.adjust_fwer(result2, metrics)
 comparison           metric control treatment rel_effect_size   pvalue pvalue_adj
          -  orders_per_user   0.514     0.594             16%  0.00427    0.00427
          - revenue_per_user    5.10      6.25             22% 6.27e-04    0.00125
