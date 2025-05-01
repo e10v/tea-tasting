@@ -2,11 +2,11 @@
 
 ## Intro
 
-In **tea-tasting**, you can run multiple simulated A/A or A/B tests. In each single simulation, **tea-tasting** splits the data into control and treatment and, optionally, modifies the treatment data. A simulation without changing the treatment data is called an A/A test. A/A tests can be used to uncover potential problems before running the actual A/B test. Simulations with modified treatment can be used for power analysis with a specific uplift distribution or when an analytical solution isn't possible.
+In **tea-tasting**, you can run multiple simulated A/A or A/B tests. In each simulation, **tea-tasting** splits the data into control and treatment groups and can optionally modify the treatment data. A simulation without changing the treatment data is called an A/A test. A/A tests are useful for identifying potential issues before conducting the actual A/B test. Simulations where the treatment data is modified are useful for power analysis, especially when you need a specific uplift distribution or when an analytical solution isn't feasible.
 
 ???+ note
 
-    This guide uses [Polars](https://github.com/pola-rs/polars) and [tqdm](https://github.com/tqdm/tqdm). To be able to reproduce the example code, install these packages in addition to **tea-tasting**:
+    This guide uses [Polars](https://github.com/pola-rs/polars) and [tqdm](https://github.com/tqdm/tqdm). Install these packages in addition to **tea-tasting** to reproduce the examples:
 
     ```bash
     pip install polars tqdm
@@ -38,7 +38,7 @@ revenue: [[19.06,12.09,8.84,0,9.9,...,0,4.8,9.63,0,12.7]]
 
 ```
 
-To run A/A tests, define the experiment metrics and call the [`simulate`](api/experiment.md#tea_tasting.experiment.Experiment.simulate) method with the data and a number of simulations as arguments.
+To run A/A tests, first define the metrics for the experiment, then call the [`simulate`](api/experiment.md#tea_tasting.experiment.Experiment.simulate) method, providing the data and the number of simulations as arguments.
 
 ```pycon
 >>> experiment = tt.Experiment(
@@ -81,11 +81,11 @@ shape: (500, 7)
 
 ```
 
-The `simulate` method accepts data in the same formats as `analyze`. But internally it converts the data to a PyArrow Table before running the simulations.
+The `simulate` method accepts data in the same formats as the `analyze` method. Internally, however, it converts the data to a PyArrow Table before running the simulations.
 
-The method returns an instance of the [`SimulationResults`](api/experiment.md#tea_tasting.experiment.SimulationResults) class that contains the results of all simulations for all metrics. The resulting object provides the serialization methods similar to the experiment result: `to_dicts`, `to_arrow`, `to_pandas`, `to_polars`, `to_pretty_dicts`, `to_string`, `to_html`.
+The method returns an instance of the [`SimulationResults`](api/experiment.md#tea_tasting.experiment.SimulationResults) class, which contains the results of all simulations for all metrics. The resulting object provides serialization methods to those of the experiment result, including `to_dicts`, `to_arrow`, `to_pandas`, `to_polars`, `to_pretty_dicts`, `to_string`, `to_html`.
 
-As an example, now we can calculate the proportion of rejected null hypotheses for all metrics, with several values of the significance level (`alpha`). In case of A/A tests, it estimates the type I error.
+For instance, we can now calculate the proportion of rejected null hypotheses, using various significance levels (`alpha`). In A/A tests, it estimates the type I error rate.
 
 ```pycon
 >>> def null_rejected(
@@ -112,11 +112,11 @@ shape: (5, 4)
 
 ```
 
-100 simulations, as in example above, produce a very rough estimation. In practice, a larger number of simulations is recommended. The default is `10_000`.
+100 simulations, as in the example above, produce a very rough estimate. In practice, a larger number of simulations, such as the default `10_000`, is recommended.
 
 ## Simulating experiments with treatment
 
-To simulate experiments with treatment, define the treatment function that takes data in the form of a PyArrow Table and returns a PyArrow Table with the modified data:
+To simulate experiments with treatment, define a treatment function that takes data in the form of a PyArrow Table and returns a PyArrow Table with the modified data:
 
 ```pycon
 >>> import pyarrow as pa
@@ -145,11 +145,11 @@ shape: (5, 4)
 
 ```
 
-In the example above, we've defined a function that increases the number of orders and the revenue by 10%. For these metrics, the proportion of rejected null hypotheses is an estimation of statistical power.
+In the example above, we've defined a function that increases the number of orders and the revenue by 10%. For these metrics, the proportion of rejected null hypotheses is an estimate of statistical power.
 
-## Using function instead of data
+## Using a function instead of static data
 
-You can use a function instead of a static dataset, as an input data. The functions should take a instance of `numpy.random.Generator` as a named parameter `seed` and return experimental data in any format supported by **tea-tasting**.
+You can use a function instead of static data to generate input dynamically. The function should take an instance of `numpy.random.Generator` as a parameter named `seed` and return experimental data in any format supported by **tea-tasting**.
 
 As an example, let's use the `make_users_data` function.
 
@@ -171,11 +171,11 @@ shape: (5, 4)
 
 ```
 
-In each iteration, **tea-tasting** calls `make_users_data` with a new `seed` and uses the returned data for the analysis of the experiment. Data returned by `make_users_data` already contain the `"variant"` column, so **tea-tasting** reuses that split. By default, `make_users_data` also adds the treatment uplift, and you can see it in the proportion of rejected null hypotheses.
+On each iteration, **tea-tasting** calls `make_users_data` with a new `seed` and uses the returned data for the analysis of the experiment. The data returned by `make_users_data` already contains the `"variant"` column, so **tea-tasting** reuses that split. By default, `make_users_data` also adds the treatment uplift, and you can see it in the proportion of rejected null hypotheses.
 
 ## Tracking progress
 
-To track the progress of simulations with [`tqdm.tqdm`](https://tqdm.github.io/) or [`marimo.status.progress_bar`](https://docs.marimo.io/api/status/#progress-bar) use the `progress` parameter.
+To track the progress of simulations with [`tqdm.tqdm`](https://tqdm.github.io/) or [`marimo.status.progress_bar`](https://docs.marimo.io/api/status/#progress-bar), use the `progress` parameter.
 
 ```pycon
 >>> import tqdm
@@ -187,7 +187,7 @@ To track the progress of simulations with [`tqdm.tqdm`](https://tqdm.github.io/)
 
 ## Parallel execution
 
-To speed up simulations and run them in parallel use the `map_` parameter with an alternative mapping function.
+To speed up simulations and run them in parallel, use the `map_` parameter with an alternative mapping function.
 
 ```pycon
 >>> import concurrent.futures
@@ -207,4 +207,4 @@ To speed up simulations and run them in parallel use the `map_` parameter with a
 
 As an alternative to [`concurrent.futures.ProcessPoolExecutor`](https://docs.python.org/3/library/concurrent.futures.html#processpoolexecutor), you can use the `map`, `imap`, or `imap_unordered` methods of [`multiprocessing.pool.Pool`](https://docs.python.org/3/library/multiprocessing.html#module-multiprocessing.pool).
 
-It's also possible to run simulations on a distributed [dask](https://distributed.dask.org/en/stable/api.html#distributed.Client.map) or [ray](https://docs.ray.io/en/latest/ray-core/api/doc/ray.util.ActorPool.map.html#ray.util.ActorPool.map) cluster.
+It's also possible to run simulations on a distributed [Dask](https://distributed.dask.org/en/stable/api.html#distributed.Client.map) or [Ray](https://docs.ray.io/en/latest/ray-core/api/doc/ray.util.ActorPool.map.html#ray.util.ActorPool.map) cluster.
