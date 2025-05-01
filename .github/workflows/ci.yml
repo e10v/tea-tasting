@@ -56,9 +56,7 @@ jobs:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
       - name: install dependencies
-        run: |
-          uv sync --no-dev --resolution lowest-direct
-          uv sync --only-dev --group test
+        run: uv sync --group test --resolution lowest-direct
       - name: test-lowest with pytest
         run: pytest
   test:
