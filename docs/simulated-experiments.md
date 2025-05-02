@@ -128,8 +128,8 @@ To simulate experiments with treatment, define a treatment function that takes d
 ...         .append_column("orders", pc.multiply(data["orders"], pa.scalar(1.1)))
 ...         .append_column("revenue", pc.multiply(data["revenue"], pa.scalar(1.1)))
 ...     )
->>> results = experiment.simulate(data, 100, seed=42, treat=treat)
->>> null_rejected(results.to_polars())
+>>> results_treat = experiment.simulate(data, 100, seed=42, treat=treat)
+>>> null_rejected(results_treat.to_polars())
 shape: (5, 4)
 ┌────────────────────┬────────────────────┬────────────────────┬────────────────────┐
 │ metric             ┆ null_rejected_0.01 ┆ null_rejected_0.02 ┆ null_rejected_0.05 │
@@ -154,8 +154,8 @@ You can use a function instead of static data to generate input dynamically. The
 As an example, let's use the `make_users_data` function.
 
 ```pycon
->>> results = experiment.simulate(tt.make_users_data, 100, seed=42)
->>> null_rejected(results.to_polars())
+>>> results_data_gen = experiment.simulate(tt.make_users_data, 100, seed=42)
+>>> null_rejected(results_data_gen.to_polars())
 shape: (5, 4)
 ┌────────────────────┬────────────────────┬────────────────────┬────────────────────┐
 │ metric             ┆ null_rejected_0.01 ┆ null_rejected_0.02 ┆ null_rejected_0.05 │
@@ -180,7 +180,7 @@ To track the progress of simulations with [`tqdm.tqdm`](https://tqdm.github.io/)
 ```pycon
 >>> import tqdm
 
->>> results = experiment.simulate(data, 100, seed=42, progress=tqdm.tqdm)  # doctest: +SKIP
+>>> results_progress = experiment.simulate(data, 100, seed=42, progress=tqdm.tqdm)  # doctest: +SKIP
 100it [00:01, 73.19it/s]
 
 ```
@@ -193,7 +193,7 @@ To speed up simulations and run them in parallel, use the `map_` parameter with 
 >>> import concurrent.futures
 
 >>> with concurrent.futures.ProcessPoolExecutor() as executor:
-...     results = experiment.simulate(
+...     results_parallel = experiment.simulate(
 ...         data,
 ...         100,
 ...         seed=42,

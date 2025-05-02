@@ -215,8 +215,8 @@ Now we can perform the Mann-Whitney U test:
 ...     mwu_orders=MannWhitneyU("orders"),
 ...     mwu_revenue=MannWhitneyU("revenue"),
 ... )
->>> result = experiment_mwu.analyze(data)
->>> result.with_keys(("metric", "pvalue", "statistic"))
+>>> result_mwu = experiment_mwu.analyze(data)
+>>> result_mwu.with_keys(("metric", "pvalue", "statistic"))
      metric pvalue statistic
  mwu_orders 0.0263   2069092
 mwu_revenue 0.0300   2068060
