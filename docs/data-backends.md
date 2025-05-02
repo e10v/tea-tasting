@@ -83,7 +83,7 @@ Ibis Table is a lazy object. It doesn't fetch the data when created. You can use
 
 ```pycon
 >>> ibis.options.interactive = True
->>> data.head(5)
+>>> print(data.head(5))
 ┏━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━┓
 ┃ user  ┃ variant ┃ sessions ┃ orders ┃ revenue ┃
 ┡━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━┩
@@ -137,7 +137,7 @@ Aggregate[r0]
 
 ```pycon
 >>> ibis.options.interactive = True
->>> aggr_data  # doctest: +SKIP
+>>> print(aggr_data)  # doctest: +SKIP
 ┏━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┓
 ┃ variant ┃ sessions_per_user ┃ orders_per_session ┃ orders_per_user ┃ revenue_per_user ┃
 ┡━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━┩

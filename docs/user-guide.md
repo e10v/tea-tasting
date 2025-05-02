@@ -421,8 +421,8 @@ How variant pairs are determined:
 Example usage without specifying a control variant:
 
 ```pycon
->>> results = experiment.analyze(data_three_variants, all_variants=True)
->>> results
+>>> results_all = experiment.analyze(data_three_variants, all_variants=True)
+>>> results_all
 variants             metric control treatment rel_effect_size rel_effect_size_ci pvalue
   (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
   (0, 1) orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
