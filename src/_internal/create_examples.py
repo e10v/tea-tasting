@@ -83,9 +83,9 @@ re_doctest = re.compile(r"\s+# doctest:.*")
 def convert_code(code: str) -> str:
     lines = []
     for line in code.split("\n"):
-        if line.startswith((">>> ", "... ")) or line == "":
+        if line.startswith((">>> ", "... ")):
             lines.append(re_doctest.sub("", line[4:]))
-        elif line.startswith("<BLANKLINE>"):
+        elif line.startswith("<BLANKLINE>") or line == "":
             lines.append("")
     return "\n".join(lines)
 
