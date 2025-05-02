@@ -80,7 +80,7 @@ plugins:
   - search
 
 markdown_extensions:
-  - _strip_doctest_artifacts
+  - _build.strip_doctest_artifacts
   - admonition
   - pymdownx.details
   - pymdownx.superfences
