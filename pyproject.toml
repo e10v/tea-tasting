@@ -44,6 +44,7 @@ source = "https://github.com/e10v/tea-tasting"
 
 [dependency-groups]
 docs = ["mkdocs-material", "mkdocstrings[python]"]
+examples = ["marimo"]
 lint = ["pyright", "ruff"]
 test = [
     "coverage[toml]>=7",
