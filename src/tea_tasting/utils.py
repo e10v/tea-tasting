@@ -266,6 +266,17 @@ def get_and_format_num(data: dict[str, object], key: str) -> str:
     return format_num(val, sig=sig, pct=pct)
 
 
+def _cache_method(
+    method: Callable[[DictsReprMixinT], R],
+) -> Callable[[DictsReprMixinT], R]:
+    def cached_method(self: DictsReprMixinT) -> R:
+        if self._cache is None:
+            self._cache = {}
+        if method.__name__ not in self._cache:
+            self._cache[method.__name__] = method(self)
+        return self._cache[method.__name__]  # type: ignore
+    return cached_method
+
 class DictsReprMixin(abc.ABC):
     """Representation and conversion of a sequence of dictionaries.
 
@@ -281,21 +292,25 @@ class DictsReprMixin(abc.ABC):
         Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
         and format the interval as `"[{lower_bound}, {upper_bound}]"`.
     """
+    _cache: dict[str, object] | None = None
     default_keys: Sequence[str]
 
     @abc.abstractmethod
     def to_dicts(self) -> Sequence[dict[str, object]]:
         """Convert the object to a sequence of dictionaries."""
 
+    @_cache_method
     def to_arrow(self) -> pa.Table:
         """Convert the object to a PyArrow Table."""
         return pa.Table.from_pylist(self.to_dicts())
 
+    @_cache_method
     def to_pandas(self) -> pd.DataFrame:
         """Convert the object to a Pandas DataFrame."""
         import pandas as pd
         return pd.DataFrame.from_records(self.to_dicts())
 
+    @_cache_method
     def to_polars(self) -> pl.DataFrame:
         """Convert the object to a Polars DataFrame."""
         import polars as pl
@@ -450,17 +465,21 @@ class DictsReprMixin(abc.ABC):
         """
         new_instance = self.__class__.__new__(self.__class__)
         new_instance.__dict__.update(self.__dict__)
+        new_instance._cache = None
         new_instance.default_keys = keys
         return new_instance
 
+    @_cache_method
     def _repr_html_(self) -> str:
         """Object HTML representation."""
         return self.to_html()
 
+    @_cache_method
     def __repr__(self) -> str:
         """Object representation."""
-        return self.to_string()
+        return self.__str__()
 
+    @_cache_method
     def __str__(self) -> str:
         """Object string representation."""
         return self.to_string()

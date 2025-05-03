@@ -46,6 +46,7 @@ class ExperimentResult(
         "pvalue",
     )
 
+    @tea_tasting.utils._cache_method
     def to_dicts(self) -> tuple[dict[str, object], ...]:
         """Convert the result to a sequence of dictionaries.
 
@@ -107,6 +108,7 @@ class ExperimentResults(
         "pvalue",
     )
 
+    @tea_tasting.utils._cache_method
     def to_dicts(self) -> tuple[dict[str, object], ...]:
         """Convert the results to a sequence of dictionaries."""
         return tuple(
@@ -131,14 +133,13 @@ class SimulationResults(tea_tasting.utils.DictsReprMixin, UserList[ExperimentRes
     )
     _dicts: tuple[dict[str, object], ...] | None = None
 
+    @tea_tasting.utils._cache_method
     def to_dicts(self) -> tuple[dict[str, object], ...]:
         """Convert the results to a sequence of dictionaries."""
-        if self._dicts is None:
-            self._dicts = tuple(itertools.chain.from_iterable(
-                experiment_result.to_dicts()
-                for experiment_result in self
-            ))
-        return self._dicts
+        return tuple(itertools.chain.from_iterable(
+            experiment_result.to_dicts()
+            for experiment_result in self
+        ))
 
 
 class ExperimentPowerResult(
@@ -148,6 +149,7 @@ class ExperimentPowerResult(
     """Result of the analysis of power in a experiment."""
     default_keys = ("metric", "power", "effect_size", "rel_effect_size", "n_obs")
 
+    @tea_tasting.utils._cache_method
     def to_dicts(self) -> tuple[dict[str, object], ...]:
         """Convert the result to a sequence of dictionaries."""
         dicts = ()
