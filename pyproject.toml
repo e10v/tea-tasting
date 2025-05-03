@@ -45,7 +45,7 @@ source = "https://github.com/e10v/tea-tasting"
 [dependency-groups]
 docs = ["mkdocs-material", "mkdocstrings[python]"]
 examples = ["marimo"]
-lint = ["pyright", "ruff"]
+lint = ["markdown", "marimo", "pyright", "ruff"]
 test = [
     "coverage[toml]>=7",
     "ibis-framework[duckdb,sqlite]",
@@ -75,6 +75,7 @@ doctest.cmd = [
     "--doctest-continue-on-failure",
     "--doctest-glob=*.md",
     "--doctest-modules",
+    "--ignore=examples/",
     "--ignore=tests/",
     "--ignore-glob=src/_*",
 ]
