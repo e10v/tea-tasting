@@ -293,6 +293,7 @@ class DictsReprMixin(abc.ABC):
         and format the interval as `"[{lower_bound}, {upper_bound}]"`.
     """
     _cache: dict[str, object] | None = None
+    _pagination: bool = False
     default_keys: Sequence[str]
 
     @abc.abstractmethod
@@ -476,7 +477,7 @@ class DictsReprMixin(abc.ABC):
 
             return mo.ui.table(  # type: ignore
                 self.to_pretty_dicts(),  # type: ignore
-                pagination=True,
+                pagination=self._pagination,
                 selection=None,
             )._mime_()
         except Exception:  # noqa: BLE001
