@@ -38,7 +38,7 @@ def convert_guide(name: str, deps: tuple[str, ...]) -> None:
         else:
             end_of_code = text.find("```")
             md = text[end_of_code + 3:]
-            sources.append(convert_code(text[:end_of_code].strip()))
+            sources.append(convert_code(text[:end_of_code]))
             cell_configs.append(SHOW_CODE)
 
         sources.append(marimo._convert.utils.markdown_to_marimo(
@@ -72,7 +72,7 @@ def convert_code(code: str) -> str:
             lines.append(RE_DOCTEST.sub("", line[4:]))
         elif line.startswith("<BLANKLINE>") or line == "":
             lines.append("")
-    return "\n".join(lines)
+    return "\n".join(lines).strip()
 
 
 def create_header_comments(deps: tuple[str, ...]) -> str:

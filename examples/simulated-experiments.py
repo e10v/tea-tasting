@@ -176,7 +176,7 @@ def _(mo):
 
         ## Tracking progress
 
-        To track the progress of simulations with [`tqdm.tqdm`](https://tqdm.github.io/), use the `progress` parameter.
+        To track the progress of simulations with [`tqdm`](https://github.com/tqdm/tqdm), use the `progress` parameter.
         """
     )
     return

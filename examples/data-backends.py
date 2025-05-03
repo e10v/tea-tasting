@@ -140,7 +140,6 @@ def _(data):
         revenue_per_user=data.revenue.mean(),
     )
     aggr_data
-
     return (aggr_data,)
 
 

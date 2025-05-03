@@ -155,8 +155,19 @@ By default, tea-tasting assumes that the variant with the lowest ID is a control
 [`ExperimentResult`](api/experiment.md#tea_tasting.experiment.ExperimentResult) is a mapping. Get a metric's analysis result using metric name as a key.
 
 ```pycon
->>> result["orders_per_user"]
-MeanResult(control=0.5304003954522986, treatment=0.5730905412240769, effect_size=0.04269014577177832, effect_size_ci_lower=-0.010800201598205515, effect_size_ci_upper=0.09618049314176216, rel_effect_size=0.08048664016431273, rel_effect_size_ci_lower=-0.019515294044061937, rel_effect_size_ci_upper=0.1906880061278886, pvalue=np.float64(0.11773177998716214), statistic=1.5647028839586707)
+>>> import pprint
+
+>>> pprint.pprint(result["orders_per_user"]._asdict())
+{'control': 0.5304003954522986,
+ 'effect_size': 0.04269014577177832,
+ 'effect_size_ci_lower': -0.010800201598205515,
+ 'effect_size_ci_upper': 0.09618049314176216,
+ 'pvalue': np.float64(0.11773177998716214),
+ 'rel_effect_size': 0.08048664016431273,
+ 'rel_effect_size_ci_lower': -0.019515294044061937,
+ 'rel_effect_size_ci_upper': 0.1906880061278886,
+ 'statistic': 1.5647028839586707,
+ 'treatment': 0.5730905412240769}
 
 ```
 
@@ -350,8 +361,13 @@ Use [`set_config`](api/config.md#tea_tasting.config.set_config) to set a global 
 ...     revenue_per_user=tt.Mean("revenue"),
 ... )
 >>> tt.set_config(equal_var=False, use_t=True)
->>> experiment_with_config.metrics["orders_per_user"]
-Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
+>>> orders_per_user = experiment_with_config.metrics["orders_per_user"]
+>>> print(
+...     f"orders_per_user.equal_var: {orders_per_user.equal_var}\n"
+...     f"orders_per_user.use_t: {orders_per_user.use_t}"
+... )
+orders_per_user.equal_var: True
+orders_per_user.use_t: False
 
 ```
 
@@ -365,14 +381,18 @@ Use [`config_context`](api/config.md#tea_tasting.config.config_context) to tempo
 ...         orders_per_user=tt.Mean("orders"),
 ...         revenue_per_user=tt.Mean("revenue"),
 ...     )
->>> tt.get_config("equal_var")
-False
-
->>> tt.get_config("use_t")
-True
-
->>> experiment_within_context.metrics["orders_per_user"]
-Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
+>>> orders_per_user_context = experiment_with_config.metrics["orders_per_user"]
+>>> print(
+...     f"global_config.equal_var: {tt.get_config('equal_var')}\n"
+...     f"global_config.use_t: {tt.get_config('use_t')}\n\n"
+...     f"orders_per_user_context.equal_var: {orders_per_user_context.equal_var}\n"
+...     f"orders_per_user_context.use_t: {orders_per_user_context.use_t}"
+... )
+global_config.equal_var: False
+global_config.use_t: True
+<BLANKLINE>
+orders_per_user_context.equal_var: True
+orders_per_user_context.use_t: False
 
 ```
 

@@ -177,7 +177,7 @@ On each iteration, tea-tasting calls `make_users_data` with a new `seed` and use
 
 ## Tracking progress
 
-To track the progress of simulations with [`tqdm.tqdm`](https://tqdm.github.io/), use the `progress` parameter.
+To track the progress of simulations with [`tqdm`](https://github.com/tqdm/tqdm), use the `progress` parameter.
 
 ```pycon
 >>> import tqdm
