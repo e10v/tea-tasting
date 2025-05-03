@@ -477,7 +477,7 @@ class DictsReprMixin(abc.ABC):
     @_cache_method
     def __repr__(self) -> str:
         """Object representation."""
-        return self.to_string()
+        return self.__str__()
 
     @_cache_method
     def __str__(self) -> str:
