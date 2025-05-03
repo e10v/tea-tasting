@@ -80,7 +80,13 @@ def _(data, tt):
         "rel_effect_size_ci_upper",
         "pvalue",
     )
-    return experiment, results_data
+    return experiment, results, results_data
+
+
+@app.cell
+def _(results):
+    results
+    return
 
 
 @app.cell(hide_code=True)
