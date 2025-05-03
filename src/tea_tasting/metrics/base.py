@@ -43,6 +43,7 @@ class MetricPowerResults(tea_tasting.utils.DictsReprMixin, UserList[P]):
     """Power analysis results."""
     default_keys = ("power", "effect_size", "rel_effect_size", "n_obs")
 
+    @tea_tasting.utils._cache_method
     def to_dicts(self) -> tuple[dict[str, object], ...]:
         """"Convert the results to a sequence of dictionaries."""
         return tuple((v if isinstance(v, dict) else v._asdict()) for v in self)

@@ -34,6 +34,7 @@ class MultipleComparisonsResults(
         "pvalue_adj",
     )
 
+    @tea_tasting.utils._cache_method
     def to_dicts(self) -> tuple[dict[str, object], ...]:
         """Convert the result to a sequence of dictionaries."""
         return tuple(
