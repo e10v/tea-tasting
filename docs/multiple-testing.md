@@ -2,13 +2,15 @@
 
 ## Multiple hypothesis testing problem
 
-???+ note
+/// admonition | Note
 
-    This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. Install Polars in addition to tea-tasting to reproduce the examples:
+This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. Install Polars in addition to tea-tasting to reproduce the examples:
 
-    ```bash
-    pip install polars
-    ```
+```bash
+pip install polars
+```
+
+///
 
 The [multiple hypothesis testing problem](https://en.wikipedia.org/wiki/Multiple_comparisons_problem) arises when there is more than one success metric or more than one treatment variant in an A/B test.
 

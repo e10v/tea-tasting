@@ -378,13 +378,15 @@ Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0
 
 ### More than two variants
 
-???+ note
+/// admonition | Note
 
-    This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. Install Polars in addition to tea-tasting to reproduce the examples:
+This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. Install Polars in addition to tea-tasting to reproduce the examples:
 
-    ```bash
-    pip install polars
-    ```
+```bash
+pip install polars
+```
+
+///
 
 In tea-tasting, it's possible to analyze experiments with more than two variants. However, the variants will be compared in pairs through two-sample statistical tests.
 
