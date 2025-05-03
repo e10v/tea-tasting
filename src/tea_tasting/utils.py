@@ -469,6 +469,19 @@ class DictsReprMixin(abc.ABC):
         new_instance.default_keys = keys
         return new_instance
 
+    def _mime_(self) -> tuple[str, str]:
+        """"Object representation for marimo notebooks."""
+        try:
+            import marimo as mo
+
+            return mo.ui.table(  # type: ignore
+                self.to_pretty_dicts(),  # type: ignore
+                pagination=True,
+                selection=None,
+            )._mime_()
+        except Exception:  # noqa: BLE001
+            return "text/html", self._repr_html_()
+
     @_cache_method
     def _repr_html_(self) -> str:
         """Object HTML representation."""

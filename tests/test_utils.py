@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import builtins
 import math
 import textwrap
+import unittest.mock
 
 import pandas as pd
 import pandas.testing
@@ -255,6 +257,21 @@ def test_dicts_repr_mixin_to_html_indent(
 
 def test_dicts_repr_mixin_with_keys(dicts_repr: tea_tasting.utils.DictsReprMixin):
     assert dicts_repr.with_keys(("c", "d")).default_keys == ("c", "d")
+
+def test_dicts_repr_mixin_mime_marimo(dicts_repr: tea_tasting.utils.DictsReprMixin):
+    mime_type, data = dicts_repr._mime_()
+    assert mime_type == "text/html"
+    assert data.startswith("<marimo-ui-element")
+
+def test_dicts_repr_mixin_mime_exception(dicts_repr: tea_tasting.utils.DictsReprMixin):
+    def import_side_effect(name, *args, **kwargs):  # type: ignore  # noqa: ANN001, ANN002, ANN003, ANN202
+        if name == "marimo":
+            raise ImportError("No module named 'marimo'")
+        return builtins.__import__(name, *args, **kwargs)
+    with unittest.mock.patch("builtins.__import__", side_effect=import_side_effect):
+        mime_type, data = dicts_repr._mime_()
+    assert mime_type == "text/html"
+    assert data.startswith('<table class="dataframe"')
 
 def test_dicts_repr_mixin_repr_html(dicts_repr: tea_tasting.utils.DictsReprMixin):
     assert dicts_repr._repr_html_() == (
