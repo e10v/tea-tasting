@@ -3,7 +3,8 @@
 # dependencies = [
 #     "ibis-framework[duckdb]",
 #     "marimo",
-#     "polars",
+#     "polars>=1.9",
+#     "pyarrow>=20",
 #     "tea-tasting",
 # ]
 # ///
