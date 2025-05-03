@@ -94,6 +94,7 @@ exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover", "@overload", "@abc.abs
 
 
 [tool.ruff]
+extend-exclude = ["examples"]
 src = ["src"]
 
 [tool.ruff.lint]
@@ -124,6 +125,7 @@ max-args = 8
 
 
 [tool.pyright]
+exclude = ["examples", "**/node_modules", "**/__pycache__", "**/.*"]
 typeCheckingMode = "strict"
 reportMissingTypeStubs = false
 reportPrivateUsage = false
