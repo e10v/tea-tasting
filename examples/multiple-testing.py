@@ -14,38 +14,35 @@ app = marimo.App()
 
 
 @app.cell(hide_code=True)
-def _():
-    import marimo as mo
-    return (mo,)
-
-
-@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
-        <h1 id="multiple-testing">Multiple testing</h1>
-        <h2 id="multiple-hypothesis-testing-problem">Multiple hypothesis testing problem</h2>
-        <details class="note" open="open">
-        <summary>Note</summary>
-        <p>This guide uses <a href="https://github.com/pola-rs/polars" target="_blank">Polars</a> as an example data backend. Install Polars in addition to tea-tasting to reproduce the examples:</p>
-        <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>polars
-        </code></pre></div>
-        </details>
-        <p>The <a href="https://en.wikipedia.org/wiki/Multiple_comparisons_problem" target="_blank">multiple hypothesis testing problem</a> arises when there is more than one success metric or more than one treatment variant in an A/B test.</p>
-        <p>tea-tasting provides the following methods for multiple testing correction:</p>
-        <ul>
-        <li><a href="https://en.wikipedia.org/wiki/False_discovery_rate" target="_blank">False discovery rate</a> (FDR) controlling procedures:<ul>
-        <li>Benjamini-Hochberg procedure, assuming non-negative correlation between hypotheses.</li>
-        <li>Benjamini-Yekutieli procedure, assuming arbitrary dependence between hypotheses.</li>
-        </ul>
-        </li>
-        <li><a href="https://en.wikipedia.org/wiki/Family-wise_error_rate" target="_blank">Family-wise error rate</a> (FWER) controlling procedures:<ul>
-        <li>Hochberg's step-up procedure, assuming non-negative correlation between hypotheses.</li>
-        <li>Holm's step-down procedure, assuming arbitrary dependence between hypotheses.</li>
-        </ul>
-        </li>
-        </ul>
-        <p>As an example, consider an experiment with three variants, a control and two treatments:</p>
+        # Multiple testing
+
+        ## Multiple hypothesis testing problem
+
+        /// admonition | Note
+
+        This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. Install Polars in addition to tea-tasting to reproduce the examples:
+
+        ```bash
+        pip install polars
+        ```
+
+        ///
+
+        The [multiple hypothesis testing problem](https://en.wikipedia.org/wiki/Multiple_comparisons_problem) arises when there is more than one success metric or more than one treatment variant in an A/B test.
+
+        tea-tasting provides the following methods for multiple testing correction:
+
+        - [False discovery rate](https://en.wikipedia.org/wiki/False_discovery_rate) (FDR) controlling procedures:
+            - Benjamini-Hochberg procedure, assuming non-negative correlation between hypotheses.
+            - Benjamini-Yekutieli procedure, assuming arbitrary dependence between hypotheses.
+        - [Family-wise error rate](https://en.wikipedia.org/wiki/Family-wise_error_rate) (FWER) controlling procedures:
+            - Hochberg's step-up procedure, assuming non-negative correlation between hypotheses.
+            - Holm's step-down procedure, assuming arbitrary dependence between hypotheses.
+
+        As an example, consider an experiment with three variants, a control and two treatments:
         """
     )
     return
@@ -80,7 +77,7 @@ def _():
 def _(mo):
     mo.md(
         r"""
-        <p>Let's calculate the experiment results:</p>
+        Let's calculate the experiment results:
         """
     )
     return
@@ -103,7 +100,7 @@ def _(data, tt):
 def _(mo):
     mo.md(
         r"""
-        <p>Suppose only the two metrics <code>orders_per_user</code> and <code>revenue_per_user</code> are considered as success metrics, while the other two metrics <code>sessions_per_user</code> and <code>orders_per_session</code> are second-order diagnostic metrics.</p>
+        Suppose only the two metrics `orders_per_user` and `revenue_per_user` are considered as success metrics, while the other two metrics `sessions_per_user` and `orders_per_session` are second-order diagnostic metrics.
         """
     )
     return
@@ -119,9 +116,11 @@ def _():
 def _(mo):
     mo.md(
         r"""
-        <p>With two treatment variants and two success metrics, there are four hypotheses in total, which increases the probability of false positives (also called "false discoveries"). It's recommended to adjust the p-values or the significance level (alpha) in this case. Let's explore the correction methods provided by tea-tasting.</p>
-        <h2 id="false-discovery-rate">False discovery rate</h2>
-        <p>False discovery rate (FDR) is the expected value of the proportion of false discoveries among the discoveries (rejections of the null hypothesis). To control for FDR, use the <a href="https://tea-tasting.e10v.me/api/multiplicity/#tea_tasting.multiplicity.adjust_fdr" target="_blank"><code>adjust_fdr</code></a> method:</p>
+        With two treatment variants and two success metrics, there are four hypotheses in total, which increases the probability of false positives (also called "false discoveries"). It's recommended to adjust the p-values or the significance level (alpha) in this case. Let's explore the correction methods provided by tea-tasting.
+
+        ## False discovery rate
+
+        False discovery rate (FDR) is the expected value of the proportion of false discoveries among the discoveries (rejections of the null hypothesis). To control for FDR, use the [`adjust_fdr`](https://tea-tasting.e10v.me/api/multiplicity/#tea_tasting.multiplicity.adjust_fdr) method:
         """
     )
     return
@@ -138,8 +137,9 @@ def _(metrics, results, tt):
 def _(mo):
     mo.md(
         r"""
-        <p>The method adjusts p-values and saves them as <code>pvalue_adj</code>. Compare these values to the desired significance level alpha to determine if the null hypotheses can be rejected.</p>
-        <p>The method also adjusts the significance level alpha and saves it as <code>alpha_adj</code>. Compare non-adjusted p-values (<code>pvalue</code>) to the <code>alpha_adj</code> to determine if the null hypotheses can be rejected:</p>
+        The method adjusts p-values and saves them as `pvalue_adj`. Compare these values to the desired significance level alpha to determine if the null hypotheses can be rejected.
+
+        The method also adjusts the significance level alpha and saves it as `alpha_adj`. Compare non-adjusted p-values (`pvalue`) to the `alpha_adj` to determine if the null hypotheses can be rejected:
         """
     )
     return
@@ -163,7 +163,7 @@ def _(adjusted_results_fdr):
 def _(mo):
     mo.md(
         r"""
-        <p>By default, tea-tasting assumes non-negative correlation between hypotheses and performs the Benjamini-Hochberg procedure. To perform the Benjamini-Yekutieli procedure, assuming arbitrary dependence between hypotheses, set the <code>arbitrary_dependence</code> parameter to <code>True</code>:</p>
+        By default, tea-tasting assumes non-negative correlation between hypotheses and performs the Benjamini-Hochberg procedure. To perform the Benjamini-Yekutieli procedure, assuming arbitrary dependence between hypotheses, set the `arbitrary_dependence` parameter to `True`:
         """
     )
     return
@@ -179,8 +179,9 @@ def _(metrics, results, tt):
 def _(mo):
     mo.md(
         r"""
-        <h2 id="family-wise-error-rate">Family-wise error rate</h2>
-        <p>Family-wise error rate (FWER) is the probability of making at least one type I error. To control for FWER, use the <a href="https://tea-tasting.e10v.me/api/multiplicity/#tea_tasting.multiplicity.adjust_fwer" target="_blank"><code>adjust_fwer</code></a> method:</p>
+        ## Family-wise error rate
+
+        Family-wise error rate (FWER) is the probability of making at least one type I error. To control for FWER, use the [`adjust_fwer`](https://tea-tasting.e10v.me/api/multiplicity/#tea_tasting.multiplicity.adjust_fwer) method:
         """
     )
     return
@@ -196,8 +197,9 @@ def _(metrics, results, tt):
 def _(mo):
     mo.md(
         r"""
-        <p>By default, tea-tasting assumes non-negative correlation between hypotheses and performs the Hochberg's step-up procedure with the Šidák correction, which is slightly more powerful than the Bonferroni correction.</p>
-        <p>To perform the Holm's step-down procedure, assuming arbitrary dependence between hypotheses, set the <code>arbitrary_dependence</code> parameter to <code>True</code>. In this case, it's recommended to use the Bonferroni correction, since the Šidák correction assumes non-negative correlation between hypotheses:</p>
+        By default, tea-tasting assumes non-negative correlation between hypotheses and performs the Hochberg's step-up procedure with the Šidák correction, which is slightly more powerful than the Bonferroni correction.
+
+        To perform the Holm's step-down procedure, assuming arbitrary dependence between hypotheses, set the `arbitrary_dependence` parameter to `True`. In this case, it's recommended to use the Bonferroni correction, since the Šidák correction assumes non-negative correlation between hypotheses:
         """
     )
     return
@@ -218,8 +220,9 @@ def _(metrics, results, tt):
 def _(mo):
     mo.md(
         r"""
-        <h2 id="other-inputs">Other inputs</h2>
-        <p>In the examples above, the methods <code>adjust_fdr</code> and <code>adjust_fwer</code> received results from a <em>single experiment</em> with <em>more than two variants</em>. They can also accept the results from <em>multiple experiments</em> with <em>two variants</em> in each:</p>
+        ## Other inputs
+
+        In the examples above, the methods `adjust_fdr` and `adjust_fwer` received results from a *single experiment* with *more than two variants*. They can also accept the results from *multiple experiments* with *two variants* in each:
         """
     )
     return
@@ -242,7 +245,7 @@ def _(experiment, metrics, tt):
 def _(mo):
     mo.md(
         r"""
-        <p>The methods <code>adjust_fdr</code> and <code>adjust_fwer</code> can also accept the result of <em>a single experiment with two variants</em>:</p>
+        The methods `adjust_fdr` and `adjust_fwer` can also accept the result of *a single experiment with two variants*:
         """
     )
     return
@@ -262,6 +265,12 @@ def _(mo):
         """
     )
     return
+
+
+@app.cell(hide_code=True)
+def _():
+    import marimo as mo
+    return (mo,)
 
 
 if __name__ == "__main__":

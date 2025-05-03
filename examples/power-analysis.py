@@ -13,23 +13,18 @@ app = marimo.App()
 
 
 @app.cell(hide_code=True)
-def _():
-    import marimo as mo
-    return (mo,)
-
-
-@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
-        <h1 id="power-analysis">Power analysis</h1>
-        <p>In tea-tasting, you can analyze the statistical power for <code>Mean</code> and <code>RatioOfMeans</code> metrics. There are three possible options:</p>
-        <ul>
-        <li>Calculate the effect size, given statistical power and the total number of observations.</li>
-        <li>Calculate the total number of observations, given statistical power and the effect size.</li>
-        <li>Calculate statistical power, given the effect size and the total number of observations.</li>
-        </ul>
-        <p>In this example, tea-tasting calculates statistical power given the relative effect size and the number of observations:</p>
+        # Power analysis
+
+        In tea-tasting, you can analyze the statistical power for `Mean` and `RatioOfMeans` metrics. There are three possible options:
+
+        - Calculate the effect size, given statistical power and the total number of observations.
+        - Calculate the total number of observations, given statistical power and the effect size.
+        - Calculate statistical power, given the effect size and the total number of observations.
+
+        In this example, tea-tasting calculates statistical power given the relative effect size and the number of observations:
         """
     )
     return
@@ -55,16 +50,17 @@ def _():
 def _(mo):
     mo.md(
         r"""
-        <p>Besides <code>alternative</code>, <code>equal_var</code>, <code>use_t</code>, and covariates (CUPED), the following metric parameters affect the result:</p>
-        <ul>
-        <li><code>alpha</code>: Significance level.</li>
-        <li><code>ratio</code>: Ratio of the number of observations in the treatment relative to the control.</li>
-        <li><code>power</code>: Statistical power.</li>
-        <li><code>effect_size</code> and <code>rel_effect_size</code>: Absolute and relative effect size. Only one of them can be defined.</li>
-        <li><code>n_obs</code>: Number of observations in the control and in the treatment together. If the number of observations is not set explicitly, it's inferred from the dataset.</li>
-        </ul>
-        <p>You can change the default values of <code>alpha</code>, <code>ratio</code>, <code>power</code>, and <code>n_obs</code> using the <a href="https://tea-tasting.e10v.me/user-guide/#global-settings" target="_blank">global settings</a>.</p>
-        <p>tea-tasting can analyze power for several values of parameters <code>effect_size</code>, <code>rel_effect_size</code>, or <code>n_obs</code>. Example:</p>
+        Besides `alternative`, `equal_var`, `use_t`, and covariates (CUPED), the following metric parameters affect the result:
+
+        - `alpha`: Significance level.
+        - `ratio`: Ratio of the number of observations in the treatment relative to the control.
+        - `power`: Statistical power.
+        - `effect_size` and `rel_effect_size`: Absolute and relative effect size. Only one of them can be defined.
+        - `n_obs`: Number of observations in the control and in the treatment together. If the number of observations is not set explicitly, it's inferred from the dataset.
+
+        You can change the default values of `alpha`, `ratio`, `power`, and `n_obs` using the [global settings](https://tea-tasting.e10v.me/user-guide/#global-settings).
+
+        tea-tasting can analyze power for several values of parameters `effect_size`, `rel_effect_size`, or `n_obs`. Example:
         """
     )
     return
@@ -81,7 +77,7 @@ def _(data, tt):
 def _(mo):
     mo.md(
         r"""
-        <p>You can analyze power for all metrics in the experiment. Example:</p>
+        You can analyze power for all metrics in the experiment. Example:
         """
     )
     return
@@ -110,11 +106,18 @@ def _(data, tt):
 def _(mo):
     mo.md(
         r"""
-        <p>In the example above, tea-tasting calculates both the relative and absolute effect size for all metrics for two possible sample size values, <code>10_000</code> and <code>20_000</code>.</p>
-        <p>The <code>solve_power</code> methods of a <a href="https://tea-tasting.e10v.me/api/metrics/mean/#tea_tasting.metrics.mean.Mean.solve_power" target="_blank">metric</a> and of an <a href="https://tea-tasting.e10v.me/api/experiment/#tea_tasting.experiment.Experiment.solve_power" target="_blank">experiment</a> return the instances of <a href="https://tea-tasting.e10v.me/api/metrics/base/#tea_tasting.metrics.base.MetricPowerResults" target="_blank"><code>MetricPowerResults</code></a> and <a href="https://tea-tasting.e10v.me/api/experiment/#tea_tasting.experiment.ExperimentPowerResult" target="_blank"><code>ExperimentPowerResult</code></a> respectively. These result classes provide the serialization methods similar to the experiment result: <code>to_dicts</code>, <code>to_arrow</code>, <code>to_pandas</code>, <code>to_polars</code>, <code>to_pretty_dicts</code>, <code>to_string</code>, <code>to_html</code>. They are also rendered as HTML tables in IPython, Jupyter, or Marimo.</p>
+        In the example above, tea-tasting calculates both the relative and absolute effect size for all metrics for two possible sample size values, `10_000` and `20_000`.
+
+        The `solve_power` methods of a [metric](https://tea-tasting.e10v.me/api/metrics/mean/#tea_tasting.metrics.mean.Mean.solve_power) and of an [experiment](https://tea-tasting.e10v.me/api/experiment/#tea_tasting.experiment.Experiment.solve_power) return the instances of [`MetricPowerResults`](https://tea-tasting.e10v.me/api/metrics/base/#tea_tasting.metrics.base.MetricPowerResults) and [`ExperimentPowerResult`](https://tea-tasting.e10v.me/api/experiment/#tea_tasting.experiment.ExperimentPowerResult) respectively. These result classes provide the serialization methods similar to the experiment result: `to_dicts`, `to_arrow`, `to_pandas`, `to_polars`, `to_pretty_dicts`, `to_string`, `to_html`. They are also rendered as HTML tables in IPython, Jupyter, or Marimo.
         """
     )
     return
+
+
+@app.cell(hide_code=True)
+def _():
+    import marimo as mo
+    return (mo,)
 
 
 if __name__ == "__main__":

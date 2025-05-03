@@ -1,4 +1,5 @@
-"""Create marimo examples."""
+"""Convert guides to examples as marimo notebooks."""
+# pyright: reportPrivateImportUsage=false
 
 from __future__ import annotations
 
@@ -7,7 +8,6 @@ import textwrap
 
 import marimo._ast.cell
 import marimo._convert.utils
-import markdown
 
 
 GUIDES = {
@@ -24,12 +24,12 @@ def convert_guide(name: str, deps: tuple[str, ...]) -> None:
     with open(f"docs/{name}.md") as f:
         guide_text = f.read()
 
-    sources = ["import marimo as mo"]
-    hide_code = marimo._ast.cell.CellConfig(hide_code=True)  # type: ignore
-    show_code = marimo._ast.cell.CellConfig(hide_code=False)  # type: ignore
-    cell_configs = [hide_code]
+    sources = []
+    cell_configs = []
+    hide_code = marimo._ast.cell.CellConfig(hide_code=True)
+    show_code = marimo._ast.cell.CellConfig(hide_code=False)
     for text in guide_text.split("```pycon"):
-        if len(sources) == 1:
+        if len(sources) == 0:
             md = text
         else:
             end_of_code = text.find("```")
@@ -37,14 +37,13 @@ def convert_guide(name: str, deps: tuple[str, ...]) -> None:
             cell_configs.append(show_code)
             md = text[end_of_code + 3:]
 
-        html = markdown.markdown(re_link.sub(update_link, md.strip()), extensions=[
-            "attr_list",
-            "pymdownx.details",
-            "pymdownx.superfences",
-            "toc",
-        ])
-        sources.append(marimo._convert.utils.markdown_to_marimo(html))
+        sources.append(marimo._convert.utils.markdown_to_marimo(
+            re_link.sub(update_link, md.strip()),
+        ))
         cell_configs.append(hide_code)
+
+    sources.append("import marimo as mo")
+    cell_configs.append(hide_code)
 
     dependencies = "\n".join(
         f'#     "{dep}",'
@@ -74,8 +73,7 @@ def update_link(match: re.Match[str]) -> str:
     label = match.group(1)
     url = match.group(2).replace(".md", "/")
     root = "" if url.startswith("http") else "https://tea-tasting.e10v.me/"
-    attr = '{: target="_blank"}'
-    return f"[{label}]({root}{url}){attr}"
+    return f"[{label}]({root}{url})"
 
 
 re_doctest = re.compile(r"\s+# doctest:.*")
