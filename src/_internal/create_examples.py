@@ -19,6 +19,12 @@ GUIDES = {
     "simulated-experiments": ("polars",),
 }
 
+HIDE_CODE = marimo._ast.cell.CellConfig(hide_code=True)
+SHOW_CODE = marimo._ast.cell.CellConfig(hide_code=False)
+
+RE_LINK = re.compile(r"\[([^\]]+)\]\((?!#)([^)]+)\)")
+RE_DOCTEST = re.compile(r"\s+# doctest:.*")
+
 
 def convert_guide(name: str, deps: tuple[str, ...]) -> None:
     with open(f"docs/{name}.md") as f:
@@ -26,48 +32,31 @@ def convert_guide(name: str, deps: tuple[str, ...]) -> None:
 
     sources = []
     cell_configs = []
-    hide_code = marimo._ast.cell.CellConfig(hide_code=True)
-    show_code = marimo._ast.cell.CellConfig(hide_code=False)
     for text in guide_text.split("```pycon"):
         if len(sources) == 0:
             md = text
         else:
             end_of_code = text.find("```")
-            sources.append(convert_code(text[:end_of_code].strip()))
-            cell_configs.append(show_code)
             md = text[end_of_code + 3:]
+            sources.append(convert_code(text[:end_of_code].strip()))
+            cell_configs.append(SHOW_CODE)
 
         sources.append(marimo._convert.utils.markdown_to_marimo(
-            re_link.sub(update_link, md.strip()),
+            RE_LINK.sub(update_link, md.strip()),
         ))
-        cell_configs.append(hide_code)
+        cell_configs.append(HIDE_CODE)
 
     sources.append("import marimo as mo")
-    cell_configs.append(hide_code)
-
-    dependencies = "\n".join(
-        f'#     "{dep}",'
-        for dep in sorted((*deps, "marimo", "tea-tasting"))
-    )
-    header_comments = textwrap.dedent("""
-        # /// script
-        # requires-python = ">=3.10"
-        # dependencies = [
-        {dependencies}
-        # ]
-        # ///
-    """).format(dependencies=dependencies)
+    cell_configs.append(HIDE_CODE)
 
     code = marimo._convert.utils.generate_from_sources(
         sources=sources,
         cell_configs=cell_configs,
-        header_comments=header_comments,
+        header_comments=create_header_comments(deps),
     )
     with open(f"examples/{name}.py", "w") as f:
         f.write(code)
 
-
-re_link = re.compile(r"\[([^\]]+)\]\((?!#)([^)]+)\)")
 
 def update_link(match: re.Match[str]) -> str:
     label = match.group(1)
@@ -76,16 +65,29 @@ def update_link(match: re.Match[str]) -> str:
     return f"[{label}]({root}{url})"
 
 
-re_doctest = re.compile(r"\s+# doctest:.*")
-
 def convert_code(code: str) -> str:
     lines = []
     for line in code.split("\n"):
         if line.startswith((">>> ", "... ")):
-            lines.append(re_doctest.sub("", line[4:]))
+            lines.append(RE_DOCTEST.sub("", line[4:]))
         elif line.startswith("<BLANKLINE>") or line == "":
             lines.append("")
     return "\n".join(lines)
+
+
+def create_header_comments(deps: tuple[str, ...]) -> str:
+    dependencies = "\n".join(
+        f'#     "{dep}",'
+        for dep in sorted((*deps, "marimo", "tea-tasting"))
+    )
+    return textwrap.dedent("""
+        # /// script
+        # requires-python = ">=3.10"
+        # dependencies = [
+        {dependencies}
+        # ]
+        # ///
+    """).format(dependencies=dependencies)
 
 
 if __name__ == "__main__":
