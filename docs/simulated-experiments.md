@@ -189,6 +189,12 @@ To track the progress of simulations with [`tqdm`](https://github.com/tqdm/tqdm)
 
 ## Parallel execution
 
+/// admonition | Note
+
+The code below won't work in the [marimo online playground](https://docs.marimo.io/guides/publishing/playground/) as it relies on the `multiprocessing` module which is currently [not supported](https://docs.marimo.io/guides/wasm/#limitations) by WASM notebooks. [WASM notebooks](https://docs.marimo.io/guides/wasm/) are the marimo notebooks that run entirely in the browser.
+
+///
+
 To speed up simulations and run them in parallel, use the `map_` parameter with an alternative mapping function.
 
 ```pycon
