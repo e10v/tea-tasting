@@ -17,13 +17,15 @@ This guide:
 
 ## Demo database
 
-???+ note
+/// admonition | Note
 
-    This guide uses [DuckDB](https://github.com/duckdb/duckdb), an in-process analytical database, and [Polars](https://github.com/pola-rs/polars) as example data backends. Install these packages in addition to tea-tasting to reproduce the examples:
+This guide uses [DuckDB](https://github.com/duckdb/duckdb), an in-process analytical database, and [Polars](https://github.com/pola-rs/polars) as example data backends. Install these packages in addition to tea-tasting to reproduce the examples:
 
-    ```bash
-    pip install ibis-framework[duckdb] polars
-    ```
+```bash
+uv pip install ibis-framework[duckdb] polars
+```
+
+///
 
 First, let's prepare a demo database:
 
@@ -83,7 +85,7 @@ Ibis Table is a lazy object. It doesn't fetch the data when created. You can use
 
 ```pycon
 >>> ibis.options.interactive = True
->>> data.head(5)
+>>> print(data.head(5))
 ┏━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━┓
 ┃ user  ┃ variant ┃ sessions ┃ orders ┃ revenue ┃
 ┡━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━┩
@@ -137,7 +139,7 @@ Aggregate[r0]
 
 ```pycon
 >>> ibis.options.interactive = True
->>> aggr_data  # doctest: +SKIP
+>>> print(aggr_data)  # doctest: +SKIP
 ┏━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┓
 ┃ variant ┃ sessions_per_user ┃ orders_per_session ┃ orders_per_user ┃ revenue_per_user ┃
 ┡━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━┩
@@ -205,9 +207,9 @@ Some statistical methods, like bootstrap, require granular data for analysis. In
 An example of a slightly more complicated analysis using variance reduction with CUPED:
 
 ```pycon
->>> users_data_with_cov = tt.make_users_data(seed=42, covariates=True)
->>> con.create_table("users_data_with_cov", users_data_with_cov)
-DatabaseTable: memory.main.users_data_with_cov
+>>> users_data_cuped = tt.make_users_data(seed=42, covariates=True)
+>>> con.create_table("users_data_cuped", users_data_cuped)
+DatabaseTable: memory.main.users_data_cuped
   user               int64
   variant            int64
   sessions           int64
@@ -217,8 +219,8 @@ DatabaseTable: memory.main.users_data_with_cov
   orders_covariate   int64
   revenue_covariate  float64
 
->>> data_with_cov = con.sql("select * from users_data_with_cov")
->>> experiment_with_cov = tt.Experiment(
+>>> data_cuped = con.sql("select * from users_data_cuped")
+>>> experiment_cuped = tt.Experiment(
 ...     sessions_per_user=tt.Mean("sessions", "sessions_covariate"),
 ...     orders_per_session=tt.RatioOfMeans(
 ...         numer="orders",
@@ -229,8 +231,8 @@ DatabaseTable: memory.main.users_data_with_cov
 ...     orders_per_user=tt.Mean("orders", "orders_covariate"),
 ...     revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
 ... )
->>> result_with_cov = experiment_with_cov.analyze(data_with_cov)
->>> result_with_cov
+>>> result_cuped = experiment_cuped.analyze(data_cuped)
+>>> result_cuped
             metric control treatment rel_effect_size rel_effect_size_ci  pvalue
  sessions_per_user    2.00      1.98          -0.68%      [-3.2%, 1.9%]   0.603
 orders_per_session   0.262     0.293             12%        [4.2%, 21%] 0.00229

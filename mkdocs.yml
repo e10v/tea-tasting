@@ -80,9 +80,8 @@ plugins:
   - search
 
 markdown_extensions:
-  - _build.strip_doctest_artifacts
-  - admonition
-  - pymdownx.details
+  - _internal.strip_doctest_artifacts
+  - pymdownx.blocks.admonition
   - pymdownx.superfences
   - toc:
       permalink: "#"

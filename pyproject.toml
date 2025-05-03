@@ -44,7 +44,8 @@ source = "https://github.com/e10v/tea-tasting"
 
 [dependency-groups]
 docs = ["mkdocs-material", "mkdocstrings[python]"]
-lint = ["pyright", "ruff"]
+examples = ["marimo"]
+lint = ["markdown", "marimo", "pyright", "ruff"]
 test = [
     "coverage[toml]>=7",
     "ibis-framework[duckdb,sqlite]",
@@ -74,6 +75,7 @@ doctest.cmd = [
     "--doctest-continue-on-failure",
     "--doctest-glob=*.md",
     "--doctest-modules",
+    "--ignore=examples/",
     "--ignore=tests/",
     "--ignore-glob=src/_*",
 ]
@@ -93,6 +95,7 @@ exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover", "@overload", "@abc.abs
 
 
 [tool.ruff]
+extend-exclude = ["examples"]
 src = ["src"]
 
 [tool.ruff.lint]
@@ -123,6 +126,7 @@ max-args = 8
 
 
 [tool.pyright]
+exclude = ["examples", "**/node_modules", "**/__pycache__", "**/.*"]
 typeCheckingMode = "strict"
 reportMissingTypeStubs = false
 reportPrivateUsage = false

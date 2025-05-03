@@ -4,13 +4,15 @@
 
 In tea-tasting, you can run multiple simulated A/A or A/B tests. In each simulation, tea-tasting splits the data into control and treatment groups and can optionally modify the treatment data. A simulation without changing the treatment data is called an A/A test. A/A tests are useful for identifying potential issues before conducting the actual A/B test. Simulations where the treatment data is modified are useful for power analysis, especially when you need a specific uplift distribution or when an analytical solution isn't feasible.
 
-???+ note
+/// admonition | Note
 
-    This guide uses [Polars](https://github.com/pola-rs/polars) and [tqdm](https://github.com/tqdm/tqdm). Install these packages in addition to tea-tasting to reproduce the examples:
+This guide uses [Polars](https://github.com/pola-rs/polars) and [tqdm](https://github.com/tqdm/tqdm). Install these packages in addition to tea-tasting to reproduce the examples:
 
-    ```bash
-    pip install polars tqdm
-    ```
+```bash
+uv pip install polars tqdm
+```
+
+///
 
 ## Running A/A tests
 
@@ -128,8 +130,8 @@ To simulate experiments with treatment, define a treatment function that takes d
 ...         .append_column("orders", pc.multiply(data["orders"], pa.scalar(1.1)))
 ...         .append_column("revenue", pc.multiply(data["revenue"], pa.scalar(1.1)))
 ...     )
->>> results = experiment.simulate(data, 100, seed=42, treat=treat)
->>> null_rejected(results.to_polars())
+>>> results_treat = experiment.simulate(data, 100, seed=42, treat=treat)
+>>> null_rejected(results_treat.to_polars())
 shape: (5, 4)
 ┌────────────────────┬────────────────────┬────────────────────┬────────────────────┐
 │ metric             ┆ null_rejected_0.01 ┆ null_rejected_0.02 ┆ null_rejected_0.05 │
@@ -154,8 +156,8 @@ You can use a function instead of static data to generate input dynamically. The
 As an example, let's use the `make_users_data` function.
 
 ```pycon
->>> results = experiment.simulate(tt.make_users_data, 100, seed=42)
->>> null_rejected(results.to_polars())
+>>> results_data_gen = experiment.simulate(tt.make_users_data, 100, seed=42)
+>>> null_rejected(results_data_gen.to_polars())
 shape: (5, 4)
 ┌────────────────────┬────────────────────┬────────────────────┬────────────────────┐
 │ metric             ┆ null_rejected_0.01 ┆ null_rejected_0.02 ┆ null_rejected_0.05 │
@@ -175,17 +177,23 @@ On each iteration, tea-tasting calls `make_users_data` with a new `seed` and use
 
 ## Tracking progress
 
-To track the progress of simulations with [`tqdm.tqdm`](https://tqdm.github.io/) or [`marimo.status.progress_bar`](https://docs.marimo.io/api/status/#progress-bar), use the `progress` parameter.
+To track the progress of simulations with [`tqdm`](https://github.com/tqdm/tqdm), use the `progress` parameter.
 
 ```pycon
 >>> import tqdm
 
->>> results = experiment.simulate(data, 100, seed=42, progress=tqdm.tqdm)  # doctest: +SKIP
+>>> results_progress = experiment.simulate(data, 100, seed=42, progress=tqdm.tqdm)  # doctest: +SKIP
 100it [00:01, 73.19it/s]
 
 ```
 
 ## Parallel execution
+
+/// admonition | Note
+
+The code below won't work in the [marimo online playground](https://docs.marimo.io/guides/publishing/playground/) as it relies on the `multiprocessing` module which is currently [not supported](https://docs.marimo.io/guides/wasm/#limitations) by WASM notebooks. [WASM notebooks](https://docs.marimo.io/guides/wasm/) are the marimo notebooks that run entirely in the browser.
+
+///
 
 To speed up simulations and run them in parallel, use the `map_` parameter with an alternative mapping function.
 
@@ -193,7 +201,7 @@ To speed up simulations and run them in parallel, use the `map_` parameter with 
 >>> import concurrent.futures
 
 >>> with concurrent.futures.ProcessPoolExecutor() as executor:
-...     results = experiment.simulate(
+...     results_parallel = experiment.simulate(
 ...         data,
 ...         100,
 ...         seed=42,

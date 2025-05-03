@@ -37,6 +37,7 @@ jobs:
             --doctest-continue-on-failure \
             --doctest-glob=*.md \
             --doctest-modules \
+            --ignore=examples/ \
             --ignore=tests/ \
             --ignore-glob=src/_* \
   test-lowest:

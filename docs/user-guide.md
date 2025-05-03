@@ -3,7 +3,7 @@
 ## Installation
 
 ```bash
-pip install tea-tasting
+uv pip install tea-tasting
 ```
 
 Install Pandas or Polars to serialize analysis results as a Pandas DataFrame or a Polars DataFrame, respectively. These packages are not installed with tea-tasting by default.
@@ -141,7 +141,7 @@ You can change default values of these four parameters using the [global setting
 After defining an experiment and metrics, you can analyze the experiment data using the [`analyze`](api/experiment.md#tea_tasting.experiment.Experiment.analyze) method of the `Experiment` class. This method takes data as an input and returns an `ExperimentResult` object with experiment result.
 
 ```pycon
->>> result = experiment.analyze(data)
+>>> new_result = experiment.analyze(data)
 
 ```
 
@@ -155,8 +155,19 @@ By default, tea-tasting assumes that the variant with the lowest ID is a control
 [`ExperimentResult`](api/experiment.md#tea_tasting.experiment.ExperimentResult) is a mapping. Get a metric's analysis result using metric name as a key.
 
 ```pycon
->>> result["orders_per_user"]
-MeanResult(control=0.5304003954522986, treatment=0.5730905412240769, effect_size=0.04269014577177832, effect_size_ci_lower=-0.010800201598205515, effect_size_ci_upper=0.09618049314176216, rel_effect_size=0.08048664016431273, rel_effect_size_ci_lower=-0.019515294044061937, rel_effect_size_ci_upper=0.1906880061278886, pvalue=np.float64(0.11773177998716214), statistic=1.5647028839586707)
+>>> import pprint
+
+>>> pprint.pprint(result["orders_per_user"]._asdict())
+{'control': 0.5304003954522986,
+ 'effect_size': 0.04269014577177832,
+ 'effect_size_ci_lower': -0.010800201598205515,
+ 'effect_size_ci_upper': 0.09618049314176216,
+ 'pvalue': np.float64(0.11773177998716214),
+ 'rel_effect_size': 0.08048664016431273,
+ 'rel_effect_size_ci_lower': -0.019515294044061937,
+ 'rel_effect_size_ci_upper': 0.1906880061278886,
+ 'statistic': 1.5647028839586707,
+ 'treatment': 0.5730905412240769}
 
 ```
 
@@ -241,10 +252,8 @@ tea-tasting supports variance reduction with CUPED/CUPAC, within both [`Mean`](a
 Example usage:
 
 ```pycon
->>> import tea_tasting as tt
-
->>> data = tt.make_users_data(seed=42, covariates=True)
->>> experiment = tt.Experiment(
+>>> data_cuped = tt.make_users_data(seed=42, covariates=True)
+>>> experiment_cuped = tt.Experiment(
 ...     sessions_per_user=tt.Mean("sessions", "sessions_covariate"),
 ...     orders_per_session=tt.RatioOfMeans(
 ...         numer="orders",
@@ -255,8 +264,8 @@ Example usage:
 ...     orders_per_user=tt.Mean("orders", "orders_covariate"),
 ...     revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
 ... )
->>> result = experiment.analyze(data)
->>> result
+>>> result_cuped = experiment_cuped.analyze(data_cuped)
+>>> result_cuped
             metric control treatment rel_effect_size rel_effect_size_ci  pvalue
  sessions_per_user    2.00      1.98          -0.68%      [-3.2%, 1.9%]   0.603
 orders_per_session   0.262     0.293             12%        [4.2%, 21%] 0.00229
@@ -283,16 +292,13 @@ The [`SampleRatio`](api/metrics/proportion.md#tea_tasting.metrics.proportion.Sam
 Example usage:
 
 ```pycon
->>> import tea_tasting as tt
-
->>> experiment = tt.Experiment(
+>>> experiment_sample_ratio = tt.Experiment(
 ...     orders_per_user=tt.Mean("orders"),
 ...     revenue_per_user=tt.Mean("revenue"),
 ...     sample_ratio=tt.SampleRatio(),
 ... )
->>> data = tt.make_users_data(seed=42)
->>> result = experiment.analyze(data)
->>> result
+>>> result_sample_ratio = experiment_sample_ratio.analyze(data)
+>>> result_sample_ratio
           metric control treatment rel_effect_size rel_effect_size_ci pvalue
  orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
 revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
@@ -332,8 +338,6 @@ In tea-tasting, you can change defaults for the following parameters:
 Use [`get_config`](api/config.md#tea_tasting.config.get_config) with the option name as a parameter to get a global option value:
 
 ```pycon
->>> import tea_tasting as tt
-
 >>> tt.get_config("equal_var")
 False
 
@@ -350,15 +354,20 @@ Use [`set_config`](api/config.md#tea_tasting.config.set_config) to set a global 
 
 ```pycon
 >>> tt.set_config(equal_var=True, use_t=False)
->>> experiment = tt.Experiment(
+>>> experiment_with_config = tt.Experiment(
 ...     sessions_per_user=tt.Mean("sessions"),
 ...     orders_per_session=tt.RatioOfMeans("orders", "sessions"),
 ...     orders_per_user=tt.Mean("orders"),
 ...     revenue_per_user=tt.Mean("revenue"),
 ... )
 >>> tt.set_config(equal_var=False, use_t=True)
->>> experiment.metrics["orders_per_user"]
-Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
+>>> orders_per_user = experiment_with_config.metrics["orders_per_user"]
+>>> print(
+...     f"orders_per_user.equal_var: {orders_per_user.equal_var}\n"
+...     f"orders_per_user.use_t: {orders_per_user.use_t}"
+... )
+orders_per_user.equal_var: True
+orders_per_user.use_t: False
 
 ```
 
@@ -366,32 +375,38 @@ Use [`config_context`](api/config.md#tea_tasting.config.config_context) to tempo
 
 ```pycon
 >>> with tt.config_context(equal_var=True, use_t=False):
-...     experiment = tt.Experiment(
+...     experiment_within_context = tt.Experiment(
 ...         sessions_per_user=tt.Mean("sessions"),
 ...         orders_per_session=tt.RatioOfMeans("orders", "sessions"),
 ...         orders_per_user=tt.Mean("orders"),
 ...         revenue_per_user=tt.Mean("revenue"),
 ...     )
->>> tt.get_config("equal_var")
-False
-
->>> tt.get_config("use_t")
-True
-
->>> experiment.metrics["orders_per_user"]
-Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
+>>> orders_per_user_context = experiment_with_config.metrics["orders_per_user"]
+>>> print(
+...     f"global_config.equal_var: {tt.get_config('equal_var')}\n"
+...     f"global_config.use_t: {tt.get_config('use_t')}\n\n"
+...     f"orders_per_user_context.equal_var: {orders_per_user_context.equal_var}\n"
+...     f"orders_per_user_context.use_t: {orders_per_user_context.use_t}"
+... )
+global_config.equal_var: False
+global_config.use_t: True
+<BLANKLINE>
+orders_per_user_context.equal_var: True
+orders_per_user_context.use_t: False
 
 ```
 
 ### More than two variants
 
-???+ note
+/// admonition | Note
 
-    This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. Install Polars in addition to tea-tasting to reproduce the examples:
+This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. Install Polars in addition to tea-tasting to reproduce the examples:
 
-    ```bash
-    pip install polars
-    ```
+```bash
+uv pip install polars
+```
+
+///
 
 In tea-tasting, it's possible to analyze experiments with more than two variants. However, the variants will be compared in pairs through two-sample statistical tests.
 
@@ -399,21 +414,14 @@ Example usage:
 
 ```pycon
 >>> import polars as pl
->>> import tea_tasting as tt
 
->>> data = pl.concat((
+>>> data_three_variants = pl.concat((
 ...     tt.make_users_data(seed=42, return_type="polars"),
 ...     tt.make_users_data(seed=21, return_type="polars")
 ...         .filter(pl.col("variant").eq(1))
 ...         .with_columns(variant=pl.lit(2, pl.Int64)),
 ... ))
->>> experiment = tt.Experiment(
-...     sessions_per_user=tt.Mean("sessions"),
-...     orders_per_session=tt.RatioOfMeans("orders", "sessions"),
-...     orders_per_user=tt.Mean("orders"),
-...     revenue_per_user=tt.Mean("revenue"),
-... )
->>> results = experiment.analyze(data, control=0, all_variants=True)
+>>> results = experiment.analyze(data_three_variants, control=0, all_variants=True)
 >>> results
 variants             metric control treatment rel_effect_size rel_effect_size_ci pvalue
   (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
@@ -435,8 +443,8 @@ How variant pairs are determined:
 Example usage without specifying a control variant:
 
 ```pycon
->>> results = experiment.analyze(data, all_variants=True)
->>> results
+>>> results_all = experiment.analyze(data_three_variants, all_variants=True)
+>>> results_all
 variants             metric control treatment rel_effect_size rel_effect_size_ci pvalue
   (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
   (0, 1) orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
