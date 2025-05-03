@@ -22,7 +22,7 @@ def _(mo):
         ## Installation
 
         ```bash
-        pip install tea-tasting
+        uv pip install tea-tasting
         ```
 
         Install Pandas or Polars to serialize analysis results as a Pandas DataFrame or a Polars DataFrame, respectively. These packages are not installed with tea-tasting by default.
@@ -507,7 +507,7 @@ def _(mo):
         This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. Install Polars in addition to tea-tasting to reproduce the examples:
 
         ```bash
-        pip install polars
+        uv pip install polars
         ```
 
         ///

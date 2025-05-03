@@ -27,7 +27,7 @@ tea-tasting also accepts dataframes supported by [Narwhals](https://github.com/n
 ## Installation
 
 ```bash
-pip install tea-tasting
+uv pip install tea-tasting
 ```
 
 ## Basic example

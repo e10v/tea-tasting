@@ -9,7 +9,7 @@ In tea-tasting, you can run multiple simulated A/A or A/B tests. In each simulat
 This guide uses [Polars](https://github.com/pola-rs/polars) and [tqdm](https://github.com/tqdm/tqdm). Install these packages in addition to tea-tasting to reproduce the examples:
 
 ```bash
-pip install polars tqdm
+uv pip install polars tqdm
 ```
 
 ///
