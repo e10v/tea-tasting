@@ -60,7 +60,7 @@ def _():
     import tea_tasting as tt
 
     users_data = tt.make_users_data(seed=42)
-    con = ibis.duckdb.connect()
+    con = ibis.connect("duckdb://")
     con.create_table("users_data", users_data)
     return con, ibis, pl, tt, users_data
 
