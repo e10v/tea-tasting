@@ -2,6 +2,7 @@
 # requires-python = ">=3.10"
 # dependencies = [
 #     "marimo",
+#     "narwhals>=1.25",
 #     "tea-tasting",
 # ]
 # ///
