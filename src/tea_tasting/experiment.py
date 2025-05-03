@@ -141,6 +141,11 @@ class SimulationResults(tea_tasting.utils.DictsReprMixin, UserList[ExperimentRes
             for experiment_result in self
         ))
 
+    @tea_tasting.utils._cache_method
+    def __str__(self) -> str:
+        """Object string representation."""
+        return str(self.to_arrow())
+
 
 class ExperimentPowerResult(
     tea_tasting.utils.DictsReprMixin,
