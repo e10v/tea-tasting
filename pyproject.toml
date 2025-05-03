@@ -44,11 +44,11 @@ source = "https://github.com/e10v/tea-tasting"
 
 [dependency-groups]
 docs = ["mkdocs-material", "mkdocstrings[python]"]
-examples = ["marimo"]
 lint = ["markdown", "marimo", "pyright", "ruff"]
 test = [
     "coverage[toml]>=7",
     "ibis-framework[duckdb,sqlite]",
+    "marimo>=0.10",
     "pandas>=2",
     "polars>=1",
     "pytest>=8",
