@@ -131,7 +131,7 @@ class SimulationResults(tea_tasting.utils.DictsReprMixin, UserList[ExperimentRes
         "rel_effect_size_ci",
         "pvalue",
     )
-    _dicts: tuple[dict[str, object], ...] | None = None
+    _pagination = True
 
     @tea_tasting.utils._cache_method
     def to_dicts(self) -> tuple[dict[str, object], ...]:
