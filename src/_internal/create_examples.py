@@ -16,7 +16,7 @@ GUIDES = {
     "power-analysis": (),
     "multiple-testing": ("polars",),
     "custom-metrics": (),
-    "simulated-experiments": ("polars",),
+    "simulated-experiments": ("polars", "tqdm"),
 }
 
 HIDE_CODE = marimo._ast.cell.CellConfig(hide_code=True)

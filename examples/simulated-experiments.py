@@ -4,6 +4,7 @@
 #     "marimo",
 #     "polars",
 #     "tea-tasting",
+#     "tqdm",
 # ]
 # ///
 
