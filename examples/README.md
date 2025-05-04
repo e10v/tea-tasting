@@ -22,7 +22,7 @@ Launch the notebook server:
 uv run marimo edit examples
 ```
 
-Copy the URL from the console and open it in your browser. Now you can choose and run the example notebooks.
+Now you can choose and run the example notebooks.
 
 ## Run in the online playground
 
