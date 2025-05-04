@@ -86,6 +86,8 @@ def create_header_comments(deps: tuple[str, ...]) -> str:
         # dependencies = [
         {dependencies}
         # ]
+        # [tool.marimo.display]
+        # cell_output = "below"
         # ///
     """).format(dependencies=dependencies)
 

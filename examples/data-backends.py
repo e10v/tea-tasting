@@ -6,6 +6,8 @@
 #     "polars",
 #     "tea-tasting",
 # ]
+# [tool.marimo.display]
+# cell_output = "below"
 # ///
 
 import marimo

@@ -6,6 +6,8 @@
 #     "tea-tasting",
 #     "tqdm",
 # ]
+# [tool.marimo.display]
+# cell_output = "below"
 # ///
 
 import marimo
