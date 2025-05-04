@@ -2,7 +2,9 @@
 
 ## Intro
 
-In tea-tasting, you can run multiple simulated A/A or A/B tests. In each simulation, tea-tasting splits the data into control and treatment groups and can optionally modify the treatment data. A simulation without changing the treatment data is called an A/A test. A/A tests are useful for identifying potential issues before conducting the actual A/B test. Treatment simulations are great for power analysis—especially when you need a specific uplift distribution or when an analytical formula doesn’t exist.
+In tea-tasting, you can run multiple simulated A/A or A/B tests. In each simulation, tea-tasting splits the data into control and treatment groups and can optionally modify the treatment data. A simulation without changing the treatment data is called an A/A test.
+
+A/A tests are useful for identifying potential issues before conducting the actual A/B test. Treatment simulations are great for power analysis—especially when you need a specific uplift distribution or when an analytical formula doesn’t exist.
 
 /// admonition | Note
 
