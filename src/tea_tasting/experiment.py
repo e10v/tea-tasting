@@ -522,7 +522,10 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
         results = map_(sim, np.random.default_rng(seed).spawn(n_simulations))
         if progress is not None:
-            results = progress(results)  # type: ignore
+            try:
+                results = progress(results, total=n_simulations)  # type: ignore
+            except TypeError:
+                results = progress(results)  # type: ignore
         return SimulationResults(results)
 
 
