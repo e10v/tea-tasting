@@ -39,3 +39,4 @@ To run the examples as WASM notebooks in the online playground, open the followi
 
 - Tables and dataframes render less attractively because Pyodide doesn't always include the latest [packages versions](https://pyodide.org/en/stable/usage/packages-in-pyodide.html).
 - You can't simulate experiments [in parallel](https://tea-tasting.e10v.me/simulated-experiments/#parallel-execution) because Pyodide currently [doesn't support multiprocessing](https://pyodide.org/en/stable/usage/wasm-constraints.html#included-but-not-working-modules).
+- Other unpredictable issues may arise, such as the inability to use duckdb with ibis.
