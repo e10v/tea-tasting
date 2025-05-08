@@ -486,12 +486,19 @@ class DictsReprMixin(abc.ABC):
         return ET.tostring(table, encoding="unicode", method="html")
 
 
-    def with_keys(self: DictsReprMixinT, keys: Sequence[str]) -> DictsReprMixinT:
-        """Copies the object and sets the new default keys.
+    def with_defaults(
+        self: DictsReprMixinT,
+        *,
+        keys: Sequence[str] | None = None,
+        max_rows: int | None = None,
+    ) -> DictsReprMixinT:
+        """Copies the object and sets the new default parameters.
 
         Args:
-            keys: New default keys for the methods `to_pretty_dicts`, `to_string`,
+            keys: New default `keys` for the methods `to_pretty_dicts`, `to_string`,
                 and `to_html`.
+            max_rows: New default `max_rows` for the methods `to_pretty_dicts`,
+                `to_string`, and `to_html`.
 
         Returns:
             A copy of the object with the new default keys.
@@ -499,8 +506,37 @@ class DictsReprMixin(abc.ABC):
         new_instance = self.__class__.__new__(self.__class__)
         new_instance.__dict__.update(self.__dict__)
         new_instance._cache = None
-        new_instance.default_keys = keys
+        if keys is not None:
+            new_instance.default_keys = keys
+        if max_rows is not None:
+            new_instance.default_max_rows = max_rows
         return new_instance
+
+
+    def with_keys(self: DictsReprMixinT, keys: Sequence[str]) -> DictsReprMixinT:
+        """Copies the object and sets the new default `keys`.
+
+        Args:
+            keys: New default `keys` for the methods `to_pretty_dicts`, `to_string`,
+                and `to_html`.
+
+        Returns:
+            A copy of the object with the new default `keys`.
+        """
+        return self.with_defaults(keys=keys)
+
+
+    def with_max_rows(self: DictsReprMixinT, max_rows: int) -> DictsReprMixinT:
+        """Copies the object and sets the new default `max_rows`.
+
+        Args:
+            max_rows: New default `max_rows` for the methods `to_pretty_dicts`,
+                `to_string`, and `to_html`.
+
+        Returns:
+            A copy of the object with the new default `max_rows`.
+        """
+        return self.with_defaults(max_rows=max_rows)
 
 
     def _mime_(self) -> tuple[str, str]:
