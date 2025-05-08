@@ -41,9 +41,7 @@ def convert_guide(name: str, deps: tuple[str, ...]) -> None:
             sources.append(convert_code(text[:end_of_code]))
             cell_configs.append(SHOW_CODE)
 
-        sources.append(marimo._convert.utils.markdown_to_marimo(
-            RE_LINK.sub(update_link, md.strip()),
-        ))
+        sources.append(marimo._convert.utils.markdown_to_marimo(convert_md(md)))
         cell_configs.append(HIDE_CODE)
 
     sources.append("import marimo as mo")
@@ -68,11 +66,24 @@ def update_link(match: re.Match[str]) -> str:
 def convert_code(code: str) -> str:
     lines = []
     for line in code.split("\n"):
-        if line.startswith((">>> ", "... ")):
+        if line == ">>> import tqdm":
+            pass
+        elif line.startswith((">>> ", "... ")):
             lines.append(RE_DOCTEST.sub("", line[4:]))
         elif line.startswith("<BLANKLINE>") or line == "":
             lines.append("")
-    return "\n".join(lines).strip()
+    return "\n".join(lines).strip().replace("tqdm.tqdm", "mo.status.progress_bar")
+
+
+def convert_md(md: str) -> str:
+    return (
+        RE_LINK.sub(update_link, md.strip())
+        .replace(
+            "[tqdm](https://github.com/tqdm/tqdm)",
+            "[marimo](https://github.com/marimo-team/marimo)",
+        )
+        .replace(" tqdm", " marimo")
+    )
 
 
 def create_header_comments(deps: tuple[str, ...]) -> str:

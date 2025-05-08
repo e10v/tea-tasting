@@ -181,12 +181,17 @@ On each iteration, tea-tasting calls `make_users_data` with a new `seed` and use
 
 ## Tracking progress
 
-To track the progress of simulations with [`tqdm`](https://github.com/tqdm/tqdm), use the `progress` parameter.
+To track the progress of simulations with [`tqdm`](https://github.com/tqdm/tqdm) or [`marimo.status.progress_bar`](https://docs.marimo.io/api/status/#progress-bar), use the `progress` parameter.
 
 ```pycon
 >>> import tqdm
 
->>> results_progress = experiment.simulate(data, 100, seed=42, progress=tqdm.tqdm)  # doctest: +SKIP
+>>> results_progress = experiment.simulate(
+...     data,
+...     100,
+...     seed=42,
+...     progress=tqdm.tqdm,
+... )  # doctest: +SKIP
 100%|██████████████████████████████████████| 100/100 [00:01<00:00, 64.47it/s]
 
 ```
