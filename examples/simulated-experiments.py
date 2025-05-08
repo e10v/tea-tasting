@@ -30,10 +30,10 @@ def _(mo):
 
         /// admonition | Note
 
-        This guide uses [Polars](https://github.com/pola-rs/polars) and [tqdm](https://github.com/tqdm/tqdm). Install these packages in addition to tea-tasting to reproduce the examples:
+        This guide uses [Polars](https://github.com/pola-rs/polars) and [marimo](https://github.com/marimo-team/marimo). Install these packages in addition to tea-tasting to reproduce the examples:
 
         ```bash
-        uv pip install polars tqdm
+        uv pip install polars marimo
         ```
 
         ///
@@ -116,6 +116,7 @@ def _(pl, results_data):
             pl.col("pvalue").le(alpha).mean().alias(f"null_rejected_{alpha}")
             for alpha in alphas
         )
+
     null_rejected(results_data)
     return (null_rejected,)
 
@@ -145,6 +146,7 @@ def _(data, experiment, null_rejected):
             .append_column("orders", pc.multiply(data["orders"], pa.scalar(1.1)))
             .append_column("revenue", pc.multiply(data["revenue"], pa.scalar(1.1)))
         )
+
     results_treat = experiment.simulate(data, 100, seed=42, treat=treat)
     null_rejected(results_treat.to_polars())
     return (treat,)
@@ -181,18 +183,21 @@ def _(mo):
 
         ## Tracking progress
 
-        To track the progress of simulations with [`tqdm`](https://github.com/tqdm/tqdm), use the `progress` parameter.
+        To track the progress of simulations with [`tqdm`](https://github.com/tqdm/tqdm) or [`marimo.status.progress_bar`](https://docs.marimo.io/api/status/#progress-bar), use the `progress` parameter.
         """
     )
     return
 
 
 @app.cell
-def _(data, experiment):
-    import tqdm
-
-    results_progress = experiment.simulate(data, 100, seed=42, progress=tqdm.tqdm)
-    return (tqdm,)
+def _(data, experiment, mo):
+    results_progress = experiment.simulate(
+        data,
+        100,
+        seed=42,
+        progress=mo.status.progress_bar,
+    )
+    return
 
 
 @app.cell(hide_code=True)
@@ -214,7 +219,7 @@ def _(mo):
 
 
 @app.cell
-def _(data, experiment, tqdm, treat):
+def _(data, experiment, mo, treat):
     import concurrent.futures
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
@@ -224,7 +229,7 @@ def _(data, experiment, tqdm, treat):
             seed=42,
             treat=treat,
             map_=executor.map,
-            progress=tqdm.tqdm,
+            progress=mo.status.progress_bar,
         )
     return
 
