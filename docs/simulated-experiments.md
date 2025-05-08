@@ -100,6 +100,7 @@ For instance, we can now calculate the proportion of rejected null hypotheses, u
 ...         pl.col("pvalue").le(alpha).mean().alias(f"null_rejected_{alpha}")
 ...         for alpha in alphas
 ...     )
+... 
 >>> null_rejected(results_data)
 shape: (5, 4)
 ┌────────────────────┬────────────────────┬────────────────────┬────────────────────┐
@@ -132,6 +133,7 @@ To simulate experiments with treatment, define a treatment function that takes d
 ...         .append_column("orders", pc.multiply(data["orders"], pa.scalar(1.1)))
 ...         .append_column("revenue", pc.multiply(data["revenue"], pa.scalar(1.1)))
 ...     )
+... 
 >>> results_treat = experiment.simulate(data, 100, seed=42, treat=treat)
 >>> null_rejected(results_treat.to_polars())
 shape: (5, 4)
@@ -185,7 +187,7 @@ To track the progress of simulations with [`tqdm`](https://github.com/tqdm/tqdm)
 >>> import tqdm
 
 >>> results_progress = experiment.simulate(data, 100, seed=42, progress=tqdm.tqdm)  # doctest: +SKIP
-100it [00:01, 73.19it/s]
+100%|██████████████████████████████████████| 100/100 [00:01<00:00, 64.47it/s]
 
 ```
 
@@ -211,7 +213,7 @@ To speed up simulations and run them in parallel, use the `map_` parameter with 
 ...         map_=executor.map,
 ...         progress=tqdm.tqdm,
 ...     )  # doctest: +SKIP
-100it [00:00, 254.90it/s]
+100%|█████████████████████████████████████| 100/100 [00:00<00:00, 251.60it/s]
 
 ```
 
