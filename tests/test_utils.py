@@ -264,8 +264,16 @@ def test_dicts_repr_mixin_to_html_indent(
             </tbody>
         </table>""")
 
+def test_dicts_repr_mixin_with_defaults(dicts_repr: tea_tasting.utils.DictsReprMixin):
+    new_dicts_repr =  dicts_repr.with_defaults(keys=("c", "d"), max_rows=42)
+    assert new_dicts_repr.default_keys == ("c", "d")
+    assert new_dicts_repr.default_max_rows == 42
+
 def test_dicts_repr_mixin_with_keys(dicts_repr: tea_tasting.utils.DictsReprMixin):
     assert dicts_repr.with_keys(("c", "d")).default_keys == ("c", "d")
+
+def test_dicts_repr_mixin_with_max_rows(dicts_repr: tea_tasting.utils.DictsReprMixin):
+    assert dicts_repr.with_max_rows(42).default_max_rows == 42
 
 def test_dicts_repr_mixin_mime_marimo(dicts_repr: tea_tasting.utils.DictsReprMixin):
     mime_type, data = dicts_repr._mime_()
