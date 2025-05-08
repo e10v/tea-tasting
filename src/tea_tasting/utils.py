@@ -292,9 +292,9 @@ class DictsReprMixin(abc.ABC):
         Look up for attributes `"{name}_lower"` and `"{name}_upper"`,
         and format the interval as `"[{lower_bound}, {upper_bound}]"`.
     """
-    _cache: dict[str, object] | None = None
-    _pagination: bool = False
     default_keys: Sequence[str]
+    default_max_rows: int = 0
+    _cache: dict[str, object] | None = None
 
     @abc.abstractmethod
     def to_dicts(self) -> Sequence[dict[str, object]]:
@@ -317,10 +317,13 @@ class DictsReprMixin(abc.ABC):
         import polars as pl
         return pl.from_dicts(self.to_dicts())
 
+
     def to_pretty_dicts(
         self,
         keys: Sequence[str] | None = None,
         formatter: Callable[[dict[str, object], str], str] = get_and_format_num,
+        *,
+        max_rows: int | None = None,
     ) -> list[dict[str, str]]:
         """Convert the object to a list of dictionaries with formatted values.
 
@@ -342,18 +345,37 @@ class DictsReprMixin(abc.ABC):
             formatter: Custom formatter function. It should accept a dictionary
                 of metric result attributes and an attribute name, and return
                 a formatted attribute value.
+            max_rows: Maximum number of rows to convert.
+                If `None`, the default value will be used.
+                If `0` or less, all rows will be converted.
 
         Returns:
             List of dictionaries with formatted values.
         """
         if keys is None:
             keys = self.default_keys
-        return [{key: formatter(data, key) for key in keys} for data in self.to_dicts()]
+        if max_rows is None:
+            max_rows = self.default_max_rows
+
+        dicts = self.to_dicts()
+        if max_rows <= 0 or len(dicts) <= max_rows:
+            return [{key: formatter(data, key) for key in keys} for data in dicts]
+
+        bottom = max_rows // 2
+        top = max_rows - bottom
+        return (
+            [{key: formatter(data, key) for key in keys} for data in dicts[:top]] +
+            [dict.fromkeys(keys, "…")] +
+            [{key: formatter(data, key) for key in keys} for data in dicts[-bottom:]]
+        )
+
 
     def to_string(
         self,
         keys: Sequence[str] | None = None,
         formatter: Callable[[dict[str, object], str], str] = get_and_format_num,
+        *,
+        max_rows: int | None = None,
     ) -> str:
         """Convert the object to a string.
 
@@ -375,22 +397,23 @@ class DictsReprMixin(abc.ABC):
             formatter: Custom formatter function. It should accept a dictionary
                 of metric result attributes and an attribute name, and return
                 a formatted attribute value.
+            max_rows: Maximum number of rows to convert.
+                If `None`, the default value will be used.
+                If `0` or less, all rows will be converted.
 
         Returns:
             A table with results rendered as string.
         """
         if keys is None:
             keys = self.default_keys
-        widths = {key: len(key) for key in keys}
+        if max_rows is None:
+            max_rows = self.default_max_rows
 
-        pretty_dicts = []
-        for data in self.to_dicts():
-            pretty_dict = {}
+        pretty_dicts = self.to_pretty_dicts(keys, formatter, max_rows=max_rows)
+        widths = {key: len(key) for key in keys}
+        for pretty_dict in pretty_dicts:
             for key in keys:
-                val = formatter(data, key)
-                widths[key] = max(widths[key], len(val))
-                pretty_dict |= {key: val}
-            pretty_dicts.append(pretty_dict)
+                widths[key] = max(widths[key], len(pretty_dict[key]))
 
         sep = " "
         rows = [sep.join(key.rjust(widths[key]) for key in keys)]
@@ -400,11 +423,13 @@ class DictsReprMixin(abc.ABC):
         )
         return "\n".join(rows)
 
+
     def to_html(
         self,
         keys: Sequence[str] | None = None,
         formatter: Callable[[dict[str, object], str], str] = get_and_format_num,
         *,
+        max_rows: int | None = None,
         indent: str | None = None,
     ) -> str:
         """Convert the object to HTML.
@@ -427,6 +452,9 @@ class DictsReprMixin(abc.ABC):
             formatter: Custom formatter function. It should accept a dictionary
                 of metric result attributes and an attribute name, and return
                 a formatted attribute value.
+            max_rows: Maximum number of rows to convert.
+                If `None`, the default value will be used.
+                If `0` or less, all rows will be converted.
             indent: Whitespace to insert for each indentation level. If `None`,
                 do not indent.
 
@@ -435,6 +463,9 @@ class DictsReprMixin(abc.ABC):
         """
         if keys is None:
             keys = self.default_keys
+        if max_rows is None:
+            max_rows = self.default_max_rows
+
         table = ET.Element(
             "table",
             {"class": "dataframe", "style": "text-align: right;"},
@@ -445,14 +476,15 @@ class DictsReprMixin(abc.ABC):
             th = ET.SubElement(thead_tr, "th")
             th.text = key
         tbody = ET.SubElement(table, "tbody")
-        for data in self.to_dicts():
+        for pretty_dict in self.to_pretty_dicts(keys, formatter, max_rows=max_rows):
             tr = ET.SubElement(tbody, "tr")
             for key in keys:
                 td = ET.SubElement(tr, "td")
-                td.text = formatter(data, key)
+                td.text = pretty_dict[key]
         if indent is not None:
             ET.indent(table, space=indent)
         return ET.tostring(table, encoding="unicode", method="html")
+
 
     def with_keys(self: DictsReprMixinT, keys: Sequence[str]) -> DictsReprMixinT:
         """Copies the object and sets the new default keys.
@@ -470,18 +502,22 @@ class DictsReprMixin(abc.ABC):
         new_instance.default_keys = keys
         return new_instance
 
+
     def _mime_(self) -> tuple[str, str]:
         """"Object representation for marimo notebooks."""
         try:
             import marimo as mo
 
+            pretty_dicts = self.to_pretty_dicts(max_rows=0)
             return mo.ui.table(  # type: ignore
-                self.to_pretty_dicts(),  # type: ignore
-                pagination=self._pagination,
+                pretty_dicts,  # type: ignore
                 selection=None,
+                pagination=len(pretty_dicts) > self.default_max_rows,
+                page_size=self.default_max_rows,
             )._mime_()
         except Exception:  # noqa: BLE001
             return "text/html", self._repr_html_()
+
 
     @_cache_method
     def _repr_html_(self) -> str:

@@ -131,7 +131,7 @@ class SimulationResults(tea_tasting.utils.DictsReprMixin, UserList[ExperimentRes
         "rel_effect_size_ci",
         "pvalue",
     )
-    _pagination = True
+    default_max_rows: int = 10
 
     @tea_tasting.utils._cache_method
     def to_dicts(self) -> tuple[dict[str, object], ...]:
@@ -140,11 +140,6 @@ class SimulationResults(tea_tasting.utils.DictsReprMixin, UserList[ExperimentRes
             experiment_result.to_dicts()
             for experiment_result in self
         ))
-
-    @tea_tasting.utils._cache_method
-    def __str__(self) -> str:
-        """Object string representation."""
-        return str(self.to_arrow())
 
 
 class ExperimentPowerResult(
