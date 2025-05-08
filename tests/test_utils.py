@@ -201,12 +201,21 @@ def test_dicts_repr_mixin_to_polars(dicts_repr: tea_tasting.utils.DictsReprMixin
         }),
     )
 
-def test_dicts_repr_mixin_to_pretty_dicts(
+def test_dicts_repr_mixin_to_pretty_dicts_default(
     dicts_repr: tea_tasting.utils.DictsReprMixin,
 ):
     assert dicts_repr.to_pretty_dicts() == [
         {"a": "0.123", "b": "0.235"},
         {"a": "0.346", "b": "0.457"},
+        {"a": "0.568", "b": "0.679"},
+    ]
+
+def test_dicts_repr_mixin_to_pretty_dicts_max_rows(
+    dicts_repr: tea_tasting.utils.DictsReprMixin,
+):
+    assert dicts_repr.to_pretty_dicts(max_rows=2) == [
+        {"a": "0.123", "b": "0.235"},
+        {"a": "…", "b": "…"},
         {"a": "0.568", "b": "0.679"},
     ]
 

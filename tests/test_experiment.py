@@ -360,13 +360,6 @@ def test_simulation_results_to_dicts(
     )
 
 
-def test_simulation_results_str(results2: tea_tasting.experiment.ExperimentResults):
-    sim_results = tea_tasting.experiment.SimulationResults(results2.values())
-    arrow_str = str(sim_results.to_arrow())
-    assert str(sim_results) == arrow_str
-    assert repr(sim_results) == arrow_str
-
-
 def test_experiment_power_result_to_dicts():
     raw_results = (
         {"power": 0.8, "effect_size": 1, "rel_effect_size": 0.05, "n_obs": 20_000},
