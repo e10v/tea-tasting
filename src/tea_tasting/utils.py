@@ -545,11 +545,14 @@ class DictsReprMixin(abc.ABC):
             import marimo as mo
 
             pretty_dicts = self.to_pretty_dicts(max_rows=0)
+            n_rows = len(pretty_dicts)
             return mo.ui.table(  # type: ignore
                 pretty_dicts,  # type: ignore
                 selection=None,
-                pagination=len(pretty_dicts) > self.default_max_rows,
-                page_size=self.default_max_rows,
+                pagination=self.default_max_rows > 0 and n_rows > self.default_max_rows,
+                page_size=self.default_max_rows
+                    if self.default_max_rows > 0 and n_rows > self.default_max_rows
+                    else None,
             )._mime_()
         except Exception:  # noqa: BLE001
             return "text/html", self._repr_html_()
