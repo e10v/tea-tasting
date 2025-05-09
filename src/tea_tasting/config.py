@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import contextlib
+import contextvars
 from typing import TYPE_CHECKING, overload
 
 import tea_tasting.utils
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
     from typing import Literal
 
 
-_global_config: dict[str, object] = {
+_DEFAULT_CONFIG: dict[str, object] = {
     "alpha": 0.05,
     "alternative": "two-sided",
     "confidence_level": 0.95,
@@ -25,6 +26,11 @@ _global_config: dict[str, object] = {
     "ratio": 1,
     "use_t": True,
 }
+
+_config_var: contextvars.ContextVar[dict[str, object]] = contextvars.ContextVar(
+    "tea_tasting.config",
+    default=_DEFAULT_CONFIG.copy(),  # noqa: B039
+)
 
 
 @overload
@@ -90,9 +96,16 @@ def get_config(option: str | None = None) -> object:
 
         ```
     """
-    if option is not None:
-        return _global_config[option]
-    return _global_config.copy()
+    config = _config_var.get()
+    return config[option] if option is not None else config.copy()
+
+
+def _set_config(**params: object) -> contextvars.Token[dict[str, object]]:
+    config = _config_var.get().copy()
+    for name, value in params.items():
+        if value is not None:
+            config[name] = tea_tasting.utils.auto_check(value, name)
+    return _config_var.set(config)
 
 
 def set_config(
@@ -155,10 +168,7 @@ def set_config(
 
         ```
     """  # noqa: E501
-    params = {k: v for k, v in locals().items() if k != "kwargs"} | kwargs
-    for name, value in params.items():
-        if value is not None:
-            _global_config[name] = tea_tasting.utils.auto_check(value, name)
+    _set_config(**{k: v for k, v in locals().items() if k != "kwargs"}, **kwargs)
 
 
 @contextlib.contextmanager
@@ -221,11 +231,11 @@ def config_context(
 
         ```
     """  # noqa: E501
-    new_config = {k: v for k, v in locals().items() if k != "kwargs"} | kwargs
-    old_config = get_config()
-    set_config(**new_config)
-
+    token = _set_config(
+        **{k: v for k, v in locals().items() if k != "kwargs"},
+        **kwargs,
+    )
     try:
         yield
     finally:
-        _global_config.update(**old_config)
+        _config_var.reset(token)
