@@ -64,6 +64,7 @@ The first step is defining a result class. It should be a named tuple or a dicti
 ...     rel_effect_size: float
 ...     pvalue: float
 ...     statistic: float
+... 
 
 ```
 
@@ -119,6 +120,7 @@ Let's define the metric and discuss each method in details:
 ...             pvalue=res.pvalue,
 ...             statistic=res.statistic,
 ...         )
+... 
 
 ```
 
@@ -154,6 +156,7 @@ The result class:
 >>> class MannWhitneyUResult(NamedTuple):
 ...     pvalue: float
 ...     statistic: float
+... 
 
 ```
 
@@ -199,6 +202,7 @@ Metric should have the following methods and properties defined:
 ...             pvalue=res.pvalue,
 ...             statistic=res.statistic,
 ...         )
+... 
 
 ```
 

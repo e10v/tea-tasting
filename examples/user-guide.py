@@ -11,7 +11,7 @@
 
 import marimo
 
-__generated_with = "0.13.4"
+__generated_with = "0.13.6"
 app = marimo.App()
 
 
@@ -488,6 +488,7 @@ def _(experiment_with_config, tt):
             orders_per_user=tt.Mean("orders"),
             revenue_per_user=tt.Mean("revenue"),
         )
+
     orders_per_user_context = experiment_with_config.metrics["orders_per_user"]
     print(
         f"global_config.equal_var: {tt.get_config('equal_var')}\n"

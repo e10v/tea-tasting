@@ -381,6 +381,7 @@ Use [`config_context`](api/config.md#tea_tasting.config.config_context) to tempo
 ...         orders_per_user=tt.Mean("orders"),
 ...         revenue_per_user=tt.Mean("revenue"),
 ...     )
+... 
 >>> orders_per_user_context = experiment_with_config.metrics["orders_per_user"]
 >>> print(
 ...     f"global_config.equal_var: {tt.get_config('equal_var')}\n"

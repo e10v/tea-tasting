@@ -61,6 +61,7 @@ You can analyze power for all metrics in the experiment. Example:
 ...         orders_per_user=tt.Mean("orders", "orders_covariate"),
 ...         revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
 ...     )
+... 
 >>> power_result = experiment.solve_power(data)
 >>> power_result
             metric power effect_size rel_effect_size n_obs

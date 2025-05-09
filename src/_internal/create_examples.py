@@ -68,7 +68,7 @@ def convert_code(code: str) -> str:
     for line in code.split("\n"):
         if line == ">>> import tqdm":
             pass
-        elif line.startswith((">>> ", "... ")):
+        elif line.startswith((">>>", "...")):
             lines.append(RE_DOCTEST.sub("", line[4:]))
         elif line.startswith("<BLANKLINE>") or line == "":
             lines.append("")
