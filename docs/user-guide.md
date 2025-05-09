@@ -195,7 +195,7 @@ Fields in result depend on metrics. For `Mean` and `RatioOfMeans`, the [fields i
 - `to_string`: Convert the result to a string.
 - `to_html`: Convert the result to HTML.
 
-`result` is the same as `print(result.to_string())`. `ExperimentResult` provides also the `_repr_html_` method and is rendered as HTML table in IPython, Jupyter, or Marimo.
+`result` is the same as `print(result.to_string())`. `ExperimentResult` provides also the `_repr_html_` method that renders it as an HTML table in IPython and Jupyter, and the `_mime_` method that renders it as a table in marimo notebooks.
 
 ```pycon
 >>> result
