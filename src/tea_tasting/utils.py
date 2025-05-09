@@ -546,17 +546,13 @@ class DictsReprMixin(abc.ABC):
 
             pretty_dicts = self.to_pretty_dicts(max_rows=0)
             n_rows = len(pretty_dicts)
-            if self.default_max_rows > 0 and n_rows > self.default_max_rows:
-                pagination = True
-                page_size = self.default_max_rows
-            else:
-                pagination = False
-                page_size = None
             return mo.ui.table(  # type: ignore
                 pretty_dicts,  # type: ignore
                 selection=None,
-                pagination=pagination,
-                page_size=page_size,
+                pagination=self.default_max_rows > 0 and n_rows > self.default_max_rows,
+                page_size=self.default_max_rows
+                    if self.default_max_rows > 0 and n_rows > self.default_max_rows
+                    else None,
             )._mime_()
         except Exception:  # noqa: BLE001
             return "text/html", self._repr_html_()
