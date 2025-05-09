@@ -10,7 +10,7 @@
 
 import marimo
 
-__generated_with = "0.13.4"
+__generated_with = "0.13.6"
 app = marimo.App()
 
 
@@ -99,6 +99,7 @@ def _(data, tt):
             orders_per_user=tt.Mean("orders", "orders_covariate"),
             revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
         )
+
     power_result = experiment.solve_power(data)
     power_result
     return
