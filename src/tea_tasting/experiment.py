@@ -304,6 +304,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         Returns:
             Experiment result.
         """
+        tea_tasting.utils.check_scalar(all_variants, "all_variants", typ=bool)
         aggregated_data, granular_data = self._read_data(data)
 
         if aggregated_data is not None:
@@ -440,6 +441,11 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         Returns:
             Power analysis result.
         """
+        tea_tasting.utils.check_scalar(
+            parameter,
+            "parameter",
+            in_={"power", "effect_size", "rel_effect_size", "n_obs"},
+        )
         aggr_cols = tea_tasting.metrics.AggrCols()
         for metric in self.metrics.values():
             if isinstance(metric, tea_tasting.metrics.PowerBaseAggregated):
@@ -487,6 +493,9 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         Returns:
             Simulation results.
         """
+        tea_tasting.utils.check_scalar(n_simulations, "n_simulations", typ=int, gt=0)
+        tea_tasting.utils.auto_check(ratio, "ratio")
+
         if not callable(data):
             gran_cols: set[str] = set()
             for metric in self.metrics.values():

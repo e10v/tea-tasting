@@ -188,6 +188,7 @@ class MetricBaseAggregated(MetricBase[R], _HasAggrCols):
         Returns:
             Analysis result.
         """
+        tea_tasting.utils.check_scalar(variant, "variant", typ=str | None)
         aggr = aggregate_by_variants(
             data,
             aggr_cols=self.aggr_cols,
@@ -236,6 +237,11 @@ class PowerBaseAggregated(PowerBase[S], _HasAggrCols):
         Returns:
             Power analysis result.
         """
+        tea_tasting.utils.check_scalar(
+            parameter,
+            "parameter",
+            in_={"power", "effect_size", "rel_effect_size", "n_obs"},
+        )
         if not isinstance(data, tea_tasting.aggr.Aggregates):
             data = tea_tasting.aggr.read_aggregates(
                 data=data,
@@ -345,6 +351,7 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
         Returns:
             Analysis result.
         """
+        tea_tasting.utils.check_scalar(variant, "variant", typ=str | None)
         dfs = read_granular(
             data,
             cols=self.cols,

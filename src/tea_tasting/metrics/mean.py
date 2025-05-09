@@ -377,12 +377,6 @@ class RatioOfMeans(  # noqa: D101
         Returns:
             Power analysis result.
         """
-        tea_tasting.utils.check_scalar(
-            parameter,
-            "parameter",
-            in_={"power", "effect_size", "rel_effect_size", "n_obs"},
-        )
-
         data = data.with_zero_div()
         covariate_coef = self._covariate_coef(data)
         covariate_mean = data.mean(self.numer_covariate) / data.mean(
