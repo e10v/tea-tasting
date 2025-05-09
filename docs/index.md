@@ -64,9 +64,9 @@ Learn more in the detailed [user guide](https://tea-tasting.e10v.me/user-guide/)
 
 The tea-tasting repository includes [examples](https://github.com/e10v/tea-tasting/tree/main/examples) as copies of the guides in the [marimo](https://github.com/marimo-team/marimo) notebook format. You can either download them from GitHub and run in your marimo environment, or you can run them as WASM notebooks in the online playground.
 
-### Run in a local marimo environment
+### Run in a local environment
 
-To run the examples in your marimo environment, clone the repository and change the directory:
+To run the examples in your local environment, clone the repository and change the directory:
 
 ```bash
 git clone git@github.com:e10v/tea-tasting.git && cd tea-tasting
