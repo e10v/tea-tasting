@@ -125,6 +125,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
         Returns:
             Analysis result.
         """
+        tea_tasting.utils.check_scalar(variant, "variant", typ=str | None)
         aggr = tea_tasting.metrics.aggregate_by_variants(
             data,
             aggr_cols=self.aggr_cols,
