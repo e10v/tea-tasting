@@ -10,13 +10,13 @@ import marimo._ast.cell
 import marimo._convert.utils
 
 
-GUIDES = {
+GUIDES: dict[str, tuple[str, ...]] = {
     "user-guide": ("polars",),
     "data-backends": ("ibis-framework[duckdb]", "polars"),
     "power-analysis": (),
     "multiple-testing": ("polars",),
     "custom-metrics": (),
-    "simulated-experiments": ("polars", "tqdm"),
+    "simulated-experiments": ("polars",),
 }
 
 HIDE_CODE = marimo._ast.cell.CellConfig(hide_code=True)

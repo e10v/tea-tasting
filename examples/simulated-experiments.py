@@ -4,7 +4,6 @@
 #     "marimo",
 #     "polars",
 #     "tea-tasting",
-#     "tqdm",
 # ]
 # [tool.marimo.display]
 # cell_output = "below"
