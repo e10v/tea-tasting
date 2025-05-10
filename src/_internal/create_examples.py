@@ -56,13 +56,6 @@ def convert_guide(name: str, deps: tuple[str, ...]) -> None:
         f.write(code)
 
 
-def update_link(match: re.Match[str]) -> str:
-    label = match.group(1)
-    url = match.group(2).replace(".md", "/")
-    root = "" if url.startswith("http") else "https://tea-tasting.e10v.me/"
-    return f"[{label}]({root}{url})"
-
-
 def convert_code(code: str) -> str:
     lines = []
     for line in code.split("\n"):
@@ -70,7 +63,7 @@ def convert_code(code: str) -> str:
             pass
         elif line.startswith((">>>", "...")):
             lines.append(RE_DOCTEST.sub("", line[4:]))
-        elif line.startswith("<BLANKLINE>") or line == "":
+        elif line == "":
             lines.append("")
     return "\n".join(lines).strip().replace("tqdm.tqdm", "mo.status.progress_bar")
 
@@ -84,6 +77,13 @@ def convert_md(md: str) -> str:
         )
         .replace(" tqdm", " marimo")
     )
+
+
+def update_link(match: re.Match[str]) -> str:
+    label = match.group(1)
+    url = match.group(2).replace(".md", "/")
+    root = "" if url.startswith("http") else "https://tea-tasting.e10v.me/"
+    return f"[{label}]({root}{url})"
 
 
 def create_header_comments(deps: tuple[str, ...]) -> str:
