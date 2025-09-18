@@ -410,7 +410,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
     def _read_variants(
         self,
-        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
+        data: narwhals.typing.IntoFrame | narwhals.typing.Frame | ibis.expr.types.Table,
     ) -> list[object]:
         if isinstance(data, ibis.expr.types.Table):
             return (
@@ -421,7 +421,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             )
 
         data = nw.from_native(data)
-        if not isinstance(data, nw.LazyFrame):
+        if not isinstance(data, nw.LazyFrame):  # type: ignore
             data = data.lazy()
         return data.unique(self.variant).collect().get_column(self.variant).to_list()
 
