@@ -381,7 +381,7 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
 
 @overload
 def read_granular(
-    data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
+    data: narwhals.typing.IntoFrame | narwhals.typing.Frame | ibis.expr.types.Table,
     cols: Sequence[str] = (),
     variant: None = None,
 ) -> pa.Table:
@@ -397,14 +397,24 @@ def read_granular(
 
 @overload
 def read_granular(
-    data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[object, pa.Table],
+    data: (
+        narwhals.typing.IntoFrame |
+        narwhals.typing.Frame |
+        ibis.expr.types.Table |
+        dict[object, pa.Table]
+    ),
     cols: Sequence[str],
     variant: str,
 ) -> dict[object, pa.Table]:
     ...
 
 def read_granular(
-    data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[object, pa.Table],
+    data: (
+        narwhals.typing.IntoFrame |
+        narwhals.typing.Frame |
+        ibis.expr.types.Table |
+        dict[object, pa.Table]
+    ),
     cols: Sequence[str] = (),
     variant: str | None = None,
 ) -> pa.Table | dict[object, pa.Table]:
@@ -428,7 +438,7 @@ def read_granular(
         table = data.to_pyarrow()
     else:
         data = nw.from_native(data)
-        if isinstance(data, nw.LazyFrame):
+        if isinstance(data, nw.LazyFrame): # type: ignore
             data = data.collect()
         if len(cols) + len(variant_cols) > 0:
             data = data.select(*cols, *variant_cols)

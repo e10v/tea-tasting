@@ -394,7 +394,7 @@ def _read_aggr_ibis(
 
 
 def _read_aggr_narwhals(
-    data: narwhals.typing.IntoFrame,
+    data: narwhals.typing.IntoFrame | narwhals.typing.Frame,
     group_col: str | None,
     *,
     has_count: bool,
@@ -403,7 +403,7 @@ def _read_aggr_narwhals(
     cov_cols: Sequence[tuple[str, str]],
 ) -> list[dict[str, int | float]]:
     data = nw.from_native(data)
-    if not isinstance(data, nw.LazyFrame):
+    if not isinstance(data, nw.LazyFrame):  # type: ignore
         data = data.lazy()
 
     covar_cols = tuple({*var_cols, *itertools.chain(*cov_cols)})
