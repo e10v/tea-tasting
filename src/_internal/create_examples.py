@@ -7,6 +7,8 @@ import re
 import textwrap
 
 import marimo._ast.cell
+import marimo._ast.codegen
+import marimo._ast.names
 import marimo._convert.utils
 
 
@@ -47,9 +49,11 @@ def convert_guide(name: str, deps: tuple[str, ...]) -> None:
     sources.append("import marimo as mo")
     cell_configs.append(HIDE_CODE)
 
-    code = marimo._convert.utils.generate_from_sources(
-        sources=sources,
-        cell_configs=cell_configs,
+    code = marimo._ast.codegen.generate_filecontents(
+        sources,
+        [marimo._ast.names.DEFAULT_CELL_NAME for _ in sources],
+        cell_configs,
+        config=None,
         header_comments=create_header_comments(deps),
     )
     with open(f"examples/{name}.py", "w") as f:
