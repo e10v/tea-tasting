@@ -308,13 +308,13 @@ class DictsReprMixin(abc.ABC):
     @_cache_method
     def to_pandas(self) -> pd.DataFrame:
         """Convert the object to a Pandas DataFrame."""
-        import pandas as pd
+        import pandas as pd  # noqa: PLC0415
         return pd.DataFrame.from_records(self.to_dicts())
 
     @_cache_method
     def to_polars(self) -> pl.DataFrame:
         """Convert the object to a Polars DataFrame."""
-        import polars as pl
+        import polars as pl  # noqa: PLC0415
         return pl.from_dicts(self.to_dicts())
 
 
@@ -542,7 +542,7 @@ class DictsReprMixin(abc.ABC):
     def _mime_(self) -> tuple[str, str]:
         """"Object representation for marimo notebooks."""
         try:
-            import marimo as mo
+            import marimo as mo  # noqa: PLC0415
 
             pretty_dicts = self.to_pretty_dicts(max_rows=0)
             n_rows = len(pretty_dicts)

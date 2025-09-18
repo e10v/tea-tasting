@@ -32,8 +32,8 @@ if TYPE_CHECKING:
 
 
 # The | operator doesn't work for NamedTuple, but Union works.
-MetricResult: TypeAlias = Union[NamedTuple, dict[str, object]]  # noqa: UP007
-MetricPowerResult: TypeAlias = Union[NamedTuple, dict[str, object]]  # noqa: UP007
+MetricResult: TypeAlias = Union[NamedTuple, dict[str, object]]
+MetricPowerResult: TypeAlias = Union[NamedTuple, dict[str, object]]
 
 R = TypeVar("R", bound=MetricResult)
 P = TypeVar("P", bound=MetricPowerResult)

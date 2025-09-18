@@ -561,10 +561,10 @@ def _make_data(
         }
 
     if return_type == "pandas":
-        import pandas as pd
+        import pandas as pd  # noqa: PLC0415
         return pd.DataFrame(data)
     if return_type == "polars":
-        import polars as pl
+        import polars as pl  # noqa: PLC0415
         return pl.DataFrame(data)
     return pa.table(data)
 
