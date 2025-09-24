@@ -380,6 +380,7 @@ class RatioOfMeans(  # noqa: D101
         covariate_mean = data.mean(self.numer_covariate) / data.mean(
             self.denom_covariate)
         metric_mean = self._metric_mean(data, covariate_coef, covariate_mean)
+        metric_var = self._metric_var(data, covariate_coef)
 
         power, effect_size, rel_effect_size, n_obs = self._validate_power_parameters(
             metric_mean=metric_mean,
@@ -395,7 +396,7 @@ class RatioOfMeans(  # noqa: D101
         ):
             for n_obs_i in n_obs:
                 parameter_value = self._solve_power_from_stats(
-                    sample_var=self._metric_var(data, covariate_coef),
+                    sample_var=metric_var,
                     sample_count=n_obs_i,
                     effect_size=effect_size_i,
                     power=power,
