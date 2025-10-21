@@ -47,7 +47,6 @@ docs = ["mkdocs-material", "mkdocstrings[python]"]
 lint = ["markdown", "marimo", "pyright", "ruff"]
 test = [
     "coverage[toml]>=7",
-    "duckdb<1.4",
     "ibis-framework[duckdb,sqlite]",
     "marimo>=0.10",
     "pandas>=2",
