@@ -47,7 +47,7 @@ class MeanResult(NamedTuple):
             confidence interval.
         rel_effect_size_ci_upper: Upper bound of the relative effect size
             confidence interval.
-        pvalue: P-value
+        pvalue: P-value.
         statistic: Statistic (standardized effect size).
     """
     control: float
@@ -748,8 +748,8 @@ class Mean(RatioOfMeans):  # noqa: D101
             alternative: Alternative hypothesis:
 
                 - `"two-sided"`: the means are unequal,
-                - `"greater"`: the mean in the treatment variant is greater than the mean
-                    in the control variant,
+                - `"greater"`: the mean in the treatment variant is greater than
+                    the mean in the control variant,
                 - `"less"`: the mean in the treatment variant is less than the mean
                     in the control variant.
 
