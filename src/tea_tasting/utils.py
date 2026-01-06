@@ -78,7 +78,10 @@ def auto_check(value: float, name: Literal["alpha"]) -> float:
     ...
 
 @overload
-def auto_check(value: str, name: Literal["alternative"]) -> str:
+def auto_check(
+    value: str,
+    name: Literal["alternative"],
+) -> Literal["two-sided", "greater", "less"]:
     ...
 
 @overload

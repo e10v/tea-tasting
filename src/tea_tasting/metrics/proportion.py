@@ -119,7 +119,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
             "norm",
             "pearson",
         })
-        self.alternative = (
+        self.alternative: Literal["two-sided", "greater", "less"] = (
             tea_tasting.utils.auto_check(alternative, "alternative")
             if alternative is not None
             else tea_tasting.config.get_config("alternative")
@@ -194,8 +194,16 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
                 correction=self.correction,
                 lambda_=self.method,
             ).pvalue  # type: ignore
-        else:
-            pvalue = 0.0
+        else:  # norm
+            pvalue = _2s_prop_ztest(
+                p_contr=p_contr,
+                p_treat=p_treat,
+                n_contr=n_contr,
+                n_treat=n_treat,
+                alternative=self.alternative,
+                correction=self.correction,
+                equal_var=self.equal_var,
+            )
 
         return ProportionResult(
             control=p_contr,
@@ -204,6 +212,43 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
             rel_effect_size=p_treat/p_contr - 1,
             pvalue=pvalue,
         )
+
+
+def _2s_prop_ztest(
+    *,
+    p_contr: float,
+    p_treat: float,
+    n_contr: int,
+    n_treat: int,
+    alternative: Literal["two-sided", "greater", "less"],
+    correction: bool,
+    equal_var: bool,
+) -> float:
+    if equal_var:
+        p_pooled = (p_contr*n_contr + p_treat*n_treat) / (n_contr + n_treat)
+        scale = math.sqrt(p_pooled * (1 - p_pooled) * (1/n_contr + 1/n_treat))
+    else:
+        scale = math.sqrt(p_contr*(1 - p_contr)/n_contr + p_treat*(1 - p_treat)/n_treat)
+
+    distr = scipy.stats.norm(scale=scale)
+    diff = p_treat - p_contr
+    cc = 0.5 * (1/n_contr + 1/n_treat) if correction else 0
+
+    if alternative == "greater":
+        if correction and diff > 0:
+            diff = max(diff - cc, 0)
+        pvalue = distr.sf(diff)
+    elif alternative == "less":
+        if correction and diff < 0:
+            diff = min(diff + cc, 0)
+        pvalue = distr.cdf(diff)
+    else:  # two-sided
+        diff = abs(diff)
+        if correction and diff > 0:
+            diff = max(diff - cc, 0)
+        pvalue = 2 * distr.sf(diff)
+
+    return pvalue
 
 
 class SampleRatioResult(NamedTuple):
@@ -335,11 +380,11 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
         ):
             pvalue = scipy.stats.binomtest(k=int(k), n=int(n), p=p).pvalue
         else:  # norm
-            d = k - n*p
-            if self.correction and d != 0:
-                d = min(d + 0.5, 0) if d < 0 else max(d - 0.5, 0)
+            d = abs(k - n*p)
+            if self.correction and d > 0:
+                d = max(d - 0.5, 0)
             z = d / math.sqrt(n * p * (1 - p))
-            pvalue = 2 * scipy.stats.norm.sf(abs(z))
+            pvalue = 2 * scipy.stats.norm.sf(z)
 
         return SampleRatioResult(
             control=n - k,

@@ -39,7 +39,9 @@ def get_config(option: Literal["alpha"]) -> float:
     ...
 
 @overload
-def get_config(option: Literal["alternative"]) -> str:
+def get_config(
+    option: Literal["alternative"],
+) -> Literal["two-sided", "greater", "less"]:
     ...
 
 @overload
@@ -59,7 +61,7 @@ def get_config(option: Literal["n_obs"]) -> int | Sequence[int] | None:
     ...
 
 @overload
-def get_config(option: Literal["n_resamples"]) -> str:
+def get_config(option: Literal["n_resamples"]) -> int:
     ...
 
 @overload
