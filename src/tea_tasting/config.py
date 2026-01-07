@@ -19,6 +19,7 @@ _DEFAULT_CONFIG: dict[str, object] = {
     "alpha": 0.05,
     "alternative": "two-sided",
     "confidence_level": 0.95,
+    "correction": True,
     "equal_var": False,
     "n_obs": None,
     "n_resamples": 10_000,
@@ -38,11 +39,17 @@ def get_config(option: Literal["alpha"]) -> float:
     ...
 
 @overload
-def get_config(option: Literal["alternative"]) -> str:
+def get_config(
+    option: Literal["alternative"],
+) -> Literal["two-sided", "greater", "less"]:
     ...
 
 @overload
 def get_config(option: Literal["confidence_level"]) -> float:
+    ...
+
+@overload
+def get_config(option: Literal["correction"]) -> bool:
     ...
 
 @overload
@@ -54,7 +61,7 @@ def get_config(option: Literal["n_obs"]) -> int | Sequence[int] | None:
     ...
 
 @overload
-def get_config(option: Literal["n_resamples"]) -> str:
+def get_config(option: Literal["n_resamples"]) -> int:
     ...
 
 @overload
@@ -113,6 +120,7 @@ def set_config(
     alpha: float | None = None,
     alternative: Literal["two-sided", "greater", "less"] | None = None,
     confidence_level: float | None = None,
+    correction: bool | None = None,
     equal_var: bool | None = None,
     n_obs: int | Sequence[int] | None = None,
     n_resamples: int | None = None,
@@ -137,6 +145,7 @@ def set_config(
 
         confidence_level: Confidence level for the confidence interval.
             Default is `0.95`.
+        correction: If `True`, add continuity correction. Default is `True`.
         equal_var: Defines whether equal variance is assumed. If `True`,
             pooled variance is used for the calculation of the standard error
             of the difference between two means. Default is `False`.
@@ -177,6 +186,7 @@ def config_context(
     alpha: float | None = None,
     alternative: Literal["two-sided", "greater", "less"] | None = None,
     confidence_level: float | None = None,
+    correction: bool | None = None,
     equal_var: bool | None = None,
     n_obs: int | Sequence[int] | None = None,
     n_resamples: int | None = None,
@@ -201,6 +211,7 @@ def config_context(
 
         confidence_level: Confidence level for the confidence interval.
             Default is `0.95`.
+        correction: If `True`, add continuity correction. Default is `True`.
         equal_var: Defines whether equal variance is assumed. If `True`,
             pooled variance is used for the calculation of the standard error
             of the difference between two means. Default is `False`.
