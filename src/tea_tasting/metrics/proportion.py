@@ -165,37 +165,40 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
         control = control.with_zero_div()
         treatment = treatment.with_zero_div()
         p_contr = control.mean(self.column)
-        n_contr = control.count()
         p_treat = treatment.mean(self.column)
+        n_contr = control.count()
         n_treat = treatment.count()
-        data = np.empty(shape=(2, 2), dtype=np.int64)
-        data[0, 0] = round(n_treat * p_treat)
-        data[0, 1] = round(n_contr * p_contr)
-        data[1, 0] = n_treat - data[0, 1]
-        data[1, 1] = n_contr - data[0, 0]
 
-        if (
-            self.method == "barnard" or
-            (self.method == "auto" and data.sum() < _MAX_EXACT_THRESHOLD)
-        ):
+        method = self.method
+        if method == "auto":
+            method = "barnard" if n_contr + n_treat < _MAX_EXACT_THRESHOLD else "norm"
+
+        if method != "norm":
+            data = np.empty(shape=(2, 2), dtype=np.int64)
+            data[0, 0] = round(n_treat * p_treat)
+            data[0, 1] = round(n_contr * p_contr)
+            data[1, 0] = n_treat - data[0, 0]
+            data[1, 1] = n_contr - data[0, 1]
+
+        if method == "barnard":
             pvalue = scipy.stats.barnard_exact(
-                data,
+                data,  # type: ignore
                 alternative=self.alternative,
                 pooled=self.equal_var,
             ).pvalue
-        elif self.method == "boschloo":
+        elif method == "boschloo":
             pvalue = scipy.stats.boschloo_exact(
-                data, alternative=self.alternative).pvalue
-        elif self.method == "fisher":
+                data, alternative=self.alternative).pvalue  # type: ignore
+        elif method == "fisher":
             pvalue = scipy.stats.fisher_exact(data, alternative=self.alternative).pvalue  # type: ignore
-        elif self.method in {"log-likelihood", "pearson"}:
+        elif method in {"log-likelihood", "pearson"}:
             pvalue = scipy.stats.chi2_contingency(
-                data,
+                data,  # type: ignore
                 correction=self.correction,
                 lambda_=self.method,
             ).pvalue  # type: ignore
         else:  # norm
-            pvalue = _2s_prop_ztest(
+            pvalue = _2sample_proportion_ztest(
                 p_contr=p_contr,
                 p_treat=p_treat,
                 n_contr=n_contr,
@@ -214,7 +217,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
         )
 
 
-def _2s_prop_ztest(
+def _2sample_proportion_ztest(
     *,
     p_contr: float,
     p_treat: float,

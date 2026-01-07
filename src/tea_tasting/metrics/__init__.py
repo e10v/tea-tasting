@@ -23,5 +23,5 @@ from tea_tasting.metrics.base import (
     read_granular,
 )
 from tea_tasting.metrics.mean import Mean, RatioOfMeans
-from tea_tasting.metrics.proportion import SampleRatio
+from tea_tasting.metrics.proportion import Proportion, SampleRatio
 from tea_tasting.metrics.resampling import Bootstrap, Quantile
