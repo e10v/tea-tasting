@@ -108,7 +108,58 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
             - [G-test](https://en.wikipedia.org/wiki/G-test).
             - [Two-proportion Z-test](https://en.wikipedia.org/wiki/Two-proportion_Z-test).
             - [Pearson's chi-squared test](https://en.wikipedia.org/wiki/Pearson%27s_chi-squared_test).
-        """
+
+        Examples:
+            ```pycon
+            >>> import pyarrow as pa
+            >>> import pyarrow.compute as pc
+            >>> import tea_tasting as tt
+
+            >>> data = tt.make_users_data(seed=42, n_users=1000)
+            >>> data = data.append_column(
+            ...     "has_order",
+            ...     pc.greater(data["orders"], 0).cast(pa.int64()),
+            ... )
+            >>> data
+            pyarrow.Table
+            user: int64
+            variant: int64
+            sessions: int64
+            orders: int64
+            revenue: double
+            has_order: int64
+            ----
+            user: [[0,1,2,3,4,...,995,996,997,998,999]]
+            variant: [[1,0,1,1,0,...,0,1,0,1,0]]
+            sessions: [[1,2,1,2,2,...,1,2,4,2,2]]
+            orders: [[0,0,0,2,1,...,1,1,0,0,2]]
+            revenue: [[0,0,0,16.57,8.87,...,8.54,11.78,0,0,18.69]]
+            has_order: [[0,0,0,1,1,...,1,1,0,0,1]]
+            >>> experiment = tt.Experiment(
+            ...     prop_users_with_orders=tt.Proportion("has_order"),
+            ... )
+            >>> experiment.analyze(data)
+                            metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            prop_users_with_orders   0.300     0.356             19%             [-, -] 0.0689
+
+            ```
+
+            With specific statistical test:
+
+            ```pycon
+            >>> experiment = tt.Experiment(
+            ...     prop_users_with_orders=tt.Proportion(
+            ...         "has_order",
+            ...         method="barnard",
+            ...         equal_var=True,
+            ...     ),
+            ... )
+            >>> experiment.analyze(data)
+                            metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            prop_users_with_orders   0.300     0.356             19%             [-, -] 0.0620
+
+            ```
+        """  # noqa: E501
         self.column = tea_tasting.utils.check_scalar(column, "column", typ=str)
         self.method = tea_tasting.utils.check_scalar(method, "method", typ=str, in_={
             "auto",
