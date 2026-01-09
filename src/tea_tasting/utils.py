@@ -507,7 +507,7 @@ class DictsReprMixin(abc.ABC):
             A copy of the object with the new default keys.
         """
         new_instance = self.__class__.__new__(self.__class__)
-        new_instance.__dict__.update(self.__dict__)
+        new_instance.__dict__.update(self.__dict__)  # type: ignore
         new_instance._cache = None
         if keys is not None:
             new_instance.default_keys = keys
