@@ -243,11 +243,14 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
         elif method == "fisher":
             pvalue = scipy.stats.fisher_exact(data, alternative=self.alternative).pvalue  # type: ignore
         elif method in {"log-likelihood", "pearson"}:
-            pvalue = scipy.stats.chi2_contingency(
-                data,  # type: ignore
-                correction=self.correction,
-                lambda_=self.method,
-            ).pvalue  # type: ignore
+            if np.any(data.sum(axis=0) == 0) or np.any(data.sum(axis=1) == 0):  # type: ignore
+                pvalue = float("nan")
+            else:
+                pvalue = scipy.stats.chi2_contingency(
+                    data,  # type: ignore
+                    correction=self.correction,
+                    lambda_=self.method,
+                ).pvalue  # type: ignore
         else:  # norm
             pvalue = _2sample_proportion_ztest(
                 p_contr=p_contr,

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from typing import NamedTuple
 import unittest.mock
 
@@ -185,6 +186,15 @@ def test_proportion_analyze_pearson(
     metric = tea_tasting.metrics.proportion.Proportion("has_order", method="pearson")
     result = metric.analyze(data_aggr, 0, 1, variant="variant")
     assert result.pvalue == pytest.approx(0.5083165530405195)
+
+def test_proportion_analyze_pearson_zero_margin():
+    metric = tea_tasting.metrics.proportion.Proportion("has_order", method="pearson")
+    data = {
+        0: tea_tasting.aggr.Aggregates(count_=10, mean_={"has_order": 0}),
+        1: tea_tasting.aggr.Aggregates(count_=10, mean_={"has_order": 0}),
+    }
+    result = metric.analyze(data, 0, 1, variant="variant")  # type: ignore
+    assert math.isnan(result.pvalue)
 
 def test_proportion_analyze_norm(
     data_aggr: dict[object, tea_tasting.aggr.Aggregates],
