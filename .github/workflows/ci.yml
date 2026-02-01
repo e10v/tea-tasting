@@ -32,7 +32,11 @@ jobs:
       - name: install dependencies
         run: uv sync --group test
       - name: markdownlint
-        run: markdownlint-cli2 "README.md" "docs/*.md"
+        uses: DavidAnson/markdownlint-cli2-action@v22
+        with:
+          globs: |
+            README.md
+            docs/*.md
       - name: doctest
         run: |
           pytest \
