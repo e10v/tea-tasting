@@ -134,6 +134,7 @@ doctest = """pytest \
 --ignore-glob=src/_*
 """
 lint = "ruff check ."
+markdownlint = "markdownlint-cli2 \"README.md\" \"docs/*.md\""
 reset = [
     { cmd = "git checkout main" },
     { cmd = "git pull" },

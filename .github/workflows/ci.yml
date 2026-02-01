@@ -31,7 +31,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: install dependencies
         run: uv sync --group test
-      - name: doctest with pytest
+      - name: markdownlint
+        run: markdownlint-cli2 "README.md" "docs/*.md"
+      - name: doctest
         run: |
           pytest \
             --doctest-continue-on-failure \
@@ -39,7 +41,7 @@ jobs:
             --doctest-modules \
             --ignore=examples/ \
             --ignore=tests/ \
-            --ignore-glob=src/_* \
+            --ignore-glob=src/_*
   test-lowest:
     strategy:
       matrix:
@@ -58,7 +60,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: install dependencies
         run: uv sync --group test --resolution lowest-direct
-      - name: test-lowest with pytest
+      - name: test-lowest
         run: pytest
   test:
     strategy:
@@ -78,7 +80,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: install dependencies
         run: uv sync --group test
-      - name: test with pytest
+      - name: test
         run: coverage run -m pytest
       - name: convert coverage report
         run: coverage xml
@@ -105,7 +107,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: install dependencies
         run: uv sync --group lint --group test
-      - name: check with ruff
+      - name: lint
         run: ruff check .
-      - name: check with pyright
+      - name: check types
         run: pyright
