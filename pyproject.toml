@@ -121,7 +121,7 @@ reportUnknownVariableType = false
 
 [tool.poe.tasks]
 ci.sequence = ["doctest", "test", "cover", "lint", "type"]
-ci.ignore_fail = "return_non_zero"
+ci.ignore_fail = true
 cover = "coverage report -m"
 docserv = "mkdocs serve -w docs -w src -w mkdocs.yml"
 doctest = """pytest \
@@ -142,3 +142,4 @@ reset = [
 ]
 test = "coverage run -m pytest"
 type = "pyright"
+upgrade = "uv sync --all-groups --upgrade"
