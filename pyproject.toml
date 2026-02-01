@@ -53,6 +53,7 @@ test = [
     "pandas>=2",
     "polars>=1",
     "pytest>=8",
+    "sqlglot!=28.7.0",
     "tqdm>=4",
 ]
 
