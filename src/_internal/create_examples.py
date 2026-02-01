@@ -9,7 +9,7 @@ import textwrap
 import marimo._ast.cell
 import marimo._ast.codegen
 import marimo._ast.names
-import marimo._convert.utils
+import marimo._convert.common
 
 
 GUIDES: dict[str, tuple[str, ...]] = {
@@ -43,7 +43,7 @@ def convert_guide(name: str, deps: tuple[str, ...]) -> None:
             sources.append(convert_code(text[:end_of_code]))
             cell_configs.append(SHOW_CODE)
 
-        sources.append(marimo._convert.utils.markdown_to_marimo(convert_md(md)))
+        sources.append(marimo._convert.common.markdown_to_marimo(convert_md(md)))
         cell_configs.append(HIDE_CODE)
 
     sources.append("import marimo as mo")
