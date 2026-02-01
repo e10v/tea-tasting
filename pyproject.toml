@@ -66,24 +66,6 @@ build-backend = "pdm.backend"
 excludes = ["src/_*/**/*"]
 package-dir = "src"
 
-[tool.pdm.scripts]
-all.composite = ["doctest", "test", "cover", "lint", "type"]
-all.keep_going = true
-cover = "coverage report -m"
-docserv = "mkdocs serve -w docs -w src -w mkdocs.yml"
-doctest.cmd = [
-    "pytest",
-    "--doctest-continue-on-failure",
-    "--doctest-glob=*.md",
-    "--doctest-modules",
-    "--ignore=examples/",
-    "--ignore=tests/",
-    "--ignore-glob=src/_*",
-]
-lint = "ruff check ."
-test = "coverage run -m pytest"
-type = "pyright"
-
 [tool.pdm.version]
 source = "scm"
 write_to = "tea_tasting/_version.txt"
@@ -135,3 +117,28 @@ reportUnknownArgumentType = false
 reportUnknownMemberType = false
 reportUnknownParameterType = false
 reportUnknownVariableType = false
+
+
+[tool.poe.tasks]
+ci.sequence = ["doctest", "test", "cover", "lint", "type"]
+ci.ignore_fail = "return_non_zero"
+cover = "coverage report -m"
+docserv = "mkdocs serve -w docs -w src -w mkdocs.yml"
+doctest = """pytest \
+--doctest-continue-on-failure \
+--doctest-glob=*.md \
+--doctest-modules \
+--ignore=examples/ \
+--ignore=tests/ \
+--ignore-glob=src/_*
+"""
+lint = "ruff check ."
+reset = [
+    { cmd = "git checkout main" },
+    { cmd = "git pull" },
+    { cmd = "git checkout dev" },
+    { cmd = "git reset --hard main" },
+    { cmd = "git push --force" },
+]
+test = "coverage run -m pytest"
+type = "pyright"
