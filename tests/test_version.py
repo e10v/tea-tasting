@@ -7,7 +7,7 @@ import unittest.mock
 import tea_tasting.version
 
 
-def test_version():
+def test_version() -> None:
     assert isinstance(tea_tasting.version.__version__, str)
 
     with (

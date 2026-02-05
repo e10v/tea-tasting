@@ -9,7 +9,7 @@ import pyarrow.compute as pc
 import tea_tasting.datasets
 
 
-def test_make_users_data_default():
+def test_make_users_data_default() -> None:
     n_users = 100
     data = tea_tasting.datasets.make_users_data(seed=42, n_users=n_users)
     assert isinstance(data, pa.Table)
@@ -26,7 +26,7 @@ def test_make_users_data_default():
         pc.greater_equal(data["orders"], 0),
     )).as_py()) == 1
 
-def test_make_users_data_pandas():
+def test_make_users_data_pandas() -> None:
     n_users = 100
     data = tea_tasting.datasets.make_users_data(
         seed=42, n_users=n_users, return_type="pandas")
@@ -35,7 +35,7 @@ def test_make_users_data_pandas():
         "user", "variant", "sessions", "orders", "revenue"]
     assert data.shape[0] == n_users
 
-def test_make_users_data_polars():
+def test_make_users_data_polars() -> None:
     n_users = 100
     data = tea_tasting.datasets.make_users_data(
         seed=42, n_users=n_users, return_type="polars")
@@ -45,7 +45,7 @@ def test_make_users_data_polars():
     assert data.shape[0] == n_users
 
 
-def test_make_users_data_covariates():
+def test_make_users_data_covariates() -> None:
     n_users = 100
     data = tea_tasting.datasets.make_users_data(
         seed=42, covariates=True, n_users=n_users)
@@ -67,7 +67,7 @@ def test_make_users_data_covariates():
     )).as_py()) == 1
 
 
-def test_make_sessions_data_default():
+def test_make_sessions_data_default() -> None:
     n_users = 100
     data = tea_tasting.datasets.make_sessions_data(seed=42, n_users=n_users)
     assert isinstance(data, pa.Table)
@@ -85,7 +85,7 @@ def test_make_sessions_data_default():
         pc.greater_equal(data["orders"], 0),
     )).as_py()) == 1
 
-def test_make_sessions_data_pandas():
+def test_make_sessions_data_pandas() -> None:
     n_users = 100
     data = tea_tasting.datasets.make_sessions_data(
         seed=42, n_users=n_users, return_type="pandas")
@@ -94,7 +94,7 @@ def test_make_sessions_data_pandas():
         "user", "variant", "sessions", "orders", "revenue"]
     assert data.shape[0] > n_users
 
-def test_make_sessions_data_polars():
+def test_make_sessions_data_polars() -> None:
     n_users = 100
     data = tea_tasting.datasets.make_sessions_data(
         seed=42, n_users=n_users, return_type="polars")
@@ -104,7 +104,7 @@ def test_make_sessions_data_polars():
     assert data.shape[0] > n_users
 
 
-def test_make_sessions_data_covariates():
+def test_make_sessions_data_covariates() -> None:
     n_users = 100
     data = tea_tasting.datasets.make_sessions_data(
         seed=42, covariates=True, n_users=n_users)
