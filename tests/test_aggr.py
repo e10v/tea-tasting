@@ -118,13 +118,13 @@ def correct_aggrs(data_arrow: pa.Table) -> dict[int, tea_tasting.aggr.Aggregates
     return aggrs
 
 
-def test_aggregates_init(aggr: tea_tasting.aggr.Aggregates):
+def test_aggregates_init(aggr: tea_tasting.aggr.Aggregates) -> None:
     assert aggr.count_ == COUNT
     assert aggr.mean_ == MEAN
     assert aggr.var_ == VAR
     assert aggr.cov_ == COV
 
-def test_aggregates_calls(aggr: tea_tasting.aggr.Aggregates):
+def test_aggregates_calls(aggr: tea_tasting.aggr.Aggregates) -> None:
     assert aggr.count() == COUNT
     assert aggr.mean("x") == MEAN["x"]
     assert aggr.mean("y") == MEAN["y"]
@@ -132,21 +132,21 @@ def test_aggregates_calls(aggr: tea_tasting.aggr.Aggregates):
     assert aggr.mean("y") == MEAN["y"]
     assert aggr.cov("x", "y") == COV["x", "y"]
 
-def test_aggregates_count_raises():
+def test_aggregates_count_raises() -> None:
     aggr = tea_tasting.aggr.Aggregates(count_=None, mean_={}, var_={}, cov_={})
     with pytest.raises(RuntimeError):
         aggr.count()
 
-def test_aggregates_none(aggr: tea_tasting.aggr.Aggregates):
+def test_aggregates_none(aggr: tea_tasting.aggr.Aggregates) -> None:
     assert aggr.mean(None) == 1
     assert aggr.var(None) == 0
     assert aggr.cov(None, "y") == 0
     assert aggr.cov("x", None) == 0
 
-def test_aggregates_ratio_var(aggr: tea_tasting.aggr.Aggregates):
+def test_aggregates_ratio_var(aggr: tea_tasting.aggr.Aggregates) -> None:
     assert aggr.ratio_var("x", "y") == pytest.approx(0.2265625)
 
-def test_aggregates_ratio_cov():
+def test_aggregates_ratio_cov() -> None:
     aggr = tea_tasting.aggr.Aggregates(
         count_=None,
         mean_={"a": 8, "b": 7, "c": 6, "d": 5},
@@ -158,7 +158,7 @@ def test_aggregates_ratio_cov():
 def test_aggregates_add(
     correct_aggr: tea_tasting.aggr.Aggregates,
     correct_aggrs: dict[int, tea_tasting.aggr.Aggregates],
-):
+) -> None:
     aggrs_add = correct_aggrs[0] + correct_aggrs[1]
     assert aggrs_add.count_ == pytest.approx(correct_aggr.count_)
     assert aggrs_add.mean_ == pytest.approx(correct_aggr.mean_)
@@ -169,7 +169,7 @@ def test_aggregates_add(
 def test_read_aggregates_groups(
     data: Frame,
     correct_aggrs: dict[int, tea_tasting.aggr.Aggregates],
-):
+) -> None:
     aggrs = tea_tasting.aggr.read_aggregates(
         data,
         group_col="variant",
@@ -187,7 +187,7 @@ def test_read_aggregates_groups(
 def test_read_aggregates_no_groups(
     data: Frame,
     correct_aggr: tea_tasting.aggr.Aggregates,
-):
+) -> None:
     aggr = tea_tasting.aggr.read_aggregates(
         data,
         group_col=None,
@@ -201,7 +201,7 @@ def test_read_aggregates_no_groups(
     assert aggr.var_ == pytest.approx(correct_aggr.var_)
     assert aggr.cov_ == pytest.approx(correct_aggr.cov_)
 
-def test_read_aggregates_no_count(data_arrow: pa.Table):
+def test_read_aggregates_no_count(data_arrow: pa.Table) -> None:
     aggr = tea_tasting.aggr.read_aggregates(
         data_arrow,
         group_col=None,

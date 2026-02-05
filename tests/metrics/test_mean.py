@@ -68,7 +68,7 @@ def power_data_aggr(power_data_arrow: pa.Table) -> tea_tasting.aggr.Aggregates:
     )
 
 
-def test_ratio_of_means_init_default():
+def test_ratio_of_means_init_default() -> None:
     metric = tea_tasting.metrics.mean.RatioOfMeans("a")
     assert metric.numer == "a"
     assert metric.denom is None
@@ -85,7 +85,7 @@ def test_ratio_of_means_init_default():
     assert metric.rel_effect_size is None
     assert metric.n_obs is None
 
-def test_ratio_of_means_init_custom():
+def test_ratio_of_means_init_custom() -> None:
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="a",
         denom="b",
@@ -118,7 +118,7 @@ def test_ratio_of_means_init_custom():
     metric = tea_tasting.metrics.mean.RatioOfMeans("a", effect_size=(1, 0.2))
     assert metric.effect_size == (1, 0.2)
 
-def test_ratio_of_means_init_config():
+def test_ratio_of_means_init_config() -> None:
     with tea_tasting.config.config_context(
         alternative="greater",
         confidence_level=0.9,
@@ -140,7 +140,7 @@ def test_ratio_of_means_init_config():
     assert metric.n_obs == (5_000, 10_000)
 
 
-def test_ratio_of_means_aggr_cols():
+def test_ratio_of_means_aggr_cols() -> None:
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="a",
         denom="b",
@@ -155,7 +155,7 @@ def test_ratio_of_means_aggr_cols():
     assert set(aggr_cols.cov_cols) == {("a", "b"), ("a", "c"), ("b", "c")}
 
 
-def test_ratio_of_means_analyze_frame(data_arrow: pa.Table):
+def test_ratio_of_means_analyze_frame(data_arrow: pa.Table) -> None:
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
         denom="sessions",
@@ -165,7 +165,7 @@ def test_ratio_of_means_analyze_frame(data_arrow: pa.Table):
 
 def test_ratio_of_means_analyze_basic(
     data_aggr: dict[object, tea_tasting.aggr.Aggregates],
-):
+) -> None:
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders")
     result = metric.analyze(data_aggr, 0, 1)
     assert isinstance(result, tea_tasting.metrics.mean.MeanResult)
@@ -182,7 +182,7 @@ def test_ratio_of_means_analyze_basic(
 
 def test_ratio_of_means_analyze_ratio_greater_equal_var(
     data_aggr: dict[object, tea_tasting.aggr.Aggregates],
-):
+) -> None:
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
         denom="sessions",
@@ -204,7 +204,7 @@ def test_ratio_of_means_analyze_ratio_greater_equal_var(
 
 def test_ratio_of_means_analyze_ratio_less_use_norm(
     data_aggr: dict[object, tea_tasting.aggr.Aggregates],
-):
+) -> None:
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
         denom="sessions",
@@ -227,7 +227,7 @@ def test_ratio_of_means_analyze_ratio_less_use_norm(
     assert result.statistic == pytest.approx(-0.3573188986307722)
 
 
-def test_ratio_of_means_solve_power_frame(power_data_arrow: pa.Table):
+def test_ratio_of_means_solve_power_frame(power_data_arrow: pa.Table) -> None:
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
         denom="sessions",
@@ -241,7 +241,9 @@ def test_ratio_of_means_solve_power_frame(power_data_arrow: pa.Table):
     assert result.power < 1
     assert result.rel_effect_size == 0.1
 
-def test_ratio_of_means_solve_power_power(power_data_aggr: tea_tasting.aggr.Aggregates):
+def test_ratio_of_means_solve_power_power(
+    power_data_aggr: tea_tasting.aggr.Aggregates,
+) -> None:
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
         alternative="greater",
@@ -259,7 +261,7 @@ def test_ratio_of_means_solve_power_power(power_data_aggr: tea_tasting.aggr.Aggr
 
 def test_ratio_of_means_solve_power_effect_size(
     power_data_aggr: tea_tasting.aggr.Aggregates,
-):
+) -> None:
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
         alternative="less",
@@ -276,7 +278,7 @@ def test_ratio_of_means_solve_power_effect_size(
 
 def test_ratio_of_means_solve_power_rel_effect_size(
     power_data_aggr: tea_tasting.aggr.Aggregates,
-):
+) -> None:
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders", n_obs=10_000)
     results = metric.solve_power(power_data_aggr, "rel_effect_size")
     assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
@@ -287,7 +289,9 @@ def test_ratio_of_means_solve_power_rel_effect_size(
     assert result.rel_effect_size == pytest.approx(0.09654179522252104)
     assert result.n_obs == 10_000
 
-def test_ratio_of_means_solve_power_n_obs(power_data_aggr: tea_tasting.aggr.Aggregates):
+def test_ratio_of_means_solve_power_n_obs(
+    power_data_aggr: tea_tasting.aggr.Aggregates,
+) -> None:
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders", effect_size=0.05)
     results = metric.solve_power(power_data_aggr, "n_obs")
     assert isinstance(results, tea_tasting.metrics.base.MetricPowerResults)
@@ -299,7 +303,9 @@ def test_ratio_of_means_solve_power_n_obs(power_data_aggr: tea_tasting.aggr.Aggr
         0.05 / power_data_aggr.mean("orders"))
     assert result.n_obs == 8236
 
-def test_ratio_of_means_solve_power_multi(power_data_aggr: tea_tasting.aggr.Aggregates):
+def test_ratio_of_means_solve_power_multi(
+    power_data_aggr: tea_tasting.aggr.Aggregates,
+) -> None:
     metric = tea_tasting.metrics.mean.RatioOfMeans(
         numer="orders",
         rel_effect_size=(0.05, 0.1),
@@ -311,7 +317,7 @@ def test_ratio_of_means_solve_power_multi(power_data_aggr: tea_tasting.aggr.Aggr
 
 def test_ratio_of_means_solve_power_raises_effect_size(
     power_data_aggr: tea_tasting.aggr.Aggregates,
-):
+) -> None:
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders")
     with pytest.raises(ValueError, match="One of them should be defined"):
         metric.solve_power(power_data_aggr, "power")
@@ -324,7 +330,7 @@ def test_ratio_of_means_solve_power_raises_effect_size(
 
 def test_ratio_of_means_solve_power_raises_max_iter(
     power_data_aggr: tea_tasting.aggr.Aggregates,
-):
+) -> None:
     metric = tea_tasting.metrics.mean.RatioOfMeans(numer="orders", rel_effect_size=0.01)
     with (
         unittest.mock.patch("tea_tasting.metrics.mean.MAX_ITER", 1),
@@ -333,7 +339,7 @@ def test_ratio_of_means_solve_power_raises_max_iter(
         metric.solve_power(power_data_aggr, "n_obs")
 
 
-def test_mean_analyze(data_aggr: dict[object, tea_tasting.aggr.Aggregates]):
+def test_mean_analyze(data_aggr: dict[object, tea_tasting.aggr.Aggregates]) -> None:
     metric = tea_tasting.metrics.mean.Mean(
         "orders",
         covariate="orders_covariate",
@@ -353,7 +359,7 @@ def test_mean_analyze(data_aggr: dict[object, tea_tasting.aggr.Aggregates]):
     assert metric.analyze(data_aggr, 0, 1) == ratio_metric.analyze(data_aggr, 0, 1)
 
 
-def test_mean_solve_power(power_data_aggr: tea_tasting.aggr.Aggregates):
+def test_mean_solve_power(power_data_aggr: tea_tasting.aggr.Aggregates) -> None:
     metric = tea_tasting.metrics.mean.Mean(
         "orders",
         covariate="orders_covariate",

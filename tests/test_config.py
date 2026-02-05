@@ -20,7 +20,7 @@ def reset_config() -> Iterator[None]:
 
 
 @pytest.mark.usefixtures("reset_config")
-def test_get_config():
+def test_get_config() -> None:
     config = tea_tasting.config.get_config()
     assert config == tea_tasting.config._config_var.get()
     config["equal_var"] = not config["equal_var"]
@@ -33,7 +33,7 @@ def test_get_config():
 
 
 @pytest.mark.usefixtures("reset_config")
-def test_set_config():
+def test_set_config() -> None:
     tea_tasting.config.set_config(equal_var=True)
     assert tea_tasting.config._config_var.get()["equal_var"] is True
 
@@ -42,7 +42,7 @@ def test_set_config():
 
 
 @pytest.mark.usefixtures("reset_config")
-def test_config_context():
+def test_config_context() -> None:
     old_equal_var = tea_tasting.config._config_var.get()["equal_var"]
 
     with tea_tasting.config.config_context(equal_var=not old_equal_var):

@@ -276,7 +276,7 @@ def data_arrow_multi(data_arrow: pa.Table) -> pa.Table:
 @pytest.fixture
 def ref_result(
     data_arrow: pa.Table,
-) -> tea_tasting.experiment.ExperimentResults:
+) -> tea_tasting.experiment.ExperimentResult:
     sessions = _Metric("sessions")
     orders = _MetricAggregated("orders")
     revenue = _MetricGranular("revenue")
@@ -287,7 +287,9 @@ def ref_result(
     )
 
 
-def test_experiment_result_to_dicts(result: tea_tasting.experiment.ExperimentResult):
+def test_experiment_result_to_dicts(
+    result: tea_tasting.experiment.ExperimentResult,
+) -> None:
     assert result.to_dicts() == (
         {"metric": "metric_tuple", "control": 10, "treatment": 11, "effect_size": 1},
         {"metric": "metric_dict", "control": 20, "treatment": 22, "effect_size": 2},
@@ -296,7 +298,7 @@ def test_experiment_result_to_dicts(result: tea_tasting.experiment.ExperimentRes
 
 def test_experiment_results_to_dicts(
     results2: tea_tasting.experiment.ExperimentResults,
-):
+) -> None:
     assert results2.to_dicts() == (
         {
             "variants": "(0, 1)",
@@ -331,7 +333,7 @@ def test_experiment_results_to_dicts(
 
 def test_simulation_results_to_dicts(
     results2: tea_tasting.experiment.ExperimentResults,
-):
+) -> None:
     assert tea_tasting.experiment.SimulationResults(results2.values()).to_dicts() == (
         {
             "metric": "metric_tuple",
@@ -360,7 +362,7 @@ def test_simulation_results_to_dicts(
     )
 
 
-def test_experiment_power_result_to_dicts():
+def test_experiment_power_result_to_dicts() -> None:
     raw_results = (
         {"power": 0.8, "effect_size": 1, "rel_effect_size": 0.05, "n_obs": 20_000},
         {"power": 0.9, "effect_size": 1, "rel_effect_size": 0.05, "n_obs": 10_000},
@@ -390,7 +392,7 @@ def test_experiment_power_result_to_dicts():
     )
 
 
-def test_experiment_init_default():
+def test_experiment_init_default() -> None:
     metrics = {
         "avg_sessions": _Metric("sessions"),
         "avg_orders": _MetricAggregated("orders"),
@@ -400,7 +402,7 @@ def test_experiment_init_default():
     assert experiment.metrics == metrics
     assert experiment.variant == "variant"
 
-def test_experiment_init_kwargs():
+def test_experiment_init_kwargs() -> None:
     metrics = {
         "avg_sessions": _Metric("sessions"),
         "avg_orders": _MetricAggregated("orders"),
@@ -410,7 +412,7 @@ def test_experiment_init_kwargs():
     assert experiment.metrics == metrics
     assert experiment.variant == "variant"
 
-def test_experiment_init_custom():
+def test_experiment_init_custom() -> None:
     metrics = {
         "avg_sessions": _Metric("sessions"),
         "avg_orders": _MetricAggregated("orders"),
@@ -424,7 +426,7 @@ def test_experiment_init_custom():
 def test_experiment_analyze_default(
     data: Frame,
     ref_result: tea_tasting.experiment.ExperimentResult,
-):
+) -> None:
     experiment = tea_tasting.experiment.Experiment({
         "avg_sessions": _Metric("sessions"),
         "avg_orders": _MetricAggregated("orders"),
@@ -435,7 +437,7 @@ def test_experiment_analyze_default(
 def test_experiment_analyze_base(
     data: Frame,
     ref_result: tea_tasting.experiment.ExperimentResult,
-):
+) -> None:
     experiment = tea_tasting.experiment.Experiment({
         "avg_sessions": _Metric("sessions"),
     })
@@ -445,7 +447,7 @@ def test_experiment_analyze_base(
 def test_experiment_analyze_aggr(
     data: Frame,
     ref_result: tea_tasting.experiment.ExperimentResult,
-):
+) -> None:
     experiment = tea_tasting.experiment.Experiment({
         "avg_orders": _MetricAggregated("orders"),
     })
@@ -455,7 +457,7 @@ def test_experiment_analyze_aggr(
 def test_experiment_analyze_gran(
     data: Frame,
     ref_result: tea_tasting.experiment.ExperimentResult,
-):
+) -> None:
     experiment = tea_tasting.experiment.Experiment({
         "avg_revenue": _MetricGranular("revenue"),
     })
@@ -465,7 +467,7 @@ def test_experiment_analyze_gran(
 def test_experiment_analyze_all_pairs(
     data_arrow_multi: pa.Table,
     ref_result: tea_tasting.experiment.ExperimentResult,
-):
+) -> None:
     experiment = tea_tasting.experiment.Experiment({
         "avg_sessions": _Metric("sessions"),
         "avg_orders": _MetricAggregated("orders"),
@@ -476,7 +478,7 @@ def test_experiment_analyze_all_pairs(
     assert results[0, 1] == ref_result
     assert results[0, 2] == ref_result
 
-def test_experiment_analyze_all_pairs_raises(data_arrow_multi: pa.Table):
+def test_experiment_analyze_all_pairs_raises(data_arrow_multi: pa.Table) -> None:
     experiment = tea_tasting.experiment.Experiment({
         "avg_sessions": _Metric("sessions"),
         "avg_orders": _MetricAggregated("orders"),
@@ -488,7 +490,7 @@ def test_experiment_analyze_all_pairs_raises(data_arrow_multi: pa.Table):
 def test_experiment_analyze_two_treatments(
     data_arrow_multi: pa.Table,
     ref_result: tea_tasting.experiment.ExperimentResult,
-):
+) -> None:
     experiment = tea_tasting.experiment.Experiment(
         {
             "avg_sessions": _Metric("sessions"),
@@ -503,7 +505,7 @@ def test_experiment_analyze_two_treatments(
     })
 
 
-def test_experiment_solve_power(data_arrow: pa.Table):
+def test_experiment_solve_power(data_arrow: pa.Table) -> None:
     experiment = tea_tasting.experiment.Experiment(
         metric=_Metric("sessions"),
         metric_aggr=_MetricAggregated("orders"),
@@ -537,7 +539,7 @@ class ExperimentWithSimulationResults(tea_tasting.experiment.Experiment):
         self.simulation_results.append(result)
         return result
 
-def test_experiment_simulate_default(data: Frame):
+def test_experiment_simulate_default(data: Frame) -> None:
     experiment = ExperimentWithSimulationResults({
         "avg_sessions": _MetricAggregated("sessions"),
         "avg_orders": _MetricGranular("orders"),
@@ -545,7 +547,7 @@ def test_experiment_simulate_default(data: Frame):
     })
     assert experiment.simulate(data, 10, seed=42) == experiment.simulation_results
 
-def test_experiment_simulate_cols(data: Frame, data_arrow: pa.Arrow):
+def test_experiment_simulate_cols(data: Frame, data_arrow: pa.Table) -> None:
     experiment = ExperimentWithSimulationResults({
         "avg_sessions": _MetricAggregated("sessions"),
     })
@@ -562,7 +564,7 @@ def test_experiment_simulate_cols(data: Frame, data_arrow: pa.Arrow):
     assert experiment.simulate(data, 10, seed=42) == experiment.simulation_results
     assert set(experiment.data[0].column_names) == set(data_arrow.column_names)
 
-def test_experiment_simulate_callable():
+def test_experiment_simulate_callable() -> None:
     experiment = ExperimentWithSimulationResults({
         "avg_sessions": _MetricAggregated("sessions"),
         "avg_orders": _MetricGranular("orders"),
@@ -577,7 +579,7 @@ def test_experiment_simulate_callable():
     assert results == experiment.simulation_results
     assert results[0] == experiment.analyze(tables[0])
 
-def test_experiment_simulate_map(data_arrow: pa.Table):
+def test_experiment_simulate_map(data_arrow: pa.Table) -> None:
     experiment = tea_tasting.experiment.Experiment({
         "avg_sessions": _MetricAggregated("sessions"),
         "avg_orders": _MetricGranular("orders"),
@@ -587,7 +589,7 @@ def test_experiment_simulate_map(data_arrow: pa.Table):
         results = experiment.simulate(data_arrow, 10, seed=42, map_=executor.map)
     assert results == experiment.simulate(data_arrow, 10, seed=42)
 
-def test_experiment_simulate_progress(data_arrow: pa.Table):
+def test_experiment_simulate_progress(data_arrow: pa.Table) -> None:
     experiment = tea_tasting.experiment.Experiment({
         "avg_sessions": _MetricAggregated("sessions"),
         "avg_orders": _MetricGranular("orders"),
@@ -603,7 +605,7 @@ def test_experiment_simulate_progress(data_arrow: pa.Table):
     results = experiment.simulate(data_arrow, 10, seed=42, progress=progress)
     assert results == simulation_results
 
-def test_experiment_simulate_treat():
+def test_experiment_simulate_treat() -> None:
     experiment = tea_tasting.experiment.Experiment({
         "avg_sessions": _MetricAggregated("sessions"),
         "avg_orders": _MetricGranular("orders"),

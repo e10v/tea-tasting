@@ -94,7 +94,7 @@ ignore = ["ANN401", "PGH003", "SLF001", "TRY003"]
 [tool.ruff.lint.per-file-ignores]
 "*/__init__.py" = ["F401"]
 "tests/*" = [
-    "ANN201", "D", "FBT003", "PLR2004", "PT001", "S101",
+    "D", "FBT003", "PLR2004", "PT001", "S101",
 ]
 
 [tool.ruff.lint.isort]
