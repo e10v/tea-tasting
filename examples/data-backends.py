@@ -12,46 +12,44 @@
 
 import marimo
 
-__generated_with = "0.15.5"
+__generated_with = "0.19.8"
 app = marimo.App()
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        # Data backends
+    mo.md(r"""
+    # Data backends
 
-        ## Intro
+    ## Intro
 
-        tea-tasting supports a wide range of data backends such as BigQuery, ClickHouse, DuckDB, PostgreSQL, Snowflake, Spark, and many other backends supported by [Ibis](https://github.com/ibis-project/ibis). Ibis is a DataFrame API to various data backends.
+    tea-tasting supports a wide range of data backends such as BigQuery, ClickHouse, DuckDB, PostgreSQL, Snowflake, Spark, and many other backends supported by [Ibis](https://github.com/ibis-project/ibis). Ibis is a DataFrame API to various data backends.
 
-        Many statistical tests, such as the Student's t-test or the Z-test, require only aggregated data for analysis. For these tests, tea-tasting retrieves only aggregated statistics like mean and variance instead of downloading all detailed data.
+    Many statistical tests, such as the Student's t-test or the Z-test, require only aggregated data for analysis. For these tests, tea-tasting retrieves only aggregated statistics like mean and variance instead of downloading all detailed data.
 
-        For example, if the raw experimental data are stored in ClickHouse, it's faster and more efficient to calculate counts, averages, variances, and covariances directly in ClickHouse rather than fetching granular data and performing aggregations in a Python environment.
+    For example, if the raw experimental data are stored in ClickHouse, it's faster and more efficient to calculate counts, averages, variances, and covariances directly in ClickHouse rather than fetching granular data and performing aggregations in a Python environment.
 
-        tea-tasting also accepts dataframes supported by [Narwhals](https://github.com/narwhals-dev/narwhals): cuDF, Dask, Modin, pandas, Polars, PyArrow. Narwhals is a compatibility layer between dataframe libraries.
+    tea-tasting also accepts dataframes supported by [Narwhals](https://github.com/narwhals-dev/narwhals): cuDF, Dask, Modin, pandas, Polars, PyArrow. Narwhals is a compatibility layer between dataframe libraries.
 
-        This guide:
+    This guide:
 
-        - Shows how to use tea-tasting with a data backend of your choice for the analysis of an experiment.
-        - Explains some internals of how tea-tasting uses Ibis to work with data backends.
+    - Shows how to use tea-tasting with a data backend of your choice for the analysis of an experiment.
+    - Explains some internals of how tea-tasting uses Ibis to work with data backends.
 
-        ## Demo database
+    ## Demo database
 
-        /// admonition | Note
+    /// admonition | Note
 
-        This guide uses [DuckDB](https://github.com/duckdb/duckdb), an in-process analytical database, and [Polars](https://github.com/pola-rs/polars) as example data backends. Install these packages in addition to tea-tasting to reproduce the examples:
+    This guide uses [DuckDB](https://github.com/duckdb/duckdb), an in-process analytical database, and [Polars](https://github.com/pola-rs/polars) as example data backends. Install these packages in addition to tea-tasting to reproduce the examples:
 
-        ```bash
-        uv pip install ibis-framework[duckdb] polars
-        ```
+    ```bash
+    uv pip install ibis-framework[duckdb] polars
+    ```
 
-        ///
+    ///
 
-        First, let's prepare a demo database:
-        """
-    )
+    First, let's prepare a demo database:
+    """)
     return
 
 
@@ -69,21 +67,19 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        In the example above:
+    mo.md(r"""
+    In the example above:
 
-        - Function `tt.make_users_data` returns a PyArrow Table with example experimental data.
-        - Function `ibis.duckdb.connect` creates a DuckDB in-process database using Ibis API.
-        - Method `con.create_table` creates and populates a table in the database based on the PyArrow Table.
+    - Function `tt.make_users_data` returns a PyArrow Table with example experimental data.
+    - Function `ibis.duckdb.connect` creates a DuckDB in-process database using Ibis API.
+    - Method `con.create_table` creates and populates a table in the database based on the PyArrow Table.
 
-        See the [Ibis documentation on how to create connections](https://ibis-project.org/reference/connection) to other data backends.
+    See the [Ibis documentation on how to create connections](https://ibis-project.org/reference/connection) to other data backends.
 
-        ## Querying experimental data
+    ## Querying experimental data
 
-        Method `con.create_table` in the example above returns an Ibis Table which already can be used in the analysis of the experiment. But let's see how to use an SQL query to create an Ibis Table:
-        """
-    )
+    Method `con.create_table` in the example above returns an Ibis Table which already can be used in the analysis of the experiment. But let's see how to use an SQL query to create an Ibis Table:
+    """)
     return
 
 
@@ -96,19 +92,17 @@ def _(con):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        It's a very simple query. In the real world, you might need to use joins, aggregations, and CTEs to get the data. You can define any SQL query supported by your data backend and use it to create Ibis Table.
+    mo.md(r"""
+    It's a very simple query. In the real world, you might need to use joins, aggregations, and CTEs to get the data. You can define any SQL query supported by your data backend and use it to create Ibis Table.
 
-        Keep in mind that tea-tasting assumes that:
+    Keep in mind that tea-tasting assumes that:
 
-        - Data is grouped by randomization units, such as individual users.
-        - There is a column indicating the variant of the A/B test (typically labeled as A, B, etc.).
-        - All necessary columns for metric calculations (like the number of orders, revenue, etc.) are included in the table.
+    - Data is grouped by randomization units, such as individual users.
+    - There is a column indicating the variant of the A/B test (typically labeled as A, B, etc.).
+    - All necessary columns for metric calculations (like the number of orders, revenue, etc.) are included in the table.
 
-        Ibis Table is a lazy object. It doesn't fetch the data when created. You can use Ibis DataFrame API to query the table and fetch the result:
-        """
-    )
+    Ibis Table is a lazy object. It doesn't fetch the data when created. You can use Ibis DataFrame API to query the table and fetch the result:
+    """)
     return
 
 
@@ -123,13 +117,11 @@ def _(data, ibis):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## Ibis example
+    mo.md(r"""
+    ## Ibis example
 
-        To better understand what Ibis does, let's consider the example with grouping and aggregation by variants:
-        """
-    )
+    To better understand what Ibis does, let's consider the example with grouping and aggregation by variants:
+    """)
     return
 
 
@@ -147,11 +139,9 @@ def _(data):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        `aggr_data` is another Ibis Table defined as a query over the previously defined `data`. Let's fetch the result:
-        """
-    )
+    mo.md(r"""
+    `aggr_data` is another Ibis Table defined as a query over the previously defined `data`. Let's fetch the result:
+    """)
     return
 
 
@@ -166,11 +156,9 @@ def _(aggr_data, ibis):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        Internally, Ibis compiles a Table to an SQL query supported by the backend:
-        """
-    )
+    mo.md(r"""
+    Internally, Ibis compiles a Table to an SQL query supported by the backend:
+    """)
     return
 
 
@@ -182,17 +170,15 @@ def _(aggr_data):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        See [Ibis documentation](https://ibis-project.org/tutorials/getting_started) for more details.
+    mo.md(r"""
+    See [Ibis documentation](https://ibis-project.org/tutorials/getting_started) for more details.
 
-        ## Experiment analysis
+    ## Experiment analysis
 
-        The example above shows how to query the metric averages. But for statistical inference, it's not enough. For example, Student's t-test and Z-test also require number of rows and variance. Additionally, analysis of ratio metrics and variance reduction with CUPED requires covariances.
+    The example above shows how to query the metric averages. But for statistical inference, it's not enough. For example, Student's t-test and Z-test also require number of rows and variance. Additionally, analysis of ratio metrics and variance reduction with CUPED requires covariances.
 
-        Querying all the required statistics manually can be a daunting and error-prone task. But don't worry—tea-tasting does this work for you. You just need to specify the metrics:
-        """
-    )
+    Querying all the required statistics manually can be a daunting and error-prone task. But don't worry—tea-tasting does this work for you. You just need to specify the metrics:
+    """)
     return
 
 
@@ -211,17 +197,15 @@ def _(data, tt):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        In the example above, tea-tasting fetches all the required statistics with a single query and then uses them to analyze the experiment.
+    mo.md(r"""
+    In the example above, tea-tasting fetches all the required statistics with a single query and then uses them to analyze the experiment.
 
-        Some statistical methods, like bootstrap, require granular data for analysis. In this case, tea-tasting fetches the detailed data as well.
+    Some statistical methods, like bootstrap, require granular data for analysis. In this case, tea-tasting fetches the detailed data as well.
 
-        ## Example with CUPED
+    ## Example with CUPED
 
-        An example of a slightly more complicated analysis using variance reduction with CUPED:
-        """
-    )
+    An example of a slightly more complicated analysis using variance reduction with CUPED:
+    """)
     return
 
 
@@ -249,13 +233,11 @@ def _(con, tt):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## Polars example
+    mo.md(r"""
+    ## Polars example
 
-        Here’s an example of how to analyze data using a Polars DataFrame:
-        """
-    )
+    Here’s an example of how to analyze data using a Polars DataFrame:
+    """)
     return
 
 
@@ -268,17 +250,16 @@ def _(experiment, pl, users_data):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-
-        """
-    )
+    mo.md(r"""
+ 
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
     import marimo as mo
+
     return (mo,)
 
 
