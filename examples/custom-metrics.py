@@ -10,30 +10,28 @@
 
 import marimo
 
-__generated_with = "0.15.5"
+__generated_with = "0.19.8"
 app = marimo.App()
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        # Custom metrics
+    mo.md(r"""
+    # Custom metrics
 
-        ## Intro
+    ## Intro
 
-        tea-tasting supports Student's t-test, Z-test, and [some other statistical tests](https://tea-tasting.e10v.me/api/metrics/index/) out of the box. However, you might want to analyze an experiment using other statistical criteria. In this case, you can define a custom metric with a statistical test of your choice.
+    tea-tasting supports Student's t-test, Z-test, and [some other statistical tests](https://tea-tasting.e10v.me/api/metrics/index/) out of the box. However, you might want to analyze an experiment using other statistical criteria. In this case, you can define a custom metric with a statistical test of your choice.
 
-        In tea-tasting, there are two types of metrics:
+    In tea-tasting, there are two types of metrics:
 
-        - Metrics that require only aggregated statistics for the analysis.
-        - Metrics that require granular data for the analysis.
+    - Metrics that require only aggregated statistics for the analysis.
+    - Metrics that require granular data for the analysis.
 
-        This guide explains how to define a custom metric for each type.
+    This guide explains how to define a custom metric for each type.
 
-        First, let's import all the required modules and prepare the data:
-        """
-    )
+    First, let's import all the required modules and prepare the data:
+    """)
     return
 
 
@@ -61,17 +59,15 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        This guide uses PyArrow as the data backend, but it's valid for other backends as well. See the [guide on data backends](https://tea-tasting.e10v.me/data-backends/) for more details.
+    mo.md(r"""
+    This guide uses PyArrow as the data backend, but it's valid for other backends as well. See the [guide on data backends](https://tea-tasting.e10v.me/data-backends/) for more details.
 
-        ## Metrics based on aggregated statistics
+    ## Metrics based on aggregated statistics
 
-        Let's define a metric that performs a proportion test, [G-test](https://en.wikipedia.org/wiki/G-test) or [Pearson's chi-squared test](https://en.wikipedia.org/wiki/Pearson%27s_chi-squared_test), on a binary column (with values `0` or `1`).
+    Let's define a metric that performs a proportion test, [G-test](https://en.wikipedia.org/wiki/G-test) or [Pearson's chi-squared test](https://en.wikipedia.org/wiki/Pearson%27s_chi-squared_test), on a binary column (with values `0` or `1`).
 
-        The first step is defining a result class. It should be a named tuple or a dictionary.
-        """
-    )
+    The first step is defining a result class. It should be a named tuple or a dictionary.
+    """)
     return
 
 
@@ -84,24 +80,23 @@ def _(NamedTuple):
         rel_effect_size: float
         pvalue: float
         statistic: float
+
     return (ProportionResult,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        The second step is defining the metric class itself. A metric based on aggregated statistics should be a subclass of [`MetricBaseAggregated`](https://tea-tasting.e10v.me/api/metrics/base/#tea_tasting.metrics.base.MetricBaseAggregated). `MetricBaseAggregated` is a generic class with the result class as a type variable.
+    mo.md(r"""
+    The second step is defining the metric class itself. A metric based on aggregated statistics should be a subclass of [`MetricBaseAggregated`](https://tea-tasting.e10v.me/api/metrics/base/#tea_tasting.metrics.base.MetricBaseAggregated). `MetricBaseAggregated` is a generic class with the result class as a type variable.
 
-        The metric should have the following methods and properties defined:
+    The metric should have the following methods and properties defined:
 
-        - Method `__init__` checks and saves metric parameters.
-        - Property `aggr_cols` returns columns to be aggregated for analysis for each type of statistic.
-        - Method `analyze_aggregates` analyzes the metric using aggregated statistics.
+    - Method `__init__` checks and saves metric parameters.
+    - Property `aggr_cols` returns columns to be aggregated for analysis for each type of statistic.
+    - Method `analyze_aggregates` analyzes the metric using aggregated statistics.
 
-        Let's define the metric and discuss each method in details:
-        """
-    )
+    Let's define the metric and discuss each method in details:
+    """)
     return
 
 
@@ -148,24 +143,23 @@ def _(Literal, ProportionResult, np, scipy, tea_tasting):
                 pvalue=res.pvalue,
                 statistic=res.statistic,
             )
+
     return (Proportion,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        Method `__init__` saves metric parameters to be used in the analysis. You can use utility functions [`check_scalar`](https://tea-tasting.e10v.me/api/utils/#tea_tasting.utils.check_scalar) and [`auto_check`](https://tea-tasting.e10v.me/api/utils/#tea_tasting.utils.auto_check) to check parameter values.
+    mo.md(r"""
+    Method `__init__` saves metric parameters to be used in the analysis. You can use utility functions [`check_scalar`](https://tea-tasting.e10v.me/api/utils/#tea_tasting.utils.check_scalar) and [`auto_check`](https://tea-tasting.e10v.me/api/utils/#tea_tasting.utils.auto_check) to check parameter values.
 
-        Property `aggr_cols` returns an instance of [`AggrCols`](https://tea-tasting.e10v.me/api/metrics/base/#tea_tasting.metrics.base.AggrCols). Analysis of proportion requires the number of rows (`has_count=True`) and the average value for the column of interest (`mean_cols=(self.column,)`) for each variant.
+    Property `aggr_cols` returns an instance of [`AggrCols`](https://tea-tasting.e10v.me/api/metrics/base/#tea_tasting.metrics.base.AggrCols). Analysis of proportion requires the number of rows (`has_count=True`) and the average value for the column of interest (`mean_cols=(self.column,)`) for each variant.
 
-        Method `analyze_aggregates` accepts two parameters: `control` and `treatment` data as instances of class [`Aggregates`](https://tea-tasting.e10v.me/api/aggr/#tea_tasting.aggr.Aggregates). They contain values for statistics and columns specified in `aggr_cols`.
+    Method `analyze_aggregates` accepts two parameters: `control` and `treatment` data as instances of class [`Aggregates`](https://tea-tasting.e10v.me/api/aggr/#tea_tasting.aggr.Aggregates). They contain values for statistics and columns specified in `aggr_cols`.
 
-        Method `analyze_aggregates` returns an instance of `ProportionResult`, defined earlier, with the analysis result.
+    Method `analyze_aggregates` returns an instance of `ProportionResult`, defined earlier, with the analysis result.
 
-        Now we can analyze the proportion of users who created at least one order during the experiment. For comparison, let's also add a metric that performs a Z-test on the same column.
-        """
-    )
+    Now we can analyze the proportion of users who created at least one order during the experiment. For comparison, let's also add a metric that performs a Z-test on the same column.
+    """)
     return
 
 
@@ -181,15 +175,13 @@ def _(Proportion, data, tt):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## Metrics based on granular data
+    mo.md(r"""
+    ## Metrics based on granular data
 
-        Now let's define a metric that performs the Mann-Whitney U test. While it's possible to use the aggregated sum of ranks for the test, this example uses granular data for analysis.
+    Now let's define a metric that performs the Mann-Whitney U test. While it's possible to use the aggregated sum of ranks for the test, this example uses granular data for analysis.
 
-        The result class:
-        """
-    )
+    The result class:
+    """)
     return
 
 
@@ -198,22 +190,21 @@ def _(NamedTuple):
     class MannWhitneyUResult(NamedTuple):
         pvalue: float
         statistic: float
+
     return (MannWhitneyUResult,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        A metric that analyzes granular data should be a subclass of [`MetricBaseGranular`](https://tea-tasting.e10v.me/api/metrics/base/#tea_tasting.metrics.base.MetricBaseGranular). `MetricBaseGranular` is a generic class with the result class as a type variable.
+    mo.md(r"""
+    A metric that analyzes granular data should be a subclass of [`MetricBaseGranular`](https://tea-tasting.e10v.me/api/metrics/base/#tea_tasting.metrics.base.MetricBaseGranular). `MetricBaseGranular` is a generic class with the result class as a type variable.
 
-        Metric should have the following methods and properties defined:
+    Metric should have the following methods and properties defined:
 
-        - Method `__init__` checks and saves metric parameters.
-        - Property `cols` returns columns to be fetched for an analysis.
-        - Method `analyze_granular` analyzes the metric using granular data.
-        """
-    )
+    - Method `__init__` checks and saves metric parameters.
+    - Property `cols` returns columns to be fetched for an analysis.
+    - Method `analyze_granular` analyzes the metric using granular data.
+    """)
     return
 
 
@@ -252,22 +243,21 @@ def _(Literal, MannWhitneyUResult, pa, scipy, tea_tasting):
                 pvalue=res.pvalue,
                 statistic=res.statistic,
             )
+
     return (MannWhitneyU,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        Property `cols` should return a sequence of strings.
+    mo.md(r"""
+    Property `cols` should return a sequence of strings.
 
-        Method `analyze_granular` accepts two parameters: control and treatment data as PyArrow Tables. Even with [data backend](https://tea-tasting.e10v.me/data-backends/) different from PyArrow, tea-tasting will retrieve the data and transform into a PyArrow Table.
+    Method `analyze_granular` accepts two parameters: control and treatment data as PyArrow Tables. Even with [data backend](https://tea-tasting.e10v.me/data-backends/) different from PyArrow, tea-tasting will retrieve the data and transform into a PyArrow Table.
 
-        Method `analyze_granular` returns an instance of `MannWhitneyUResult`, defined earlier, with analysis result.
+    Method `analyze_granular` returns an instance of `MannWhitneyUResult`, defined earlier, with analysis result.
 
-        Now we can perform the Mann-Whitney U test:
-        """
-    )
+    Now we can perform the Mann-Whitney U test:
+    """)
     return
 
 
@@ -284,13 +274,11 @@ def _(MannWhitneyU, data, tt):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## Analyzing two types of metrics together
+    mo.md(r"""
+    ## Analyzing two types of metrics together
 
-        It's also possible to analyze two types of metrics in one experiment:
-        """
-    )
+    It's also possible to analyze two types of metrics in one experiment:
+    """)
     return
 
 
@@ -308,29 +296,28 @@ def _(MannWhitneyU, Proportion, data, tt):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        In this case, tea-tasting performs two queries on the experimental data:
+    mo.md(r"""
+    In this case, tea-tasting performs two queries on the experimental data:
 
-        - With aggregated statistics required for analysis of metrics of type `MetricBaseAggregated`.
-        - With detailed data with columns required for analysis of metrics of type `MetricBaseGranular`.
+    - With aggregated statistics required for analysis of metrics of type `MetricBaseAggregated`.
+    - With detailed data with columns required for analysis of metrics of type `MetricBaseGranular`.
 
-        ## Recommendations
+    ## Recommendations
 
-        Follow these recommendations when defining custom metrics:
+    Follow these recommendations when defining custom metrics:
 
-        - Use parameter and attribute names consistent with the ones that are already defined in tea-tasting. For example, use `pvalue` instead of `p_value` or `correction` instead of `use_continuity`.
-        - End confidence interval boundary names with `"_ci_lower"` and `"_ci_upper"`.
-        - During initialization, save parameter values in metric attributes using the same names. For example, use `self.correction = correction` instead of `self.use_continuity = correction`.
-        - Use global settings as default values for standard parameters, such as `alternative` or `confidence_level`. See the [reference](https://tea-tasting.e10v.me/api/config/#tea_tasting.config.config_context) for the full list of standard parameters. You can also define and use your own global parameters.
-        """
-    )
+    - Use parameter and attribute names consistent with the ones that are already defined in tea-tasting. For example, use `pvalue` instead of `p_value` or `correction` instead of `use_continuity`.
+    - End confidence interval boundary names with `"_ci_lower"` and `"_ci_upper"`.
+    - During initialization, save parameter values in metric attributes using the same names. For example, use `self.correction = correction` instead of `self.use_continuity = correction`.
+    - Use global settings as default values for standard parameters, such as `alternative` or `confidence_level`. See the [reference](https://tea-tasting.e10v.me/api/config/#tea_tasting.config.config_context) for the full list of standard parameters. You can also define and use your own global parameters.
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _():
     import marimo as mo
+
     return (mo,)
 
 

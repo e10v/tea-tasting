@@ -132,6 +132,7 @@ doctest = """pytest \
 --ignore=tests/ \
 --ignore-glob=src/_*
 """
+examples = "uv run src/_internal/create_examples.py"
 lint = "ruff check ."
 markdownlint = "markdownlint-cli2 \"README.md\" \"docs/*.md\""
 reset = [
