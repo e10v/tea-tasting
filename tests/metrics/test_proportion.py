@@ -43,7 +43,7 @@ def test_proportion_init_default() -> None:
     assert metric.method == "auto"
     assert metric.alternative == "two-sided"
     assert metric.correction is False
-    assert metric.equal_var is False
+    assert metric.equal_var is True
 
 def test_proportion_init_custom() -> None:
     metric = tea_tasting.metrics.proportion.Proportion(
@@ -63,7 +63,7 @@ def test_proportion_init_config() -> None:
     with tea_tasting.config.config_context(
         alternative="less",
         correction=False,
-        equal_var=True,
+        equal_var=False,
     ):
         metric = tea_tasting.metrics.proportion.Proportion("a")
     assert metric.column == "a"
@@ -201,15 +201,15 @@ def test_proportion_analyze_norm(
 ) -> None:
     metric = tea_tasting.metrics.proportion.Proportion("has_order", method="norm")
     result = metric.analyze(data_aggr, 0, 1, variant="variant")
-    assert result.pvalue == pytest.approx(0.37708524118078046)
+    assert result.pvalue == pytest.approx(0.3809096823118986)
 
-def test_proportion_analyze_norm_pooled(
+def test_proportion_analyze_norm_unpooled(
     data_aggr: dict[object, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.Proportion(
-        "has_order", method="norm", equal_var=True)
+        "has_order", method="norm", equal_var=False)
     result = metric.analyze(data_aggr, 0, 1, variant="variant")
-    assert result.pvalue == pytest.approx(0.3809096823118986)
+    assert result.pvalue == pytest.approx(0.37708524118078046)
 
 def test_proportion_analyze_norm_corr_greater(
     data_aggr: dict[object, tea_tasting.aggr.Aggregates],
@@ -217,7 +217,7 @@ def test_proportion_analyze_norm_corr_greater(
     metric = tea_tasting.metrics.proportion.Proportion(
         "has_order", method="norm", alternative="greater", correction=True)
     result = metric.analyze(data_aggr, 1, 0, variant="variant")
-    assert result.pvalue == pytest.approx(0.2524533077562806)
+    assert result.pvalue == pytest.approx(0.2541582765202598)
 
 def test_proportion_analyze_norm_corr_less(
     data_aggr: dict[object, tea_tasting.aggr.Aggregates],
@@ -225,7 +225,7 @@ def test_proportion_analyze_norm_corr_less(
     metric = tea_tasting.metrics.proportion.Proportion(
         "has_order", method="norm", alternative="less", correction=True)
     result = metric.analyze(data_aggr, 0, 1, variant="variant")
-    assert result.pvalue == pytest.approx(0.2524533077562806)
+    assert result.pvalue == pytest.approx(0.2541582765202598)
 
 def test_proportion_analyze_norm_corr(
     data_aggr: dict[object, tea_tasting.aggr.Aggregates],
@@ -233,7 +233,7 @@ def test_proportion_analyze_norm_corr(
     metric = tea_tasting.metrics.proportion.Proportion(
         "has_order", method="norm", correction=True)
     result = metric.analyze(data_aggr, 0, 1, variant="variant")
-    assert result.pvalue == pytest.approx(0.5049066155125612)
+    assert result.pvalue == pytest.approx(0.5083165530405196)
 
 
 def test_sample_ratio_init_default() -> None:

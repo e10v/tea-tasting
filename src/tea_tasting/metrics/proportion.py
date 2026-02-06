@@ -59,7 +59,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
         ] = "auto",
         alternative: Literal["two-sided", "greater", "less"] | None = None,
         correction: bool | None = None,
-        equal_var: bool | None = None,
+        equal_var: bool = True,
     ) -> None:
         """Metric for the analysis of proportions.
 
@@ -95,10 +95,12 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
                 pooled variance is used for the calculation of the standard error
                 of the difference between two proportions. Only for normal approximation
                 and for Barnard's exact test (in the Wald statistic).
+                Default is `True`. Global config is ignored as pooled variance is
+                optimal for proportion tests.
 
         Parameter defaults:
-            Defaults for parameters `alternative`, `correction`, and `equal_var`
-            can be changed using the `config_context` and `set_context` functions.
+            Defaults for parameters `alternative` and `correction`
+            can be changed using the `config_context` and `set_config` functions.
             See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
             reference for details.
 
@@ -141,7 +143,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
             ... )
             >>> experiment.analyze(data)
                             metric control treatment rel_effect_size rel_effect_size_ci pvalue
-            prop_users_with_orders   0.300     0.356             19%             [-, -] 0.0592
+            prop_users_with_orders   0.300     0.356             19%             [-, -] 0.0596
 
             ```
 
@@ -152,7 +154,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
             ...     prop_users_with_orders=tt.Proportion(
             ...         "has_order",
             ...         method="barnard",
-            ...         equal_var=True,
+            ...         equal_var=False,
             ...     ),
             ... )
             >>> experiment.analyze(data)
@@ -184,11 +186,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
             if correction is not None
             else tea_tasting.config.get_config("correction")
         )
-        self.equal_var = (
-            tea_tasting.utils.auto_check(equal_var, "equal_var")
-            if equal_var is not None
-            else tea_tasting.config.get_config("equal_var")
-        )
+        self.equal_var = tea_tasting.utils.auto_check(equal_var, "equal_var")
 
 
     @property
