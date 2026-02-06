@@ -90,6 +90,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
                 G-test and Pearson's chi-squared test are always two-sided.
             correction: If `True`, add continuity correction. Only for
                 approximate methods: normal, G-test, and Pearson's chi-squared test.
+                Defaults to the global config value (`False`).
             equal_var: Defines whether equal variance is assumed. If `True`,
                 pooled variance is used for the calculation of the standard error
                 of the difference between two proportions. Only for normal approximation
@@ -140,7 +141,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
             ... )
             >>> experiment.analyze(data)
                             metric control treatment rel_effect_size rel_effect_size_ci pvalue
-            prop_users_with_orders   0.300     0.356             19%             [-, -] 0.0689
+            prop_users_with_orders   0.300     0.356             19%             [-, -] 0.0592
 
             ```
 
@@ -343,6 +344,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
 
             correction: If `True`, add continuity correction.
                 Only for normal approximation.
+                Defaults to the global config value (`False`).
 
         Examples:
             ```pycon
@@ -355,7 +357,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
             >>> result = experiment.analyze(data)
             >>> result.with_keys(("metric", "control", "treatment", "pvalue"))
                   metric control treatment pvalue
-            sample_ratio    2023      1977  0.477
+            sample_ratio    2023      1977  0.467
 
             ```
 
@@ -369,7 +371,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
             >>> result = experiment.analyze(data)
             >>> result.with_keys(("metric", "control", "treatment", "pvalue"))
                   metric control treatment    pvalue
-            sample_ratio    2023      1977 3.26e-103
+            sample_ratio    2023      1977 2.27e-103
 
             ```
         """
