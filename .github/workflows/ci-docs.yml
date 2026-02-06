@@ -1,0 +1,53 @@
+name: ci-docs
+on:
+  pull_request:
+    paths:
+      - 'README.md'
+      - 'docs/*.md'
+      - '.markdownlint.yml'
+      - '.github/workflows/ci-docs.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'README.md'
+      - 'docs/*.md'
+      - '.markdownlint.yml'
+      - '.github/workflows/ci-docs.yml'
+  workflow_dispatch:
+jobs:
+  doctest-md:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10"]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+      - name: set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          activate-environment: true
+          cache-suffix: "${{ matrix.python-version }}-test"
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+      - name: install dependencies
+        run: uv sync --group test
+      - name: doctest
+        run: |
+          pytest \
+            --doctest-continue-on-failure \
+            --doctest-glob=*.md \
+            --ignore=examples/ \
+            --ignore=tests/
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+      - name: lint
+        uses: DavidAnson/markdownlint-cli2-action@v22
+        with:
+          globs: |
+            README.md
+            docs/*.md
