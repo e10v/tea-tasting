@@ -1,4 +1,4 @@
-name: ci-md
+name: ci-docs
 on:
   pull_request:
     paths:
