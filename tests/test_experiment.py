@@ -663,6 +663,74 @@ def test_experiment_simulate_callable() -> None:
     assert results == experiment.simulation_results
     assert results[0] == experiment.analyze(tables[0])
 
+
+def test_experiment_simulate_callable_aggregated() -> None:
+    experiment = ExperimentWithSimulationResults({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricAggregated("orders"),
+    })
+    aggrs = []
+    def make_data(
+        seed: np.random.Generator,
+    ) -> dict[object, tea_tasting.aggr.Aggregates]:
+        table = tea_tasting.datasets.make_users_data(seed=seed, n_users=100)
+        aggr = tea_tasting.aggr.read_aggregates(
+            table,
+            group_col="variant",
+            has_count=False,
+            mean_cols=("sessions", "orders"),
+            var_cols=(),
+            cov_cols=(),
+        )
+        aggrs.append(aggr)
+        return aggr
+    results = experiment.simulate(make_data, 10, seed=42)
+    assert results == experiment.simulation_results
+    assert results[0] == experiment.analyze(aggrs[0])
+
+
+def test_experiment_simulate_callable_aggregated_raises_for_ratio() -> None:
+    experiment = tea_tasting.experiment.Experiment({
+        "avg_sessions": _MetricAggregated("sessions"),
+    })
+    def make_data(
+        seed: np.random.Generator,
+    ) -> dict[object, tea_tasting.aggr.Aggregates]:
+        return tea_tasting.aggr.read_aggregates(
+            tea_tasting.datasets.make_users_data(seed=seed, n_users=100),
+            group_col="variant",
+            has_count=False,
+            mean_cols=("sessions",),
+            var_cols=(),
+            cov_cols=(),
+        )
+    with pytest.raises(ValueError, match="ratio parameter"):
+        experiment.simulate(make_data, 1, seed=42, ratio=2)
+
+
+def test_experiment_simulate_callable_aggregated_raises_for_treat() -> None:
+    experiment = tea_tasting.experiment.Experiment({
+        "avg_sessions": _MetricAggregated("sessions"),
+    })
+    def make_data(
+        seed: np.random.Generator,
+    ) -> dict[object, tea_tasting.aggr.Aggregates]:
+        return tea_tasting.aggr.read_aggregates(
+            tea_tasting.datasets.make_users_data(seed=seed, n_users=100),
+            group_col="variant",
+            has_count=False,
+            mean_cols=("sessions",),
+            var_cols=(),
+            cov_cols=(),
+        )
+
+    def treat(data: pa.Table) -> pa.Table:
+        return data
+
+    with pytest.raises(ValueError, match="treat parameter"):
+        experiment.simulate(make_data, 1, seed=42, treat=treat)
+
+
 def test_experiment_simulate_map(data_arrow: pa.Table) -> None:
     experiment = tea_tasting.experiment.Experiment({
         "avg_sessions": _MetricAggregated("sessions"),

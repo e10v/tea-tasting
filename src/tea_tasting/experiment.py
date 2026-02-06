@@ -29,7 +29,13 @@ if TYPE_CHECKING:
     MapLike: TypeAlias = Callable[Concatenate[Callable[..., T], ...], Iterable[T]]
     ProgressFn: TypeAlias = Callable[Concatenate[Iterable[T], ...], Iterable[T]]
     DataGenerator: TypeAlias =  Callable[
-        ..., narwhals.typing.IntoFrame | ibis.expr.types.Table]
+        ...,
+        (
+            narwhals.typing.IntoFrame |
+            ibis.expr.types.Table |
+            dict[object, tea_tasting.aggr.Aggregates]
+        ),
+    ]
 
 
 class ExperimentResult(
@@ -606,23 +612,46 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 def _simulate_once(
     rng: np.random.Generator,
     experiment: Experiment,
-    data: pa.Table | DataGenerator,  # type: ignore
+    data: pa.Table | DataGenerator,
     ratio: float | int,
     treat: Callable[[pa.Table], pa.Table] | None,
 ) -> ExperimentResult:
-    if callable(data):
-        data: pa.Table = tea_tasting.metrics.read_granular(data(seed=rng))  # type: ignore
+    raw_data: (
+        narwhals.typing.IntoFrame |
+        ibis.expr.types.Table |
+        dict[object, tea_tasting.aggr.Aggregates] |
+        pa.Table
+    ) = data if isinstance(data, pa.Table) else data(seed=rng)
 
-    if experiment.variant not in data.column_names:
-        data = data.append_column(
+    if isinstance(raw_data, dict):
+        if ratio != 1:
+            raise ValueError(
+                "The ratio parameter is not supported when callable data "
+                "generates aggregated statistics.",
+            )
+        if treat is not None:
+            raise ValueError(
+                "The treat parameter is not supported when callable data "
+                "generates aggregated statistics.",
+            )
+        return experiment.analyze(raw_data)
+
+    table: pa.Table = (
+        raw_data
+        if isinstance(raw_data, pa.Table)
+        else tea_tasting.metrics.read_granular(raw_data)
+    )
+
+    if experiment.variant not in table.column_names:
+        table = table.append_column(
             experiment.variant,
-            [rng.binomial(n=1, p=ratio / (1 + ratio), size=data.num_rows)],
+            [rng.binomial(n=1, p=ratio / (1 + ratio), size=table.num_rows)],
         )
 
     if treat is not None:
-        variant_array = data[experiment.variant]
-        contr_data = data.filter(pc.equal(variant_array, pa.scalar(0)))  # type: ignore
-        treat_data = treat(data.filter(pc.equal(variant_array, pa.scalar(1))))  # type: ignore
+        variant_array = table[experiment.variant]
+        contr_data = table.filter(pc.equal(variant_array, pa.scalar(0)))  # type: ignore
+        treat_data = treat(table.filter(pc.equal(variant_array, pa.scalar(1))))  # type: ignore
         if not contr_data.schema.equals(treat_data.schema):
             schema = pa.unify_schemas(
                 [contr_data.schema, treat_data.schema],
@@ -630,6 +659,6 @@ def _simulate_once(
             )
             contr_data = contr_data.select(schema.names).cast(schema)
             treat_data = treat_data.select(schema.names).cast(schema)
-        data = pa.concat_tables((contr_data, treat_data))
+        table = pa.concat_tables((contr_data, treat_data))
 
-    return experiment.analyze(data)
+    return experiment.analyze(table)
