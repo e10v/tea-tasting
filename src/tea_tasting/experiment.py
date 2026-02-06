@@ -285,9 +285,33 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     ) -> ExperimentResults:
         ...
 
+    @overload
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
+        data: dict[object, tea_tasting.aggr.Aggregates],
+        control: object = None,
+        *,
+        all_variants: Literal[False] = False,
+    ) -> ExperimentResult:
+        ...
+
+    @overload
+    def analyze(
+        self,
+        data: dict[object, tea_tasting.aggr.Aggregates],
+        control: object = None,
+        *,
+        all_variants: Literal[True],
+    ) -> ExperimentResults:
+        ...
+
+    def analyze(
+        self,
+        data: (
+            narwhals.typing.IntoFrame |
+            ibis.expr.types.Table |
+            dict[object, tea_tasting.aggr.Aggregates]
+        ),
         control: object = None,
         *,
         all_variants: bool = False,
@@ -295,7 +319,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         """Analyze the experiment.
 
         Args:
-            data: Experimental data.
+            data: Experimental data or aggregated data by variants.
             control: Control variant. If `None`, the variant with the minimal ID
                 is used as a control.
             all_variants: If `True`, analyze all pairs of variants. Otherwise,
@@ -305,29 +329,9 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             Experiment result.
         """
         tea_tasting.utils.check_scalar(all_variants, "all_variants", typ=bool)
-        aggregated_data, granular_data = self._read_data(data)
-
-        if aggregated_data is not None:
-            variants = aggregated_data.keys()
-        elif granular_data is not None:
-            variants = granular_data.keys()
-        else:
-            variants = self._read_variants(data)
-        variants = sorted(variants)  # type: ignore
-
-        if control is not None:
-            variant_pairs = tuple(
-                (control, treatment)
-                for treatment in variants
-                if treatment != control
-            )
-        else:
-            variant_pairs = tuple(
-                (control, treatment)
-                for control in variants
-                for treatment in variants
-                if control < treatment
-            )
+        aggregated_data, granular_data = self._prepare_data(data)
+        variants = self._collect_variants(data, aggregated_data, granular_data)
+        variant_pairs = self._get_variant_pairs(variants, control)
 
         if len(variant_pairs) != 1 and not all_variants:
             raise ValueError(
@@ -354,10 +358,76 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         return results
 
 
+    def _prepare_data(
+        self,
+        data: (
+            narwhals.typing.IntoFrame |
+            ibis.expr.types.Table |
+            dict[object, tea_tasting.aggr.Aggregates]
+        ),
+    ) -> tuple[
+        dict[object, tea_tasting.aggr.Aggregates] | None,
+        dict[object, pa.Table] | None,
+    ]:
+        if isinstance(data, dict):
+            for name, metric in self.metrics.items():
+                if not isinstance(metric, tea_tasting.metrics.MetricBaseAggregated):
+                    raise TypeError(
+                        "Aggregated data was provided, but metric "
+                        f"{name!r} is not based on aggregated statistics.",
+                    )
+            return data, None
+
+        return self._read_data(data)
+
+
+    def _collect_variants(
+        self,
+        data: (
+            narwhals.typing.IntoFrame |
+            ibis.expr.types.Table |
+            dict[object, tea_tasting.aggr.Aggregates]
+        ),
+        aggregated_data: dict[object, tea_tasting.aggr.Aggregates] | None,
+        granular_data: dict[object, pa.Table] | None,
+    ) -> list[object]:
+        if aggregated_data is not None:
+            variants = aggregated_data.keys()
+        elif granular_data is not None:
+            variants = granular_data.keys()
+        else:
+            variants = self._read_variants(data)  # pyright: ignore[reportArgumentType]
+        return sorted(variants)  # type: ignore
+
+
+    def _get_variant_pairs(
+        self,
+        variants: list[object],
+        control: object,
+    ) -> tuple[tuple[object, object], ...]:
+        if control is not None:
+            return tuple(
+                (control, treatment)
+                for treatment in variants
+                if treatment != control
+            )
+
+        return tuple(
+            (control, treatment)
+            for control in variants
+            for treatment in variants
+            if control < treatment  # pyright: ignore[reportOperatorIssue]
+        )
+
+
     def _analyze_metric(
         self,
         metric: tea_tasting.metrics.MetricBase[Any],
-        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
+        data: (
+            narwhals.typing.IntoFrame |
+            ibis.expr.types.Table |
+            dict[object, tea_tasting.aggr.Aggregates]
+        ),
         aggregated_data: dict[object, tea_tasting.aggr.Aggregates] | None,
         granular_data: dict[object, pa.Table] | None,
         control: object,
@@ -375,7 +445,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         ):
             return metric.analyze(granular_data, control, treatment)
 
-        return metric.analyze(data, control, treatment, self.variant)
+        return metric.analyze(data, control, treatment, self.variant)  # pyright: ignore[reportArgumentType]
 
 
     def _read_data(

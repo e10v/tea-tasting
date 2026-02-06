@@ -274,6 +274,32 @@ def data_arrow_multi(data_arrow: pa.Table) -> pa.Table:
 
 
 @pytest.fixture
+def data_aggr(data_arrow: pa.Table) -> dict[object, tea_tasting.aggr.Aggregates]:
+    return tea_tasting.aggr.read_aggregates(
+        data_arrow,
+        group_col="variant",
+        has_count=False,
+        mean_cols=("sessions", "orders"),
+        var_cols=(),
+        cov_cols=(),
+    )
+
+
+@pytest.fixture
+def data_aggr_multi(
+    data_arrow_multi: pa.Table,
+) -> dict[object, tea_tasting.aggr.Aggregates]:
+    return tea_tasting.aggr.read_aggregates(
+        data_arrow_multi,
+        group_col="variant",
+        has_count=False,
+        mean_cols=("sessions", "orders"),
+        var_cols=(),
+        cov_cols=(),
+    )
+
+
+@pytest.fixture
 def ref_result(
     data_arrow: pa.Table,
 ) -> tea_tasting.experiment.ExperimentResult:
@@ -463,6 +489,64 @@ def test_experiment_analyze_gran(
     })
     assert experiment.analyze(data) == tea_tasting.experiment.ExperimentResult(
         avg_revenue=ref_result["avg_revenue"])
+
+
+def test_experiment_analyze_aggregated_data(
+    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    ref_result: tea_tasting.experiment.ExperimentResult,
+) -> None:
+    experiment = tea_tasting.experiment.Experiment({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricAggregated("orders"),
+    })
+    assert experiment.analyze(data_aggr) == tea_tasting.experiment.ExperimentResult(
+        avg_sessions=ref_result["avg_sessions"],
+        avg_orders=ref_result["avg_orders"],
+    )
+
+
+def test_experiment_analyze_aggregated_data_all_pairs(
+    data_aggr_multi: dict[object, tea_tasting.aggr.Aggregates],
+    ref_result: tea_tasting.experiment.ExperimentResult,
+) -> None:
+    experiment = tea_tasting.experiment.Experiment({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricAggregated("orders"),
+    })
+    results = experiment.analyze(data_aggr_multi, control=0, all_variants=True)
+    assert results == tea_tasting.experiment.ExperimentResults({
+        (0, 1): tea_tasting.experiment.ExperimentResult(
+            avg_sessions=ref_result["avg_sessions"],
+            avg_orders=ref_result["avg_orders"],
+        ),
+        (0, 2): tea_tasting.experiment.ExperimentResult(
+            avg_sessions=ref_result["avg_sessions"],
+            avg_orders=ref_result["avg_orders"],
+        ),
+    })
+
+
+def test_experiment_analyze_aggregated_data_raises_for_non_aggregated_metric(
+    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+) -> None:
+    experiment = tea_tasting.experiment.Experiment({
+        "avg_sessions": _Metric("sessions"),
+        "avg_orders": _MetricAggregated("orders"),
+    })
+    with pytest.raises(TypeError, match="not based on aggregated statistics"):
+        experiment.analyze(data_aggr)
+
+
+def test_experiment_analyze_aggregated_data_raises_for_granular_metric(
+    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+) -> None:
+    experiment = tea_tasting.experiment.Experiment({
+        "avg_orders": _MetricAggregated("orders"),
+        "avg_revenue": _MetricGranular("revenue"),
+    })
+    with pytest.raises(TypeError, match="not based on aggregated statistics"):
+        experiment.analyze(data_aggr)
+
 
 def test_experiment_analyze_all_pairs(
     data_arrow_multi: pa.Table,
