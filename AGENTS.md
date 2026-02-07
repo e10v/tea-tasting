@@ -52,11 +52,11 @@
 
 - Tests and checks for docs changes:
     - Docs-only doctest: `uv run pytest --doctest-continue-on-failure --doctest-glob=*.md --ignore=tests/`
-    - Markdown lint: `markdownlint-cli2 "README.md" "docs/*.md"`
+    - Markdown lint: `markdownlint-cli2 "*.md" "docs/*.md"`
 - Run them after creating or updating markdown files; fix errors.
 
 ## Code versioning
 
 - Develop only in the `dev` branch, never merge into `main`; leave all merges to me.
 - Make atomic commits.
-- Follow the Conventional Commits standard in commit messages.
+- Follow the Conventional Commits standard in commit messages but skip optional scope after type.
