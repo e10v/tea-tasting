@@ -134,7 +134,7 @@ doctest = """pytest \
 """
 examples = "uv run src/_internal/create_examples.py"
 lint = "ruff check ."
-markdownlint = "markdownlint-cli2 \"README.md\" \"docs/*.md\""
+markdownlint = 'markdownlint-cli2 "*.md" "docs/*.md"'
 reset = [
     { cmd = "git checkout main" },
     { cmd = "git pull" },

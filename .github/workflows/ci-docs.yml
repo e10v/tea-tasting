@@ -2,14 +2,14 @@ name: ci-docs
 on:
   pull_request:
     paths:
-      - 'README.md'
+      - '*.md'
       - 'docs/*.md'
       - '.markdownlint.yml'
       - '.github/workflows/ci-docs.yml'
   push:
     branches: [main]
     paths:
-      - 'README.md'
+      - '*.md'
       - 'docs/*.md'
       - '.markdownlint.yml'
       - '.github/workflows/ci-docs.yml'
@@ -49,5 +49,5 @@ jobs:
         uses: DavidAnson/markdownlint-cli2-action@v22
         with:
           globs: |
-            README.md
+            *.md
             docs/*.md
