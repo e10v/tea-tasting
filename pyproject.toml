@@ -76,6 +76,7 @@ write_to = "tea_tasting/_version.txt"
 source = ["src/tea_tasting"]
 [tool.coverage.report]
 exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover", "@overload", "@abc.abstractmethod"]
+fail_under = 100
 
 
 [tool.ruff]
