@@ -6,6 +6,7 @@ on:
       - 'docs/*.md'
       - '.markdownlint.yml'
       - '.github/workflows/ci-docs.yml'
+      - 'src/_internal/sync_readme.py'
   push:
     branches: [main]
     paths:
@@ -13,6 +14,7 @@ on:
       - 'docs/*.md'
       - '.markdownlint.yml'
       - '.github/workflows/ci-docs.yml'
+      - 'src/_internal/sync_readme.py'
   workflow_dispatch:
 jobs:
   doctest-md:
@@ -33,6 +35,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: install dependencies
         run: uv sync --group test
+      - name: check readme sync
+        run: uv run src/_internal/sync_readme.py --check
       - name: doctest
         run: |
           pytest \

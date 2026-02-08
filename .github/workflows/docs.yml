@@ -18,5 +18,7 @@ jobs:
           python-version: 3.13
       - name: install dependencies
         run: uv sync --group docs
+      - name: sync docs index with readme
+        run: uv run python src/_internal/sync_readme.py
       - name: build and publish docs
         run: mkdocs gh-deploy --force
