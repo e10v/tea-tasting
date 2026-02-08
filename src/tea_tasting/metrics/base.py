@@ -35,11 +35,14 @@ if TYPE_CHECKING:
 MetricResult: TypeAlias = Union[NamedTuple, dict[str, object]]
 MetricPowerResult: TypeAlias = Union[NamedTuple, dict[str, object]]
 
-R = TypeVar("R", bound=MetricResult)
-P = TypeVar("P", bound=MetricPowerResult)
+MetricResultT = TypeVar("MetricResultT", bound=MetricResult)
+MetricPowerResultT = TypeVar("MetricPowerResultT", bound=MetricPowerResult)
 
 
-class MetricPowerResults(tea_tasting.utils.DictsReprMixin, UserList[P]):
+class MetricPowerResults(
+    tea_tasting.utils.DictsReprMixin,
+    UserList[MetricPowerResultT],
+):
     """Power analysis results."""
     default_keys = ("power", "effect_size", "rel_effect_size", "n_obs")
 
@@ -48,10 +51,10 @@ class MetricPowerResults(tea_tasting.utils.DictsReprMixin, UserList[P]):
         """"Convert the results to a sequence of dictionaries."""
         return tuple((v if isinstance(v, dict) else v._asdict()) for v in self)
 
-S = TypeVar("S", bound=MetricPowerResults)  # type: ignore
+MetricPowerResultsT = TypeVar("MetricPowerResultsT", bound=MetricPowerResults)  # type: ignore
 
 
-class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
+class MetricBase(abc.ABC, Generic[MetricResultT], tea_tasting.utils.ReprMixin):
     """Base class for metrics."""
     @abc.abstractmethod
     def analyze(
@@ -60,7 +63,7 @@ class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
         control: object,
         treatment: object,
         variant: str,
-    ) -> R:
+    ) -> MetricResultT:
         """Analyze a metric in an experiment.
 
         Args:
@@ -74,7 +77,7 @@ class MetricBase(abc.ABC, Generic[R], tea_tasting.utils.ReprMixin):
         """
 
 
-class PowerBase(abc.ABC, Generic[S], tea_tasting.utils.ReprMixin):
+class PowerBase(abc.ABC, Generic[MetricPowerResultsT], tea_tasting.utils.ReprMixin):
     """Base class for the analysis of power."""
     @abc.abstractmethod
     def solve_power(
@@ -82,7 +85,7 @@ class PowerBase(abc.ABC, Generic[S], tea_tasting.utils.ReprMixin):
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
         parameter: Literal[
             "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
-    ) -> S:
+    ) -> MetricPowerResultsT:
         """Solve for a parameter of the power of a test.
 
         Args:
@@ -147,7 +150,7 @@ class _HasAggrCols(abc.ABC):
         """Columns to be aggregated for an analysis."""
 
 
-class MetricBaseAggregated(MetricBase[R], _HasAggrCols):
+class MetricBaseAggregated(MetricBase[MetricResultT], _HasAggrCols):
     """Base class for metrics, which are analyzed using aggregated statistics."""
     @overload
     def analyze(
@@ -156,7 +159,7 @@ class MetricBaseAggregated(MetricBase[R], _HasAggrCols):
         control: object,
         treatment: object,
         variant: str | None = None,
-    ) -> R:
+    ) -> MetricResultT:
         ...
 
     @overload
@@ -166,7 +169,7 @@ class MetricBaseAggregated(MetricBase[R], _HasAggrCols):
         control: object,
         treatment: object,
         variant: str,
-    ) -> R:
+    ) -> MetricResultT:
         ...
 
     def analyze(
@@ -176,7 +179,7 @@ class MetricBaseAggregated(MetricBase[R], _HasAggrCols):
         control: object,
         treatment: object,
         variant: str | None = None,
-    ) -> R:
+    ) -> MetricResultT:
         """Analyze a metric in an experiment.
 
         Args:
@@ -204,7 +207,7 @@ class MetricBaseAggregated(MetricBase[R], _HasAggrCols):
         self,
         control: tea_tasting.aggr.Aggregates,
         treatment: tea_tasting.aggr.Aggregates,
-    ) -> R:
+    ) -> MetricResultT:
         """Analyze metric in an experiment using aggregated statistics.
 
         Args:
@@ -216,7 +219,7 @@ class MetricBaseAggregated(MetricBase[R], _HasAggrCols):
         """
 
 
-class PowerBaseAggregated(PowerBase[S], _HasAggrCols):
+class PowerBaseAggregated(PowerBase[MetricPowerResultsT], _HasAggrCols):
     """Base class for the analysis of power using aggregated statistics."""
     def solve_power(
         self,
@@ -227,7 +230,7 @@ class PowerBaseAggregated(PowerBase[S], _HasAggrCols):
         ),
         parameter: Literal[
             "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
-    ) -> S:
+    ) -> MetricPowerResultsT:
         """Solve for a parameter of the power of a test.
 
         Args:
@@ -256,7 +259,7 @@ class PowerBaseAggregated(PowerBase[S], _HasAggrCols):
         data: tea_tasting.aggr.Aggregates,
         parameter: Literal[
             "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
-    ) -> S:
+    ) -> MetricPowerResultsT:
         """Solve for a parameter of the power of a test.
 
         Args:
@@ -307,7 +310,7 @@ class _HasCols(abc.ABC):
         """Columns to be fetched for an analysis."""
 
 
-class MetricBaseGranular(MetricBase[R], _HasCols):
+class MetricBaseGranular(MetricBase[MetricResultT], _HasCols):
     """Base class for metrics, which are analyzed using granular data."""
     @overload
     def analyze(
@@ -316,7 +319,7 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
         control: object,
         treatment: object,
         variant: str | None = None,
-    ) -> R:
+    ) -> MetricResultT:
         ...
 
     @overload
@@ -326,7 +329,7 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
         control: object,
         treatment: object,
         variant: str,
-    ) -> R:
+    ) -> MetricResultT:
         ...
 
     def analyze(
@@ -339,7 +342,7 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
         control: object,
         treatment: object,
         variant: str | None = None,
-    ) -> R:
+    ) -> MetricResultT:
         """Analyze a metric in an experiment.
 
         Args:
@@ -367,7 +370,7 @@ class MetricBaseGranular(MetricBase[R], _HasCols):
         self,
         control: pa.Table,
         treatment: pa.Table,
-    ) -> R:
+    ) -> MetricResultT:
         """Analyze metric in an experiment using granular data.
 
         Args:
