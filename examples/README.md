@@ -4,7 +4,7 @@ The tea-tasting repository includes [examples](https://github.com/e10v/tea-tasti
 
 ## Run in a local environment
 
-To run the examples in your local environment, clone the repository and change the directory:
+To run the examples in your local environment, clone the repository and change to the project directory:
 
 ```bash
 git clone git@github.com:e10v/tea-tasting.git && cd tea-tasting
@@ -37,6 +37,6 @@ To run the examples as WASM notebooks in the online playground, open the followi
 
 [WASM notebooks](https://docs.marimo.io/guides/wasm/) run entirely in the browser on [Pyodide](https://github.com/pyodide/pyodide) and thus have some limitations. In particular:
 
-- Tables and dataframes render less attractively because Pyodide doesn't always include the latest [packages versions](https://pyodide.org/en/stable/usage/packages-in-pyodide.html).
+- Tables and dataframes render less attractively because Pyodide doesn't always include the latest [package versions](https://pyodide.org/en/stable/usage/packages-in-pyodide.html).
 - You can't simulate experiments [in parallel](https://tea-tasting.e10v.me/simulated-experiments/#parallel-execution) because Pyodide currently [doesn't support multiprocessing](https://pyodide.org/en/stable/usage/wasm-constraints.html#included-but-not-working-modules).
 - Other unpredictable issues may arise, such as the inability to use duckdb with ibis.

@@ -62,7 +62,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
         batch: int | None = None,
         random_state: int | np.random.Generator | np.random.SeedSequence | None = None,
     ) -> None:
-        """Metric for analysis of a statistic using bootstrap resampling.
+        """Metric for the analysis of a statistic using bootstrap resampling.
 
         If `columns` is a sequence of strings, then the sample passed
         to the statistic callable contains an extra dimension in the first axis.
@@ -100,7 +100,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
         Parameter defaults:
             Defaults for parameters `alternative`, `confidence_level`,
             and `n_resamples` can be changed using the
-            `config_context` and `set_context` functions.
+            `config_context` and `set_config` functions.
             See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
             reference for details.
 
@@ -198,7 +198,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
         control: pa.Table,
         treatment: pa.Table,
     ) -> BootstrapResult:
-        """Analyze metric in an experiment using granular data.
+        """Analyze a metric in an experiment using granular data.
 
         Args:
             control: Control data.
@@ -312,7 +312,7 @@ class Quantile(Bootstrap):  # noqa: D101
         Parameter defaults:
             Defaults for parameters `alternative`, `confidence_level`,
             and `n_resamples` can be changed using the
-            `config_context` and `set_context` functions.
+            `config_context` and `set_config` functions.
             See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
             reference for details.
 

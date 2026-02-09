@@ -87,7 +87,7 @@ shape: (500, 7)
 
 The `simulate` method accepts data in the same formats as the `analyze` method. Internally, however, it converts the data to a PyArrow Table before running the simulations.
 
-The method returns an instance of the [`SimulationResults`](api/experiment.md#tea_tasting.experiment.SimulationResults) class, which contains the results of all simulations for all metrics. The resulting object provides serialization methods to those of the experiment result, including `to_dicts`, `to_arrow`, `to_pandas`, `to_polars`, `to_pretty_dicts`, `to_string`, `to_html`.
+The method returns an instance of the [`SimulationResults`](api/experiment.md#tea_tasting.experiment.SimulationResults) class, which contains the results of all simulations for all metrics. The resulting object provides serialization methods similar to those of experiment results, including `to_dicts`, `to_arrow`, `to_pandas`, `to_polars`, `to_pretty_dicts`, `to_string`, `to_html`.
 
 For instance, we can now calculate the proportion of rejected null hypotheses, using various significance levels (`alpha`). In A/A tests, it estimates the type I error rate.
 

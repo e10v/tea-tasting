@@ -63,11 +63,11 @@ revenue: [[9.17,6.43,7.94,15.93,7.14,...,0,0,0,0,17.16]]
 
 ```
 
-You can control return type using the `return_type` parameter. The other possible output types are Pandas DataFrame and Polars DataFrame. They require Pandas or Polars packages respectively.
+You can control the return type using the `return_type` parameter. The other possible output types are Pandas DataFrame and Polars DataFrame. They require the Pandas and Polars packages, respectively.
 
 tea-tasting can process data in the form of an Ibis Table or a DataFrame supported by Narwhals:
 
-- [Ibis](https://github.com/ibis-project/ibis) is a DataFrame API to various data backends. It supports many backends including BigQuery, ClickHouse, DuckDB, PostgreSQL, Snowflake, Spark etc. You can write an SQL query, [wrap](https://ibis-project.org/how-to/extending/sql#backend.sql) it as an Ibis Table and pass it to tea-tasting.
+- [Ibis](https://github.com/ibis-project/ibis) is a DataFrame API for various data backends. It supports many backends, including BigQuery, ClickHouse, DuckDB, PostgreSQL, Snowflake, Spark, and others. You can write an SQL query, [wrap](https://ibis-project.org/how-to/extending/sql#backend.sql) it as an Ibis Table, and pass it to tea-tasting.
 - [Narwhals](https://github.com/narwhals-dev/narwhals) is a compatibility layer between dataframe libraries. It supports cuDF, Dask, Modin, pandas, Polars, PyArrow dataframes. You can use any of these dataframes as an input to tea-tasting.
 
 Many statistical tests, such as the Student's t-test or the Z-test, require only aggregated data for analysis. For these tests, tea-tasting retrieves only aggregated statistics like mean and variance instead of downloading all detailed data. See more details in the [guide on data backends](data-backends.md).
@@ -83,7 +83,7 @@ tea-tasting assumes that:
 The [`Experiment`](api/experiment.md#tea_tasting.experiment.Experiment) class defines parameters of an A/B test: metrics and a variant column name. There are two ways to define metrics:
 
 - Using keyword parameters, with metric names as parameter names, and metric definitions as parameter values, as in example above.
-- Using the first argument `metrics` which accepts metrics in a form of dictionary with metric names as keys and metric definitions as values.
+- Using the first argument `metrics`, which accepts metrics in the form of a dictionary with metric names as keys and metric definitions as values.
 
 By default, tea-tasting assumes that the A/B test variant is stored in a column named `"variant"`. You can change it using the `variant` parameter of the `Experiment` class.
 
@@ -104,7 +104,7 @@ Example usage:
 
 ### Metrics
 
-Metrics are instances of metric classes which define how metrics are calculated. Those calculations include calculation of effect size, confidence interval, p-value and other statistics.
+Metrics are instances of metric classes that define how metrics are calculated. These calculations include effect size, confidence intervals, p-values, and other statistics.
 
 Use the [`Mean`](api/metrics/mean.md#tea_tasting.metrics.mean.Mean) class to compare averages between variants of an A/B test. For example, average number of orders per user, where user is a randomization unit of an experiment. Specify the column containing the metric values using the first parameter `value`.
 
@@ -138,7 +138,7 @@ You can change default values of these four parameters using the [global setting
 
 ### Analyzing and retrieving experiment results
 
-After defining an experiment and metrics, you can analyze the experiment data using the [`analyze`](api/experiment.md#tea_tasting.experiment.Experiment.analyze) method of the `Experiment` class. This method takes data as an input and returns an `ExperimentResult` object with experiment result.
+After defining an experiment and metrics, you can analyze the experiment data using the [`analyze`](api/experiment.md#tea_tasting.experiment.Experiment.analyze) method of the `Experiment` class. This method takes data as input and returns an `ExperimentResult` object with the analysis result.
 
 ```pycon
 >>> new_result = experiment.analyze(data)
@@ -171,7 +171,7 @@ By default, tea-tasting assumes that the variant with the lowest ID is a control
 
 ```
 
-Fields in result depend on metrics. For `Mean` and `RatioOfMeans`, the [fields include](api/metrics/mean.md#tea_tasting.metrics.mean.MeanResult):
+Fields in the result depend on the metric. For `Mean` and `RatioOfMeans`, the [fields include](api/metrics/mean.md#tea_tasting.metrics.mean.MeanResult):
 
 - `metric`: Metric name.
 - `control`: Mean or ratio of means in the control variant.
@@ -182,7 +182,7 @@ Fields in result depend on metrics. For `Mean` and `RatioOfMeans`, the [fields i
 - `rel_effect_size`: Relative effect size. Difference between two means, divided by the control mean.
 - `rel_effect_size_ci_lower`: Lower bound of the relative effect size confidence interval.
 - `rel_effect_size_ci_upper`: Upper bound of the relative effect size confidence interval.
-- `pvalue`: P-value
+- `pvalue`: P-value.
 - `statistic`: Statistic (standardized effect size).
 
 [`ExperimentResult`](api/experiment.md#tea_tasting.experiment.ExperimentResult) provides the following methods to serialize and view the experiment result:
@@ -195,7 +195,7 @@ Fields in result depend on metrics. For `Mean` and `RatioOfMeans`, the [fields i
 - `to_string`: Convert the result to a string.
 - `to_html`: Convert the result to HTML.
 
-`result` is the same as `print(result.to_string())`. `ExperimentResult` provides also the `_repr_html_` method that renders it as an HTML table in IPython and Jupyter, and the `_mime_` method that renders it as a table in marimo notebooks.
+`result` is the same as `print(result.to_string())`. `ExperimentResult` also provides the `_repr_html_` method, which renders it as an HTML table in IPython and Jupyter, and the `_mime_` method, which renders it as a table in marimo notebooks.
 
 ```pycon
 >>> result
@@ -274,7 +274,7 @@ orders_per_session   0.262     0.293             12%        [4.2%, 21%] 0.00229
 
 ```
 
-Set the `covariates` parameter of the `make_users_data` functions to `True` to add the following columns with pre-experimental data:
+Set the `covariates` parameter of the `make_users_data` function to `True` to add the following columns with pre-experimental data:
 
 - `sessions_covariate`: Number of sessions before the experiment.
 - `orders_covariate`: Number of orders before the experiment.
@@ -306,9 +306,9 @@ revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 
 ```
 
-By default, `SampleRatio` expects equal number of observations across all variants. To specify a different ratio, use the `ratio` parameter. It accepts two types of values:
+By default, `SampleRatio` expects an equal number of observations across all variants. To specify a different ratio, use the `ratio` parameter. It accepts two types of values:
 
-- Ratio of the number of observation in treatment relative to control, as a positive number. Example: `SampleRatio(0.5)`.
+- Ratio of the number of observations in treatment relative to control, as a positive number. Example: `SampleRatio(0.5)`.
 - A dictionary with variants as keys and expected ratios as values. Example: `SampleRatio({"A": 2, "B": 1})`.
 
 The `method` parameter determines the statistical test to apply:

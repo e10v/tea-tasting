@@ -543,7 +543,7 @@ class DictsReprMixin(abc.ABC):
 
 
     def _mime_(self) -> tuple[str, str]:
-        """"Object representation for marimo notebooks."""
+        """Object representation for marimo notebooks."""
         try:
             import marimo as mo  # noqa: PLC0415
 
@@ -617,7 +617,7 @@ def div(
     Returns:
         Result of the division.
 
-    If `fill_zero_div` is equal `"auto"`, return:
+    If `fill_zero_div` equals `"auto"`, return:
 
     - `inf` if numerator is greater than `0`,
     - `nan` if numerator is equal to or less than `0`.
@@ -762,13 +762,13 @@ def numeric(
     value: object,
     fill_zero_div: float | int | Literal["auto"] = "auto",
 ) -> Numeric:
-    """Convert an object to numeric that gracefully handles division by zero errors.
+    """Convert an object to a numeric type that gracefully handles division by zero.
 
     Args:
         value: Object to convert.
         fill_zero_div: Result if denominator is zero.
 
-    If `fill_zero_div` is equal `"auto"`, division by zero will return:
+    If `fill_zero_div` equals `"auto"`, division by zero returns:
 
     - `inf` if numerator is greater than `0`,
     - `nan` if numerator is equal to or less than `0`.

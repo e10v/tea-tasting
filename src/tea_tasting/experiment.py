@@ -1,4 +1,4 @@
-"""Experiment and experiment result."""
+"""Experiment and experiment results."""
 
 from __future__ import annotations
 
@@ -152,7 +152,7 @@ class ExperimentPowerResult(
     tea_tasting.utils.DictsReprMixin,
     UserDict[str, tea_tasting.metrics.MetricPowerResults[Any]],
 ):
-    """Result of the analysis of power in a experiment."""
+    """Result of power analysis in an experiment."""
     default_keys = ("metric", "power", "effect_size", "rel_effect_size", "n_obs")
 
     @tea_tasting.utils._cache_method
@@ -199,7 +199,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
             ```
 
-            Using the first argument `metrics` which accepts metrics in a form of dictionary:
+            Using the first argument `metrics`, which accepts metrics in the form of a dictionary:
 
             ```pycon
             >>> experiment = tt.Experiment({

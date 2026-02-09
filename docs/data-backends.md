@@ -19,7 +19,7 @@ This guide:
 
 /// admonition | Note
 
-This guide uses [DuckDB](https://github.com/duckdb/duckdb), an in-process analytical database, and [Polars](https://github.com/pola-rs/polars) as example data backends. Install these packages in addition to tea-tasting to reproduce the examples:
+This guide uses [DuckDB](https://github.com/duckdb/duckdb), an in-process analytical database, and [Polars](https://github.com/pola-rs/polars) as example backends. Install these packages in addition to tea-tasting to reproduce the examples:
 
 ```bash
 uv pip install ibis-framework[duckdb] polars
@@ -56,7 +56,7 @@ See the [Ibis documentation on how to create connections](https://ibis-project.o
 
 ## Querying experimental data
 
-Method `con.create_table` in the example above returns an Ibis Table which already can be used in the analysis of the experiment. But let's see how to use an SQL query to create an Ibis Table:
+The `con.create_table` method in the example above returns an Ibis Table that can already be used for experiment analysis. But let's see how to use an SQL query to create an Ibis Table:
 
 ```pycon
 >>> data = con.sql("select * from users_data")
@@ -73,7 +73,7 @@ SQLQueryResult
 
 ```
 
-It's a very simple query. In the real world, you might need to use joins, aggregations, and CTEs to get the data. You can define any SQL query supported by your data backend and use it to create Ibis Table.
+It's a very simple query. In the real world, you might need to use joins, aggregations, and CTEs to get the data. You can define any SQL query supported by your data backend and use it to create an Ibis Table.
 
 Keep in mind that tea-tasting assumes that:
 
@@ -177,7 +177,7 @@ See [Ibis documentation](https://ibis-project.org/tutorials/getting_started) for
 
 ## Experiment analysis
 
-The example above shows how to query the metric averages. But for statistical inference, it's not enough. For example, Student's t-test and Z-test also require number of rows and variance. Additionally, analysis of ratio metrics and variance reduction with CUPED requires covariances.
+The example above shows how to query metric averages. But for statistical inference, this is not enough. For example, Student's t-test and Z-test also require the number of rows and variances. Additionally, analysis of ratio metrics and variance reduction with CUPED require covariances.
 
 Querying all the required statistics manually can be a daunting and error-prone task. But don't worry—tea-tasting does this work for you. You just need to specify the metrics:
 
