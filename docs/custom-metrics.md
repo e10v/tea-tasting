@@ -76,7 +76,7 @@ The metric should have the following methods and properties defined:
 - Property `aggr_cols` returns columns to be aggregated for analysis for each type of statistic.
 - Method `analyze_aggregates` analyzes the metric using aggregated statistics.
 
-Let's define the metric and discuss each method in details:
+Let's define the metric and discuss each method in detail:
 
 ```pycon
 >>> class Proportion(tea_tasting.metrics.MetricBaseAggregated[ProportionResult]):
@@ -162,7 +162,7 @@ The result class:
 
 A metric that analyzes granular data should be a subclass of [`MetricBaseGranular`](api/metrics/base.md#tea_tasting.metrics.base.MetricBaseGranular). `MetricBaseGranular` is a generic class with the result class as a type variable.
 
-Metric should have the following methods and properties defined:
+The metric should have the following methods and properties defined:
 
 - Method `__init__` checks and saves metric parameters.
 - Property `cols` returns columns to be fetched for an analysis.
@@ -208,9 +208,9 @@ Metric should have the following methods and properties defined:
 
 Property `cols` should return a sequence of strings.
 
-Method `analyze_granular` accepts two parameters: control and treatment data as PyArrow Tables. Even with [data backend](data-backends.md) different from PyArrow, tea-tasting will retrieve the data and transform into a PyArrow Table.
+Method `analyze_granular` accepts two parameters: control and treatment data as PyArrow Tables. Even with a [data backend](data-backends.md) other than PyArrow, tea-tasting retrieves the data and converts it into a PyArrow Table.
 
-Method `analyze_granular` returns an instance of `MannWhitneyUResult`, defined earlier, with analysis result.
+Method `analyze_granular` returns an instance of `MannWhitneyUResult`, defined earlier, with the analysis result.
 
 Now we can perform the Mann-Whitney U test:
 
@@ -229,7 +229,7 @@ mwu_revenue 0.0300   2068060
 
 ## Analyzing two types of metrics together
 
-It's also possible to analyze two types of metrics in one experiment:
+It's also possible to analyze both types of metrics in one experiment:
 
 ```pycon
 >>> experiment = tt.Experiment(

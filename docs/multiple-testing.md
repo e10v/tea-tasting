@@ -97,7 +97,7 @@ Suppose only the two metrics `orders_per_user` and `revenue_per_user` are consid
 
 ```
 
-With two treatment variants and two success metrics, there are four hypotheses in total, which increases the probability of false positives (also called "false discoveries"). It's recommended to adjust the p-values or the significance level (alpha) in this case. Let's explore the correction methods provided by tea-tasting.
+With two treatment variants and two success metrics, there are four hypotheses in total, which increases the probability of false positives (also called "false discoveries"). It is recommended to adjust the p-values or the significance level (alpha) in this case. Let's explore the correction methods provided by tea-tasting.
 
 ## False discovery rate
 
@@ -164,7 +164,7 @@ comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
 
 By default, tea-tasting assumes non-negative correlation between hypotheses and performs the Hochberg's step-up procedure with the Šidák correction, which is slightly more powerful than the Bonferroni correction.
 
-To perform the Holm's step-down procedure, assuming arbitrary dependence between hypotheses, set the `arbitrary_dependence` parameter to `True`. In this case, it's recommended to use the Bonferroni correction, since the Šidák correction assumes non-negative correlation between hypotheses:
+To perform Holm's step-down procedure, assuming arbitrary dependence between hypotheses, set the `arbitrary_dependence` parameter to `True`. In this case, it is recommended to use the Bonferroni correction, since the Šidák correction assumes non-negative correlation between hypotheses:
 
 ```pycon
 >>> tt.adjust_fwer(

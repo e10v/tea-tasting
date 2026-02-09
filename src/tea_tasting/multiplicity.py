@@ -85,11 +85,11 @@ def adjust_fdr(
             and Benjamini-Hochberg procedure is performed.
 
     Returns:
-        The experiments results with adjusted p-values and alphas.
+        The experiment results with adjusted p-values and alphas.
 
     Parameter defaults:
         Default for parameter `alpha` can be changed using the `config_context`
-        and `set_context` functions.
+        and `set_config` functions.
         See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
         reference for details.
 
@@ -262,11 +262,11 @@ def adjust_fwer(
         method: Correction method, Bonferroni (`"bonferroni"`) or Šidák (`"sidak"`).
 
     Returns:
-        The experiments results with adjusted p-values and alphas.
+        The experiment results with adjusted p-values and alphas.
 
     Parameter defaults:
         Default for parameter `alpha` can be changed using the `config_context`
-        and `set_context` functions.
+        and `set_config` functions.
         See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
         reference for details.
 

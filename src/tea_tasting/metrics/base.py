@@ -48,7 +48,7 @@ class MetricPowerResults(
 
     @tea_tasting.utils._cache_method
     def to_dicts(self) -> tuple[dict[str, object], ...]:
-        """"Convert the results to a sequence of dictionaries."""
+        """Convert the results to a sequence of dictionaries."""
         return tuple((v if isinstance(v, dict) else v._asdict()) for v in self)
 
 MetricPowerResultsT = TypeVar("MetricPowerResultsT", bound=MetricPowerResults)  # type: ignore
@@ -115,7 +115,7 @@ class AggrCols(NamedTuple):
         """Merge two aggregation column specifications.
 
         Args:
-            other: Second objects.
+            other: Second object.
 
         Returns:
             Merged column specifications.
@@ -208,7 +208,7 @@ class MetricBaseAggregated(MetricBase[MetricResultT], _HasAggrCols):
         control: tea_tasting.aggr.Aggregates,
         treatment: tea_tasting.aggr.Aggregates,
     ) -> MetricResultT:
-        """Analyze metric in an experiment using aggregated statistics.
+        """Analyze a metric in an experiment using aggregated statistics.
 
         Args:
             control: Control data.
@@ -371,7 +371,7 @@ class MetricBaseGranular(MetricBase[MetricResultT], _HasCols):
         control: pa.Table,
         treatment: pa.Table,
     ) -> MetricResultT:
-        """Analyze metric in an experiment using granular data.
+        """Analyze a metric in an experiment using granular data.
 
         Args:
             control: Control data.
