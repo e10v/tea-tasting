@@ -52,6 +52,7 @@
 
 - Tests and checks for docs changes:
     - Docs-only doctest: `uv run pytest --doctest-continue-on-failure --doctest-glob=*.md --ignore=tests/`
+    - Check that `docs/index.md` is in sync with `README.md`: `uv run src/_internal/sync_readme.py --check`
     - Markdown lint: `markdownlint-cli2 "*.md" "docs/*.md"`
 - Run them after creating or updating markdown files; fix errors.
 
