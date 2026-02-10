@@ -23,6 +23,7 @@ from tea_tasting.datasets import make_sessions_data, make_users_data
 from tea_tasting.experiment import Experiment
 from tea_tasting.metrics import (
     Bootstrap,
+    MannWhitneyU,
     Mean,
     Proportion,
     Quantile,

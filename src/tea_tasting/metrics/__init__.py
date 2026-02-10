@@ -5,6 +5,7 @@ For convenience, the API reference is provided by submodules of `tea_tasting.met
 
 - `tea_tasting.metrics.base`: Base classes for metrics.
 - `tea_tasting.metrics.mean`: Metrics for the analysis of means.
+- `tea_tasting.metrics.nonparametric`: Metrics for nonparametric analysis.
 - `tea_tasting.metrics.proportion`: Metrics for the analysis of proportions.
 - `tea_tasting.metrics.resampling`: Metrics analyzed using resampling methods.
 """
@@ -23,5 +24,6 @@ from tea_tasting.metrics.base import (
     read_granular,
 )
 from tea_tasting.metrics.mean import Mean, RatioOfMeans
+from tea_tasting.metrics.nonparametric import MannWhitneyU
 from tea_tasting.metrics.proportion import Proportion, SampleRatio
 from tea_tasting.metrics.resampling import Bootstrap, Quantile
