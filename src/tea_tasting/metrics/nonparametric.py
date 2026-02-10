@@ -66,7 +66,7 @@ class MannWhitneyU(MetricBaseGranular[MannWhitneyUResult]):  # noqa: D101
 
             correction: Whether a continuity correction (1/2) should be applied.
                 Only for the asymptotic method.
-                Defaults to the global config value (`False`).
+                Defaults to the global config value (`True`).
             method: Method used for p-value calculation:
 
                 - `"auto"`: exact when sample sizes are small and there are no ties;
