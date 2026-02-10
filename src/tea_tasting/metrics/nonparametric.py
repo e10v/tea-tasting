@@ -137,6 +137,14 @@ class MannWhitneyU(MetricBaseGranular[MannWhitneyUResult]):  # noqa: D101
         contr = _select_as_numpy(control, self.column)
         treat = _select_as_numpy(treatment, self.column)
         contr, treat = _handle_nan_policy(contr, treat, self.nan_policy)
+        if len(contr) == 0 or len(treat) == 0:
+            return MannWhitneyUResult(
+                control=float("nan"),
+                treatment=float("nan"),
+                effect_size=float("nan"),
+                pvalue=float("nan"),
+                statistic=float("nan"),
+            )
 
         result = scipy.stats.mannwhitneyu(
             treat,
