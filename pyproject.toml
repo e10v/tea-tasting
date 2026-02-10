@@ -72,11 +72,12 @@ source = "scm"
 write_to = "tea_tasting/_version.txt"
 
 
-[tool.coverage.run]
-source = ["src/tea_tasting"]
 [tool.coverage.report]
 exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover", "@overload", "@abc.abstractmethod"]
 fail_under = 100
+
+[tool.coverage.run]
+source = ["src/tea_tasting"]
 
 
 [tool.ruff]
@@ -126,8 +127,13 @@ executor = "uv"
 [tool.poe.tasks]
 ci.sequence = ["doctest", "test", "cover", "lint", "type"]
 ci.ignore_fail = true
+ci-docs.sequence = ["doctest-md", "markdownlint", "readme-check"]
+ci-docs.ignore_fail = true
 cover = "coverage report -m"
-docserv = "python src/_internal/sync_readme.py && mkdocs serve -w docs -w src -w mkdocs.yml"
+docserv = [
+    { cmd = "python src/_internal/sync_readme.py" },
+    { cmd = "mkdocs serve -w docs -w src -w mkdocs.yml" },
+]
 doctest = """pytest \
 --doctest-continue-on-failure \
 --doctest-glob=*.md \
@@ -136,10 +142,17 @@ doctest = """pytest \
 --ignore=tests/ \
 --ignore-glob=src/_*
 """
+doctest-md = """pytest \
+--doctest-continue-on-failure \
+--doctest-glob=*.md \
+--ignore=tests/ \
+--ignore-glob=src/_*
+"""
 examples = "python src/_internal/create_examples.py"
 lint = "ruff check ."
 markdownlint = 'markdownlint-cli2 "*.md" "docs/*.md"'
 readme = "python src/_internal/sync_readme.py"
+readme-check = "python src/_internal/sync_readme.py --check"
 reset = [
     { cmd = "git checkout main" },
     { cmd = "git pull" },
