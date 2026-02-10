@@ -89,6 +89,39 @@ class MannWhitneyU(MetricBaseGranular[MannWhitneyUResult]):  # noqa: D101
         References:
             - [Mann-Whitney U test](https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test).
             - [scipy.stats.mannwhitneyu &#8212; SciPy Manual](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html).
+
+        Examples:
+            ```pycon
+            >>> import tea_tasting as tt
+
+            >>> experiment = tt.Experiment(
+            ...     revenue_auc=tt.MannWhitneyU("revenue"),
+            ... )
+            >>> data = tt.make_users_data(seed=42, n_users=1000)
+            >>> result = experiment.analyze(data)
+            >>> result
+                 metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            revenue_auc   0.472     0.528               -             [-, -] 0.0698
+
+            ```
+
+            With specific alternative and method:
+
+            ```pycon
+            >>> experiment = tt.Experiment(
+            ...     revenue_auc=tt.MannWhitneyU(
+            ...         "revenue",
+            ...         alternative="greater",
+            ...         method="asymptotic",
+            ...         correction=False,
+            ...     ),
+            ... )
+            >>> data = tt.make_users_data(seed=42, n_users=1000)
+            >>> experiment.analyze(data)
+                 metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            revenue_auc   0.472     0.528               -             [-, -] 0.0349
+
+            ```
         """
         self.column = tea_tasting.utils.check_scalar(column, "column", typ=str)
         self.alternative: Literal["two-sided", "greater", "less"] = (
