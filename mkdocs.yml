@@ -20,6 +20,7 @@ nav:
       - Metrics: api/metrics/index.md
       - Base: api/metrics/base.md
       - Mean: api/metrics/mean.md
+      - Nonparametric: api/metrics/nonparametric.md
       - Proportion: api/metrics/proportion.md
       - Resampling: api/metrics/resampling.md
     - Experiment: api/experiment.md
