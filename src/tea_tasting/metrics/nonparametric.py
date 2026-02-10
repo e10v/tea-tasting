@@ -94,10 +94,10 @@ class MannWhitneyU(MetricBaseGranular[MannWhitneyUResult]):  # noqa: D101
             ```pycon
             >>> import tea_tasting as tt
 
+            >>> data = tt.make_users_data(seed=42, n_users=1000)
             >>> experiment = tt.Experiment(
             ...     revenue_auc=tt.MannWhitneyU("revenue"),
             ... )
-            >>> data = tt.make_users_data(seed=42, n_users=1000)
             >>> result = experiment.analyze(data)
             >>> result
                  metric control treatment rel_effect_size rel_effect_size_ci pvalue
@@ -116,7 +116,6 @@ class MannWhitneyU(MetricBaseGranular[MannWhitneyUResult]):  # noqa: D101
             ...         correction=False,
             ...     ),
             ... )
-            >>> data = tt.make_users_data(seed=42, n_users=1000)
             >>> experiment.analyze(data)
                  metric control treatment rel_effect_size rel_effect_size_ci pvalue
             revenue_auc   0.472     0.528               -             [-, -] 0.0349
