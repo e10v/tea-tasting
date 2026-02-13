@@ -20,7 +20,7 @@ tea-tasting is a Python package for the statistical analysis of A/B tests featur
 - Multiple hypothesis testing (family-wise error rate and false discovery rate).
 - Simulated experiments, including A/A tests.
 
-tea-tasting calculates statistics directly within data backends such as BigQuery, ClickHouse, DuckDB, PostgreSQL, Snowflake, Spark, and many other backends supported by [Ibis](https://github.com/ibis-project/ibis). This approach eliminates the need to import granular data into a Python environment.
+tea-tasting calculates statistics directly within data backends such as BigQuery, ClickHouse, PostgreSQL, Snowflake, Trino, and many other backends supported by [Ibis](https://github.com/ibis-project/ibis). This approach eliminates the need to import granular data into a Python environment.
 
 tea-tasting also accepts dataframes supported by [Narwhals](https://github.com/narwhals-dev/narwhals): cuDF, Daft, Dask, DuckDB, Modin, pandas, Polars, PyArrow, PySpark.
 
