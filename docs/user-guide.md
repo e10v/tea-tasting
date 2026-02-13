@@ -106,9 +106,17 @@ Example usage:
 
 Metrics are instances of metric classes that define how metrics are calculated. These calculations include effect size, confidence intervals, p-values, and other statistics.
 
-Use the [`Mean`](api/metrics/mean.md#tea_tasting.metrics.mean.Mean) class to compare averages between variants of an A/B test. For example, average number of orders per user, where user is a randomization unit of an experiment. Specify the column containing the metric values using the first parameter `value`.
+tea-tasting provides the following built-in metric classes:
 
-Use the [`RatioOfMeans`](api/metrics/mean.md#tea_tasting.metrics.mean.RatioOfMeans) class to compare ratios of averages between variants of an A/B test. For example, average number of orders per average number of sessions. Specify the columns containing the numerator and denominator values using parameters `numer` and `denom`.
+- [`Mean`](api/metrics/mean.md#tea_tasting.metrics.mean.Mean): Compare averages between variants. For example, average number of orders per user.
+- [`RatioOfMeans`](api/metrics/mean.md#tea_tasting.metrics.mean.RatioOfMeans): Compare ratios of averages between variants. For example, average number of orders per average number of sessions.
+- [`Proportion`](api/metrics/proportion.md#tea_tasting.metrics.proportion.Proportion): Compare binary conversion rates. For example, proportion of users who placed at least one order.
+- [`SampleRatio`](api/metrics/proportion.md#tea_tasting.metrics.proportion.SampleRatio): Detect sample ratio mismatch (SRM) between variants.
+- [`MannWhitneyU`](api/metrics/nonparametric.md#tea_tasting.metrics.nonparametric.MannWhitneyU): Run a nonparametric rank-based test (which variant is more likely to yield higher values).
+- [`Bootstrap`](api/metrics/resampling.md#tea_tasting.metrics.resampling.Bootstrap): Analyze custom statistics with bootstrap confidence intervals.
+- [`Quantile`](api/metrics/resampling.md#tea_tasting.metrics.resampling.Quantile): Compare quantiles (for example, p80 revenue) with bootstrap confidence intervals.
+
+The sections below focus on `Mean` and `RatioOfMeans`, which are the most common metrics in A/B testing.
 
 Use the following parameters of `Mean` and `RatioOfMeans` to customize the analysis:
 
@@ -132,9 +140,11 @@ Example usage:
 
 ```
 
-Look for other supported metrics in the [Metrics](api/metrics/index.md) reference.
+See the [Metrics](api/metrics/index.md) reference for API details.
 
 You can change default values of these four parameters using the [global settings](#global-settings).
+
+You can also define your own metrics. For details, see the [Custom metrics](custom-metrics.md) guide.
 
 ### Analyzing and retrieving experiment results
 
