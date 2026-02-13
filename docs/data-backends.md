@@ -8,7 +8,7 @@ Many statistical tests, such as the Student's t-test or the Z-test, require only
 
 For example, if the raw experimental data are stored in ClickHouse, it's faster and more efficient to calculate counts, averages, variances, and covariances directly in ClickHouse rather than fetching granular data and performing aggregations in a Python environment.
 
-tea-tasting also accepts dataframes supported by [Narwhals](https://github.com/narwhals-dev/narwhals): cuDF, Dask, Modin, pandas, Polars, PyArrow. Narwhals is a compatibility layer between dataframe libraries.
+tea-tasting also accepts dataframes supported by [Narwhals](https://github.com/narwhals-dev/narwhals): cuDF, Daft, Dask, DuckDB, Modin, pandas, Polars, PyArrow, PySpark. Narwhals is a compatibility layer between dataframe libraries.
 
 This guide:
 
