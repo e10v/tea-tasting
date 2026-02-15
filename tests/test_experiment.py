@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import concurrent.futures
 from typing import TYPE_CHECKING, NamedTuple, TypedDict
+import warnings
 
 import ibis
 import ibis.expr.types
@@ -817,6 +818,54 @@ def test_experiment_simulate_callable_seed_parameter_deprecated() -> None:
         experiment.simulate(make_data, 1, rng=42)
 
 
+def test_experiment_simulate_callable_variadic_rng_parameter() -> None:
+    experiment = ExperimentWithSimulationResults({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricGranular("orders"),
+        "avg_revenue": _Metric("revenue"),
+    })
+    rngs: list[np.random.Generator] = []
+
+    def make_data(**kwargs: object) -> pa.Table:
+        rng = kwargs.get("rng")
+        assert isinstance(rng, np.random.Generator)
+        rngs.append(rng)
+        return tea_tasting.datasets.make_users_data(rng=rng, n_users=100)
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        experiment.simulate(make_data, 1, rng=42)
+    assert len(rngs) == 1
+    assert not any(
+        issubclass(warning.category, DeprecationWarning) and
+        "data generator keyword parameter 'seed' is deprecated" in
+        str(warning.message)
+        for warning in caught
+    )
+
+
+def test_experiment_simulate_callable_variadic_seed_parameter_deprecated() -> None:
+    experiment = ExperimentWithSimulationResults({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricGranular("orders"),
+        "avg_revenue": _Metric("revenue"),
+    })
+    seeds: list[np.random.Generator] = []
+
+    def make_data(**kwargs: object) -> pa.Table:
+        seed = kwargs["seed"]
+        assert isinstance(seed, np.random.Generator)
+        seeds.append(seed)
+        return tea_tasting.datasets.make_users_data(rng=seed, n_users=100)
+
+    with pytest.warns(
+        DeprecationWarning,
+        match="data generator keyword parameter 'seed' is deprecated",
+    ):
+        experiment.simulate(make_data, 1, rng=42)
+    assert len(seeds) == 1
+
+
 def test_experiment_simulate_seed_and_rng_raise(data: Frame) -> None:
     experiment = ExperimentWithSimulationResults({
         "avg_sessions": _MetricAggregated("sessions"),
@@ -933,6 +982,45 @@ def test_generate_data_fallback_when_signature_unavailable_rng_error(
 
     monkeypatch.setattr(tea_tasting.experiment, "_inspect_signature", raise_value_error)
     with pytest.raises(TypeError, match="rng failed"):
+        tea_tasting.experiment._generate_data(make_data, rng)
+
+
+def test_generate_data_variadic_kwargs_type_error_fallback_seed_deprecated() -> None:
+    rng = np.random.default_rng(42)
+
+    def make_data(**kwargs: object) -> pa.Table:
+        seed = kwargs.get("seed")
+        if isinstance(seed, np.random.Generator):
+            return tea_tasting.datasets.make_users_data(rng=seed, n_users=100)
+        raise TypeError("got an unexpected keyword argument 'rng'")
+
+    with pytest.warns(
+        DeprecationWarning,
+        match="data generator keyword parameter 'seed' is deprecated",
+    ):
+        data = tea_tasting.experiment._generate_data(make_data, rng)
+    assert isinstance(data, pa.Table)
+
+
+def test_generate_data_variadic_kwargs_seed_error_raises_rng_error() -> None:
+    rng = np.random.default_rng(42)
+
+    def make_data(**kwargs: object) -> pa.Table:
+        if "seed" in kwargs:
+            raise ValueError("seed failed")
+        raise KeyError("seed")
+
+    with pytest.raises(KeyError, match="seed"):
+        tea_tasting.experiment._generate_data(make_data, rng)
+
+
+def test_generate_data_variadic_kwargs_non_fallback_error_raises() -> None:
+    rng = np.random.default_rng(42)
+
+    def make_data(**kwargs: object) -> pa.Table:  # noqa: ARG001
+        raise RuntimeError("rng failed")
+
+    with pytest.raises(RuntimeError, match="rng failed"):
         tea_tasting.experiment._generate_data(make_data, rng)
 
 

@@ -698,13 +698,11 @@ def _generate_data(
 
     seed_param = params.get("seed")
     if seed_param is not None:
-        warnings.warn(
-            "The data generator keyword parameter 'seed' is deprecated and will be "
-            "removed in tea-tasting 2.0. Use 'rng' instead.",
-            DeprecationWarning,
-            stacklevel=3,
-        )
+        _warn_data_generator_seed_parameter_deprecated()
         return data(seed=rng)
+
+    if any(param.kind is inspect.Parameter.VAR_KEYWORD for param in params.values()):
+        return _generate_data_with_variadic_kwargs(data, rng)
 
     return data(rng=rng)
 
@@ -731,13 +729,53 @@ def _generate_data_without_signature(
         if _is_callable_type_error(seed_error, data):
             raise
         raise rng_error from seed_error
+    _warn_data_generator_seed_parameter_deprecated()
+    return result
+
+
+def _warn_data_generator_seed_parameter_deprecated() -> None:
     warnings.warn(
         "The data generator keyword parameter 'seed' is deprecated and will be "
         "removed in tea-tasting 2.0. Use 'rng' instead.",
         DeprecationWarning,
         stacklevel=3,
     )
+
+
+def _generate_data_with_variadic_kwargs(
+    data: DataGenerator,
+    rng: np.random.Generator,
+) -> (
+    narwhals.typing.IntoFrame |
+    ibis.expr.types.Table |
+    dict[object, tea_tasting.aggr.Aggregates]
+):
+    rng_error: Exception
+    try:
+        return data(rng=rng)
+    except Exception as err:
+        if not _is_variadic_seed_fallback_error(err):
+            raise
+        rng_error = err
+
+    try:
+        result = data(seed=rng)
+    except Exception as seed_error:
+        raise rng_error from seed_error
+    _warn_data_generator_seed_parameter_deprecated()
     return result
+
+
+def _is_variadic_seed_fallback_error(error: Exception) -> bool:
+    if isinstance(error, KeyError):
+        return len(error.args) == 1 and error.args[0] == "seed"
+    if isinstance(error, TypeError):
+        message = str(error)
+        return (
+            "unexpected keyword argument 'rng'" in message or
+            "got an unexpected keyword argument 'rng'" in message
+        )
+    return False
 
 
 def _is_callable_type_error(error: TypeError, data: DataGenerator) -> bool:
