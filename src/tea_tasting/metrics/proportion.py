@@ -151,7 +151,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
             >>> import pyarrow.compute as pc
             >>> import tea_tasting as tt
 
-            >>> data = tt.make_users_data(seed=42, n_users=1000)
+            >>> data = tt.make_users_data(rng=42, n_users=1000)
             >>> data = data.append_column(
             ...     "has_order",
             ...     pc.greater(data["orders"], 0).cast(pa.int64()),
@@ -452,7 +452,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
             >>> experiment = tt.Experiment(
             ...     sample_ratio=tt.SampleRatio(),
             ... )
-            >>> data = tt.make_users_data(seed=42)
+            >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result.with_keys(("metric", "control", "treatment", "pvalue"))
                   metric control treatment pvalue
@@ -466,7 +466,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
             >>> experiment = tt.Experiment(
             ...     sample_ratio=tt.SampleRatio(0.5),
             ... )
-            >>> data = tt.make_users_data(seed=42)
+            >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result.with_keys(("metric", "control", "treatment", "pvalue"))
                   metric control treatment    pvalue

@@ -23,7 +23,7 @@ def append_has_order(data: pa.Table) -> pa.Table:
 
 @pytest.fixture
 def data_arrow() -> pa.Table:
-    return append_has_order(tea_tasting.datasets.make_users_data(n_users=100, seed=42))
+    return append_has_order(tea_tasting.datasets.make_users_data(n_users=100, rng=42))
 
 @pytest.fixture
 def data_aggr(data_arrow: pa.Table) -> dict[object, tea_tasting.aggr.Aggregates]:
@@ -104,7 +104,7 @@ def test_proportion_analyze_auto() -> None:
     with unittest.mock.patch("scipy.stats.barnard_exact") as mock:
         mock.return_value = NamedTuple("Result", (("pvalue", float),))(pvalue=0.1)
         data = append_has_order(tea_tasting.datasets.make_users_data(
-            seed=42,
+            rng=42,
             n_users=tea_tasting.metrics.proportion._MAX_EXACT_THRESHOLD - 1,
         ))
         metric.analyze(data, 0, 1, variant="variant")
@@ -112,7 +112,7 @@ def test_proportion_analyze_auto() -> None:
 
     with unittest.mock.patch("scipy.stats.barnard_exact") as mock:
         data = append_has_order(tea_tasting.datasets.make_users_data(
-            seed=42,
+            rng=42,
             n_users=tea_tasting.metrics.proportion._MAX_EXACT_THRESHOLD,
         ))
         result = metric.analyze(data, 0, 1, variant="variant")
@@ -344,7 +344,7 @@ def test_sample_ratio_analyze_auto() -> None:
     with unittest.mock.patch("scipy.stats.binomtest") as mock:
         mock.return_value = NamedTuple("Result", (("pvalue", float),))(pvalue=0.1)
         data = tea_tasting.datasets.make_users_data(
-            seed=42,
+            rng=42,
             n_users=tea_tasting.metrics.proportion._MAX_EXACT_THRESHOLD - 1,
         )
         metric.analyze(data, 0, 1, variant="variant")
@@ -352,7 +352,7 @@ def test_sample_ratio_analyze_auto() -> None:
     with unittest.mock.patch("scipy.stats.norm.sf") as mock:
         mock.return_value = 0.1
         data = tea_tasting.datasets.make_users_data(
-            seed=42,
+            rng=42,
             n_users=tea_tasting.metrics.proportion._MAX_EXACT_THRESHOLD,
         )
         metric.analyze(data, 0, 1, variant="variant")

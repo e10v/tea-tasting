@@ -104,13 +104,13 @@ def adjust_fdr(
 
         >>> data = pl.concat((
         ...     tt.make_users_data(
-        ...         seed=42,
+        ...         rng=42,
         ...         orders_uplift=0.10,
         ...         revenue_uplift=0.15,
         ...         return_type="polars",
         ...     ),
         ...     tt.make_users_data(
-        ...         seed=21,
+        ...         rng=21,
         ...         orders_uplift=0.15,
         ...         revenue_uplift=0.20,
         ...         return_type="polars",
@@ -282,13 +282,13 @@ def adjust_fwer(
 
         >>> data = pl.concat((
         ...     tt.make_users_data(
-        ...         seed=42,
+        ...         rng=42,
         ...         orders_uplift=0.10,
         ...         revenue_uplift=0.15,
         ...         return_type="polars",
         ...     ),
         ...     tt.make_users_data(
-        ...         seed=21,
+        ...         rng=21,
         ...         orders_uplift=0.15,
         ...         revenue_uplift=0.20,
         ...         return_type="polars",

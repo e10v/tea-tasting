@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 def make_users_data(
     *,
     covariates: bool = False,
-    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    rng: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
     sessions_uplift: float | int = 0.0,
@@ -40,7 +40,7 @@ def make_users_data(
 def make_users_data(
     *,
     covariates: bool = False,
-    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    rng: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
     sessions_uplift: float | int = 0.0,
@@ -57,7 +57,7 @@ def make_users_data(
 def make_users_data(
     *,
     covariates: bool = False,
-    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    rng: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
     sessions_uplift: float | int = 0.0,
@@ -70,10 +70,16 @@ def make_users_data(
 ) -> pl.DataFrame:
     ...
 
+
+@tea_tasting.utils._deprecate_keyword_alias(
+    old="seed",
+    new="rng",
+    func_name="make_users_data",
+)
 def make_users_data(
     *,
     covariates: bool = False,
-    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    rng: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
     sessions_uplift: float | int = 0.0,
@@ -107,7 +113,8 @@ def make_users_data(
     Args:
         covariates: If `True`, generates pre-experimental data as the covariates
             in addition to default columns.
-        seed: Random seed.
+        rng: Pseudorandom number generator or seed.
+            The deprecated alias `seed` is also accepted until tea-tasting 2.0.
         n_users: Number of users.
         ratio: Ratio of the number of users in treatment relative to control.
         sessions_uplift: Sessions uplift in the treatment variant, relative to control.
@@ -130,7 +137,7 @@ def make_users_data(
         ```pycon
         >>> import tea_tasting as tt
 
-        >>> data = tt.make_users_data(seed=42)
+        >>> data = tt.make_users_data(rng=42)
         >>> data
         pyarrow.Table
         user: int64
@@ -150,7 +157,7 @@ def make_users_data(
         With covariates:
 
         ```pycon
-        >>> data = tt.make_users_data(seed=42, covariates=True)
+        >>> data = tt.make_users_data(rng=42, covariates=True)
         >>> data
         pyarrow.Table
         user: int64
@@ -176,7 +183,7 @@ def make_users_data(
         As Pandas DataFrame:
 
         ```pycon
-        >>> data = tt.make_users_data(seed=42, return_type="pandas")
+        >>> data = tt.make_users_data(rng=42, return_type="pandas")
         >>> data
               user  variant  sessions  orders  revenue
         0        0        1         2       1     9.17
@@ -198,7 +205,7 @@ def make_users_data(
         As Polars DataFrame:
 
         ```pycon
-        >>> data = tt.make_users_data(seed=42, return_type="polars")
+        >>> data = tt.make_users_data(rng=42, return_type="polars")
         >>> data
         shape: (4_000, 5)
         ┌──────┬─────────┬──────────┬────────┬─────────┐
@@ -223,7 +230,7 @@ def make_users_data(
     """
     return _make_data(
         covariates=covariates,
-        seed=seed,
+        rng=rng,
         n_users=n_users,
         ratio=ratio,
         sessions_uplift=sessions_uplift,
@@ -241,7 +248,7 @@ def make_users_data(
 def make_sessions_data(
     *,
     covariates: bool = False,
-    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    rng: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
     sessions_uplift: float | int = 0.0,
@@ -258,7 +265,7 @@ def make_sessions_data(
 def make_sessions_data(
     *,
     covariates: bool = False,
-    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    rng: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
     sessions_uplift: float | int = 0.0,
@@ -275,7 +282,7 @@ def make_sessions_data(
 def make_sessions_data(
     *,
     covariates: bool = False,
-    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    rng: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
     sessions_uplift: float | int = 0.0,
@@ -288,10 +295,16 @@ def make_sessions_data(
 ) -> pl.DataFrame:
     ...
 
+
+@tea_tasting.utils._deprecate_keyword_alias(
+    old="seed",
+    new="rng",
+    func_name="make_sessions_data",
+)
 def make_sessions_data(
     *,
     covariates: bool = False,
-    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    rng: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
     sessions_uplift: float | int = 0.0,
@@ -325,7 +338,8 @@ def make_sessions_data(
     Args:
         covariates: If `True`, generates pre-experimental data as the covariates
             in addition to default columns.
-        seed: Random seed.
+        rng: Pseudorandom number generator or seed.
+            The deprecated alias `seed` is also accepted until tea-tasting 2.0.
         n_users: Number of users.
         ratio: Ratio of the number of users in treatment relative to control.
         sessions_uplift: Sessions uplift in the treatment variant, relative to control.
@@ -348,7 +362,7 @@ def make_sessions_data(
         ```pycon
         >>> import tea_tasting as tt
 
-        >>> data = tt.make_sessions_data(seed=42)
+        >>> data = tt.make_sessions_data(rng=42)
         >>> data
         pyarrow.Table
         user: int64
@@ -368,7 +382,7 @@ def make_sessions_data(
         With covariates:
 
         ```pycon
-        >>> data = tt.make_sessions_data(seed=42, covariates=True)
+        >>> data = tt.make_sessions_data(rng=42, covariates=True)
         >>> data
         pyarrow.Table
         user: int64
@@ -394,7 +408,7 @@ def make_sessions_data(
         As Pandas DataFrame:
 
         ```pycon
-        >>> data = tt.make_sessions_data(seed=42, return_type="pandas")
+        >>> data = tt.make_sessions_data(rng=42, return_type="pandas")
         >>> data
               user  variant  sessions  orders  revenue
         0        0        1         1       1     5.89
@@ -416,7 +430,7 @@ def make_sessions_data(
         As Polars DataFrame:
 
         ```pycon
-        >>> data = tt.make_sessions_data(seed=42, return_type="polars")
+        >>> data = tt.make_sessions_data(rng=42, return_type="polars")
         >>> data
         shape: (7_958, 5)
         ┌──────┬─────────┬──────────┬────────┬─────────┐
@@ -441,7 +455,7 @@ def make_sessions_data(
     """
     return _make_data(
         covariates=covariates,
-        seed=seed,
+        rng=rng,
         n_users=n_users,
         ratio=ratio,
         sessions_uplift=sessions_uplift,
@@ -458,7 +472,7 @@ def make_sessions_data(
 def _make_data(
     *,
     covariates: bool = False,
-    seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+    rng: int | np.random.Generator | np.random.SeedSequence | None = None,
     n_users: int = 4000,
     ratio: float | int = 1,
     sessions_uplift: float | int = 0.0,
@@ -471,6 +485,7 @@ def _make_data(
     explode_sessions: bool = False,
 ) -> pa.Table | pd.DataFrame | pl.DataFrame:
     _check_params(
+        rng=rng,
         n_users=n_users,
         ratio=ratio,
         sessions_uplift=sessions_uplift,
@@ -481,7 +496,7 @@ def _make_data(
         avg_revenue_per_order=avg_revenue_per_order,
     )
 
-    rng = np.random.default_rng(seed=seed)
+    rng = np.random.default_rng(rng)
     user = np.arange(n_users)
     variant = rng.binomial(n=1, p=ratio / (1 + ratio), size=n_users)
     sessions_mult = 1 + sessions_uplift*variant
@@ -571,6 +586,7 @@ def _make_data(
 
 def _check_params(
     *,
+    rng: int | np.random.Generator | np.random.SeedSequence | None,
     n_users: int,
     ratio: float | int,
     sessions_uplift: float | int,
@@ -580,6 +596,11 @@ def _check_params(
     avg_orders_per_session: float,
     avg_revenue_per_order: float | int,
 ) -> None:
+    tea_tasting.utils.check_scalar(
+        rng,
+        name="rng",
+        typ=int | np.random.Generator | np.random.SeedSequence | None,
+    )
     tea_tasting.utils.check_scalar(n_users, name="n_users", typ=int, ge=10)
     tea_tasting.utils.check_scalar(ratio, name="ratio", typ=float | int, gt=0)
     tea_tasting.utils.check_scalar(

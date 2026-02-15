@@ -34,7 +34,7 @@ First, let's prepare a demo database:
 >>> import polars as pl
 >>> import tea_tasting as tt
 
->>> users_data = tt.make_users_data(seed=42)
+>>> users_data = tt.make_users_data(rng=42)
 >>> con = ibis.connect("duckdb://")
 >>> con.create_table("users_data", users_data)
 DatabaseTable: memory.main.users_data
@@ -207,7 +207,7 @@ Some statistical methods, like bootstrap, require granular data for analysis. In
 An example of a slightly more complicated analysis using variance reduction with CUPED:
 
 ```pycon
->>> users_data_cuped = tt.make_users_data(seed=42, covariates=True)
+>>> users_data_cuped = tt.make_users_data(rng=42, covariates=True)
 >>> con.create_table("users_data_cuped", users_data_cuped)
 DatabaseTable: memory.main.users_data_cuped
   user               int64

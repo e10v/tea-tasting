@@ -31,13 +31,13 @@ As an example, consider an experiment with three variants, a control and two tre
 
 >>> data = pl.concat((
 ...     tt.make_users_data(
-...         seed=42,
+...         rng=42,
 ...         orders_uplift=0.10,
 ...         revenue_uplift=0.15,
 ...         return_type="polars",
 ...     ),
 ...     tt.make_users_data(
-...         seed=21,
+...         rng=21,
 ...         orders_uplift=0.15,
 ...         revenue_uplift=0.20,
 ...         return_type="polars",
@@ -186,8 +186,8 @@ comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
 In the examples above, the methods `adjust_fdr` and `adjust_fwer` received results from a *single experiment* with *more than two variants*. They can also accept the results from *multiple experiments* with *two variants* in each:
 
 ```pycon
->>> data1 = tt.make_users_data(seed=42, orders_uplift=0.10, revenue_uplift=0.15)
->>> data2 = tt.make_users_data(seed=21, orders_uplift=0.15, revenue_uplift=0.20)
+>>> data1 = tt.make_users_data(rng=42, orders_uplift=0.10, revenue_uplift=0.15)
+>>> data2 = tt.make_users_data(rng=21, orders_uplift=0.15, revenue_uplift=0.20)
 >>> result1 = experiment.analyze(data1)
 >>> result2 = experiment.analyze(data2)
 >>> tt.adjust_fdr(

@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import concurrent.futures
 from typing import TYPE_CHECKING, NamedTuple, TypedDict
+import warnings
 
 import ibis
 import ibis.expr.types
+import numpy as np
 import polars as pl
 import pyarrow as pa
 import pyarrow.compute as pc
@@ -23,7 +25,6 @@ if TYPE_CHECKING:
     from typing import Literal
 
     import narwhals.typing
-    import numpy as np
     import pandas as pd
 
 
@@ -230,7 +231,7 @@ def results2(
 
 @pytest.fixture
 def data_arrow() -> pa.Table:
-    return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
+    return tea_tasting.datasets.make_users_data(n_users=100, rng=42)
 
 @pytest.fixture
 def data_pandas(data_arrow: pa.Table) -> pd.DataFrame:
@@ -629,23 +630,23 @@ def test_experiment_simulate_default(data: Frame) -> None:
         "avg_orders": _MetricGranular("orders"),
         "avg_revenue": _Metric("revenue"),
     })
-    assert experiment.simulate(data, 10, seed=42) == experiment.simulation_results
+    assert experiment.simulate(data, 10, rng=42) == experiment.simulation_results
 
 def test_experiment_simulate_cols(data: Frame, data_arrow: pa.Table) -> None:
     experiment = ExperimentWithSimulationResults({
         "avg_sessions": _MetricAggregated("sessions"),
     })
-    assert experiment.simulate(data, 10, seed=42) == experiment.simulation_results
+    assert experiment.simulate(data, 10, rng=42) == experiment.simulation_results
     assert experiment.data[0].column_names == ["sessions", "variant"]
     experiment = ExperimentWithSimulationResults({
         "avg_orders": _MetricGranular("orders"),
     })
-    assert experiment.simulate(data, 10, seed=42) == experiment.simulation_results
+    assert experiment.simulate(data, 10, rng=42) == experiment.simulation_results
     assert experiment.data[0].column_names == ["orders", "variant"]
     experiment = ExperimentWithSimulationResults({
         "avg_revenue": _Metric("revenue"),
     })
-    assert experiment.simulate(data, 10, seed=42) == experiment.simulation_results
+    assert experiment.simulate(data, 10, rng=42) == experiment.simulation_results
     assert set(experiment.data[0].column_names) == set(data_arrow.column_names)
 
 def test_experiment_simulate_callable() -> None:
@@ -655,11 +656,11 @@ def test_experiment_simulate_callable() -> None:
         "avg_revenue": _Metric("revenue"),
     })
     tables = []
-    def make_data(seed: np.random.Generator) -> pa.Table:
-        table = tea_tasting.datasets.make_users_data(seed=seed, n_users=100)
+    def make_data(rng: np.random.Generator) -> pa.Table:
+        table = tea_tasting.datasets.make_users_data(rng=rng, n_users=100)
         tables.append(table)
         return table
-    results = experiment.simulate(make_data, 10, seed=42)
+    results = experiment.simulate(make_data, 10, rng=42)
     assert results == experiment.simulation_results
     assert results[0] == experiment.analyze(tables[0])
 
@@ -671,9 +672,9 @@ def test_experiment_simulate_callable_aggregated() -> None:
     })
     aggrs = []
     def make_data(
-        seed: np.random.Generator,
+        rng: np.random.Generator,
     ) -> dict[object, tea_tasting.aggr.Aggregates]:
-        table = tea_tasting.datasets.make_users_data(seed=seed, n_users=100)
+        table = tea_tasting.datasets.make_users_data(rng=rng, n_users=100)
         aggr = tea_tasting.aggr.read_aggregates(
             table,
             group_col="variant",
@@ -684,7 +685,7 @@ def test_experiment_simulate_callable_aggregated() -> None:
         )
         aggrs.append(aggr)
         return aggr
-    results = experiment.simulate(make_data, 10, seed=42)
+    results = experiment.simulate(make_data, 10, rng=42)
     assert results == experiment.simulation_results
     assert results[0] == experiment.analyze(aggrs[0])
 
@@ -694,10 +695,10 @@ def test_experiment_simulate_callable_aggregated_raises_for_ratio() -> None:
         "avg_sessions": _MetricAggregated("sessions"),
     })
     def make_data(
-        seed: np.random.Generator,
+        rng: np.random.Generator,
     ) -> dict[object, tea_tasting.aggr.Aggregates]:
         return tea_tasting.aggr.read_aggregates(
-            tea_tasting.datasets.make_users_data(seed=seed, n_users=100),
+            tea_tasting.datasets.make_users_data(rng=rng, n_users=100),
             group_col="variant",
             has_count=False,
             mean_cols=("sessions",),
@@ -705,7 +706,7 @@ def test_experiment_simulate_callable_aggregated_raises_for_ratio() -> None:
             cov_cols=(),
         )
     with pytest.raises(ValueError, match="ratio parameter"):
-        experiment.simulate(make_data, 1, seed=42, ratio=2)
+        experiment.simulate(make_data, 1, rng=42, ratio=2)
 
 
 def test_experiment_simulate_callable_aggregated_raises_for_treat() -> None:
@@ -713,10 +714,10 @@ def test_experiment_simulate_callable_aggregated_raises_for_treat() -> None:
         "avg_sessions": _MetricAggregated("sessions"),
     })
     def make_data(
-        seed: np.random.Generator,
+        rng: np.random.Generator,
     ) -> dict[object, tea_tasting.aggr.Aggregates]:
         return tea_tasting.aggr.read_aggregates(
-            tea_tasting.datasets.make_users_data(seed=seed, n_users=100),
+            tea_tasting.datasets.make_users_data(rng=rng, n_users=100),
             group_col="variant",
             has_count=False,
             mean_cols=("sessions",),
@@ -728,7 +729,7 @@ def test_experiment_simulate_callable_aggregated_raises_for_treat() -> None:
         return data
 
     with pytest.raises(ValueError, match="treat parameter"):
-        experiment.simulate(make_data, 1, seed=42, treat=treat)
+        experiment.simulate(make_data, 1, rng=42, treat=treat)
 
 
 def test_experiment_simulate_map(data_arrow: pa.Table) -> None:
@@ -738,8 +739,8 @@ def test_experiment_simulate_map(data_arrow: pa.Table) -> None:
         "avg_revenue": _Metric("revenue"),
     })
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = experiment.simulate(data_arrow, 10, seed=42, map_=executor.map)
-    assert results == experiment.simulate(data_arrow, 10, seed=42)
+        results = experiment.simulate(data_arrow, 10, rng=42, map_=executor.map)
+    assert results == experiment.simulate(data_arrow, 10, rng=42)
 
 def test_experiment_simulate_progress(data_arrow: pa.Table) -> None:
     experiment = tea_tasting.experiment.Experiment({
@@ -754,7 +755,7 @@ def test_experiment_simulate_progress(data_arrow: pa.Table) -> None:
         results = tuple(results)
         simulation_results.extend(results)
         return results
-    results = experiment.simulate(data_arrow, 10, seed=42, progress=progress)
+    results = experiment.simulate(data_arrow, 10, rng=42, progress=progress)
     assert results == simulation_results
 
 def test_experiment_simulate_treat() -> None:
@@ -764,7 +765,7 @@ def test_experiment_simulate_treat() -> None:
         "avg_revenue": _Metric("revenue"),
     })
     data = tea_tasting.datasets.make_users_data(
-        seed=42,
+        rng=42,
         n_users=1000,
         orders_uplift=0,
         revenue_uplift=0,
@@ -775,7 +776,7 @@ def test_experiment_simulate_treat() -> None:
             .append_column("orders", pc.multiply(data["orders"], pa.scalar(1.1)))  # type: ignore
             .append_column("revenue", pc.multiply(data["revenue"], pa.scalar(1.1)))  # type: ignore
         )
-    results = experiment.simulate(data, 100, seed=42, treat=treat)
+    results = experiment.simulate(data, 100, rng=42, treat=treat)
     means = (
         results.to_polars()
         .select("metric", "effect_size")
@@ -785,3 +786,256 @@ def test_experiment_simulate_treat() -> None:
     assert means.item(2, "effect_size") == pytest.approx(0, abs=0.001)
     assert means.item(0, "effect_size") == pytest.approx(0.05, rel=0.1)
     assert means.item(1, "effect_size") == pytest.approx(0.5, rel=0.1)
+
+
+def test_experiment_simulate_seed_keyword_deprecated(data: Frame) -> None:
+    experiment = ExperimentWithSimulationResults({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricGranular("orders"),
+        "avg_revenue": _Metric("revenue"),
+    })
+    with pytest.warns(DeprecationWarning, match="'seed' keyword is deprecated"):
+        assert experiment.simulate(  # pyright: ignore[reportCallIssue]
+            data,
+            10,
+            seed=42,  # pyright: ignore[reportCallIssue]
+        ) == experiment.simulation_results
+
+
+def test_experiment_simulate_callable_seed_parameter_deprecated() -> None:
+    experiment = ExperimentWithSimulationResults({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricGranular("orders"),
+        "avg_revenue": _Metric("revenue"),
+    })
+    def make_data(seed: np.random.Generator) -> pa.Table:
+        return tea_tasting.datasets.make_users_data(rng=seed, n_users=100)
+
+    with pytest.warns(
+        DeprecationWarning,
+        match="data generator keyword parameter 'seed' is deprecated",
+    ):
+        experiment.simulate(make_data, 1, rng=42)
+
+
+def test_experiment_simulate_callable_variadic_rng_parameter() -> None:
+    experiment = ExperimentWithSimulationResults({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricGranular("orders"),
+        "avg_revenue": _Metric("revenue"),
+    })
+    rngs: list[np.random.Generator] = []
+
+    def make_data(**kwargs: object) -> pa.Table:
+        rng = kwargs.get("rng")
+        assert isinstance(rng, np.random.Generator)
+        rngs.append(rng)
+        return tea_tasting.datasets.make_users_data(rng=rng, n_users=100)
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        experiment.simulate(make_data, 1, rng=42)
+    assert len(rngs) == 1
+    assert not any(
+        issubclass(warning.category, DeprecationWarning) and
+        "data generator keyword parameter 'seed' is deprecated" in
+        str(warning.message)
+        for warning in caught
+    )
+
+
+def test_experiment_simulate_callable_variadic_seed_parameter_deprecated() -> None:
+    experiment = ExperimentWithSimulationResults({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricGranular("orders"),
+        "avg_revenue": _Metric("revenue"),
+    })
+    seeds: list[np.random.Generator] = []
+
+    def make_data(**kwargs: object) -> pa.Table:
+        seed = kwargs["seed"]
+        assert isinstance(seed, np.random.Generator)
+        seeds.append(seed)
+        return tea_tasting.datasets.make_users_data(rng=seed, n_users=100)
+
+    with pytest.warns(
+        DeprecationWarning,
+        match="data generator keyword parameter 'seed' is deprecated",
+    ):
+        experiment.simulate(make_data, 1, rng=42)
+    assert len(seeds) == 1
+
+
+def test_experiment_simulate_seed_and_rng_raise(data: Frame) -> None:
+    experiment = ExperimentWithSimulationResults({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricGranular("orders"),
+        "avg_revenue": _Metric("revenue"),
+    })
+    with pytest.raises(TypeError, match="both 'rng' and deprecated keyword 'seed'"):
+        experiment.simulate(  # pyright: ignore[reportCallIssue]
+            data,
+            10,
+            rng=42,
+            seed=21,  # pyright: ignore[reportCallIssue]
+        )
+
+
+def test_experiment_simulate_callable_unknown_parameter_raises() -> None:
+    experiment = ExperimentWithSimulationResults({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricGranular("orders"),
+        "avg_revenue": _Metric("revenue"),
+    })
+    def make_data(random_gen: np.random.Generator) -> pa.Table:
+        return tea_tasting.datasets.make_users_data(rng=random_gen, n_users=100)
+
+    with pytest.raises(TypeError, match="unexpected keyword argument 'rng'"):
+        experiment.simulate(make_data, 1, rng=42)
+
+
+def test_generate_data_fallback_when_signature_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    rng = np.random.default_rng(42)
+
+    def make_data(*, rng: np.random.Generator) -> pa.Table:
+        return tea_tasting.datasets.make_users_data(rng=rng, n_users=100)
+
+    def raise_value_error(_: object) -> object:
+        raise ValueError("cannot inspect")
+
+    monkeypatch.setattr(tea_tasting.experiment, "_inspect_signature", raise_value_error)
+    data = tea_tasting.experiment._generate_data(make_data, rng)
+    assert isinstance(data, pa.Table)
+
+
+def test_generate_data_fallback_when_signature_unavailable_seed_deprecated(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    rng = np.random.default_rng(42)
+    seeds: list[np.random.Generator] = []
+
+    def make_data(
+        *,
+        seed: np.random.Generator | None = None,
+    ) -> pa.Table:
+        assert seed is not None
+        seeds.append(seed)
+        return tea_tasting.datasets.make_users_data(rng=seed, n_users=100)
+
+    def raise_value_error(_: object) -> object:
+        raise ValueError("cannot inspect")
+
+    monkeypatch.setattr(tea_tasting.experiment, "_inspect_signature", raise_value_error)
+    with pytest.warns(
+        DeprecationWarning,
+        match="data generator keyword parameter 'seed' is deprecated",
+    ):
+        data = tea_tasting.experiment._generate_data(make_data, rng)
+    assert isinstance(data, pa.Table)
+    assert len(seeds) == 1
+
+
+def test_generate_data_fallback_when_signature_unavailable_seed_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    rng = np.random.default_rng(42)
+
+    def make_data(*, seed: np.random.Generator) -> pa.Table:  # noqa: ARG001
+        raise TypeError("seed failed")
+
+    def raise_value_error(_: object) -> object:
+        raise ValueError("cannot inspect")
+
+    monkeypatch.setattr(tea_tasting.experiment, "_inspect_signature", raise_value_error)
+    with pytest.raises(TypeError, match="seed failed"):
+        tea_tasting.experiment._generate_data(make_data, rng)
+
+
+def test_generate_data_fallback_when_signature_unavailable_seed_and_rng_unsupported(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    rng = np.random.default_rng(42)
+
+    def make_data(*, random_gen: np.random.Generator) -> pa.Table:  # noqa: ARG001
+        raise AssertionError("should not be called")
+
+    def raise_value_error(_: object) -> object:
+        raise ValueError("cannot inspect")
+
+    monkeypatch.setattr(tea_tasting.experiment, "_inspect_signature", raise_value_error)
+    with pytest.raises(TypeError, match="unexpected keyword argument 'rng'"):
+        tea_tasting.experiment._generate_data(make_data, rng)
+
+
+def test_generate_data_fallback_when_signature_unavailable_rng_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    rng = np.random.default_rng(42)
+
+    def make_data(*, rng: np.random.Generator) -> pa.Table:  # noqa: ARG001
+        raise TypeError("rng failed")
+
+    def raise_value_error(_: object) -> object:
+        raise ValueError("cannot inspect")
+
+    monkeypatch.setattr(tea_tasting.experiment, "_inspect_signature", raise_value_error)
+    with pytest.raises(TypeError, match="rng failed"):
+        tea_tasting.experiment._generate_data(make_data, rng)
+
+
+def test_generate_data_variadic_kwargs_type_error_fallback_seed_deprecated() -> None:
+    rng = np.random.default_rng(42)
+
+    def make_data(**kwargs: object) -> pa.Table:
+        seed = kwargs.get("seed")
+        if isinstance(seed, np.random.Generator):
+            return tea_tasting.datasets.make_users_data(rng=seed, n_users=100)
+        raise TypeError("got an unexpected keyword argument 'rng'")
+
+    with pytest.warns(
+        DeprecationWarning,
+        match="data generator keyword parameter 'seed' is deprecated",
+    ):
+        data = tea_tasting.experiment._generate_data(make_data, rng)
+    assert isinstance(data, pa.Table)
+
+
+def test_generate_data_variadic_kwargs_seed_error_raises_rng_error() -> None:
+    rng = np.random.default_rng(42)
+
+    def make_data(**kwargs: object) -> pa.Table:
+        if "seed" in kwargs:
+            raise ValueError("seed failed")
+        raise KeyError("seed")
+
+    with pytest.raises(KeyError, match="seed"):
+        tea_tasting.experiment._generate_data(make_data, rng)
+
+
+def test_generate_data_variadic_kwargs_non_fallback_error_raises() -> None:
+    rng = np.random.default_rng(42)
+
+    def make_data(**kwargs: object) -> pa.Table:  # noqa: ARG001
+        raise RuntimeError("rng failed")
+
+    with pytest.raises(RuntimeError, match="rng failed"):
+        tea_tasting.experiment._generate_data(make_data, rng)
+
+
+def test_generate_data_fallback_when_signature_unavailable_callable_object_raises(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    rng = np.random.default_rng(42)
+
+    class DataGeneratorWithCall:
+        def __call__(self, random_gen: np.random.Generator) -> pa.Table:  # noqa: ARG002
+            raise TypeError("call failed")
+
+    def raise_value_error(_: object) -> object:
+        raise ValueError("cannot inspect")
+
+    monkeypatch.setattr(tea_tasting.experiment, "_inspect_signature", raise_value_error)
+    with pytest.raises(TypeError, match="unexpected keyword argument 'rng'"):
+        tea_tasting.experiment._generate_data(DataGeneratorWithCall(), rng)

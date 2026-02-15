@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def data_arrow() -> pa.Table:
-    return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
+    return tea_tasting.datasets.make_users_data(n_users=100, rng=42)
 
 @pytest.fixture
 def data_gran(data_arrow: pa.Table) -> dict[object, pa.Table]:
@@ -38,6 +38,7 @@ def test_bootstrap_init_default() -> None:
     assert metric.n_resamples == tea_tasting.config.get_config("n_resamples")
     assert metric.method == "bca"
     assert metric.batch is None
+    assert metric.rng is None
     assert metric.random_state is None
 
 def test_bootstrap_init_custom() -> None:
@@ -49,7 +50,7 @@ def test_bootstrap_init_custom() -> None:
         n_resamples=1000,
         method="basic",
         batch=100,
-        random_state=42,
+        rng=42,
     )
     assert metric.columns == ("a", "b")
     assert metric.statistic == np.mean
@@ -58,6 +59,7 @@ def test_bootstrap_init_custom() -> None:
     assert metric.n_resamples == 1000
     assert metric.method == "basic"
     assert metric.batch == 100
+    assert metric.rng == 42
     assert metric.random_state == 42
 
 
@@ -80,7 +82,7 @@ def test_bootstrap_analyze_default(data_gran: dict[object, pa.Table]) -> None:
         "revenue",
         np.mean,
         n_resamples=100,
-        random_state=42,
+        rng=42,
     )
     result = metric.analyze(data_gran, 0, 1)
     assert isinstance(result, tea_tasting.metrics.resampling.BootstrapResult)
@@ -105,7 +107,7 @@ def test_bootstrap_analyze_multiple_columns(data_gran: dict[object, pa.Table]) -
         ("orders", "sessions"),
         ratio_of_means,
         n_resamples=100,
-        random_state=42,
+        rng=42,
     )
     result = metric.analyze(data_gran, 0, 1)
     assert isinstance(result, tea_tasting.metrics.resampling.BootstrapResult)
@@ -123,7 +125,7 @@ def test_bootstrap_analyze_division_by_zero(data_gran: dict[object, pa.Table]) -
         "orders",
         np.median,
         n_resamples=100,
-        random_state=42,
+        rng=42,
         method="basic",
     )
     result = metric.analyze(data_gran, 0, 1)
@@ -144,7 +146,7 @@ def test_quantile(data_gran: dict[object, pa.Table]) -> None:
         alternative="greater",
         confidence_level=0.9,
         n_resamples=100,
-        random_state=42,
+        rng=42,
     )
     assert metric.column == "revenue"
     assert metric.q == 0.8
@@ -158,3 +160,29 @@ def test_quantile(data_gran: dict[object, pa.Table]) -> None:
     assert result.rel_effect_size == pytest.approx(-0.47527564316739024)
     assert result.rel_effect_size_ci_lower == pytest.approx(-0.8743329817472134)
     assert result.rel_effect_size_ci_upper == float("inf")
+
+
+def test_bootstrap_random_state_keyword_deprecated() -> None:
+    with pytest.warns(
+        DeprecationWarning,
+        match="'random_state' keyword is deprecated",
+    ):
+        metric = tea_tasting.metrics.resampling.Bootstrap(
+            "a",
+            np.mean,
+            random_state=42,  # pyright: ignore[reportCallIssue]
+        )
+    assert metric.rng == 42
+
+
+def test_bootstrap_rng_and_random_state_raise() -> None:
+    with pytest.raises(
+        TypeError,
+        match="both 'rng' and deprecated keyword 'random_state'",
+    ):
+        tea_tasting.metrics.resampling.Bootstrap(
+            "a",
+            np.mean,
+            rng=1,
+            random_state=42,  # pyright: ignore[reportCallIssue]
+        )

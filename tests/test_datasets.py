@@ -5,13 +5,14 @@ import pandas as pd
 import polars as pl
 import pyarrow as pa
 import pyarrow.compute as pc
+import pytest
 
 import tea_tasting.datasets
 
 
 def test_make_users_data_default() -> None:
     n_users = 100
-    data = tea_tasting.datasets.make_users_data(seed=42, n_users=n_users)
+    data = tea_tasting.datasets.make_users_data(rng=42, n_users=n_users)
     assert isinstance(data, pa.Table)
     assert data.column_names == ["user", "variant", "sessions", "orders", "revenue"]
     assert data.num_rows == n_users
@@ -29,7 +30,7 @@ def test_make_users_data_default() -> None:
 def test_make_users_data_pandas() -> None:
     n_users = 100
     data = tea_tasting.datasets.make_users_data(
-        seed=42, n_users=n_users, return_type="pandas")
+        rng=42, n_users=n_users, return_type="pandas")
     assert isinstance(data, pd.DataFrame)
     assert data.columns.to_list() == [
         "user", "variant", "sessions", "orders", "revenue"]
@@ -38,7 +39,7 @@ def test_make_users_data_pandas() -> None:
 def test_make_users_data_polars() -> None:
     n_users = 100
     data = tea_tasting.datasets.make_users_data(
-        seed=42, n_users=n_users, return_type="polars")
+        rng=42, n_users=n_users, return_type="polars")
     assert isinstance(data, pl.DataFrame)
     assert data.columns == [
         "user", "variant", "sessions", "orders", "revenue"]
@@ -48,7 +49,7 @@ def test_make_users_data_polars() -> None:
 def test_make_users_data_covariates() -> None:
     n_users = 100
     data = tea_tasting.datasets.make_users_data(
-        seed=42, covariates=True, n_users=n_users)
+        rng=42, covariates=True, n_users=n_users)
     assert isinstance(data, pa.Table)
     assert data.column_names == [
         "user", "variant", "sessions", "orders", "revenue",
@@ -69,7 +70,7 @@ def test_make_users_data_covariates() -> None:
 
 def test_make_sessions_data_default() -> None:
     n_users = 100
-    data = tea_tasting.datasets.make_sessions_data(seed=42, n_users=n_users)
+    data = tea_tasting.datasets.make_sessions_data(rng=42, n_users=n_users)
     assert isinstance(data, pa.Table)
     assert data.column_names == ["user", "variant", "sessions", "orders", "revenue"]
     assert data.num_rows > n_users
@@ -88,7 +89,7 @@ def test_make_sessions_data_default() -> None:
 def test_make_sessions_data_pandas() -> None:
     n_users = 100
     data = tea_tasting.datasets.make_sessions_data(
-        seed=42, n_users=n_users, return_type="pandas")
+        rng=42, n_users=n_users, return_type="pandas")
     assert isinstance(data, pd.DataFrame)
     assert data.columns.to_list() == [
         "user", "variant", "sessions", "orders", "revenue"]
@@ -97,7 +98,7 @@ def test_make_sessions_data_pandas() -> None:
 def test_make_sessions_data_polars() -> None:
     n_users = 100
     data = tea_tasting.datasets.make_sessions_data(
-        seed=42, n_users=n_users, return_type="polars")
+        rng=42, n_users=n_users, return_type="polars")
     assert isinstance(data, pl.DataFrame)
     assert data.columns == [
         "user", "variant", "sessions", "orders", "revenue"]
@@ -107,7 +108,7 @@ def test_make_sessions_data_polars() -> None:
 def test_make_sessions_data_covariates() -> None:
     n_users = 100
     data = tea_tasting.datasets.make_sessions_data(
-        seed=42, covariates=True, n_users=n_users)
+        rng=42, covariates=True, n_users=n_users)
     assert isinstance(data, pa.Table)
     assert data.column_names == [
         "user", "variant", "sessions", "orders", "revenue",
@@ -124,3 +125,29 @@ def test_make_sessions_data_covariates() -> None:
         pc.greater_equal(data["revenue_covariate"], 0),
         pc.greater_equal(data["orders_covariate"], 0),
     )).as_py()) == 1
+
+
+def test_make_users_data_seed_keyword_deprecated() -> None:
+    with pytest.warns(DeprecationWarning, match="'seed' keyword is deprecated"):
+        data = tea_tasting.datasets.make_users_data(  # pyright: ignore[reportCallIssue]
+            seed=42,
+            n_users=100,
+        )
+    assert isinstance(data, pa.Table)
+
+
+def test_make_sessions_data_seed_keyword_deprecated() -> None:
+    with pytest.warns(DeprecationWarning, match="'seed' keyword is deprecated"):
+        data = tea_tasting.datasets.make_sessions_data(  # pyright: ignore[reportCallIssue]
+            seed=42,
+            n_users=100,
+        )
+    assert isinstance(data, pa.Table)
+
+
+def test_make_users_data_seed_and_rng_raise() -> None:
+    with pytest.raises(TypeError, match="both 'rng' and deprecated keyword 'seed'"):
+        tea_tasting.datasets.make_users_data(  # pyright: ignore[reportCallIssue]
+            seed=42,
+            rng=1,
+        )
