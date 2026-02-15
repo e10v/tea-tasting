@@ -10,7 +10,7 @@
 
 import marimo
 
-__generated_with = "0.19.8"
+__generated_with = "0.19.11"
 app = marimo.App()
 
 
@@ -19,7 +19,7 @@ def _(mo):
     mo.md(r"""
     # Power analysis
 
-    In tea-tasting, you can analyze the statistical power for `Mean` and `RatioOfMeans` metrics. There are three possible options:
+    In tea-tasting, you can analyze statistical power for `Mean` and `RatioOfMeans` metrics. You can solve for one of three quantities:
 
     - Calculate the effect size, given statistical power and the total number of observations.
     - Calculate the total number of observations, given statistical power and the effect size.
@@ -59,7 +59,7 @@ def _(mo):
 
     You can change the default values of `alpha`, `ratio`, `power`, and `n_obs` using the [global settings](https://tea-tasting.e10v.me/user-guide/#global-settings).
 
-    tea-tasting can analyze power for several values of parameters `effect_size`, `rel_effect_size`, or `n_obs`. Example:
+    tea-tasting can analyze power for several values of the parameters `effect_size`, `rel_effect_size`, or `n_obs`. Example:
     """)
     return
 
@@ -104,7 +104,7 @@ def _(mo):
     mo.md(r"""
     In the example above, tea-tasting calculates both the relative and absolute effect size for all metrics for two possible sample size values, `10_000` and `20_000`.
 
-    The `solve_power` methods of a [metric](https://tea-tasting.e10v.me/api/metrics/mean/#tea_tasting.metrics.mean.Mean.solve_power) and of an [experiment](https://tea-tasting.e10v.me/api/experiment/#tea_tasting.experiment.Experiment.solve_power) return the instances of [`MetricPowerResults`](https://tea-tasting.e10v.me/api/metrics/base/#tea_tasting.metrics.base.MetricPowerResults) and [`ExperimentPowerResult`](https://tea-tasting.e10v.me/api/experiment/#tea_tasting.experiment.ExperimentPowerResult) respectively. These result classes provide the serialization methods similar to the experiment result: `to_dicts`, `to_arrow`, `to_pandas`, `to_polars`, `to_pretty_dicts`, `to_string`, `to_html`. They are also rendered as an HTML tables in IPython and Jupyter, and as a table in marimo notebooks.
+    The `solve_power` methods of a [metric](https://tea-tasting.e10v.me/api/metrics/mean/#tea_tasting.metrics.mean.Mean.solve_power) and of an [experiment](https://tea-tasting.e10v.me/api/experiment/#tea_tasting.experiment.Experiment.solve_power) return instances of [`MetricPowerResults`](https://tea-tasting.e10v.me/api/metrics/base/#tea_tasting.metrics.base.MetricPowerResults) and [`ExperimentPowerResult`](https://tea-tasting.e10v.me/api/experiment/#tea_tasting.experiment.ExperimentPowerResult), respectively. These result classes provide serialization methods similar to those of experiment results: `to_dicts`, `to_arrow`, `to_pandas`, `to_polars`, `to_pretty_dicts`, `to_string`, `to_html`. They are also rendered as HTML tables in IPython and Jupyter, and as a table in marimo notebooks.
     """)
     return
 
