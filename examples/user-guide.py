@@ -39,7 +39,7 @@ def _(mo):
 def _():
     import tea_tasting as tt
 
-    data = tt.make_users_data(seed=42)
+    data = tt.make_users_data(rng=42)
     experiment = tt.Experiment(
         sessions_per_user=tt.Mean("sessions"),
         orders_per_session=tt.RatioOfMeans("orders", "sessions"),
@@ -314,7 +314,7 @@ def _(mo):
 
 @app.cell
 def _(tt):
-    data_cuped = tt.make_users_data(seed=42, covariates=True)
+    data_cuped = tt.make_users_data(rng=42, covariates=True)
     experiment_cuped = tt.Experiment(
         sessions_per_user=tt.Mean("sessions", "sessions_covariate"),
         orders_per_session=tt.RatioOfMeans(
@@ -504,8 +504,8 @@ def _(experiment, tt):
     import polars as pl
 
     data_three_variants = pl.concat((
-        tt.make_users_data(seed=42, return_type="polars"),
-        tt.make_users_data(seed=21, return_type="polars")
+        tt.make_users_data(rng=42, return_type="polars"),
+        tt.make_users_data(rng=21, return_type="polars")
             .filter(pl.col("variant").eq(1))
             .with_columns(variant=pl.lit(2, pl.Int64)),
     ))

@@ -55,13 +55,13 @@ def _():
 
     data = pl.concat((
         tt.make_users_data(
-            seed=42,
+            rng=42,
             orders_uplift=0.10,
             revenue_uplift=0.15,
             return_type="polars",
         ),
         tt.make_users_data(
-            seed=21,
+            rng=21,
             orders_uplift=0.15,
             revenue_uplift=0.20,
             return_type="polars",
@@ -214,8 +214,8 @@ def _(mo):
 
 @app.cell
 def _(experiment, metrics, tt):
-    data1 = tt.make_users_data(seed=42, orders_uplift=0.10, revenue_uplift=0.15)
-    data2 = tt.make_users_data(seed=21, orders_uplift=0.15, revenue_uplift=0.20)
+    data1 = tt.make_users_data(rng=42, orders_uplift=0.10, revenue_uplift=0.15)
+    data2 = tt.make_users_data(rng=21, orders_uplift=0.15, revenue_uplift=0.20)
     result1 = experiment.analyze(data1)
     result2 = experiment.analyze(data2)
     tt.adjust_fdr(

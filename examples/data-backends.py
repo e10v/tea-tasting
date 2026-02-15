@@ -59,7 +59,7 @@ def _():
     import polars as pl
     import tea_tasting as tt
 
-    users_data = tt.make_users_data(seed=42)
+    users_data = tt.make_users_data(rng=42)
     con = ibis.connect("duckdb://")
     con.create_table("users_data", users_data)
     return con, ibis, pl, tt, users_data
@@ -211,7 +211,7 @@ def _(mo):
 
 @app.cell
 def _(con, tt):
-    users_data_cuped = tt.make_users_data(seed=42, covariates=True)
+    users_data_cuped = tt.make_users_data(rng=42, covariates=True)
     con.create_table("users_data_cuped", users_data_cuped)
 
     data_cuped = con.sql("select * from users_data_cuped")

@@ -35,7 +35,7 @@ def _():
     import tea_tasting as tt
 
     data = tt.make_users_data(
-        seed=42,
+        rng=42,
         sessions_uplift=0,
         orders_uplift=0,
         revenue_uplift=0,

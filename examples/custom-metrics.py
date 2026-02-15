@@ -48,7 +48,7 @@ def _():
     import tea_tasting.metrics
     import tea_tasting.utils
 
-    data = tt.make_users_data(seed=42)
+    data = tt.make_users_data(rng=42)
     data = data.append_column(
         "has_order",
         pc.greater(data["orders"], 0).cast(pa.int64()),
