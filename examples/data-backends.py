@@ -12,7 +12,7 @@
 
 import marimo
 
-__generated_with = "0.19.8"
+__generated_with = "0.19.11"
 app = marimo.App()
 
 
@@ -23,13 +23,13 @@ def _(mo):
 
     ## Intro
 
-    tea-tasting supports a wide range of data backends such as BigQuery, ClickHouse, DuckDB, PostgreSQL, Snowflake, Spark, and many other backends supported by [Ibis](https://github.com/ibis-project/ibis). Ibis is a DataFrame API to various data backends.
+    tea-tasting supports a wide range of data backends such as BigQuery, ClickHouse, PostgreSQL, Snowflake, Trino, and many other backends supported by [Ibis](https://github.com/ibis-project/ibis). Ibis is a DataFrame API to various data backends.
 
     Many statistical tests, such as the Student's t-test or the Z-test, require only aggregated data for analysis. For these tests, tea-tasting retrieves only aggregated statistics like mean and variance instead of downloading all detailed data.
 
     For example, if the raw experimental data are stored in ClickHouse, it's faster and more efficient to calculate counts, averages, variances, and covariances directly in ClickHouse rather than fetching granular data and performing aggregations in a Python environment.
 
-    tea-tasting also accepts dataframes supported by [Narwhals](https://github.com/narwhals-dev/narwhals): cuDF, Dask, Modin, pandas, Polars, PyArrow. Narwhals is a compatibility layer between dataframe libraries.
+    tea-tasting also accepts dataframes supported by [Narwhals](https://github.com/narwhals-dev/narwhals): cuDF, Daft, Dask, DuckDB, Modin, pandas, Polars, PyArrow, PySpark. Narwhals is a compatibility layer between dataframe libraries.
 
     This guide:
 
@@ -40,7 +40,7 @@ def _(mo):
 
     /// admonition | Note
 
-    This guide uses [DuckDB](https://github.com/duckdb/duckdb), an in-process analytical database, and [Polars](https://github.com/pola-rs/polars) as example data backends. Install these packages in addition to tea-tasting to reproduce the examples:
+    This guide uses [DuckDB](https://github.com/duckdb/duckdb), an in-process analytical database, and [Polars](https://github.com/pola-rs/polars) as example backends. Install these packages in addition to tea-tasting to reproduce the examples:
 
     ```bash
     uv pip install ibis-framework[duckdb] polars
@@ -78,7 +78,7 @@ def _(mo):
 
     ## Querying experimental data
 
-    Method `con.create_table` in the example above returns an Ibis Table which already can be used in the analysis of the experiment. But let's see how to use an SQL query to create an Ibis Table:
+    The `con.create_table` method in the example above returns an Ibis Table that can already be used for experiment analysis. But let's see how to use an SQL query to create an Ibis Table:
     """)
     return
 
@@ -93,7 +93,7 @@ def _(con):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    It's a very simple query. In the real world, you might need to use joins, aggregations, and CTEs to get the data. You can define any SQL query supported by your data backend and use it to create Ibis Table.
+    It's a very simple query. In the real world, you might need to use joins, aggregations, and CTEs to get the data. You can define any SQL query supported by your data backend and use it to create an Ibis Table.
 
     Keep in mind that tea-tasting assumes that:
 
@@ -175,7 +175,7 @@ def _(mo):
 
     ## Experiment analysis
 
-    The example above shows how to query the metric averages. But for statistical inference, it's not enough. For example, Student's t-test and Z-test also require number of rows and variance. Additionally, analysis of ratio metrics and variance reduction with CUPED requires covariances.
+    The example above shows how to query metric averages. But for statistical inference, this is not enough. For example, Student's t-test and Z-test also require the number of rows and variances. Additionally, analysis of ratio metrics and variance reduction with CUPED require covariances.
 
     Querying all the required statistics manually can be a daunting and error-prone task. But don't worry—tea-tasting does this work for you. You just need to specify the metrics:
     """)

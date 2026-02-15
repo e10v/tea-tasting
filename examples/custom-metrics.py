@@ -10,7 +10,7 @@
 
 import marimo
 
-__generated_with = "0.19.8"
+__generated_with = "0.19.11"
 app = marimo.App()
 
 
@@ -95,7 +95,7 @@ def _(mo):
     - Property `aggr_cols` returns columns to be aggregated for analysis for each type of statistic.
     - Method `analyze_aggregates` analyzes the metric using aggregated statistics.
 
-    Let's define the metric and discuss each method in details:
+    Let's define the metric and discuss each method in detail:
     """)
     return
 
@@ -199,7 +199,7 @@ def _(mo):
     mo.md(r"""
     A metric that analyzes granular data should be a subclass of [`MetricBaseGranular`](https://tea-tasting.e10v.me/api/metrics/base/#tea_tasting.metrics.base.MetricBaseGranular). `MetricBaseGranular` is a generic class with the result class as a type variable.
 
-    Metric should have the following methods and properties defined:
+    The metric should have the following methods and properties defined:
 
     - Method `__init__` checks and saves metric parameters.
     - Property `cols` returns columns to be fetched for an analysis.
@@ -252,9 +252,9 @@ def _(mo):
     mo.md(r"""
     Property `cols` should return a sequence of strings.
 
-    Method `analyze_granular` accepts two parameters: control and treatment data as PyArrow Tables. Even with [data backend](https://tea-tasting.e10v.me/data-backends/) different from PyArrow, tea-tasting will retrieve the data and transform into a PyArrow Table.
+    Method `analyze_granular` accepts two parameters: control and treatment data as PyArrow Tables. Even with a [data backend](https://tea-tasting.e10v.me/data-backends/) other than PyArrow, tea-tasting retrieves the data and converts it into a PyArrow Table.
 
-    Method `analyze_granular` returns an instance of `MannWhitneyUResult`, defined earlier, with analysis result.
+    Method `analyze_granular` returns an instance of `MannWhitneyUResult`, defined earlier, with the analysis result.
 
     Now we can perform the Mann-Whitney U test:
     """)
@@ -277,7 +277,7 @@ def _(mo):
     mo.md(r"""
     ## Analyzing two types of metrics together
 
-    It's also possible to analyze two types of metrics in one experiment:
+    It's also possible to analyze both types of metrics in one experiment:
     """)
     return
 

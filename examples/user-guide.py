@@ -11,7 +11,7 @@
 
 import marimo
 
-__generated_with = "0.19.8"
+__generated_with = "0.19.11"
 app = marimo.App()
 
 
@@ -80,12 +80,12 @@ def _(data):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    You can control return type using the `return_type` parameter. The other possible output types are Pandas DataFrame and Polars DataFrame. They require Pandas or Polars packages respectively.
+    You can control the return type using the `return_type` parameter. The other possible output types are Pandas DataFrame and Polars DataFrame. They require the Pandas and Polars packages, respectively.
 
     tea-tasting can process data in the form of an Ibis Table or a DataFrame supported by Narwhals:
 
-    - [Ibis](https://github.com/ibis-project/ibis) is a DataFrame API to various data backends. It supports many backends including BigQuery, ClickHouse, DuckDB, PostgreSQL, Snowflake, Spark etc. You can write an SQL query, [wrap](https://ibis-project.org/how-to/extending/sql#backend.sql) it as an Ibis Table and pass it to tea-tasting.
-    - [Narwhals](https://github.com/narwhals-dev/narwhals) is a compatibility layer between dataframe libraries. It supports cuDF, Dask, Modin, pandas, Polars, PyArrow dataframes. You can use any of these dataframes as an input to tea-tasting.
+    - [Ibis](https://github.com/ibis-project/ibis) is a DataFrame API for various data backends. It supports many backends, including BigQuery, ClickHouse, PostgreSQL, Snowflake, Trino, and others. You can write an SQL query, [wrap](https://ibis-project.org/how-to/extending/sql#backend.sql) it as an Ibis Table, and pass it to tea-tasting.
+    - [Narwhals](https://github.com/narwhals-dev/narwhals) is a compatibility layer between dataframe libraries. It supports cuDF, Daft, Dask, DuckDB, Modin, pandas, Polars, PyArrow, PySpark dataframes. You can use any of these dataframes as an input to tea-tasting.
 
     Many statistical tests, such as the Student's t-test or the Z-test, require only aggregated data for analysis. For these tests, tea-tasting retrieves only aggregated statistics like mean and variance instead of downloading all detailed data. See more details in the [guide on data backends](https://tea-tasting.e10v.me/data-backends/).
 
@@ -100,7 +100,7 @@ def _(mo):
     The [`Experiment`](https://tea-tasting.e10v.me/api/experiment/#tea_tasting.experiment.Experiment) class defines parameters of an A/B test: metrics and a variant column name. There are two ways to define metrics:
 
     - Using keyword parameters, with metric names as parameter names, and metric definitions as parameter values, as in example above.
-    - Using the first argument `metrics` which accepts metrics in a form of dictionary with metric names as keys and metric definitions as values.
+    - Using the first argument `metrics`, which accepts metrics in the form of a dictionary with metric names as keys and metric definitions as values.
 
     By default, tea-tasting assumes that the A/B test variant is stored in a column named `"variant"`. You can change it using the `variant` parameter of the `Experiment` class.
 
@@ -128,11 +128,19 @@ def _(mo):
     mo.md(r"""
     ### Metrics
 
-    Metrics are instances of metric classes which define how metrics are calculated. Those calculations include calculation of effect size, confidence interval, p-value and other statistics.
+    Metrics are instances of metric classes that define how metrics are calculated. These calculations include effect size, confidence intervals, p-values, and other statistics.
 
-    Use the [`Mean`](https://tea-tasting.e10v.me/api/metrics/mean/#tea_tasting.metrics.mean.Mean) class to compare averages between variants of an A/B test. For example, average number of orders per user, where user is a randomization unit of an experiment. Specify the column containing the metric values using the first parameter `value`.
+    tea-tasting provides the following built-in metric classes:
 
-    Use the [`RatioOfMeans`](https://tea-tasting.e10v.me/api/metrics/mean/#tea_tasting.metrics.mean.RatioOfMeans) class to compare ratios of averages between variants of an A/B test. For example, average number of orders per average number of sessions. Specify the columns containing the numerator and denominator values using parameters `numer` and `denom`.
+    - [`Mean`](https://tea-tasting.e10v.me/api/metrics/mean/#tea_tasting.metrics.mean.Mean): Compare averages between variants. For example, average number of orders per user.
+    - [`RatioOfMeans`](https://tea-tasting.e10v.me/api/metrics/mean/#tea_tasting.metrics.mean.RatioOfMeans): Compare ratios of averages between variants. For example, average number of orders per average number of sessions.
+    - [`Proportion`](https://tea-tasting.e10v.me/api/metrics/proportion/#tea_tasting.metrics.proportion.Proportion): Compare binary conversion rates. For example, proportion of users who placed at least one order.
+    - [`SampleRatio`](https://tea-tasting.e10v.me/api/metrics/proportion/#tea_tasting.metrics.proportion.SampleRatio): Detect sample ratio mismatch (SRM) between variants.
+    - [`MannWhitneyU`](https://tea-tasting.e10v.me/api/metrics/nonparametric/#tea_tasting.metrics.nonparametric.MannWhitneyU): Run a nonparametric rank-based test (which variant is more likely to yield higher values).
+    - [`Bootstrap`](https://tea-tasting.e10v.me/api/metrics/resampling/#tea_tasting.metrics.resampling.Bootstrap): Analyze custom statistics with bootstrap confidence intervals.
+    - [`Quantile`](https://tea-tasting.e10v.me/api/metrics/resampling/#tea_tasting.metrics.resampling.Quantile): Compare quantiles (for example, p80 revenue) with bootstrap confidence intervals.
+
+    The sections below focus on `Mean` and `RatioOfMeans`, which are the most common metrics in A/B testing.
 
     Use the following parameters of `Mean` and `RatioOfMeans` to customize the analysis:
 
@@ -163,13 +171,15 @@ def _(tt):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Look for other supported metrics in the [Metrics](https://tea-tasting.e10v.me/api/metrics/index/) reference.
+    See the [Metrics](https://tea-tasting.e10v.me/api/metrics/index/) reference for API details.
 
     You can change default values of these four parameters using the [global settings](#global-settings).
 
+    You can also define your own metrics. For details, see the [Custom metrics](https://tea-tasting.e10v.me/custom-metrics/) guide.
+
     ### Analyzing and retrieving experiment results
 
-    After defining an experiment and metrics, you can analyze the experiment data using the [`analyze`](https://tea-tasting.e10v.me/api/experiment/#tea_tasting.experiment.Experiment.analyze) method of the `Experiment` class. This method takes data as an input and returns an `ExperimentResult` object with experiment result.
+    After defining an experiment and metrics, you can analyze the experiment data using the [`analyze`](https://tea-tasting.e10v.me/api/experiment/#tea_tasting.experiment.Experiment.analyze) method of the `Experiment` class. This method takes data as input and returns an `ExperimentResult` object with the analysis result.
     """)
     return
 
@@ -213,7 +223,7 @@ def _(result):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Fields in result depend on metrics. For `Mean` and `RatioOfMeans`, the [fields include](https://tea-tasting.e10v.me/api/metrics/mean/#tea_tasting.metrics.mean.MeanResult):
+    Fields in the result depend on the metric. For `Mean` and `RatioOfMeans`, the [fields include](https://tea-tasting.e10v.me/api/metrics/mean/#tea_tasting.metrics.mean.MeanResult):
 
     - `metric`: Metric name.
     - `control`: Mean or ratio of means in the control variant.
@@ -224,7 +234,7 @@ def _(mo):
     - `rel_effect_size`: Relative effect size. Difference between two means, divided by the control mean.
     - `rel_effect_size_ci_lower`: Lower bound of the relative effect size confidence interval.
     - `rel_effect_size_ci_upper`: Upper bound of the relative effect size confidence interval.
-    - `pvalue`: P-value
+    - `pvalue`: P-value.
     - `statistic`: Statistic (standardized effect size).
 
     [`ExperimentResult`](https://tea-tasting.e10v.me/api/experiment/#tea_tasting.experiment.ExperimentResult) provides the following methods to serialize and view the experiment result:
@@ -237,7 +247,7 @@ def _(mo):
     - `to_string`: Convert the result to a string.
     - `to_html`: Convert the result to HTML.
 
-    `result` is the same as `print(result.to_string())`. `ExperimentResult` provides also the `_repr_html_` method that renders it as an HTML table in IPython and Jupyter, and the `_mime_` method that renders it as a table in marimo notebooks.
+    `result` is the same as `print(result.to_string())`. `ExperimentResult` also provides the `_repr_html_` method, which renders it as an HTML table in IPython and Jupyter, and the `_mime_` method, which renders it as a table in marimo notebooks.
     """)
     return
 
@@ -324,7 +334,7 @@ def _(tt):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Set the `covariates` parameter of the `make_users_data` functions to `True` to add the following columns with pre-experimental data:
+    Set the `covariates` parameter of the `make_users_data` function to `True` to add the following columns with pre-experimental data:
 
     - `sessions_covariate`: Number of sessions before the experiment.
     - `orders_covariate`: Number of orders before the experiment.
@@ -359,9 +369,9 @@ def _(data, tt):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    By default, `SampleRatio` expects equal number of observations across all variants. To specify a different ratio, use the `ratio` parameter. It accepts two types of values:
+    By default, `SampleRatio` expects an equal number of observations across all variants. To specify a different ratio, use the `ratio` parameter. It accepts two types of values:
 
-    - Ratio of the number of observation in treatment relative to control, as a positive number. Example: `SampleRatio(0.5)`.
+    - Ratio of the number of observations in treatment relative to control, as a positive number. Example: `SampleRatio(0.5)`.
     - A dictionary with variants as keys and expected ratios as values. Example: `SampleRatio({"A": 2, "B": 1})`.
 
     The `method` parameter determines the statistical test to apply:
