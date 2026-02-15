@@ -36,7 +36,7 @@ uv pip install tea-tasting
 ```pycon
 >>> import tea_tasting as tt
 
->>> data = tt.make_users_data(seed=42)
+>>> data = tt.make_users_data(rng=42)
 >>> experiment = tt.Experiment(
 ...     sessions_per_user=tt.Mean("sessions"),
 ...     orders_per_session=tt.RatioOfMeans("orders", "sessions"),

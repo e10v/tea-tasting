@@ -50,6 +50,11 @@ class BootstrapResult(NamedTuple):
 
 
 class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
+    @tea_tasting.utils._deprecate_keyword_alias(
+        old="random_state",
+        new="rng",
+        func_name="Bootstrap",
+    )
     def __init__(
         self,
         columns: str | Sequence[str],
@@ -60,7 +65,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
         n_resamples: int | None = None,
         method: Literal["percentile", "basic", "bca"] = "bca",
         batch: int | None = None,
-        random_state: int | np.random.Generator | np.random.SeedSequence | None = None,
+        rng: int | np.random.Generator | np.random.SeedSequence | None = None,
     ) -> None:
         """Metric for the analysis of a statistic using bootstrap resampling.
 
@@ -94,8 +99,10 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
                 to statistic. Memory usage is O(`batch * n`), where `n` is
                 the sample size. Default is `None`, in which case `batch = n_resamples`
                 (or `batch = max(n_resamples, n)` for method="bca").
-            random_state: Pseudorandom number generator state used
-                to generate resamples.
+            rng: Pseudorandom number generator or seed used to generate
+                resamples.
+                The deprecated alias `random_state` is also accepted until
+                tea-tasting 2.0.
 
         Parameter defaults:
             Defaults for parameters `alternative`, `confidence_level`,
@@ -114,9 +121,9 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
             >>> import tea_tasting as tt
 
             >>> experiment = tt.Experiment(
-            ...     orders_per_user=tt.Bootstrap("orders", np.mean, random_state=42),
+            ...     orders_per_user=tt.Bootstrap("orders", np.mean, rng=42),
             ... )
-            >>> data = tt.make_users_data(seed=42)
+            >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result
                      metric control treatment rel_effect_size rel_effect_size_ci pvalue
@@ -135,10 +142,10 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
             ...     orders_per_session=tt.Bootstrap(
             ...         ("orders", "sessions"),
             ...         ratio_of_means,
-            ...         random_state=42,
+            ...         rng=42,
             ...     ),
             ... )
-            >>> data = tt.make_users_data(seed=42)
+            >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result
                         metric control treatment rel_effect_size rel_effect_size_ci pvalue
@@ -178,11 +185,12 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
 
         self.batch = tea_tasting.utils.check_scalar(batch, "batch", typ=int | None)
 
-        self.random_state = tea_tasting.utils.check_scalar(
-            random_state,
-            "random_state",
+        self.rng = tea_tasting.utils.check_scalar(
+            rng,
+            "rng",
             typ=int | np.random.Generator | np.random.SeedSequence | None,
         )
+        self.random_state = self.rng
 
 
     @property
@@ -234,7 +242,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
             confidence_level=self.confidence_level,
             alternative=self.alternative,
             method=self.method,
-            random_state=self.random_state,  # type: ignore
+            random_state=self.rng,  # type: ignore
         )
         ci = result.confidence_interval
 
@@ -263,6 +271,11 @@ def _select_as_numpy(
 
 
 class Quantile(Bootstrap):  # noqa: D101
+    @tea_tasting.utils._deprecate_keyword_alias(
+        old="random_state",
+        new="rng",
+        func_name="Quantile",
+    )
     def __init__(
         self,
         column: str,
@@ -273,7 +286,7 @@ class Quantile(Bootstrap):  # noqa: D101
         n_resamples: int | None = None,
         method: Literal["percentile", "basic", "bca"] = "basic",
         batch: int | None = None,
-        random_state: int | np.random.Generator | np.random.SeedSequence | None = None,
+        rng: int | np.random.Generator | np.random.SeedSequence | None = None,
     ) -> None:
         """Metric for the analysis of quantiles using bootstrap resampling.
 
@@ -306,8 +319,10 @@ class Quantile(Bootstrap):  # noqa: D101
                 to statistic. Memory usage is O(`batch * n`), where `n` is
                 the sample size. Default is `None`, in which case `batch = n_resamples`
                 (or `batch = max(n_resamples, n)` for method="bca").
-            random_state: Pseudorandom number generator state used
-                to generate resamples.
+            rng: Pseudorandom number generator or seed used to generate
+                resamples.
+                The deprecated alias `random_state` is also accepted until
+                tea-tasting 2.0.
 
         Parameter defaults:
             Defaults for parameters `alternative`, `confidence_level`,
@@ -321,9 +336,9 @@ class Quantile(Bootstrap):  # noqa: D101
             >>> import tea_tasting as tt
 
             >>> experiment = tt.Experiment(
-            ...     revenue_per_user_p80=tt.Quantile("revenue", 0.8, random_state=42),
+            ...     revenue_per_user_p80=tt.Quantile("revenue", 0.8, rng=42),
             ... )
-            >>> data = tt.make_users_data(seed=42)
+            >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result
                           metric control treatment rel_effect_size rel_effect_size_ci pvalue
@@ -341,5 +356,5 @@ class Quantile(Bootstrap):  # noqa: D101
             n_resamples=n_resamples,
             method=method,
             batch=batch,
-            random_state=random_state,
+            rng=rng,
         )

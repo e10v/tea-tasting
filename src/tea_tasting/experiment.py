@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from collections import UserDict, UserList
 import functools
+import inspect
 import itertools
 from typing import TYPE_CHECKING, Any, overload
+import warnings
 
 import ibis.expr.types
 import narwhals as nw
@@ -16,6 +18,9 @@ import pyarrow.compute as pc
 import tea_tasting.aggr
 import tea_tasting.metrics
 import tea_tasting.utils
+
+
+_inspect_signature = inspect.signature
 
 
 if TYPE_CHECKING:
@@ -65,7 +70,7 @@ class ExperimentResult(
             ...     orders_per_user=tt.Mean("orders"),
             ...     revenue_per_user=tt.Mean("revenue"),
             ... )
-            >>> data = tt.make_users_data(seed=42)
+            >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> pprint.pprint(result.to_dicts())
             ({'control': 0.5304003954522986,
@@ -188,7 +193,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             ...     orders_per_user=tt.Mean("orders"),
             ...     revenue_per_user=tt.Mean("revenue"),
             ... )
-            >>> data = tt.make_users_data(seed=42)
+            >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result
                         metric control treatment rel_effect_size rel_effect_size_ci pvalue
@@ -208,7 +213,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             ...     "orders per user": tt.Mean("orders"),
             ...     "revenue per user": tt.Mean("revenue"),
             ... })
-            >>> data = tt.make_users_data(seed=42)
+            >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result
                         metric control treatment rel_effect_size rel_effect_size_ci pvalue
@@ -223,7 +228,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
             ```pycon
             >>> data = tt.make_users_data(
-            ...     seed=42,
+            ...     rng=42,
             ...     sessions_uplift=0,
             ...     orders_uplift=0,
             ...     revenue_uplift=0,
@@ -543,12 +548,17 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         return result
 
 
+    @tea_tasting.utils._deprecate_keyword_alias(
+        old="seed",
+        new="rng",
+        func_name="simulate",
+    )
     def simulate(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table | DataGenerator,  # type: ignore
         n_simulations: int = 10_000,
         *,
-        seed: int | np.random.Generator | np.random.SeedSequence | None = None,
+        rng: int | np.random.Generator | np.random.SeedSequence | None = None,
         ratio: float | int = 1,
         treat: Callable[[pa.Table], pa.Table] | None = None,
         map_: MapLike[Any] = map,
@@ -559,7 +569,8 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         Args:
             data: Experimental data or a callable that generates the data.
             n_simulations: Number of simulations.
-            seed: Random seed.
+            rng: Pseudorandom number generator or seed.
+                The deprecated alias `seed` is also accepted until tea-tasting 2.0.
             ratio: Ratio of the number of users in treatment relative to control.
             treat: Treatment function that takes a PyArrow Table as an input
                 and returns an updated PyArrow Table.
@@ -571,6 +582,11 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         """
         tea_tasting.utils.check_scalar(n_simulations, "n_simulations", typ=int, gt=0)
         tea_tasting.utils.auto_check(ratio, "ratio")
+        rng = tea_tasting.utils.check_scalar(
+            rng,
+            "rng",
+            typ=int | np.random.Generator | np.random.SeedSequence | None,
+        )
 
         if not callable(data):
             gran_cols: set[str] = set()
@@ -600,7 +616,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             treat=treat,
         )
 
-        results = map_(sim, np.random.default_rng(seed).spawn(n_simulations))
+        results = map_(sim, np.random.default_rng(rng).spawn(n_simulations))
         if progress is not None:
             try:
                 results = progress(results, total=n_simulations)  # type: ignore
@@ -621,7 +637,7 @@ def _simulate_once(
         ibis.expr.types.Table |
         dict[object, tea_tasting.aggr.Aggregates] |
         pa.Table
-    ) = data if isinstance(data, pa.Table) else data(seed=rng)
+    ) = data if isinstance(data, pa.Table) else _generate_data(data, rng)
 
     if isinstance(raw_data, dict):
         if ratio != 1:
@@ -662,3 +678,81 @@ def _simulate_once(
         table = pa.concat_tables((contr_data, treat_data))
 
     return experiment.analyze(table)
+
+
+def _generate_data(
+    data: DataGenerator,
+    rng: np.random.Generator,
+) -> (
+    narwhals.typing.IntoFrame |
+    ibis.expr.types.Table |
+    dict[object, tea_tasting.aggr.Aggregates]
+):
+    try:
+        params = _inspect_signature(data).parameters
+    except (TypeError, ValueError):
+        return _generate_data_without_signature(data, rng)
+    rng_param = params.get("rng")
+    if rng_param is not None:
+        return data(rng=rng)
+
+    seed_param = params.get("seed")
+    if seed_param is not None:
+        warnings.warn(
+            "The data generator keyword parameter 'seed' is deprecated and will be "
+            "removed in tea-tasting 2.0. Use 'rng' instead.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
+        return data(seed=rng)
+
+    return data(rng=rng)
+
+
+def _generate_data_without_signature(
+    data: DataGenerator,
+    rng: np.random.Generator,
+) -> (
+    narwhals.typing.IntoFrame |
+    ibis.expr.types.Table |
+    dict[object, tea_tasting.aggr.Aggregates]
+):
+    rng_error: TypeError
+    try:
+        return data(rng=rng)
+    except TypeError as err:
+        if _is_callable_type_error(err, data):
+            raise
+        rng_error = err
+
+    try:
+        result = data(seed=rng)
+    except TypeError as seed_error:
+        if _is_callable_type_error(seed_error, data):
+            raise
+        raise rng_error from seed_error
+    warnings.warn(
+        "The data generator keyword parameter 'seed' is deprecated and will be "
+        "removed in tea-tasting 2.0. Use 'rng' instead.",
+        DeprecationWarning,
+        stacklevel=3,
+    )
+    return result
+
+
+def _is_callable_type_error(error: TypeError, data: DataGenerator) -> bool:
+    code_objects = []
+    code_object = getattr(data, "__code__", None)
+    if code_object is not None:
+        code_objects.append(code_object)
+
+    call_code_object = getattr(data.__call__, "__code__", None)
+    if call_code_object is not None:
+        code_objects.append(call_code_object)
+
+    tb = error.__traceback__
+    while tb is not None:
+        if tb.tb_frame.f_code in code_objects:
+            return True
+        tb = tb.tb_next
+    return False

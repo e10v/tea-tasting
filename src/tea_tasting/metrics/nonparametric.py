@@ -94,7 +94,7 @@ class MannWhitneyU(MetricBaseGranular[MannWhitneyUResult]):  # noqa: D101
             ```pycon
             >>> import tea_tasting as tt
 
-            >>> data = tt.make_users_data(seed=42, n_users=1000)
+            >>> data = tt.make_users_data(rng=42, n_users=1000)
             >>> experiment = tt.Experiment(
             ...     revenue_auc=tt.MannWhitneyU("revenue"),
             ... )
