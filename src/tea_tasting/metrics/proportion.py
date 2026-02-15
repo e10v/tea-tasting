@@ -32,15 +32,43 @@ class ProportionResult(NamedTuple):
         control: Proportion in control.
         treatment: Proportion in treatment.
         effect_size: Absolute effect size. Difference between the two proportions.
+        effect_size_ci_lower: Lower bound of the absolute effect size
+            confidence interval.
+            Calculated only for the normal approximation (`method="norm"`).
+            `nan` for other methods.
+        effect_size_ci_upper: Upper bound of the absolute effect size
+            confidence interval.
+            Calculated only for the normal approximation (`method="norm"`).
+            `nan` for other methods.
         rel_effect_size: Relative effect size. Difference between the two proportions,
             divided by the control proportion.
+        rel_effect_size_ci_lower: Lower bound of the relative effect size
+            confidence interval.
+            Calculated only for the normal approximation (`method="norm"`).
+            `nan` for other methods.
+        rel_effect_size_ci_upper: Upper bound of the relative effect size
+            confidence interval.
+            Calculated only for the normal approximation (`method="norm"`).
+            `nan` for other methods.
         pvalue: P-value.
     """
     control: float
     treatment: float
     effect_size: float
+    effect_size_ci_lower: float
+    effect_size_ci_upper: float
     rel_effect_size: float
+    rel_effect_size_ci_lower: float
+    rel_effect_size_ci_upper: float
     pvalue: float
+
+
+class _ZTestResult(NamedTuple):
+    pvalue: float
+    effect_size_ci_lower: float
+    effect_size_ci_upper: float
+    rel_effect_size_ci_lower: float
+    rel_effect_size_ci_upper: float
 
 
 class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
@@ -58,6 +86,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
             "pearson",
         ] = "auto",
         alternative: Literal["two-sided", "greater", "less"] | None = None,
+        confidence_level: float | None = None,
         correction: bool | None = None,
         equal_var: bool = True,
     ) -> None:
@@ -77,6 +106,8 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
                 - `"log-likelihood"`: G-test.
                 - `"norm"`: Normal approximation of the binomial distribution.
                     Also known as two-sample proportion Z-test.
+                    Confidence intervals for absolute and relative effect size are
+                    calculated only for this method.
                 - `"pearson"`: Pearson's chi-squared test.
 
             alternative: Alternative hypothesis:
@@ -88,6 +119,8 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
                     in the control variant.
 
                 G-test and Pearson's chi-squared test are always two-sided.
+            confidence_level: Confidence level for the confidence intervals.
+                Used only with the normal approximation (`method="norm"`).
             correction: If `True`, add continuity correction. Only for
                 approximate methods: normal, G-test, and Pearson's chi-squared test.
                 Defaults to the global config value (`True`).
@@ -99,7 +132,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
                 optimal for proportion tests.
 
         Parameter defaults:
-            Defaults for parameters `alternative` and `correction`
+            Defaults for parameters `alternative`, `confidence_level`, and `correction`
             can be changed using the `config_context` and `set_config` functions.
             See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
             reference for details.
@@ -143,7 +176,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
             ... )
             >>> experiment.analyze(data)
                             metric control treatment rel_effect_size rel_effect_size_ci pvalue
-            prop_users_with_orders   0.300     0.356             19%             [-, -] 0.0693
+            prop_users_with_orders   0.300     0.356             19%       [-1.3%, 43%] 0.0693
 
             ```
 
@@ -177,6 +210,11 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
             tea_tasting.utils.auto_check(alternative, "alternative")
             if alternative is not None
             else tea_tasting.config.get_config("alternative")
+        )
+        self.confidence_level = (
+            tea_tasting.utils.auto_check(confidence_level, "confidence_level")
+            if confidence_level is not None
+            else tea_tasting.config.get_config("confidence_level")
         )
         if self.alternative != "two-sided" and method in {"log-likelihood", "pearson"}:
             raise ValueError(
@@ -223,6 +261,11 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
         if method == "auto":
             method = "barnard" if n_contr + n_treat < _MAX_EXACT_THRESHOLD else "norm"
 
+        effect_size_ci_lower = float("nan")
+        effect_size_ci_upper = float("nan")
+        rel_effect_size_ci_lower = float("nan")
+        rel_effect_size_ci_upper = float("nan")
+
         if method != "norm":
             data = np.empty(shape=(2, 2), dtype=np.int64)
             data[0, 0] = round(n_treat * p_treat)
@@ -251,60 +294,118 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
                     lambda_=self.method,
                 ).pvalue  # type: ignore
         else:  # norm
-            pvalue = _2sample_proportion_ztest(
+            norm_result = self._2sample_proportion_ztest(
                 p_contr=p_contr,
                 p_treat=p_treat,
                 n_contr=n_contr,
                 n_treat=n_treat,
-                alternative=self.alternative,
-                correction=self.correction,
-                equal_var=self.equal_var,
             )
+            pvalue = norm_result.pvalue
+            effect_size_ci_lower = norm_result.effect_size_ci_lower
+            effect_size_ci_upper = norm_result.effect_size_ci_upper
+            rel_effect_size_ci_lower = norm_result.rel_effect_size_ci_lower
+            rel_effect_size_ci_upper = norm_result.rel_effect_size_ci_upper
 
         return ProportionResult(
             control=p_contr,
             treatment=p_treat,
             effect_size=p_treat - p_contr,
+            effect_size_ci_lower=effect_size_ci_lower,
+            effect_size_ci_upper=effect_size_ci_upper,
             rel_effect_size=p_treat/p_contr - 1,
+            rel_effect_size_ci_lower=rel_effect_size_ci_lower,
+            rel_effect_size_ci_upper=rel_effect_size_ci_upper,
             pvalue=pvalue,
         )
 
 
-def _2sample_proportion_ztest(
-    *,
-    p_contr: float,
-    p_treat: float,
-    n_contr: int,
-    n_treat: int,
-    alternative: Literal["two-sided", "greater", "less"],
-    correction: bool,
-    equal_var: bool,
-) -> float:
-    if equal_var:
-        p_pooled = (p_contr*n_contr + p_treat*n_treat) / (n_contr + n_treat)
-        scale = math.sqrt(p_pooled * (1 - p_pooled) * (1/n_contr + 1/n_treat))
-    else:
-        scale = math.sqrt(p_contr*(1 - p_contr)/n_contr + p_treat*(1 - p_treat)/n_treat)
+    def _2sample_proportion_ztest(
+        self,
+        *,
+        p_contr: float,
+        p_treat: float,
+        n_contr: int,
+        n_treat: int,
+    ) -> _ZTestResult:
+        distr, log_distr = self._2sample_proportion_distr(
+            p_contr=p_contr,
+            p_treat=p_treat,
+            n_contr=n_contr,
+            n_treat=n_treat,
+        )
+        diff = p_treat - p_contr
+        p_ratio = p_treat / p_contr
+        cc = 0.5 * (1/n_contr + 1/n_treat) if self.correction else 0
+        log_cc = cc / p_contr if self.correction else 0
 
-    distr = scipy.stats.norm(scale=scale)
-    diff = p_treat - p_contr
-    cc = 0.5 * (1/n_contr + 1/n_treat) if correction else 0
+        if self.alternative == "greater":
+            pvalue_diff = max(diff - cc, 0) if self.correction and diff > 0 else diff
+            pvalue = distr.sf(pvalue_diff)
+            q = self.confidence_level
 
-    if alternative == "greater":
-        if correction and diff > 0:
-            diff = max(diff - cc, 0)
-        pvalue = distr.sf(diff)
-    elif alternative == "less":
-        if correction and diff < 0:
-            diff = min(diff + cc, 0)
-        pvalue = distr.cdf(diff)
-    else:  # two-sided
-        diff = abs(diff)
-        if correction and diff > 0:
-            diff = max(diff - cc, 0)
-        pvalue = 2 * distr.sf(diff)
+            effect_size_ci_lower = diff + distr.isf(q) - cc
+            effect_size_ci_upper = 1
 
-    return pvalue
+            p_ratio_ci_lower = p_ratio * math.exp(log_distr.isf(q) - log_cc)
+            p_ratio_ci_upper = float("inf")
+        elif self.alternative == "less":
+            pvalue_diff = min(diff + cc, 0) if self.correction and diff < 0 else diff
+            pvalue = distr.cdf(pvalue_diff)
+            q = self.confidence_level
+
+            effect_size_ci_lower = -1
+            effect_size_ci_upper = diff + distr.ppf(q) + cc
+
+            p_ratio_ci_lower = 0
+            p_ratio_ci_upper = p_ratio * math.exp(log_distr.ppf(q) + log_cc)
+        else:  # two-sided
+            pvalue_diff = abs(diff)
+            if self.correction and pvalue_diff > 0:
+                pvalue_diff = max(pvalue_diff - cc, 0)
+            pvalue = 2 * distr.sf(pvalue_diff)
+            q = (1 + self.confidence_level) / 2
+
+            effect_half_ci = distr.ppf(q) + cc
+            effect_size_ci_lower = diff - effect_half_ci
+            effect_size_ci_upper = diff + effect_half_ci
+
+            rel_half_ci = math.exp(log_distr.ppf(q) + log_cc)
+            p_ratio_ci_lower = p_ratio / rel_half_ci
+            p_ratio_ci_upper = p_ratio * rel_half_ci
+
+        effect_size_ci_lower = max(effect_size_ci_lower, -1)
+        effect_size_ci_upper = min(effect_size_ci_upper, 1)
+
+        return _ZTestResult(
+            pvalue=pvalue,
+            effect_size_ci_lower=effect_size_ci_lower,
+            effect_size_ci_upper=effect_size_ci_upper,
+            rel_effect_size_ci_lower=p_ratio_ci_lower - 1,
+            rel_effect_size_ci_upper=p_ratio_ci_upper - 1,
+        )
+
+
+    def _2sample_proportion_distr(
+        self,
+        *,
+        p_contr: float,
+        p_treat: float,
+        n_contr: int,
+        n_treat: int,
+    ) -> tuple[scipy.stats.rv_frozen, scipy.stats.rv_frozen]:
+        if self.equal_var:
+            p_pooled = (p_contr*n_contr + p_treat*n_treat) / (n_contr + n_treat)
+            scale = math.sqrt(p_pooled * (1 - p_pooled) * (1/n_contr + 1/n_treat))
+            log_scale = scale / p_pooled
+            return scipy.stats.norm(scale=scale), scipy.stats.norm(scale=log_scale)
+
+        scale = math.sqrt(
+            p_contr*(1 - p_contr)/n_contr + p_treat*(1 - p_treat)/n_treat)
+        log_scale = math.sqrt(
+            (1 - p_contr) / (n_contr*p_contr) +
+            (1 - p_treat) / (n_treat*p_treat),
+        )
+        return scipy.stats.norm(scale=scale), scipy.stats.norm(scale=log_scale)
 
 
 class SampleRatioResult(NamedTuple):
