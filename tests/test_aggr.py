@@ -39,7 +39,7 @@ def aggr() -> tea_tasting.aggr.Aggregates:
 
 @pytest.fixture
 def data_arrow() -> pa.Table:
-    return tea_tasting.datasets.make_users_data(n_users=100, seed=42)
+    return tea_tasting.datasets.make_users_data(n_users=100, rng=42)
 
 @pytest.fixture
 def data_pandas(data_arrow: pa.Table) -> pd.DataFrame:

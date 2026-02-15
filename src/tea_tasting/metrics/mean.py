@@ -152,7 +152,7 @@ class RatioOfMeans(  # noqa: D101
             >>> experiment = tt.Experiment(
             ...     orders_per_session=tt.RatioOfMeans("orders", "sessions"),
             ... )
-            >>> data = tt.make_users_data(seed=42)
+            >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result
                         metric control treatment rel_effect_size rel_effect_size_ci pvalue
@@ -171,7 +171,7 @@ class RatioOfMeans(  # noqa: D101
             ...         "sessions_covariate",
             ...     ),
             ... )
-            >>> data = tt.make_users_data(seed=42, covariates=True)
+            >>> data = tt.make_users_data(rng=42, covariates=True)
             >>> result = experiment.analyze(data)
             >>> result
                         metric control treatment rel_effect_size rel_effect_size_ci  pvalue
@@ -183,7 +183,7 @@ class RatioOfMeans(  # noqa: D101
 
             ```pycon
             >>> data = tt.make_users_data(
-            ...     seed=42,
+            ...     rng=42,
             ...     sessions_uplift=0,
             ...     orders_uplift=0,
             ...     revenue_uplift=0,
@@ -789,7 +789,7 @@ class Mean(RatioOfMeans):  # noqa: D101
             ...     orders_per_user=tt.Mean("orders"),
             ...     revenue_per_user=tt.Mean("revenue"),
             ... )
-            >>> data = tt.make_users_data(seed=42)
+            >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result
                       metric control treatment rel_effect_size rel_effect_size_ci pvalue
@@ -805,7 +805,7 @@ class Mean(RatioOfMeans):  # noqa: D101
             ...     orders_per_user=tt.Mean("orders", "orders_covariate"),
             ...     revenue_per_user=tt.Mean("revenue", "revenue_covariate"),
             ... )
-            >>> data = tt.make_users_data(seed=42, covariates=True)
+            >>> data = tt.make_users_data(rng=42, covariates=True)
             >>> result = experiment.analyze(data)
             >>> result
                       metric control treatment rel_effect_size rel_effect_size_ci  pvalue
@@ -818,7 +818,7 @@ class Mean(RatioOfMeans):  # noqa: D101
 
             ```pycon
             >>> data = tt.make_users_data(
-            ...     seed=42,
+            ...     rng=42,
             ...     sessions_uplift=0,
             ...     orders_uplift=0,
             ...     revenue_uplift=0,

@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def data_arrow() -> pa.Table:
-    return tea_tasting.datasets.make_users_data(n_users=100, covariates=True, seed=42)
+    return tea_tasting.datasets.make_users_data(n_users=100, covariates=True, rng=42)
 
 @pytest.fixture
 def data_aggr(data_arrow: pa.Table) -> dict[object, tea_tasting.aggr.Aggregates]:
@@ -43,7 +43,7 @@ def data_aggr(data_arrow: pa.Table) -> dict[object, tea_tasting.aggr.Aggregates]
 @pytest.fixture
 def power_data_arrow() -> pa.Table:
     return tea_tasting.datasets.make_users_data(
-        n_users=100, covariates=True, seed=42,
+        n_users=100, covariates=True, rng=42,
         sessions_uplift=0, orders_uplift=0, revenue_uplift=0,
     )
 

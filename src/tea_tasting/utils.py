@@ -6,10 +6,12 @@ from __future__ import annotations
 
 import abc
 from collections.abc import Sequence
+import functools
 import inspect
 import locale
 import math
 from typing import TYPE_CHECKING, overload
+import warnings
 import xml.etree.ElementTree as ET
 
 import pyarrow as pa
@@ -17,13 +19,14 @@ import pyarrow as pa
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
-    from typing import Literal, TypeAlias, TypeVar
+    from typing import Literal, ParamSpec, TypeAlias, TypeVar
 
     import pandas as pd
     import polars as pl
 
 
     DictsReprMixinT = TypeVar("DictsReprMixinT", bound="DictsReprMixin")
+    P = ParamSpec("P")
     R = TypeVar("R")
 
 
@@ -784,3 +787,44 @@ def numeric(
         return Int(value, fill_zero_div)
     except ValueError:
         return Float(value, fill_zero_div)
+
+
+def _deprecate_keyword_alias(  # pyright: ignore[reportUnusedFunction]
+    *,
+    old: str,
+    new: str,
+    func_name: str | None = None,
+    remove_in: str = "tea-tasting 2.0",
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
+    """Deprecate a keyword alias in favor of another keyword.
+
+    Args:
+        old: Deprecated keyword name.
+        new: Replacement keyword name.
+        func_name: Name to use in error messages.
+            If `None`, use decorated function's name.
+        remove_in: Version when deprecated keyword is planned for removal.
+
+    Returns:
+        Decorator that maps `old` keyword to `new` with a deprecation warning.
+    """
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
+        @functools.wraps(func)
+        def wrapped(*args: P.args, **kwargs: P.kwargs) -> R:
+            if old in kwargs:
+                name = func_name or func.__name__
+                if new in kwargs:
+                    raise TypeError(
+                        f"{name}() got both '{new}' and deprecated keyword "
+                        f"'{old}'.",
+                    )
+                warnings.warn(
+                    f"The '{old}' keyword is deprecated and will be removed in "
+                    f"{remove_in}. Use '{new}' instead.",
+                    DeprecationWarning,
+                    stacklevel=3,
+                )
+                kwargs[new] = kwargs.pop(old)
+            return func(*args, **kwargs)
+        return wrapped
+    return decorator

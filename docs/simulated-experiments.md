@@ -25,7 +25,7 @@ First, let's prepare the data without any uplift and drop the `"variant"` column
 >>> import tea_tasting as tt
 
 >>> data = (
-...     tt.make_users_data(seed=42, orders_uplift=0, revenue_uplift=0)
+...     tt.make_users_data(rng=42, orders_uplift=0, revenue_uplift=0)
 ...     .drop_columns("variant")
 ... )
 >>> data
@@ -52,7 +52,7 @@ To run A/A tests, first define the metrics for the experiment, then call the [`s
 ...     revenue_per_user=tt.Mean("revenue"),
 ...     n_users=tt.SampleRatio(),
 ... )
->>> results = experiment.simulate(data, 100, seed=42)
+>>> results = experiment.simulate(data, 100, rng=42)
 >>> results_data = results.to_polars()
 >>> results_data.select(
 ...     "metric",
@@ -134,7 +134,7 @@ To simulate experiments with treatment, define a treatment function that takes d
 ...         .append_column("revenue", pc.multiply(data["revenue"], pa.scalar(1.1)))
 ...     )
 ... 
->>> results_treat = experiment.simulate(data, 100, seed=42, treat=treat)
+>>> results_treat = experiment.simulate(data, 100, rng=42, treat=treat)
 >>> null_rejected(results_treat.to_polars())
 shape: (5, 4)
 ┌────────────────────┬────────────────────┬────────────────────┬────────────────────┐
@@ -155,12 +155,12 @@ In the example above, we've defined a function that increases the number of orde
 
 ## Using a function instead of static data
 
-You can use a function instead of static data to generate input dynamically. The function should take an instance of `numpy.random.Generator` as a parameter named `seed` and return experimental data in any format supported by tea-tasting.
+You can use a function instead of static data to generate input dynamically. The function should take an instance of `numpy.random.Generator` as a parameter named `rng` and return experimental data in any format supported by tea-tasting.
 
 As an example, let's use the `make_users_data` function.
 
 ```pycon
->>> results_data_gen = experiment.simulate(tt.make_users_data, 100, seed=42)
+>>> results_data_gen = experiment.simulate(tt.make_users_data, 100, rng=42)
 >>> null_rejected(results_data_gen.to_polars())
 shape: (5, 4)
 ┌────────────────────┬────────────────────┬────────────────────┬────────────────────┐
@@ -177,7 +177,7 @@ shape: (5, 4)
 
 ```
 
-On each iteration, tea-tasting calls `make_users_data` with a new `seed` and uses the returned data for the analysis of the experiment. The data returned by `make_users_data` already contains the `"variant"` column, so tea-tasting reuses that split. By default, `make_users_data` also adds the treatment uplift, and you can see it in the proportion of rejected null hypotheses.
+On each iteration, tea-tasting calls `make_users_data` with a new random number generator and uses the returned data for the analysis of the experiment. The data returned by `make_users_data` already contains the `"variant"` column, so tea-tasting reuses that split. By default, `make_users_data` also adds the treatment uplift, and you can see it in the proportion of rejected null hypotheses.
 
 ## Tracking progress
 
@@ -189,7 +189,7 @@ To track the progress of simulations with [`tqdm`](https://github.com/tqdm/tqdm)
 >>> results_progress = experiment.simulate(
 ...     data,
 ...     100,
-...     seed=42,
+...     rng=42,
 ...     progress=tqdm.tqdm,
 ... )  # doctest: +SKIP
 100%|██████████████████████████████████████| 100/100 [00:01<00:00, 64.47it/s]
@@ -213,7 +213,7 @@ To speed up simulations and run them in parallel, use the `map_` parameter with 
 ...     results_parallel = experiment.simulate(
 ...         data,
 ...         100,
-...         seed=42,
+...         rng=42,
 ...         treat=treat,
 ...         map_=executor.map,
 ...         progress=tqdm.tqdm,
