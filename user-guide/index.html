@@ -1,0 +1,1743 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A Python package for the statistical analysis of A/B tests">
+      
+      
+        <meta name="author" content="Evgeny Ivanov">
+      
+      
+        <link rel="canonical" href="https://tea-tasting.e10v.me/user-guide/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../data-backends/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/tea-cup-white-on-black.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>User guide - tea-tasting: statistical analysis of A/B tests</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#user-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="tea-tasting: statistical analysis of A/B tests" class="md-header__button md-logo" aria-label="tea-tasting: statistical analysis of A/B tests" data-md-component="logo">
+      
+  <img src="../assets/tea-cup-white.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            tea-tasting: statistical analysis of A/B tests
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              User guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-orange" data-md-color-accent="deep-orange"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="deep-orange"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/e10v/tea-tasting" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    e10v/tea-tasting
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="tea-tasting: statistical analysis of A/B tests" class="md-nav__button md-logo" aria-label="tea-tasting: statistical analysis of A/B tests" data-md-component="logo">
+      
+  <img src="../assets/tea-cup-white.svg" alt="logo">
+
+    </a>
+    tea-tasting: statistical analysis of A/B tests
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/e10v/tea-tasting" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    e10v/tea-tasting
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic usage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Basic usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#input-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ab-test-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A/B test definition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analyzing-and-retrieving-experiment-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analyzing and retrieving experiment results
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#more-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        More features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="More features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#variance-reduction-with-cupedcupac" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Variance reduction with CUPED/CUPAC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample-ratio-mismatch-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample ratio mismatch check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#more-than-two-variants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        More than two variants
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-backends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data backends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../power-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Power analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multiple-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multiple testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../simulated-experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simulated experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API reference
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8" id="__nav_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../api/metrics/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metrics
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_8_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Metrics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/metrics/base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Base
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/metrics/mean/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mean
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/metrics/nonparametric/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nonparametric
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/metrics/proportion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Proportion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/metrics/resampling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/experiment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/multiplicity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multiplicity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Global configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/aggr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aggregates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic usage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Basic usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#input-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ab-test-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A/B test definition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analyzing-and-retrieving-experiment-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analyzing and retrieving experiment results
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#more-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        More features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="More features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#variance-reduction-with-cupedcupac" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Variance reduction with CUPED/CUPAC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample-ratio-mismatch-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample ratio mismatch check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#more-than-two-variants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        More than two variants
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="user-guide">User guide<a class="headerlink" href="#user-guide" title="Permanent link">#</a></h1>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">#</a></h2>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>tea-tasting
+</code></pre></div>
+<p>Install Pandas or Polars to serialize analysis results as a Pandas DataFrame or a Polars DataFrame, respectively. These packages are not installed with tea-tasting by default.</p>
+<h2 id="basic-usage">Basic usage<a class="headerlink" href="#basic-usage" title="Permanent link">#</a></h2>
+<p>Begin with this simple example to understand the basic functionality:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">tea_tasting</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tt</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">make_users_data</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">experiment</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">Experiment</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">sessions_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;sessions&quot;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">orders_per_session</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">RatioOfMeans</span><span class="p">(</span><span class="s2">&quot;orders&quot;</span><span class="p">,</span> <span class="s2">&quot;sessions&quot;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">orders_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;orders&quot;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">revenue_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;revenue&quot;</span><span class="p">),</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span>
+<span class="go">            metric control treatment rel_effect_size rel_effect_size_ci pvalue</span>
+<span class="go"> sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674</span>
+<span class="go">orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762</span>
+<span class="go">   orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118</span>
+<span class="go">  revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123</span>
+</code></pre></div>
+<p>In the following sections, each step of this process is explained in detail.</p>
+<h3 id="input-data">Input data<a class="headerlink" href="#input-data" title="Permanent link">#</a></h3>
+<p>The <a href="../api/datasets/#tea_tasting.datasets.make_users_data"><code>make_users_data</code></a> function creates synthetic data for demonstration purposes. This data mimics what you might encounter in an A/B test for an online store. Each row represents an individual user, with the following columns:</p>
+<ul>
+<li><code>user</code>: The unique identifier for each user.</li>
+<li><code>variant</code>: The specific variant (e.g., 0 or 1) assigned to each user in the A/B test.</li>
+<li><code>sessions</code>: The total number of user's sessions.</li>
+<li><code>orders</code>: The total number of user's orders.</li>
+<li><code>revenue</code>: The total revenue generated by the user.</li>
+</ul>
+<p>By default, <code>make_users_data</code> returns a PyArrow Table:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span>
+<span class="go">pyarrow.Table</span>
+<span class="go">user: int64</span>
+<span class="go">variant: int64</span>
+<span class="go">sessions: int64</span>
+<span class="go">orders: int64</span>
+<span class="go">revenue: double</span>
+<span class="go">----</span>
+<span class="go">user: [[0,1,2,3,4,...,3995,3996,3997,3998,3999]]</span>
+<span class="go">variant: [[1,0,1,1,0,...,0,0,0,0,0]]</span>
+<span class="go">sessions: [[2,2,2,2,1,...,2,2,3,1,5]]</span>
+<span class="go">orders: [[1,1,1,1,1,...,0,0,0,0,2]]</span>
+<span class="go">revenue: [[9.17,6.43,7.94,15.93,7.14,...,0,0,0,0,17.16]]</span>
+</code></pre></div>
+<p>You can control the return type using the <code>return_type</code> parameter. The other possible output types are Pandas DataFrame and Polars DataFrame. They require the Pandas and Polars packages, respectively.</p>
+<p>tea-tasting can process data in the form of an Ibis Table or a DataFrame supported by Narwhals:</p>
+<ul>
+<li><a href="https://github.com/ibis-project/ibis" rel="noopener" target="_blank">Ibis</a> is a DataFrame API for various data backends. It supports many backends, including BigQuery, ClickHouse, PostgreSQL, Snowflake, Trino, and others. You can write an SQL query, <a href="https://ibis-project.org/how-to/extending/sql#backend.sql" rel="noopener" target="_blank">wrap</a> it as an Ibis Table, and pass it to tea-tasting.</li>
+<li><a href="https://github.com/narwhals-dev/narwhals" rel="noopener" target="_blank">Narwhals</a> is a compatibility layer between dataframe libraries. It supports cuDF, Daft, Dask, DuckDB, Modin, pandas, Polars, PyArrow, PySpark dataframes. You can use any of these dataframes as an input to tea-tasting.</li>
+</ul>
+<p>Many statistical tests, such as the Student's t-test or the Z-test, require only aggregated data for analysis. For these tests, tea-tasting retrieves only aggregated statistics like mean and variance instead of downloading all detailed data. See more details in the <a href="../data-backends/">guide on data backends</a>.</p>
+<p>tea-tasting assumes that:</p>
+<ul>
+<li>Data is grouped by randomization units, such as individual users.</li>
+<li>There is a column indicating the variant of the A/B test (typically labeled as A, B, etc.).</li>
+<li>All necessary columns for metric calculations (like the number of orders, revenue, etc.) are included in the table.</li>
+</ul>
+<h3 id="ab-test-definition">A/B test definition<a class="headerlink" href="#ab-test-definition" title="Permanent link">#</a></h3>
+<p>The <a href="../api/experiment/#tea_tasting.experiment.Experiment"><code>Experiment</code></a> class defines parameters of an A/B test: metrics and a variant column name. There are two ways to define metrics:</p>
+<ul>
+<li>Using keyword parameters, with metric names as parameter names, and metric definitions as parameter values, as in example above.</li>
+<li>Using the first argument <code>metrics</code>, which accepts metrics in the form of a dictionary with metric names as keys and metric definitions as values.</li>
+</ul>
+<p>By default, tea-tasting assumes that the A/B test variant is stored in a column named <code>"variant"</code>. You can change it using the <code>variant</code> parameter of the <code>Experiment</code> class.</p>
+<p>Example usage:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">new_experiment</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">Experiment</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="p">{</span>
+<span class="gp">... </span>        <span class="s2">&quot;sessions per user&quot;</span><span class="p">:</span> <span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;sessions&quot;</span><span class="p">),</span>
+<span class="gp">... </span>        <span class="s2">&quot;orders per session&quot;</span><span class="p">:</span> <span class="n">tt</span><span class="o">.</span><span class="n">RatioOfMeans</span><span class="p">(</span><span class="s2">&quot;orders&quot;</span><span class="p">,</span> <span class="s2">&quot;sessions&quot;</span><span class="p">),</span>
+<span class="gp">... </span>        <span class="s2">&quot;orders per user&quot;</span><span class="p">:</span> <span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;orders&quot;</span><span class="p">),</span>
+<span class="gp">... </span>        <span class="s2">&quot;revenue per user&quot;</span><span class="p">:</span> <span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;revenue&quot;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="p">},</span>
+<span class="gp">... </span>    <span class="n">variant</span><span class="o">=</span><span class="s2">&quot;variant&quot;</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span>
+</code></pre></div>
+<h3 id="metrics">Metrics<a class="headerlink" href="#metrics" title="Permanent link">#</a></h3>
+<p>Metrics are instances of metric classes that define how metrics are calculated. These calculations include effect size, confidence intervals, p-values, and other statistics.</p>
+<p>tea-tasting provides the following built-in metric classes:</p>
+<ul>
+<li><a href="../api/metrics/mean/#tea_tasting.metrics.mean.Mean"><code>Mean</code></a>: Compare averages between variants. For example, average number of orders per user.</li>
+<li><a href="../api/metrics/mean/#tea_tasting.metrics.mean.RatioOfMeans"><code>RatioOfMeans</code></a>: Compare ratios of averages between variants. For example, average number of orders per average number of sessions.</li>
+<li><a href="../api/metrics/proportion/#tea_tasting.metrics.proportion.Proportion"><code>Proportion</code></a>: Compare binary conversion rates. For example, proportion of users who placed at least one order.</li>
+<li><a href="../api/metrics/proportion/#tea_tasting.metrics.proportion.SampleRatio"><code>SampleRatio</code></a>: Detect sample ratio mismatch (SRM) between variants.</li>
+<li><a href="../api/metrics/nonparametric/#tea_tasting.metrics.nonparametric.MannWhitneyU"><code>MannWhitneyU</code></a>: Run a nonparametric rank-based test (which variant is more likely to yield higher values).</li>
+<li><a href="../api/metrics/resampling/#tea_tasting.metrics.resampling.Bootstrap"><code>Bootstrap</code></a>: Analyze custom statistics with bootstrap confidence intervals.</li>
+<li><a href="../api/metrics/resampling/#tea_tasting.metrics.resampling.Quantile"><code>Quantile</code></a>: Compare quantiles (for example, p80 revenue) with bootstrap confidence intervals.</li>
+</ul>
+<p>The sections below focus on <code>Mean</code> and <code>RatioOfMeans</code>, which are the most common metrics in A/B testing.</p>
+<p>Use the following parameters of <code>Mean</code> and <code>RatioOfMeans</code> to customize the analysis:</p>
+<ul>
+<li><code>alternative</code>: Alternative hypothesis. The following options are available:<ul>
+<li><code>"two-sided"</code> (default): the means are unequal.</li>
+<li><code>"greater"</code>: the mean in the treatment variant is greater than the mean in the control variant.</li>
+<li><code>"less"</code>: the mean in the treatment variant is less than the mean in the control variant.</li>
+</ul>
+</li>
+<li><code>confidence_level</code>: Confidence level of the confidence interval. Default is <code>0.95</code>.</li>
+<li><code>equal_var</code>: Defines whether equal variance is assumed. If <code>True</code>, pooled variance is used for the calculation of the standard error of the difference between two means. Default is <code>False</code>.</li>
+<li><code>use_t</code>: Defines whether to use the Student's t-distribution (<code>True</code>) or the Normal distribution (<code>False</code>). Default is <code>True</code>.</li>
+</ul>
+<p>Example usage:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">another_experiment</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">Experiment</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">sessions_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;sessions&quot;</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s2">&quot;greater&quot;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">orders_per_session</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">RatioOfMeans</span><span class="p">(</span><span class="s2">&quot;orders&quot;</span><span class="p">,</span> <span class="s2">&quot;sessions&quot;</span><span class="p">,</span> <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.9</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">orders_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;orders&quot;</span><span class="p">,</span> <span class="n">equal_var</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">revenue_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;revenue&quot;</span><span class="p">,</span> <span class="n">use_t</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+<span class="gp">... </span><span class="p">)</span>
+</code></pre></div>
+<p>See the <a href="../api/metrics/">Metrics</a> reference for API details.</p>
+<p>You can change default values of these four parameters using the <a href="#global-settings">global settings</a>.</p>
+<p>You can also define your own metrics. For details, see the <a href="../custom-metrics/">Custom metrics</a> guide.</p>
+<h3 id="analyzing-and-retrieving-experiment-results">Analyzing and retrieving experiment results<a class="headerlink" href="#analyzing-and-retrieving-experiment-results" title="Permanent link">#</a></h3>
+<p>After defining an experiment and metrics, you can analyze the experiment data using the <a href="../api/experiment/#tea_tasting.experiment.Experiment.analyze"><code>analyze</code></a> method of the <code>Experiment</code> class. This method takes data as input and returns an <code>ExperimentResult</code> object with the analysis result.</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">new_result</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</code></pre></div>
+<p>By default, tea-tasting assumes that the variant with the lowest ID is a control. Change default behavior using the <code>control</code> parameter:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">result_with_non_default_control</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">control</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+<p><a href="../api/experiment/#tea_tasting.experiment.ExperimentResult"><code>ExperimentResult</code></a> is a mapping. Get a metric's analysis result using metric name as a key.</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pprint</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;orders_per_user&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">_asdict</span><span class="p">())</span>
+<span class="go">{&#39;control&#39;: 0.5304003954522986,</span>
+<span class="go"> &#39;effect_size&#39;: 0.04269014577177832,</span>
+<span class="go"> &#39;effect_size_ci_lower&#39;: -0.010800201598205515,</span>
+<span class="go"> &#39;effect_size_ci_upper&#39;: 0.09618049314176216,</span>
+<span class="go"> &#39;pvalue&#39;: np.float64(0.11773177998716214),</span>
+<span class="go"> &#39;rel_effect_size&#39;: 0.08048664016431273,</span>
+<span class="go"> &#39;rel_effect_size_ci_lower&#39;: -0.019515294044061937,</span>
+<span class="go"> &#39;rel_effect_size_ci_upper&#39;: 0.1906880061278886,</span>
+<span class="go"> &#39;statistic&#39;: 1.5647028839586707,</span>
+<span class="go"> &#39;treatment&#39;: 0.5730905412240769}</span>
+</code></pre></div>
+<p>Fields in the result depend on the metric. For <code>Mean</code> and <code>RatioOfMeans</code>, the <a href="../api/metrics/mean/#tea_tasting.metrics.mean.MeanResult">fields include</a>:</p>
+<ul>
+<li><code>metric</code>: Metric name.</li>
+<li><code>control</code>: Mean or ratio of means in the control variant.</li>
+<li><code>treatment</code>: Mean or ratio of means in the treatment variant.</li>
+<li><code>effect_size</code>: Absolute effect size. Difference between two means.</li>
+<li><code>effect_size_ci_lower</code>: Lower bound of the absolute effect size confidence interval.</li>
+<li><code>effect_size_ci_upper</code>: Upper bound of the absolute effect size confidence interval.</li>
+<li><code>rel_effect_size</code>: Relative effect size. Difference between two means, divided by the control mean.</li>
+<li><code>rel_effect_size_ci_lower</code>: Lower bound of the relative effect size confidence interval.</li>
+<li><code>rel_effect_size_ci_upper</code>: Upper bound of the relative effect size confidence interval.</li>
+<li><code>pvalue</code>: P-value.</li>
+<li><code>statistic</code>: Statistic (standardized effect size).</li>
+</ul>
+<p><a href="../api/experiment/#tea_tasting.experiment.ExperimentResult"><code>ExperimentResult</code></a> provides the following methods to serialize and view the experiment result:</p>
+<ul>
+<li><code>to_dicts</code>: Convert the result to a sequence of dictionaries.</li>
+<li><code>to_arrow</code>: Convert the result to a PyArrow Table.</li>
+<li><code>to_pandas</code>: Convert the result to a Pandas DataFrame. Requires Pandas to be installed.</li>
+<li><code>to_polars</code>: Convert the result to a Polars DataFrame. Requires Polars to be installed.</li>
+<li><code>to_pretty_dicts</code>: Convert the result to a sequence of dictionaries with formatted values (as strings).</li>
+<li><code>to_string</code>: Convert the result to a string.</li>
+<li><code>to_html</code>: Convert the result to HTML.</li>
+</ul>
+<p><code>result</code> is the same as <code>print(result.to_string())</code>. <code>ExperimentResult</code> also provides the <code>_repr_html_</code> method, which renders it as an HTML table in IPython and Jupyter, and the <code>_mime_</code> method, which renders it as a table in marimo notebooks.</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span>
+<span class="go">            metric control treatment rel_effect_size rel_effect_size_ci pvalue</span>
+<span class="go"> sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674</span>
+<span class="go">orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762</span>
+<span class="go">   orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118</span>
+<span class="go">  revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123</span>
+</code></pre></div>
+<p>By default, methods <code>to_pretty_dicts</code>, <code>to_string</code>, and <code>to_html</code> return a predefined list of attributes. This list can be customized:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">with_keys</span><span class="p">((</span>
+<span class="gp">... </span>    <span class="s2">&quot;metric&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;control&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;treatment&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;effect_size&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;effect_size_ci&quot;</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">))</span>
+<span class="go">            metric control treatment effect_size     effect_size_ci</span>
+<span class="go"> sessions_per_user    2.00      1.98     -0.0132  [-0.0750, 0.0485]</span>
+<span class="go">orders_per_session   0.266     0.289      0.0233 [-0.00246, 0.0491]</span>
+<span class="go">   orders_per_user   0.530     0.573      0.0427  [-0.0108, 0.0962]</span>
+<span class="go">  revenue_per_user    5.24      5.73       0.489     [-0.133, 1.11]</span>
+</code></pre></div>
+<p>Or:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;metric&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;control&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;treatment&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;effect_size&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;effect_size_ci&quot;</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)))</span>
+<span class="go">            metric control treatment effect_size     effect_size_ci</span>
+<span class="go"> sessions_per_user    2.00      1.98     -0.0132  [-0.0750, 0.0485]</span>
+<span class="go">orders_per_session   0.266     0.289      0.0233 [-0.00246, 0.0491]</span>
+<span class="go">   orders_per_user   0.530     0.573      0.0427  [-0.0108, 0.0962]</span>
+<span class="go">  revenue_per_user    5.24      5.73       0.489     [-0.133, 1.11]</span>
+</code></pre></div>
+<h2 id="more-features">More features<a class="headerlink" href="#more-features" title="Permanent link">#</a></h2>
+<h3 id="variance-reduction-with-cupedcupac">Variance reduction with CUPED/CUPAC<a class="headerlink" href="#variance-reduction-with-cupedcupac" title="Permanent link">#</a></h3>
+<p>tea-tasting supports variance reduction with CUPED/CUPAC, within both <a href="../api/metrics/mean/#tea_tasting.metrics.mean.Mean"><code>Mean</code></a> and <a href="../api/metrics/mean/#tea_tasting.metrics.mean.RatioOfMeans"><code>RatioOfMeans</code></a> classes.</p>
+<p>Example usage:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">data_cuped</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">make_users_data</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">covariates</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">experiment_cuped</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">Experiment</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">sessions_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;sessions&quot;</span><span class="p">,</span> <span class="s2">&quot;sessions_covariate&quot;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">orders_per_session</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">RatioOfMeans</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">numer</span><span class="o">=</span><span class="s2">&quot;orders&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">denom</span><span class="o">=</span><span class="s2">&quot;sessions&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">numer_covariate</span><span class="o">=</span><span class="s2">&quot;orders_covariate&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">denom_covariate</span><span class="o">=</span><span class="s2">&quot;sessions_covariate&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">),</span>
+<span class="gp">... </span>    <span class="n">orders_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;orders&quot;</span><span class="p">,</span> <span class="s2">&quot;orders_covariate&quot;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">revenue_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;revenue&quot;</span><span class="p">,</span> <span class="s2">&quot;revenue_covariate&quot;</span><span class="p">),</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result_cuped</span> <span class="o">=</span> <span class="n">experiment_cuped</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">data_cuped</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result_cuped</span>
+<span class="go">            metric control treatment rel_effect_size rel_effect_size_ci  pvalue</span>
+<span class="go"> sessions_per_user    2.00      1.98          -0.68%      [-3.2%, 1.9%]   0.603</span>
+<span class="go">orders_per_session   0.262     0.293             12%        [4.2%, 21%] 0.00229</span>
+<span class="go">   orders_per_user   0.523     0.581             11%        [2.9%, 20%] 0.00733</span>
+<span class="go">  revenue_per_user    5.12      5.85             14%        [3.8%, 26%] 0.00674</span>
+</code></pre></div>
+<p>Set the <code>covariates</code> parameter of the <code>make_users_data</code> function to <code>True</code> to add the following columns with pre-experimental data:</p>
+<ul>
+<li><code>sessions_covariate</code>: Number of sessions before the experiment.</li>
+<li><code>orders_covariate</code>: Number of orders before the experiment.</li>
+<li><code>revenue_covariate</code>: Revenue before the experiment.</li>
+</ul>
+<p>Define the metrics' covariates:</p>
+<ul>
+<li>In <code>Mean</code>, specify the covariate using the <code>covariate</code> parameter.</li>
+<li>In <code>RatioOfMeans</code>, specify the covariates for the numerator and denominator using the <code>numer_covariate</code> and <code>denom_covariate</code> parameters, respectively.</li>
+</ul>
+<h3 id="sample-ratio-mismatch-check">Sample ratio mismatch check<a class="headerlink" href="#sample-ratio-mismatch-check" title="Permanent link">#</a></h3>
+<p>The <a href="../api/metrics/proportion/#tea_tasting.metrics.proportion.SampleRatio"><code>SampleRatio</code></a> class in tea-tasting detects mismatches in the sample ratios of different variants of an A/B test.</p>
+<p>Example usage:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">experiment_sample_ratio</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">Experiment</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">orders_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;orders&quot;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">revenue_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;revenue&quot;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">sample_ratio</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">SampleRatio</span><span class="p">(),</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result_sample_ratio</span> <span class="o">=</span> <span class="n">experiment_sample_ratio</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result_sample_ratio</span>
+<span class="go">          metric control treatment rel_effect_size rel_effect_size_ci pvalue</span>
+<span class="go"> orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118</span>
+<span class="go">revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123</span>
+<span class="go">    sample_ratio    2023      1977               -             [-, -]  0.477</span>
+</code></pre></div>
+<p>By default, <code>SampleRatio</code> expects an equal number of observations across all variants. To specify a different ratio, use the <code>ratio</code> parameter. It accepts two types of values:</p>
+<ul>
+<li>Ratio of the number of observations in treatment relative to control, as a positive number. Example: <code>SampleRatio(0.5)</code>.</li>
+<li>A dictionary with variants as keys and expected ratios as values. Example: <code>SampleRatio({"A": 2, "B": 1})</code>.</li>
+</ul>
+<p>The <code>method</code> parameter determines the statistical test to apply:</p>
+<ul>
+<li><code>"auto"</code>: Apply exact binomial test if the total number of observations is less than 1000, or normal approximation otherwise.</li>
+<li><code>"binom"</code>: Apply exact binomial test.</li>
+<li><code>"norm"</code>: Apply normal approximation of the binomial distribution.</li>
+</ul>
+<p>The <a href="../api/metrics/proportion/#tea_tasting.metrics.proportion.SampleRatioResult">result</a> of the sample ratio mismatch includes the following attributes:</p>
+<ul>
+<li><code>metric</code>: Metric name.</li>
+<li><code>control</code>: Number of observations in control.</li>
+<li><code>treatment</code>: Number of observations in treatment.</li>
+<li><code>pvalue</code>: P-value</li>
+</ul>
+<h3 id="global-settings">Global settings<a class="headerlink" href="#global-settings" title="Permanent link">#</a></h3>
+<p>In tea-tasting, you can change defaults for the following parameters:</p>
+<ul>
+<li><code>alternative</code>: Alternative hypothesis.</li>
+<li><code>confidence_level</code>: Confidence level of the confidence interval.</li>
+<li><code>equal_var</code>: If <code>False</code>, assume unequal population variances in calculation of the standard deviation and the number of degrees of freedom. Otherwise, assume equal population variance and calculate pooled standard deviation.</li>
+<li><code>n_resamples</code>: The number of resamples performed to form the bootstrap distribution of a statistic.</li>
+<li><code>use_t</code>: If <code>True</code>, use Student's t-distribution in p-value and confidence interval calculations. Otherwise use Normal distribution.</li>
+<li>And <a href="../api/config/#tea_tasting.config.config_context">more</a>.</li>
+</ul>
+<p>Use <a href="../api/config/#tea_tasting.config.get_config"><code>get_config</code></a> with the option name as a parameter to get a global option value:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">tt</span><span class="o">.</span><span class="n">get_config</span><span class="p">(</span><span class="s2">&quot;equal_var&quot;</span><span class="p">)</span>
+<span class="go">False</span>
+</code></pre></div>
+<p>Use <a href="../api/config/#tea_tasting.config.get_config"><code>get_config</code></a> without parameters to get a dictionary of global options:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">global_config</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span>
+</code></pre></div>
+<p>Use <a href="../api/config/#tea_tasting.config.set_config"><code>set_config</code></a> to set a global option value:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">tt</span><span class="o">.</span><span class="n">set_config</span><span class="p">(</span><span class="n">equal_var</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_t</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">experiment_with_config</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">Experiment</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">sessions_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;sessions&quot;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">orders_per_session</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">RatioOfMeans</span><span class="p">(</span><span class="s2">&quot;orders&quot;</span><span class="p">,</span> <span class="s2">&quot;sessions&quot;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">orders_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;orders&quot;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">revenue_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;revenue&quot;</span><span class="p">),</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tt</span><span class="o">.</span><span class="n">set_config</span><span class="p">(</span><span class="n">equal_var</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_t</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orders_per_user</span> <span class="o">=</span> <span class="n">experiment_with_config</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;orders_per_user&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="sa">f</span><span class="s2">&quot;orders_per_user.equal_var: </span><span class="si">{</span><span class="n">orders_per_user</span><span class="o">.</span><span class="n">equal_var</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="gp">... </span>    <span class="sa">f</span><span class="s2">&quot;orders_per_user.use_t: </span><span class="si">{</span><span class="n">orders_per_user</span><span class="o">.</span><span class="n">use_t</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="go">orders_per_user.equal_var: True</span>
+<span class="go">orders_per_user.use_t: False</span>
+</code></pre></div>
+<p>Use <a href="../api/config/#tea_tasting.config.config_context"><code>config_context</code></a> to temporarily set a global option value within a context:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">tt</span><span class="o">.</span><span class="n">config_context</span><span class="p">(</span><span class="n">equal_var</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_t</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">experiment_within_context</span> <span class="o">=</span> <span class="n">tt</span><span class="o">.</span><span class="n">Experiment</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">sessions_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;sessions&quot;</span><span class="p">),</span>
+<span class="gp">... </span>        <span class="n">orders_per_session</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">RatioOfMeans</span><span class="p">(</span><span class="s2">&quot;orders&quot;</span><span class="p">,</span> <span class="s2">&quot;sessions&quot;</span><span class="p">),</span>
+<span class="gp">... </span>        <span class="n">orders_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;orders&quot;</span><span class="p">),</span>
+<span class="gp">... </span>        <span class="n">revenue_per_user</span><span class="o">=</span><span class="n">tt</span><span class="o">.</span><span class="n">Mean</span><span class="p">(</span><span class="s2">&quot;revenue&quot;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">... </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orders_per_user_context</span> <span class="o">=</span> <span class="n">experiment_with_config</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;orders_per_user&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="sa">f</span><span class="s2">&quot;global_config.equal_var: </span><span class="si">{</span><span class="n">tt</span><span class="o">.</span><span class="n">get_config</span><span class="p">(</span><span class="s1">&#39;equal_var&#39;</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="gp">... </span>    <span class="sa">f</span><span class="s2">&quot;global_config.use_t: </span><span class="si">{</span><span class="n">tt</span><span class="o">.</span><span class="n">get_config</span><span class="p">(</span><span class="s1">&#39;use_t&#39;</span><span class="p">)</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+<span class="gp">... </span>    <span class="sa">f</span><span class="s2">&quot;orders_per_user_context.equal_var: </span><span class="si">{</span><span class="n">orders_per_user_context</span><span class="o">.</span><span class="n">equal_var</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="gp">... </span>    <span class="sa">f</span><span class="s2">&quot;orders_per_user_context.use_t: </span><span class="si">{</span><span class="n">orders_per_user_context</span><span class="o">.</span><span class="n">use_t</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="go">global_config.equal_var: False</span>
+<span class="go">global_config.use_t: True</span>
+
+<span class="go">orders_per_user_context.equal_var: True</span>
+<span class="go">orders_per_user_context.use_t: False</span>
+</code></pre></div>
+<h3 id="more-than-two-variants">More than two variants<a class="headerlink" href="#more-than-two-variants" title="Permanent link">#</a></h3>
+<div class="admonition">
+<p class="admonition-title">Note</p>
+<p>This guide uses <a href="https://github.com/pola-rs/polars" rel="noopener" target="_blank">Polars</a> as an example data backend. Install Polars in addition to tea-tasting to reproduce the examples:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>polars
+</code></pre></div>
+</div>
+<p>In tea-tasting, it's possible to analyze experiments with more than two variants. However, the variants will be compared in pairs through two-sample statistical tests.</p>
+<p>Example usage:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_three_variants</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">concat</span><span class="p">((</span>
+<span class="gp">... </span>    <span class="n">tt</span><span class="o">.</span><span class="n">make_users_data</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">return_type</span><span class="o">=</span><span class="s2">&quot;polars&quot;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">tt</span><span class="o">.</span><span class="n">make_users_data</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span> <span class="n">return_type</span><span class="o">=</span><span class="s2">&quot;polars&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;variant&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+<span class="gp">... </span>        <span class="o">.</span><span class="n">with_columns</span><span class="p">(</span><span class="n">variant</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">Int64</span><span class="p">)),</span>
+<span class="gp">... </span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">data_three_variants</span><span class="p">,</span> <span class="n">control</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">all_variants</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results</span>
+<span class="go">variants             metric control treatment rel_effect_size rel_effect_size_ci pvalue</span>
+<span class="go">  (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674</span>
+<span class="go">  (0, 1) orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762</span>
+<span class="go">  (0, 1)    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118</span>
+<span class="go">  (0, 1)   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123</span>
+<span class="go">  (0, 2)  sessions_per_user    2.00      2.02           0.98%      [-2.1%, 4.1%]  0.532</span>
+<span class="go">  (0, 2) orders_per_session   0.266     0.273            2.8%       [-6.6%, 13%]  0.575</span>
+<span class="go">  (0, 2)    orders_per_user   0.530     0.550            3.8%       [-6.0%, 15%]  0.465</span>
+<span class="go">  (0, 2)   revenue_per_user    5.24      5.41            3.1%       [-8.1%, 16%]  0.599</span>
+</code></pre></div>
+<p>How variant pairs are determined:</p>
+<ul>
+<li>Specified control variant: If a specific variant is set as <code>control</code>, as in the example above, it is then compared against each of the other variants.</li>
+<li>Default control variant: When the <code>control</code> parameter of the <code>analyze</code> method is set to <code>None</code>, tea-tasting automatically compares each variant pair. The variant with the lowest ID in each pair is a control.</li>
+</ul>
+<p>Example usage without specifying a control variant:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">results_all</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">data_three_variants</span><span class="p">,</span> <span class="n">all_variants</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_all</span>
+<span class="go">variants             metric control treatment rel_effect_size rel_effect_size_ci pvalue</span>
+<span class="go">  (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674</span>
+<span class="go">  (0, 1) orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762</span>
+<span class="go">  (0, 1)    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118</span>
+<span class="go">  (0, 1)   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123</span>
+<span class="go">  (0, 2)  sessions_per_user    2.00      2.02           0.98%      [-2.1%, 4.1%]  0.532</span>
+<span class="go">  (0, 2) orders_per_session   0.266     0.273            2.8%       [-6.6%, 13%]  0.575</span>
+<span class="go">  (0, 2)    orders_per_user   0.530     0.550            3.8%       [-6.0%, 15%]  0.465</span>
+<span class="go">  (0, 2)   revenue_per_user    5.24      5.41            3.1%       [-8.1%, 16%]  0.599</span>
+<span class="go">  (1, 2)  sessions_per_user    1.98      2.02            1.7%      [-1.4%, 4.8%]  0.294</span>
+<span class="go">  (1, 2) orders_per_session   0.289     0.273           -5.5%       [-14%, 3.6%]  0.225</span>
+<span class="go">  (1, 2)    orders_per_user   0.573     0.550           -4.0%       [-13%, 5.7%]  0.407</span>
+<span class="go">  (1, 2)   revenue_per_user    5.73      5.41           -5.7%       [-16%, 5.8%]  0.319</span>
+</code></pre></div>
+<p>The result of the analysis is a mapping of <code>ExperimentResult</code> objects with tuples (control, treatment) as keys. You can view the result for a selected pair of variants:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="go">            metric control treatment rel_effect_size rel_effect_size_ci pvalue</span>
+<span class="go"> sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674</span>
+<span class="go">orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762</span>
+<span class="go">   orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118</span>
+<span class="go">  revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123</span>
+</code></pre></div>
+<p>By default, tea-tasting does not adjust for multiple hypothesis testing. However, it provides several methods for multiple testing correction. For more details, see the <a href="../multiple-testing/">guide on multiple hypothesis testing</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      © Evgeny Ivanov <br> The logo is designed by <a href="http://www.freepik.com/">Freepik</a>
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "navigation.indexes", "navigation.instant", "navigation.instant.progress", "navigation.top", "navigation.tracking", "search.highlight", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../javascripts/override-copy.js"></script>
+      
+    
+  </body>
+</html>
