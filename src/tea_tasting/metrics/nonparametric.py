@@ -185,8 +185,7 @@ class MannWhitneyU(MetricBaseGranular[MannWhitneyUResult]):  # noqa: D101
             use_continuity=self.correction,
             method=self.method,
         )
-        n_pairs = len(contr) * len(treat)
-        treat_auc = float(result.statistic) / n_pairs if n_pairs > 0 else float("nan")
+        treat_auc = float(result.statistic) / len(contr) / len(treat)
         contr_auc = 1 - treat_auc
 
         return MannWhitneyUResult(
