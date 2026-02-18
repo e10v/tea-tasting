@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, overload
 import warnings
 import xml.etree.ElementTree as ET
 
+import numpy as np
 import pyarrow as pa
 
 
@@ -119,6 +120,13 @@ def auto_check(value: float | int, name: Literal["ratio"]) -> float | int:
     ...
 
 @overload
+def auto_check(
+    value: int | np.random.Generator | np.random.SeedSequence | None,
+    name: Literal["rng"],
+) -> int | np.random.Generator | np.random.SeedSequence | None:
+    ...
+
+@overload
 def auto_check(value: bool, name: Literal["use_t"]) -> bool:  # noqa: FBT001
     ...
 
@@ -131,7 +139,7 @@ def auto_check(value: R, name: str) -> R:  # noqa: C901, PLR0912
 
     The following parameter names are supported: `"alpha"`, `"alternative"`,
     `"confidence_level"`, `"correction"`, `"equal_var"`, `"n_obs"`,
-    `"n_resamples"`, `"power"`, `"ratio"`, `"use_t"`.
+    `"n_resamples"`, `"power"`, `"ratio"`, `"rng"`, `"use_t"`.
 
     Args:
         value: Parameter value.
@@ -163,6 +171,12 @@ def auto_check(value: R, name: str) -> R:  # noqa: C901, PLR0912
         check_scalar(value, name, typ=float, gt=0, lt=1)
     elif name == "ratio":
         check_scalar(value, name, typ=float | int, gt=0)
+    elif name == "rng":
+        check_scalar(
+            value,
+            name,
+            typ=int | np.random.Generator | np.random.SeedSequence | None,
+        )
     elif name == "use_t":
         check_scalar(value, name, typ=bool)
     return value

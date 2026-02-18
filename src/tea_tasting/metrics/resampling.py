@@ -185,11 +185,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
 
         self.batch = tea_tasting.utils.check_scalar(batch, "batch", typ=int | None)
 
-        self.rng = tea_tasting.utils.check_scalar(
-            rng,
-            "rng",
-            typ=int | np.random.Generator | np.random.SeedSequence | None,
-        )
+        self.rng = tea_tasting.utils.auto_check(rng, "rng")
         self.random_state = self.rng
 
 

@@ -582,11 +582,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         """
         tea_tasting.utils.check_scalar(n_simulations, "n_simulations", typ=int, gt=0)
         tea_tasting.utils.auto_check(ratio, "ratio")
-        rng = tea_tasting.utils.check_scalar(
-            rng,
-            "rng",
-            typ=int | np.random.Generator | np.random.SeedSequence | None,
-        )
+        rng = tea_tasting.utils.auto_check(rng, "rng")
 
         if not callable(data):
             gran_cols: set[str] = set()

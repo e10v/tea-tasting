@@ -596,11 +596,7 @@ def _check_params(
     avg_orders_per_session: float,
     avg_revenue_per_order: float | int,
 ) -> None:
-    tea_tasting.utils.check_scalar(
-        rng,
-        name="rng",
-        typ=int | np.random.Generator | np.random.SeedSequence | None,
-    )
+    tea_tasting.utils.auto_check(rng, name="rng")
     tea_tasting.utils.check_scalar(n_users, name="n_users", typ=int, ge=10)
     tea_tasting.utils.check_scalar(ratio, name="ratio", typ=float | int, gt=0)
     tea_tasting.utils.check_scalar(
