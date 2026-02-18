@@ -6,6 +6,7 @@ import textwrap
 from typing import TYPE_CHECKING
 import unittest.mock
 
+import numpy as np
 import pandas as pd
 import pandas.testing
 import polars as pl
@@ -126,6 +127,16 @@ def test_auto_check_ratio() -> None:
         tea_tasting.utils.auto_check("str", "ratio")
     with pytest.raises(ValueError, match="must be >"):
         tea_tasting.utils.auto_check(0.0, "ratio")
+
+def test_auto_check_rng() -> None:
+    generator = np.random.default_rng(42)
+    seed_sequence = np.random.SeedSequence(42)
+    assert tea_tasting.utils.auto_check(42, "rng") == 42
+    assert tea_tasting.utils.auto_check(generator, "rng") is generator
+    assert tea_tasting.utils.auto_check(seed_sequence, "rng") is seed_sequence
+    assert tea_tasting.utils.auto_check(None, "rng") is None
+    with pytest.raises(TypeError):
+        tea_tasting.utils.auto_check(0.5, "rng")
 
 def test_auto_check_use_t() -> None:
     assert tea_tasting.utils.auto_check(False, "use_t") is False
