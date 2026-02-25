@@ -155,7 +155,7 @@ class RatioOfMeans(  # noqa: D101
             >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result
-                        metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            metric             control treatment rel_effect_size rel_effect_size_ci pvalue
             orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
 
             ```
@@ -174,7 +174,7 @@ class RatioOfMeans(  # noqa: D101
             >>> data = tt.make_users_data(rng=42, covariates=True)
             >>> result = experiment.analyze(data)
             >>> result
-                        metric control treatment rel_effect_size rel_effect_size_ci  pvalue
+            metric             control treatment rel_effect_size rel_effect_size_ci  pvalue
             orders_per_session   0.262     0.293             12%        [4.2%, 21%] 0.00229
 
             ```
@@ -792,8 +792,8 @@ class Mean(RatioOfMeans):  # noqa: D101
             >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result
-                      metric control treatment rel_effect_size rel_effect_size_ci pvalue
-             orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+            metric           control treatment rel_effect_size rel_effect_size_ci pvalue
+            orders_per_user    0.530     0.573            8.0%       [-2.0%, 19%]  0.118
             revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 
             ```
@@ -808,8 +808,8 @@ class Mean(RatioOfMeans):  # noqa: D101
             >>> data = tt.make_users_data(rng=42, covariates=True)
             >>> result = experiment.analyze(data)
             >>> result
-                      metric control treatment rel_effect_size rel_effect_size_ci  pvalue
-             orders_per_user   0.523     0.581             11%        [2.9%, 20%] 0.00733
+            metric           control treatment rel_effect_size rel_effect_size_ci  pvalue
+            orders_per_user    0.523     0.581             11%        [2.9%, 20%] 0.00733
             revenue_per_user    5.12      5.85             14%        [3.8%, 26%] 0.00674
 
             ```

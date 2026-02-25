@@ -78,15 +78,15 @@ Let's calculate the experiment results:
 ... )
 >>> results = experiment.analyze(data, control=0, all_variants=True)
 >>> results
-variants             metric control treatment rel_effect_size rel_effect_size_ci  pvalue
-  (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]   0.674
-  (0, 1) orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%]  0.0762
-  (0, 1)    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]   0.118
-  (0, 1)   revenue_per_user    5.24      5.99             14%        [2.1%, 28%]  0.0211
-  (0, 2)  sessions_per_user    2.00      2.02           0.98%      [-2.1%, 4.1%]   0.532
-  (0, 2) orders_per_session   0.266     0.295             11%        [1.2%, 22%]  0.0273
-  (0, 2)    orders_per_user   0.530     0.594             12%        [1.7%, 23%]  0.0213
-  (0, 2)   revenue_per_user    5.24      6.25             19%        [6.6%, 33%] 0.00218
+variants metric             control treatment rel_effect_size rel_effect_size_ci  pvalue
+(0, 1)   sessions_per_user     2.00      1.98          -0.66%      [-3.7%, 2.5%]   0.674
+(0, 1)   orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%]  0.0762
+(0, 1)   orders_per_user      0.530     0.573            8.0%       [-2.0%, 19%]   0.118
+(0, 1)   revenue_per_user      5.24      5.99             14%        [2.1%, 28%]  0.0211
+(0, 2)   sessions_per_user     2.00      2.02           0.98%      [-2.1%, 4.1%]   0.532
+(0, 2)   orders_per_session   0.266     0.295             11%        [1.2%, 22%]  0.0273
+(0, 2)   orders_per_user      0.530     0.594             12%        [1.7%, 23%]  0.0213
+(0, 2)   revenue_per_user      5.24      6.25             19%        [6.6%, 33%] 0.00218
 
 ```
 
@@ -106,11 +106,11 @@ False discovery rate (FDR) is the expected value of the proportion of false disc
 ```pycon
 >>> adjusted_results_fdr = tt.adjust_fdr(results, metrics)
 >>> adjusted_results_fdr
-comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
-    (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
-    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0284
-    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0284
-    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00872
+comparison metric           control treatment rel_effect_size  pvalue pvalue_adj
+(0, 1)     orders_per_user    0.530     0.573            8.0%   0.118      0.118
+(0, 1)     revenue_per_user    5.24      5.99             14%  0.0211     0.0284
+(0, 2)     orders_per_user    0.530     0.594             12%  0.0213     0.0284
+(0, 2)     revenue_per_user    5.24      6.25             19% 0.00218    0.00872
 
 ```
 
@@ -128,11 +128,11 @@ The method also adjusts the significance level alpha and saves it as `alpha_adj`
 ...     "pvalue",
 ...     "alpha_adj",
 ... ))
-comparison           metric control treatment rel_effect_size  pvalue alpha_adj
-    (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118    0.0500
-    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211    0.0375
-    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213    0.0375
-    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.0375
+comparison metric           control treatment rel_effect_size  pvalue alpha_adj
+(0, 1)     orders_per_user    0.530     0.573            8.0%   0.118    0.0500
+(0, 1)     revenue_per_user    5.24      5.99             14%  0.0211    0.0375
+(0, 2)     orders_per_user    0.530     0.594             12%  0.0213    0.0375
+(0, 2)     revenue_per_user    5.24      6.25             19% 0.00218    0.0375
 
 ```
 
@@ -140,11 +140,11 @@ By default, tea-tasting assumes non-negative correlation between hypotheses and 
 
 ```pycon
 >>> tt.adjust_fdr(results, metrics, arbitrary_dependence=True)
-comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
-    (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.245
-    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0592
-    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0592
-    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218     0.0182
+comparison metric           control treatment rel_effect_size  pvalue pvalue_adj
+(0, 1)     orders_per_user    0.530     0.573            8.0%   0.118      0.245
+(0, 1)     revenue_per_user    5.24      5.99             14%  0.0211     0.0592
+(0, 2)     orders_per_user    0.530     0.594             12%  0.0213     0.0592
+(0, 2)     revenue_per_user    5.24      6.25             19% 0.00218     0.0182
 
 ```
 
@@ -154,11 +154,11 @@ Family-wise error rate (FWER) is the probability of making at least one type I e
 
 ```pycon
 >>> tt.adjust_fwer(results, metrics)
-comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
-    (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
-    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0422
-    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0422
-    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00869
+comparison metric           control treatment rel_effect_size  pvalue pvalue_adj
+(0, 1)     orders_per_user    0.530     0.573            8.0%   0.118      0.118
+(0, 1)     revenue_per_user    5.24      5.99             14%  0.0211     0.0422
+(0, 2)     orders_per_user    0.530     0.594             12%  0.0213     0.0422
+(0, 2)     revenue_per_user    5.24      6.25             19% 0.00218    0.00869
 
 ```
 
@@ -173,11 +173,11 @@ To perform Holm's step-down procedure, assuming arbitrary dependence between hyp
 ...     arbitrary_dependence=True,
 ...     method="bonferroni",
 ... )
-comparison           metric control treatment rel_effect_size  pvalue pvalue_adj
-    (0, 1)  orders_per_user   0.530     0.573            8.0%   0.118      0.118
-    (0, 1) revenue_per_user    5.24      5.99             14%  0.0211     0.0634
-    (0, 2)  orders_per_user   0.530     0.594             12%  0.0213     0.0634
-    (0, 2) revenue_per_user    5.24      6.25             19% 0.00218    0.00872
+comparison metric           control treatment rel_effect_size  pvalue pvalue_adj
+(0, 1)     orders_per_user    0.530     0.573            8.0%   0.118      0.118
+(0, 1)     revenue_per_user    5.24      5.99             14%  0.0211     0.0634
+(0, 2)     orders_per_user    0.530     0.594             12%  0.0213     0.0634
+(0, 2)     revenue_per_user    5.24      6.25             19% 0.00218    0.00872
 
 ```
 
@@ -194,10 +194,10 @@ In the examples above, the methods `adjust_fdr` and `adjust_fwer` received resul
 ...     {"Experiment 1": result1, "Experiment 2": result2},
 ...     metrics,
 ... )
-  comparison           metric control treatment rel_effect_size   pvalue pvalue_adj
-Experiment 1  orders_per_user   0.530     0.573            8.0%    0.118      0.118
+comparison   metric           control treatment rel_effect_size   pvalue pvalue_adj
+Experiment 1 orders_per_user    0.530     0.573            8.0%    0.118      0.118
 Experiment 1 revenue_per_user    5.24      5.99             14%   0.0211     0.0282
-Experiment 2  orders_per_user   0.514     0.594             16%  0.00427    0.00853
+Experiment 2 orders_per_user    0.514     0.594             16%  0.00427    0.00853
 Experiment 2 revenue_per_user    5.10      6.25             22% 6.27e-04    0.00251
 
 ```
@@ -206,8 +206,8 @@ The methods `adjust_fdr` and `adjust_fwer` can also accept the result of *a sing
 
 ```pycon
 >>> tt.adjust_fwer(result2, metrics)
-comparison           metric control treatment rel_effect_size   pvalue pvalue_adj
-         -  orders_per_user   0.514     0.594             16%  0.00427    0.00427
-         - revenue_per_user    5.10      6.25             22% 6.27e-04    0.00125
+comparison metric           control treatment rel_effect_size   pvalue pvalue_adj
+-          orders_per_user    0.514     0.594             16%  0.00427    0.00427
+-          revenue_per_user    5.10      6.25             22% 6.27e-04    0.00125
 
 ```

@@ -190,11 +190,11 @@ Querying all the required statistics manually can be a daunting and error-prone 
 ... )
 >>> result = experiment.analyze(data)
 >>> result
-            metric control treatment rel_effect_size rel_effect_size_ci pvalue
- sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+metric             control treatment rel_effect_size rel_effect_size_ci pvalue
+sessions_per_user     2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
 orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
-   orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
-  revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+orders_per_user      0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+revenue_per_user      5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 
 ```
 
@@ -233,11 +233,11 @@ DatabaseTable: memory.main.users_data_cuped
 ... )
 >>> result_cuped = experiment_cuped.analyze(data_cuped)
 >>> result_cuped
-            metric control treatment rel_effect_size rel_effect_size_ci  pvalue
- sessions_per_user    2.00      1.98          -0.68%      [-3.2%, 1.9%]   0.603
+metric             control treatment rel_effect_size rel_effect_size_ci  pvalue
+sessions_per_user     2.00      1.98          -0.68%      [-3.2%, 1.9%]   0.603
 orders_per_session   0.262     0.293             12%        [4.2%, 21%] 0.00229
-   orders_per_user   0.523     0.581             11%        [2.9%, 20%] 0.00733
-  revenue_per_user    5.12      5.85             14%        [3.8%, 26%] 0.00674
+orders_per_user      0.523     0.581             11%        [2.9%, 20%] 0.00733
+revenue_per_user      5.12      5.85             14%        [3.8%, 26%] 0.00674
 
 ```
 
@@ -248,10 +248,10 @@ Here’s an example of how to analyze data using a Polars DataFrame:
 ```pycon
 >>> data_polars = pl.from_arrow(users_data)
 >>> experiment.analyze(data_polars)
-            metric control treatment rel_effect_size rel_effect_size_ci pvalue
- sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+metric             control treatment rel_effect_size rel_effect_size_ci pvalue
+sessions_per_user     2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
 orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
-   orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
-  revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+orders_per_user      0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+revenue_per_user      5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 
 ```

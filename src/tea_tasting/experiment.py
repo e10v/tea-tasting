@@ -56,6 +56,7 @@ class ExperimentResult(
         "rel_effect_size_ci",
         "pvalue",
     )
+    default_text_keys = ("metric",)
 
     @tea_tasting.utils._cache_method
     def to_dicts(self) -> tuple[dict[str, object], ...]:
@@ -118,6 +119,7 @@ class ExperimentResults(
         "rel_effect_size_ci",
         "pvalue",
     )
+    default_text_keys = ("variants", "metric")
 
     @tea_tasting.utils._cache_method
     def to_dicts(self) -> tuple[dict[str, object], ...]:
@@ -142,6 +144,7 @@ class SimulationResults(tea_tasting.utils.DictsReprMixin, UserList[ExperimentRes
         "rel_effect_size_ci",
         "pvalue",
     )
+    default_text_keys = ("metric",)
     default_max_rows: int = 10
 
     @tea_tasting.utils._cache_method
@@ -159,6 +162,7 @@ class ExperimentPowerResult(
 ):
     """Result of power analysis in an experiment."""
     default_keys = ("metric", "power", "effect_size", "rel_effect_size", "n_obs")
+    default_text_keys = ("metric",)
 
     @tea_tasting.utils._cache_method
     def to_dicts(self) -> tuple[dict[str, object], ...]:
@@ -196,11 +200,11 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result
-                        metric control treatment rel_effect_size rel_effect_size_ci pvalue
-             sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+            metric             control treatment rel_effect_size rel_effect_size_ci pvalue
+            sessions_per_user     2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
             orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
-               orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
-              revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+            orders_per_user      0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+            revenue_per_user      5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 
             ```
 
@@ -216,11 +220,11 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result
-                        metric control treatment rel_effect_size rel_effect_size_ci pvalue
-             sessions per user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+            metric             control treatment rel_effect_size rel_effect_size_ci pvalue
+            sessions per user     2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
             orders per session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
-               orders per user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
-              revenue per user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+            orders per user      0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+            revenue per user      5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 
             ```
 
@@ -248,15 +252,15 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             ...     )
             >>> power_result = experiment.solve_power(data)
             >>> power_result
-                        metric power effect_size rel_effect_size n_obs
-             sessions_per_user   80%      0.0458            2.3% 10000
-             sessions_per_user   80%      0.0324            1.6% 20000
+            metric             power effect_size rel_effect_size n_obs
+            sessions_per_user    80%      0.0458            2.3% 10000
+            sessions_per_user    80%      0.0324            1.6% 20000
             orders_per_session   80%      0.0177            6.8% 10000
             orders_per_session   80%      0.0125            4.8% 20000
-               orders_per_user   80%      0.0374            7.2% 10000
-               orders_per_user   80%      0.0264            5.1% 20000
-              revenue_per_user   80%       0.488            9.2% 10000
-              revenue_per_user   80%       0.345            6.5% 20000
+            orders_per_user      80%      0.0374            7.2% 10000
+            orders_per_user      80%      0.0264            5.1% 20000
+            revenue_per_user     80%       0.488            9.2% 10000
+            revenue_per_user     80%       0.345            6.5% 20000
 
             ```
         """  # noqa: E501
