@@ -24,11 +24,11 @@ Begin with this simple example to understand the basic functionality:
 ... )
 >>> result = experiment.analyze(data)
 >>> result
-            metric control treatment rel_effect_size rel_effect_size_ci pvalue
- sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+metric             control treatment rel_effect_size rel_effect_size_ci pvalue
+sessions_per_user     2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
 orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
-   orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
-  revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+orders_per_user      0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+revenue_per_user      5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 
 ```
 
@@ -209,11 +209,11 @@ Fields in the result depend on the metric. For `Mean` and `RatioOfMeans`, the [f
 
 ```pycon
 >>> result
-            metric control treatment rel_effect_size rel_effect_size_ci pvalue
- sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+metric             control treatment rel_effect_size rel_effect_size_ci pvalue
+sessions_per_user     2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
 orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
-   orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
-  revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+orders_per_user      0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+revenue_per_user      5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 
 ```
 
@@ -227,11 +227,11 @@ By default, methods `to_pretty_dicts`, `to_string`, and `to_html` return a prede
 ...     "effect_size",
 ...     "effect_size_ci",
 ... ))
-            metric control treatment effect_size     effect_size_ci
- sessions_per_user    2.00      1.98     -0.0132  [-0.0750, 0.0485]
+metric             control treatment effect_size     effect_size_ci
+sessions_per_user     2.00      1.98     -0.0132  [-0.0750, 0.0485]
 orders_per_session   0.266     0.289      0.0233 [-0.00246, 0.0491]
-   orders_per_user   0.530     0.573      0.0427  [-0.0108, 0.0962]
-  revenue_per_user    5.24      5.73       0.489     [-0.133, 1.11]
+orders_per_user      0.530     0.573      0.0427  [-0.0108, 0.0962]
+revenue_per_user      5.24      5.73       0.489     [-0.133, 1.11]
 
 ```
 
@@ -245,11 +245,11 @@ Or:
 ...     "effect_size",
 ...     "effect_size_ci",
 ... )))
-            metric control treatment effect_size     effect_size_ci
- sessions_per_user    2.00      1.98     -0.0132  [-0.0750, 0.0485]
+metric             control treatment effect_size     effect_size_ci
+sessions_per_user     2.00      1.98     -0.0132  [-0.0750, 0.0485]
 orders_per_session   0.266     0.289      0.0233 [-0.00246, 0.0491]
-   orders_per_user   0.530     0.573      0.0427  [-0.0108, 0.0962]
-  revenue_per_user    5.24      5.73       0.489     [-0.133, 1.11]
+orders_per_user      0.530     0.573      0.0427  [-0.0108, 0.0962]
+revenue_per_user      5.24      5.73       0.489     [-0.133, 1.11]
 
 ```
 
@@ -276,11 +276,11 @@ Example usage:
 ... )
 >>> result_cuped = experiment_cuped.analyze(data_cuped)
 >>> result_cuped
-            metric control treatment rel_effect_size rel_effect_size_ci  pvalue
- sessions_per_user    2.00      1.98          -0.68%      [-3.2%, 1.9%]   0.603
+metric             control treatment rel_effect_size rel_effect_size_ci  pvalue
+sessions_per_user     2.00      1.98          -0.68%      [-3.2%, 1.9%]   0.603
 orders_per_session   0.262     0.293             12%        [4.2%, 21%] 0.00229
-   orders_per_user   0.523     0.581             11%        [2.9%, 20%] 0.00733
-  revenue_per_user    5.12      5.85             14%        [3.8%, 26%] 0.00674
+orders_per_user      0.523     0.581             11%        [2.9%, 20%] 0.00733
+revenue_per_user      5.12      5.85             14%        [3.8%, 26%] 0.00674
 
 ```
 
@@ -309,10 +309,10 @@ Example usage:
 ... )
 >>> result_sample_ratio = experiment_sample_ratio.analyze(data)
 >>> result_sample_ratio
-          metric control treatment rel_effect_size rel_effect_size_ci pvalue
- orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+metric           control treatment rel_effect_size rel_effect_size_ci pvalue
+orders_per_user    0.530     0.573            8.0%       [-2.0%, 19%]  0.118
 revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
-    sample_ratio    2023      1977               -             [-, -]  0.477
+sample_ratio        2023      1977               -             [-, -]  0.477
 
 ```
 
@@ -434,15 +434,15 @@ Example usage:
 ... ))
 >>> results = experiment.analyze(data_three_variants, control=0, all_variants=True)
 >>> results
-variants             metric control treatment rel_effect_size rel_effect_size_ci pvalue
-  (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
-  (0, 1) orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
-  (0, 1)    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
-  (0, 1)   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
-  (0, 2)  sessions_per_user    2.00      2.02           0.98%      [-2.1%, 4.1%]  0.532
-  (0, 2) orders_per_session   0.266     0.273            2.8%       [-6.6%, 13%]  0.575
-  (0, 2)    orders_per_user   0.530     0.550            3.8%       [-6.0%, 15%]  0.465
-  (0, 2)   revenue_per_user    5.24      5.41            3.1%       [-8.1%, 16%]  0.599
+variants metric             control treatment rel_effect_size rel_effect_size_ci pvalue
+(0, 1)   sessions_per_user     2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+(0, 1)   orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+(0, 1)   orders_per_user      0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+(0, 1)   revenue_per_user      5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+(0, 2)   sessions_per_user     2.00      2.02           0.98%      [-2.1%, 4.1%]  0.532
+(0, 2)   orders_per_session   0.266     0.273            2.8%       [-6.6%, 13%]  0.575
+(0, 2)   orders_per_user      0.530     0.550            3.8%       [-6.0%, 15%]  0.465
+(0, 2)   revenue_per_user      5.24      5.41            3.1%       [-8.1%, 16%]  0.599
 
 ```
 
@@ -456,19 +456,19 @@ Example usage without specifying a control variant:
 ```pycon
 >>> results_all = experiment.analyze(data_three_variants, all_variants=True)
 >>> results_all
-variants             metric control treatment rel_effect_size rel_effect_size_ci pvalue
-  (0, 1)  sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
-  (0, 1) orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
-  (0, 1)    orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
-  (0, 1)   revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
-  (0, 2)  sessions_per_user    2.00      2.02           0.98%      [-2.1%, 4.1%]  0.532
-  (0, 2) orders_per_session   0.266     0.273            2.8%       [-6.6%, 13%]  0.575
-  (0, 2)    orders_per_user   0.530     0.550            3.8%       [-6.0%, 15%]  0.465
-  (0, 2)   revenue_per_user    5.24      5.41            3.1%       [-8.1%, 16%]  0.599
-  (1, 2)  sessions_per_user    1.98      2.02            1.7%      [-1.4%, 4.8%]  0.294
-  (1, 2) orders_per_session   0.289     0.273           -5.5%       [-14%, 3.6%]  0.225
-  (1, 2)    orders_per_user   0.573     0.550           -4.0%       [-13%, 5.7%]  0.407
-  (1, 2)   revenue_per_user    5.73      5.41           -5.7%       [-16%, 5.8%]  0.319
+variants metric             control treatment rel_effect_size rel_effect_size_ci pvalue
+(0, 1)   sessions_per_user     2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+(0, 1)   orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+(0, 1)   orders_per_user      0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+(0, 1)   revenue_per_user      5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+(0, 2)   sessions_per_user     2.00      2.02           0.98%      [-2.1%, 4.1%]  0.532
+(0, 2)   orders_per_session   0.266     0.273            2.8%       [-6.6%, 13%]  0.575
+(0, 2)   orders_per_user      0.530     0.550            3.8%       [-6.0%, 15%]  0.465
+(0, 2)   revenue_per_user      5.24      5.41            3.1%       [-8.1%, 16%]  0.599
+(1, 2)   sessions_per_user     1.98      2.02            1.7%      [-1.4%, 4.8%]  0.294
+(1, 2)   orders_per_session   0.289     0.273           -5.5%       [-14%, 3.6%]  0.225
+(1, 2)   orders_per_user      0.573     0.550           -4.0%       [-13%, 5.7%]  0.407
+(1, 2)   revenue_per_user      5.73      5.41           -5.7%       [-16%, 5.8%]  0.319
 
 ```
 
@@ -476,11 +476,11 @@ The result of the analysis is a mapping of `ExperimentResult` objects with tuple
 
 ```pycon
 >>> results[0, 1]
-            metric control treatment rel_effect_size rel_effect_size_ci pvalue
- sessions_per_user    2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+metric             control treatment rel_effect_size rel_effect_size_ci pvalue
+sessions_per_user     2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
 orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
-   orders_per_user   0.530     0.573            8.0%       [-2.0%, 19%]  0.118
-  revenue_per_user    5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+orders_per_user      0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+revenue_per_user      5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 
 ```
 

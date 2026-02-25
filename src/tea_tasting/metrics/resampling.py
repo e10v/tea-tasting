@@ -126,7 +126,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
             >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result
-                     metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            metric          control treatment rel_effect_size rel_effect_size_ci pvalue
             orders_per_user   0.530     0.573            8.0%       [-1.8%, 19%]      -
 
             ```
@@ -148,7 +148,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
             >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result
-                        metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            metric             control treatment rel_effect_size rel_effect_size_ci pvalue
             orders_per_session   0.266     0.289            8.8%      [-0.61%, 20%]      -
 
             ```
@@ -337,7 +337,7 @@ class Quantile(Bootstrap):  # noqa: D101
             >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result
-                          metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            metric               control treatment rel_effect_size rel_effect_size_ci pvalue
             revenue_per_user_p80    10.6      11.6            9.1%       [-1.2%, 21%]      -
 
             ```

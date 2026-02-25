@@ -140,7 +140,7 @@ Now we can analyze the proportion of users who created at least one order during
 ...     mean_users_with_orders=tt.Mean("has_order", use_t=False),
 ... )
 >>> experiment_prop.analyze(data)
-                metric control treatment rel_effect_size rel_effect_size_ci pvalue
+metric                 control treatment rel_effect_size rel_effect_size_ci pvalue
 prop_users_with_orders   0.345     0.384             11%             [-, -] 0.0117
 mean_users_with_orders   0.345     0.384             11%        [2.5%, 21%] 0.0106
 
@@ -221,8 +221,8 @@ Now we can perform the Mann-Whitney U test:
 ... )
 >>> result_mwu = experiment_mwu.analyze(data)
 >>> result_mwu.with_keys(("metric", "pvalue", "statistic"))
-     metric pvalue statistic
- mwu_orders 0.0263   2069092
+metric      pvalue statistic
+mwu_orders  0.0263   2069092
 mwu_revenue 0.0300   2068060
 
 ```
@@ -239,11 +239,11 @@ It's also possible to analyze both types of metrics in one experiment:
 ...     mwu_revenue=MannWhitneyU("revenue"),
 ... )
 >>> experiment.analyze(data)
-                metric control treatment rel_effect_size rel_effect_size_ci pvalue
+metric                 control treatment rel_effect_size rel_effect_size_ci pvalue
 prop_users_with_orders   0.345     0.384             11%             [-, -] 0.0117
 mean_users_with_orders   0.345     0.384             11%        [2.5%, 21%] 0.0106
-            mwu_orders       -         -               -             [-, -] 0.0263
-           mwu_revenue       -         -               -             [-, -] 0.0300
+mwu_orders                   -         -               -             [-, -] 0.0263
+mwu_revenue                  -         -               -             [-, -] 0.0300
 
 ```
 

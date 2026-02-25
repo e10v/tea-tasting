@@ -175,7 +175,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
             ...     prop_users_with_orders=tt.Proportion("has_order"),
             ... )
             >>> experiment.analyze(data)
-                            metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            metric                 control treatment rel_effect_size rel_effect_size_ci pvalue
             prop_users_with_orders   0.300     0.356             19%       [-1.3%, 43%] 0.0693
 
             ```
@@ -191,7 +191,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
             ...     ),
             ... )
             >>> experiment.analyze(data)
-                            metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            metric                 control treatment rel_effect_size rel_effect_size_ci pvalue
             prop_users_with_orders   0.300     0.356             19%             [-, -] 0.0620
 
             ```
@@ -455,7 +455,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
             >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result.with_keys(("metric", "control", "treatment", "pvalue"))
-                  metric control treatment pvalue
+            metric       control treatment pvalue
             sample_ratio    2023      1977  0.477
 
             ```
@@ -469,7 +469,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
             >>> data = tt.make_users_data(rng=42)
             >>> result = experiment.analyze(data)
             >>> result.with_keys(("metric", "control", "treatment", "pvalue"))
-                  metric control treatment    pvalue
+            metric       control treatment    pvalue
             sample_ratio    2023      1977 3.26e-103
 
             ```

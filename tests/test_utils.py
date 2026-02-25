@@ -184,12 +184,13 @@ def test_get_and_format_num() -> None:
 @pytest.fixture
 def dicts_repr() -> tea_tasting.utils.DictsReprMixin:
     class DictsRepr(tea_tasting.utils.DictsReprMixin):
-        default_keys = ("a", "b")
+        default_keys = ("name", "a", "b")
+        default_text_keys = ("name",)
         def to_dicts(self) -> tuple[dict[str, object], ...]:
             return (
-                {"a": 0.12345, "b": 0.23456},
-                {"a": 0.34567, "b": 0.45678},
-                {"a": 0.56789, "b": 0.67890},
+                {"name": "x", "a": 0.12345, "b": 0.23456},
+                {"name": "yy", "a": 0.34567, "b": 0.45678},
+                {"name": "zzz", "a": 0.56789, "b": 0.67890},
             )
     return DictsRepr()
 
@@ -197,6 +198,7 @@ def test_dicts_repr_mixin_to_arrow(
     dicts_repr: tea_tasting.utils.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_arrow().equals(pa.table({
+        "name": ("x", "yy", "zzz"),
         "a": (0.12345, 0.34567, 0.56789),
         "b": (0.23456, 0.45678, 0.67890),
     }))
@@ -207,6 +209,7 @@ def test_dicts_repr_mixin_to_pandas(
     pandas.testing.assert_frame_equal(
         dicts_repr.to_pandas(),
         pd.DataFrame({
+            "name": ("x", "yy", "zzz"),
             "a": (0.12345, 0.34567, 0.56789),
             "b": (0.23456, 0.45678, 0.67890),
         }),
@@ -218,6 +221,7 @@ def test_dicts_repr_mixin_to_polars(
     polars.testing.assert_frame_equal(
         dicts_repr.to_polars(),
         pl.DataFrame({
+            "name": ("x", "yy", "zzz"),
             "a": (0.12345, 0.34567, 0.56789),
             "b": (0.23456, 0.45678, 0.67890),
         }),
@@ -227,73 +231,32 @@ def test_dicts_repr_mixin_to_pretty_dicts_default(
     dicts_repr: tea_tasting.utils.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_pretty_dicts() == [
-        {"a": "0.123", "b": "0.235"},
-        {"a": "0.346", "b": "0.457"},
-        {"a": "0.568", "b": "0.679"},
+        {"name": "x", "a": "0.123", "b": "0.235"},
+        {"name": "yy", "a": "0.346", "b": "0.457"},
+        {"name": "zzz", "a": "0.568", "b": "0.679"},
     ]
 
 def test_dicts_repr_mixin_to_pretty_dicts_max_rows(
     dicts_repr: tea_tasting.utils.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_pretty_dicts(max_rows=2) == [
-        {"a": "0.123", "b": "0.235"},
-        {"a": "…", "b": "…"},
-        {"a": "0.568", "b": "0.679"},
+        {"name": "x", "a": "0.123", "b": "0.235"},
+        {"name": "…", "a": "…", "b": "…"},
+        {"name": "zzz", "a": "0.568", "b": "0.679"},
     ]
-
-def test_dicts_repr_mixin_to_string(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
-) -> None:
-    assert dicts_repr.to_string() == textwrap.dedent("""\
-            a     b
-        0.123 0.235
-        0.346 0.457
-        0.568 0.679""")
-
-def test_dicts_repr_mixin_to_html(dicts_repr: tea_tasting.utils.DictsReprMixin) -> None:
-    assert dicts_repr.to_html() == (
-        '<table class="dataframe" style="text-align: right;">'
-        '<thead><tr><th>a</th><th>b</th></tr></thead>'
-        '<tbody>'
-        '<tr><td>0.123</td><td>0.235</td></tr>'
-        '<tr><td>0.346</td><td>0.457</td></tr>'
-        '<tr><td>0.568</td><td>0.679</td></tr>'
-        '</tbody></table>'
-    )
-
-def test_dicts_repr_mixin_to_html_indent(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
-) -> None:
-    assert dicts_repr.to_html(indent="    ") == textwrap.dedent("""\
-        <table class="dataframe" style="text-align: right;">
-            <thead>
-                <tr>
-                    <th>a</th>
-                    <th>b</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>0.123</td>
-                    <td>0.235</td>
-                </tr>
-                <tr>
-                    <td>0.346</td>
-                    <td>0.457</td>
-                </tr>
-                <tr>
-                    <td>0.568</td>
-                    <td>0.679</td>
-                </tr>
-            </tbody>
-        </table>""")
 
 def test_dicts_repr_mixin_with_defaults(
     dicts_repr: tea_tasting.utils.DictsReprMixin,
 ) -> None:
-    new_dicts_repr =  dicts_repr.with_defaults(keys=("c", "d"), max_rows=42)
+    new_dicts_repr = dicts_repr.with_defaults(
+        keys=("c", "d"),
+        max_rows=42,
+        align="left",
+    )
     assert new_dicts_repr.default_keys == ("c", "d")
+    assert new_dicts_repr.default_text_keys == ("name",)
     assert new_dicts_repr.default_max_rows == 42
+    assert new_dicts_repr.default_align == "left"
 
 def test_dicts_repr_mixin_with_keys(
     dicts_repr: tea_tasting.utils.DictsReprMixin,
@@ -304,6 +267,104 @@ def test_dicts_repr_mixin_with_max_rows(
     dicts_repr: tea_tasting.utils.DictsReprMixin,
 ) -> None:
     assert dicts_repr.with_max_rows(42).default_max_rows == 42
+
+def test_dicts_repr_mixin_to_string(
+    dicts_repr: tea_tasting.utils.DictsReprMixin,
+) -> None:
+    assert dicts_repr.to_string() == textwrap.dedent("""\
+        name     a     b
+        x    0.123 0.235
+        yy   0.346 0.457
+        zzz  0.568 0.679""")
+
+def test_dicts_repr_mixin_to_string_align_left(
+    dicts_repr: tea_tasting.utils.DictsReprMixin,
+) -> None:
+    assert dicts_repr.to_string(align="left") == textwrap.dedent("""\
+        name a     b
+        x    0.123 0.235
+        yy   0.346 0.457
+        zzz  0.568 0.679""")
+
+def test_dicts_repr_mixin_to_string_align_right(
+    dicts_repr: tea_tasting.utils.DictsReprMixin,
+) -> None:
+    assert dicts_repr.to_string(align="right") == textwrap.dedent("""\
+        name     a     b
+           x 0.123 0.235
+          yy 0.346 0.457
+         zzz 0.568 0.679""")
+
+def test_dicts_repr_mixin_to_html(
+    dicts_repr: tea_tasting.utils.DictsReprMixin,
+) -> None:
+    assert dicts_repr.to_html() == (
+        '<table class="dataframe" style="text-align: right;">'
+        '<thead><tr><th style="text-align: left;">name</th>'
+        '<th>a</th><th>b</th></tr></thead>'
+        '<tbody>'
+        '<tr><td style="text-align: left;">x</td><td>0.123</td><td>0.235</td></tr>'
+        '<tr><td style="text-align: left;">yy</td><td>0.346</td><td>0.457</td></tr>'
+        '<tr><td style="text-align: left;">zzz</td><td>0.568</td><td>0.679</td></tr>'
+        '</tbody></table>'
+    )
+
+def test_dicts_repr_mixin_to_html_align_left(
+    dicts_repr: tea_tasting.utils.DictsReprMixin,
+) -> None:
+    assert dicts_repr.to_html(align="left") == (
+        '<table class="dataframe" style="text-align: left;">'
+        '<thead><tr><th>name</th><th>a</th><th>b</th></tr></thead>'
+        '<tbody>'
+        '<tr><td>x</td><td>0.123</td><td>0.235</td></tr>'
+        '<tr><td>yy</td><td>0.346</td><td>0.457</td></tr>'
+        '<tr><td>zzz</td><td>0.568</td><td>0.679</td></tr>'
+        '</tbody></table>'
+    )
+
+def test_dicts_repr_mixin_to_html_align_right(
+    dicts_repr: tea_tasting.utils.DictsReprMixin,
+) -> None:
+    assert dicts_repr.to_html(align="right") == (
+        '<table class="dataframe" style="text-align: right;">'
+        '<thead><tr><th>name</th><th>a</th><th>b</th></tr></thead>'
+        '<tbody>'
+        '<tr><td>x</td><td>0.123</td><td>0.235</td></tr>'
+        '<tr><td>yy</td><td>0.346</td><td>0.457</td></tr>'
+        '<tr><td>zzz</td><td>0.568</td><td>0.679</td></tr>'
+        '</tbody></table>'
+    )
+
+def test_dicts_repr_mixin_to_html_indent(
+    dicts_repr: tea_tasting.utils.DictsReprMixin,
+) -> None:
+    assert dicts_repr.to_html(indent="    ") == textwrap.dedent("""\
+        <table class="dataframe" style="text-align: right;">
+            <thead>
+                <tr>
+                    <th style="text-align: left;">name</th>
+                    <th>a</th>
+                    <th>b</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="text-align: left;">x</td>
+                    <td>0.123</td>
+                    <td>0.235</td>
+                </tr>
+                <tr>
+                    <td style="text-align: left;">yy</td>
+                    <td>0.346</td>
+                    <td>0.457</td>
+                </tr>
+                <tr>
+                    <td style="text-align: left;">zzz</td>
+                    <td>0.568</td>
+                    <td>0.679</td>
+                </tr>
+            </tbody>
+        </table>""")
 
 def test_dicts_repr_mixin_mime_marimo(
     dicts_repr: tea_tasting.utils.DictsReprMixin,
@@ -335,27 +396,28 @@ def test_dicts_repr_mixin_repr_html(
 ) -> None:
     assert dicts_repr._repr_html_() == (
         '<table class="dataframe" style="text-align: right;">'
-        '<thead><tr><th>a</th><th>b</th></tr></thead>'
+        '<thead><tr><th style="text-align: left;">name</th>'
+        '<th>a</th><th>b</th></tr></thead>'
         '<tbody>'
-        '<tr><td>0.123</td><td>0.235</td></tr>'
-        '<tr><td>0.346</td><td>0.457</td></tr>'
-        '<tr><td>0.568</td><td>0.679</td></tr>'
+        '<tr><td style="text-align: left;">x</td><td>0.123</td><td>0.235</td></tr>'
+        '<tr><td style="text-align: left;">yy</td><td>0.346</td><td>0.457</td></tr>'
+        '<tr><td style="text-align: left;">zzz</td><td>0.568</td><td>0.679</td></tr>'
         '</tbody></table>'
     )
 
 def test_dicts_repr_mixin_repr(dicts_repr: tea_tasting.utils.DictsReprMixin) -> None:
     assert repr(dicts_repr) == textwrap.dedent("""\
-            a     b
-        0.123 0.235
-        0.346 0.457
-        0.568 0.679""")
+        name     a     b
+        x    0.123 0.235
+        yy   0.346 0.457
+        zzz  0.568 0.679""")
 
 def test_dicts_repr_mixin_str(dicts_repr: tea_tasting.utils.DictsReprMixin) -> None:
     assert str(dicts_repr) == textwrap.dedent("""\
-            a     b
-        0.123 0.235
-        0.346 0.457
-        0.568 0.679""")
+        name     a     b
+        x    0.123 0.235
+        yy   0.346 0.457
+        zzz  0.568 0.679""")
 
 
 def test_repr_mixin_repr() -> None:

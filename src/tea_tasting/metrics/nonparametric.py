@@ -100,7 +100,7 @@ class MannWhitneyU(MetricBaseGranular[MannWhitneyUResult]):  # noqa: D101
             ... )
             >>> result = experiment.analyze(data)
             >>> result
-                 metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            metric      control treatment rel_effect_size rel_effect_size_ci pvalue
             revenue_auc   0.472     0.528               -             [-, -] 0.0698
 
             ```
@@ -117,7 +117,7 @@ class MannWhitneyU(MetricBaseGranular[MannWhitneyUResult]):  # noqa: D101
             ...     ),
             ... )
             >>> experiment.analyze(data)
-                 metric control treatment rel_effect_size rel_effect_size_ci pvalue
+            metric      control treatment rel_effect_size rel_effect_size_ci pvalue
             revenue_auc   0.472     0.528               -             [-, -] 0.0349
 
             ```

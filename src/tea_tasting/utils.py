@@ -313,7 +313,9 @@ class DictsReprMixin(abc.ABC):
         and format the interval as `"[{lower_bound}, {upper_bound}]"`.
     """
     default_keys: Sequence[str]
+    default_text_keys: Sequence[str] = ()
     default_max_rows: int = 0
+    default_align: Literal["auto", "left", "right"] = "auto"
     _cache: dict[str, object] | None = None
 
     @abc.abstractmethod
@@ -396,6 +398,7 @@ class DictsReprMixin(abc.ABC):
         formatter: Callable[[dict[str, object], str], str] = get_and_format_num,
         *,
         max_rows: int | None = None,
+        align: Literal["auto", "left", "right"] | None = None,
     ) -> str:
         """Convert the object to a string.
 
@@ -420,6 +423,14 @@ class DictsReprMixin(abc.ABC):
             max_rows: Maximum number of rows to convert.
                 If `None`, the default value will be used.
                 If `0` or less, all rows will be converted.
+            align: Column alignment mode:
+
+                - `"auto"`: left-align keys in `default_text_keys`,
+                  right-align all other keys.
+                - `"left"`: left-align all columns.
+                - `"right"`: right-align all columns.
+
+                If `None`, the default value will be used.
 
         Returns:
             A table with results rendered as string.
@@ -428,6 +439,20 @@ class DictsReprMixin(abc.ABC):
             keys = self.default_keys
         if max_rows is None:
             max_rows = self.default_max_rows
+        align = (
+            self.default_align
+            if align is None
+            else check_scalar(align, "align", typ=str, in_={"auto", "left", "right"})
+        )
+
+        def justify(key: str, val: str) -> str:
+            if align == "left":
+                return val.ljust(widths[key])
+            if align == "right":
+                return val.rjust(widths[key])
+            if key in self.default_text_keys:
+                return val.ljust(widths[key])
+            return val.rjust(widths[key])
 
         pretty_dicts = self.to_pretty_dicts(keys, formatter, max_rows=max_rows)
         widths = {key: len(key) for key in keys}
@@ -436,9 +461,9 @@ class DictsReprMixin(abc.ABC):
                 widths[key] = max(widths[key], len(pretty_dict[key]))
 
         sep = " "
-        rows = [sep.join(key.rjust(widths[key]) for key in keys)]
+        rows = [sep.join(justify(key, key) for key in keys).rstrip()]
         rows.extend(
-            sep.join(pretty_dict[key].rjust(widths[key]) for key in keys)
+            sep.join(justify(key, pretty_dict[key]) for key in keys).rstrip()
             for pretty_dict in pretty_dicts
         )
         return "\n".join(rows)
@@ -450,6 +475,7 @@ class DictsReprMixin(abc.ABC):
         formatter: Callable[[dict[str, object], str], str] = get_and_format_num,
         *,
         max_rows: int | None = None,
+        align: Literal["auto", "left", "right"] | None = None,
         indent: str | None = None,
     ) -> str:
         """Convert the object to HTML.
@@ -475,6 +501,14 @@ class DictsReprMixin(abc.ABC):
             max_rows: Maximum number of rows to convert.
                 If `None`, the default value will be used.
                 If `0` or less, all rows will be converted.
+            align: Column alignment mode:
+
+                - `"auto"`: left-align keys in `default_text_keys`,
+                  right-align all other keys.
+                - `"left"`: left-align all columns.
+                - `"right"`: right-align all columns.
+
+                If `None`, the default value will be used.
             indent: Whitespace to insert for each indentation level. If `None`,
                 do not indent.
 
@@ -485,21 +519,34 @@ class DictsReprMixin(abc.ABC):
             keys = self.default_keys
         if max_rows is None:
             max_rows = self.default_max_rows
+        align = (
+            self.default_align
+            if align is None
+            else check_scalar(align, "align", typ=str, in_={"auto", "left", "right"})
+        )
+
+        def get_cell_attrs(key: str) -> dict[str, str]:
+            if align == "auto" and key in self.default_text_keys:
+                return {"style": "text-align: left;"}
+            return {}
 
         table = ET.Element(
             "table",
-            {"class": "dataframe", "style": "text-align: right;"},
+            {
+                "class": "dataframe",
+                "style": f"text-align: {'left' if align == 'left' else 'right'};",
+            },
         )
         thead = ET.SubElement(table, "thead")
         thead_tr = ET.SubElement(thead, "tr")
         for key in keys:
-            th = ET.SubElement(thead_tr, "th")
+            th = ET.SubElement(thead_tr, "th", get_cell_attrs(key))
             th.text = key
         tbody = ET.SubElement(table, "tbody")
         for pretty_dict in self.to_pretty_dicts(keys, formatter, max_rows=max_rows):
             tr = ET.SubElement(tbody, "tr")
             for key in keys:
-                td = ET.SubElement(tr, "td")
+                td = ET.SubElement(tr, "td", get_cell_attrs(key))
                 td.text = pretty_dict[key]
         if indent is not None:
             ET.indent(table, space=indent)
@@ -511,6 +558,7 @@ class DictsReprMixin(abc.ABC):
         *,
         keys: Sequence[str] | None = None,
         max_rows: int | None = None,
+        align: Literal["auto", "left", "right"] | None = None,
     ) -> DictsReprMixinT:
         """Copies the object and sets the new default parameters.
 
@@ -519,9 +567,10 @@ class DictsReprMixin(abc.ABC):
                 and `to_html`.
             max_rows: New default `max_rows` for the methods `to_pretty_dicts`,
                 `to_string`, and `to_html`.
+            align: New default `align` for the methods `to_string` and `to_html`.
 
         Returns:
-            A copy of the object with the new default keys.
+            A copy of the object with the new default parameters.
         """
         new_instance = self.__class__.__new__(self.__class__)
         new_instance.__dict__.update(self.__dict__)  # type: ignore
@@ -530,6 +579,13 @@ class DictsReprMixin(abc.ABC):
             new_instance.default_keys = keys
         if max_rows is not None:
             new_instance.default_max_rows = max_rows
+        if align is not None:
+            new_instance.default_align = check_scalar(
+                align,
+                "align",
+                typ=str,
+                in_={"auto", "left", "right"},
+            )
         return new_instance
 
 

@@ -64,15 +64,15 @@ You can analyze power for all metrics in the experiment. Example:
 ... 
 >>> power_result = experiment.solve_power(data)
 >>> power_result
-            metric power effect_size rel_effect_size n_obs
- sessions_per_user   80%      0.0458            2.3% 10000
- sessions_per_user   80%      0.0324            1.6% 20000
+metric             power effect_size rel_effect_size n_obs
+sessions_per_user    80%      0.0458            2.3% 10000
+sessions_per_user    80%      0.0324            1.6% 20000
 orders_per_session   80%      0.0177            6.8% 10000
 orders_per_session   80%      0.0125            4.8% 20000
-   orders_per_user   80%      0.0374            7.2% 10000
-   orders_per_user   80%      0.0264            5.1% 20000
-  revenue_per_user   80%       0.488            9.2% 10000
-  revenue_per_user   80%       0.345            6.5% 20000
+orders_per_user      80%      0.0374            7.2% 10000
+orders_per_user      80%      0.0264            5.1% 20000
+revenue_per_user     80%       0.488            9.2% 10000
+revenue_per_user     80%       0.345            6.5% 20000
 
 ```
 
