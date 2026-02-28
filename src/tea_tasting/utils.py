@@ -622,6 +622,15 @@ class DictsReprMixin(abc.ABC):
 
             pretty_dicts = self.to_pretty_dicts(max_rows=0)
             n_rows = len(pretty_dicts)
+            if self.default_align == "left":
+                text_justify_columns = dict.fromkeys(self.default_keys, "left")
+            elif self.default_align == "right":
+                text_justify_columns = dict.fromkeys(self.default_keys, "right")
+            else:
+                text_justify_columns = {
+                    key: "left" if key in self.default_text_keys else "right"
+                    for key in self.default_keys
+                }
             return mo.ui.table(  # type: ignore
                 pretty_dicts,  # type: ignore
                 selection=None,
@@ -629,6 +638,7 @@ class DictsReprMixin(abc.ABC):
                 page_size=self.default_max_rows
                     if self.default_max_rows > 0 and n_rows > self.default_max_rows
                     else None,
+                text_justify_columns=text_justify_columns,  # pyright: ignore
             )._mime_()
         except Exception:  # noqa: BLE001
             return "text/html", self._repr_html_()

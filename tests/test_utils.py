@@ -19,6 +19,7 @@ import tea_tasting.utils
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
+    from typing import Literal
 
 
 def test_check_scalar_typ() -> None:
@@ -372,6 +373,29 @@ def test_dicts_repr_mixin_mime_marimo(
     mime_type, data = dicts_repr._mime_()
     assert mime_type == "text/html"
     assert data.startswith("<marimo-ui-element")
+
+@pytest.mark.parametrize(
+    ("align", "expected"),
+    [
+        ("auto", {"name": "left", "a": "right", "b": "right"}),
+        ("left", {"name": "left", "a": "left", "b": "left"}),
+        ("right", {"name": "right", "a": "right", "b": "right"}),
+    ],
+)
+def test_dicts_repr_mixin_mime_marimo_text_justify_columns(
+    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    align: Literal["auto", "left", "right"],
+    expected: dict[str, str],
+) -> None:
+    class MockTable:
+        def _mime_(self) -> tuple[str, str]:
+            return "text/html", "<marimo-ui-element></marimo-ui-element>"
+
+    with unittest.mock.patch("marimo.ui.table", return_value=MockTable()) as table:
+        dicts_repr.with_defaults(align=align)._mime_()
+
+    assert table.call_count == 1
+    assert table.call_args.kwargs["text_justify_columns"] == expected
 
 def test_dicts_repr_mixin_mime_exception(
     dicts_repr: tea_tasting.utils.DictsReprMixin,
