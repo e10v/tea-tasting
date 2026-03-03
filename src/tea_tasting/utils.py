@@ -446,11 +446,7 @@ class DictsReprMixin(abc.ABC):
         )
 
         def justify(key: str, val: str) -> str:
-            if align == "left":
-                return val.ljust(widths[key])
-            if align == "right":
-                return val.rjust(widths[key])
-            if key in self.default_text_keys:
+            if align == "left" or (align == "auto" and key in self.default_text_keys):
                 return val.ljust(widths[key])
             return val.rjust(widths[key])
 
