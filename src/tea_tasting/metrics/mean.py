@@ -520,13 +520,13 @@ class RatioOfMeans(  # noqa: D101
         treat_var: float,
         treat_count: int,
     ) -> MeanResult:
-        scale, distr, _ = self._scale_and_distr(
+        distr, _, scale = self._distr_and_scale(
             contr_var=contr_var,
             contr_count=contr_count,
             treat_var=treat_var,
             treat_count=treat_count,
         )
-        log_scale, log_distr, _ = self._scale_and_distr(
+        log_distr, _, _ = self._distr_and_scale(
             contr_var=contr_var / contr_mean / contr_mean,
             contr_count=contr_count,
             treat_var=treat_var / treat_mean / treat_mean,
@@ -535,31 +535,30 @@ class RatioOfMeans(  # noqa: D101
 
         means_ratio = treat_mean / contr_mean
         effect_size = treat_mean - contr_mean
-        statistic = effect_size / scale
 
         if self.alternative == "greater":
             q = self.confidence_level
-            effect_size_ci_lower = effect_size + scale*distr.isf(q)
-            means_ratio_ci_lower = means_ratio * math.exp(log_scale * log_distr.isf(q))
+            effect_size_ci_lower = effect_size + distr.isf(q)
+            means_ratio_ci_lower = means_ratio * math.exp(log_distr.isf(q))
             effect_size_ci_upper = means_ratio_ci_upper = float("+inf")
-            pvalue = distr.sf(statistic)
+            pvalue = distr.sf(effect_size)
         elif self.alternative == "less":
             q = self.confidence_level
             effect_size_ci_lower = means_ratio_ci_lower = float("-inf")
-            effect_size_ci_upper = effect_size + scale*distr.ppf(q)
-            means_ratio_ci_upper = means_ratio * math.exp(log_scale * log_distr.ppf(q))
-            pvalue = distr.cdf(statistic)
+            effect_size_ci_upper = effect_size + distr.ppf(q)
+            means_ratio_ci_upper = means_ratio * math.exp(log_distr.ppf(q))
+            pvalue = distr.cdf(effect_size)
         else:  # two-sided
             q = (1 + self.confidence_level) / 2
-            half_ci = scale * distr.ppf(q)
+            half_ci = distr.ppf(q)
             effect_size_ci_lower = effect_size - half_ci
             effect_size_ci_upper = effect_size + half_ci
 
-            rel_half_ci = math.exp(log_scale * log_distr.ppf(q))
+            rel_half_ci = math.exp(log_distr.ppf(q))
             means_ratio_ci_lower = means_ratio / rel_half_ci
             means_ratio_ci_upper = means_ratio * rel_half_ci
 
-            pvalue = 2 * distr.sf(abs(statistic))
+            pvalue = 2 * distr.sf(abs(effect_size))
 
         return MeanResult(
             control=contr_mean,
@@ -571,7 +570,7 @@ class RatioOfMeans(  # noqa: D101
             rel_effect_size_ci_lower=means_ratio_ci_lower - 1,
             rel_effect_size_ci_upper=means_ratio_ci_upper - 1,
             pvalue=pvalue,
-            statistic=statistic,
+            statistic=effect_size / scale,
         )
 
 
@@ -622,7 +621,7 @@ class RatioOfMeans(  # noqa: D101
         sample_count: int | float,
         effect_size: float,
     ) -> float:
-        _, null_distr, alt_distr = self._scale_and_distr(
+        null_distr, alt_distr, _ = self._distr_and_scale(
             contr_var=sample_var,
             contr_count=sample_count / (1 + self.ratio),
             treat_var=sample_var,
@@ -641,35 +640,35 @@ class RatioOfMeans(  # noqa: D101
 
 
     @overload
-    def _scale_and_distr(
+    def _distr_and_scale(
         self,
         contr_var: float,
         contr_count: int | float,
         treat_var: float,
         treat_count: int | float,
         effect_size: None = None,
-    ) -> tuple[float, scipy.stats.rv_frozen, None]:
+    ) -> tuple[scipy.stats.rv_frozen, None, float]:
         ...
 
     @overload
-    def _scale_and_distr(
+    def _distr_and_scale(
         self,
         contr_var: float,
         contr_count: int | float,
         treat_var: float,
         treat_count: int | float,
         effect_size: float,
-    ) -> tuple[float, scipy.stats.rv_frozen, scipy.stats.rv_frozen]:
+    ) -> tuple[scipy.stats.rv_frozen, scipy.stats.rv_frozen, float]:
         ...
 
-    def _scale_and_distr(
+    def _distr_and_scale(
         self,
         contr_var: float,
         contr_count: int | float,
         treat_var: float,
         treat_count: int | float,
         effect_size: float | None = None,
-    ) -> tuple[float, scipy.stats.rv_frozen, scipy.stats.rv_frozen | None]:
+    ) -> tuple[scipy.stats.rv_frozen, scipy.stats.rv_frozen | None, float]:
         if self.equal_var:
             pooled_var = (
                 (contr_count - 1)*contr_var + (treat_count - 1)*treat_var
@@ -688,15 +687,15 @@ class RatioOfMeans(  # noqa: D101
                     contr_mean_var**2 / (contr_count - 1)
                     + treat_mean_var**2 / (treat_count - 1)
                 )
-            null_distr = scipy.stats.t(df=df)
+            null_distr = scipy.stats.t(df=df, scale=scale)
             alt_distr = None if effect_size is None else scipy.stats.nct(
-                df=df, nc=effect_size / scale)
+                df=df, nc=effect_size / scale, scale=scale)
         else:
-            null_distr = scipy.stats.norm()
+            null_distr = scipy.stats.norm(scale=scale)
             alt_distr = None if effect_size is None else scipy.stats.norm(
-                loc=effect_size / scale)
+                loc=effect_size, scale=scale)
 
-        return scale, null_distr, alt_distr
+        return null_distr, alt_distr, scale
 
 
 def _find_boundary(
