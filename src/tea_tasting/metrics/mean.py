@@ -569,7 +569,7 @@ class RatioOfMeans(  # noqa: D101
             rel_effect_size=means_ratio - 1,
             rel_effect_size_ci_lower=means_ratio_ci_lower - 1,
             rel_effect_size_ci_upper=means_ratio_ci_upper - 1,
-            pvalue=pvalue,
+            pvalue=float(pvalue),
             statistic=effect_size / scale,
         )
 
@@ -630,13 +630,13 @@ class RatioOfMeans(  # noqa: D101
         )
         if self.alternative == "greater":
             stat_critical = null_distr.isf(self.alpha)
-            return alt_distr.sf(stat_critical)
+            return float(alt_distr.sf(stat_critical))
         if self.alternative == "less":
             stat_critical = null_distr.ppf(self.alpha)
-            return alt_distr.cdf(stat_critical)
+            return float(alt_distr.cdf(stat_critical))
         # two-sided
         stat_critical = null_distr.isf(self.alpha / 2)
-        return alt_distr.cdf(-stat_critical) + alt_distr.sf(stat_critical)
+        return float(alt_distr.cdf(-stat_critical) + alt_distr.sf(stat_critical))
 
 
     @overload

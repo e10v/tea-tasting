@@ -315,7 +315,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
             rel_effect_size=p_treat/p_contr - 1,
             rel_effect_size_ci_lower=rel_effect_size_ci_lower,
             rel_effect_size_ci_upper=rel_effect_size_ci_upper,
-            pvalue=pvalue,
+            pvalue=float(pvalue),
         )
 
 
@@ -377,7 +377,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
         effect_size_ci_upper = min(effect_size_ci_upper, 1)
 
         return _ZTestResult(
-            pvalue=pvalue,
+            pvalue=float(pvalue),
             effect_size_ci_lower=effect_size_ci_lower,
             effect_size_ci_upper=effect_size_ci_upper,
             rel_effect_size_ci_lower=p_ratio_ci_lower - 1,
@@ -547,7 +547,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
         return SampleRatioResult(
             control=n - k,
             treatment=k,
-            pvalue=pvalue,  # type: ignore
+            pvalue=float(pvalue),
         )
 
 

@@ -172,7 +172,7 @@ By default, tea-tasting assumes that the variant with the lowest ID is a control
  'effect_size': 0.04269014577177832,
  'effect_size_ci_lower': -0.010800201598205515,
  'effect_size_ci_upper': 0.09618049314176216,
- 'pvalue': np.float64(0.11773177998716214),
+ 'pvalue': 0.11773177998716214,
  'rel_effect_size': 0.08048664016431273,
  'rel_effect_size_ci_lower': -0.019515294044061937,
  'rel_effect_size_ci_upper': 0.1906880061278886,
