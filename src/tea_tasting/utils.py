@@ -295,7 +295,7 @@ def _cache_method(
         if method.__name__ not in self._cache:
             self._cache[method.__name__] = method(self)
         return self._cache[method.__name__]  # type: ignore
-    return cached_method
+    return functools.update_wrapper(cached_method, method)
 
 class DictsReprMixin(abc.ABC):
     """Representation and conversion of a sequence of dictionaries.
