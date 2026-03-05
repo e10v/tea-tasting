@@ -203,6 +203,7 @@ Fields in the result depend on the metric. For `Mean` and `RatioOfMeans`, the [f
 - `to_polars`: Convert the result to a Polars DataFrame. Requires Polars to be installed.
 - `to_pretty_dicts`: Convert the result to a sequence of dictionaries with formatted values (as strings).
 - `to_string`: Convert the result to a string.
+- `to_markdown`: Convert the result to a Markdown table.
 - `to_html`: Convert the result to HTML.
 
 `result` is the same as `print(result.to_string())`. `ExperimentResult` also provides the `_repr_html_` method, which renders it as an HTML table in IPython and Jupyter, and the `_mime_` method, which renders it as a table in marimo notebooks.
@@ -217,7 +218,21 @@ revenue_per_user      5.24      5.73            9.3%       [-2.4%, 22%]  0.123
 
 ```
 
-By default, methods `to_pretty_dicts`, `to_string`, and `to_html` return a predefined list of attributes. This list can be customized:
+`to_markdown` is a convenience wrapper around `to_string(table_format="markdown")`:
+
+```pycon
+>>> print(result.to_markdown())
+| metric             | control | treatment | rel_effect_size | rel_effect_size_ci | pvalue |
+| :----------------- | ------: | --------: | --------------: | -----------------: | -----: |
+| sessions_per_user  |    2.00 |      1.98 |          -0.66% |      [-3.7%, 2.5%] |  0.674 |
+| orders_per_session |   0.266 |     0.289 |            8.8% |      [-0.89%, 19%] | 0.0762 |
+| orders_per_user    |   0.530 |     0.573 |            8.0% |       [-2.0%, 19%] |  0.118 |
+| revenue_per_user   |    5.24 |      5.73 |            9.3% |       [-2.4%, 22%] |  0.123 |
+
+```
+
+By default, methods `to_pretty_dicts`, `to_string`, `to_markdown`, and `to_html`
+return a predefined list of attributes. This list can be customized:
 
 ```pycon
 >>> result.with_keys((

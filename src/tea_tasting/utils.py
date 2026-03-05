@@ -536,6 +536,48 @@ class DictsReprMixin(abc.ABC):
         return "\n".join(rows)
 
 
+    def to_markdown(
+        self,
+        keys: Sequence[str] | None = None,
+        formatter: Callable[[dict[str, object], str], str] = get_and_format_num,
+        *,
+        max_rows: int | None = None,
+        align: Literal["auto", "left", "right"] | None = None,
+    ) -> str:
+        """Convert the object to a Markdown table.
+
+        This is a convenience wrapper around `to_string(table_format="markdown")`.
+
+        Args:
+            keys: Keys to convert. If a key is not defined in the dictionary
+                it's assumed to be `None`.
+            formatter: Custom formatter function. It should accept a dictionary
+                of metric result attributes and an attribute name, and return
+                a formatted attribute value.
+            max_rows: Maximum number of rows to convert.
+                If `None`, the default value will be used.
+                If `0` or less, all rows will be converted.
+            align: Column alignment mode:
+
+                - `"auto"`: left-align keys in `default_text_keys`,
+                  right-align all other keys.
+                - `"left"`: left-align all columns.
+                - `"right"`: right-align all columns.
+
+                If `None`, the default value will be used.
+
+        Returns:
+            A table with results rendered as Markdown.
+        """
+        return self.to_string(
+            keys,
+            formatter,
+            max_rows=max_rows,
+            align=align,
+            table_format="markdown",
+        )
+
+
     def to_html(
         self,
         keys: Sequence[str] | None = None,
@@ -631,10 +673,11 @@ class DictsReprMixin(abc.ABC):
 
         Args:
             keys: New default `keys` for the methods `to_pretty_dicts`, `to_string`,
-                and `to_html`.
+                `to_markdown`, and `to_html`.
             max_rows: New default `max_rows` for the methods `to_pretty_dicts`,
-                `to_string`, and `to_html`.
-            align: New default `align` for the methods `to_string` and `to_html`.
+                `to_string`, `to_markdown`, and `to_html`.
+            align: New default `align` for the methods `to_string`, `to_markdown`,
+                and `to_html`.
 
         Returns:
             A copy of the object with the new default parameters.
@@ -661,7 +704,7 @@ class DictsReprMixin(abc.ABC):
 
         Args:
             keys: New default `keys` for the methods `to_pretty_dicts`, `to_string`,
-                and `to_html`.
+                `to_markdown`, and `to_html`.
 
         Returns:
             A copy of the object with the new default `keys`.
@@ -674,7 +717,7 @@ class DictsReprMixin(abc.ABC):
 
         Args:
             max_rows: New default `max_rows` for the methods `to_pretty_dicts`,
-                `to_string`, and `to_html`.
+                `to_string`, `to_markdown`, and `to_html`.
 
         Returns:
             A copy of the object with the new default `max_rows`.
