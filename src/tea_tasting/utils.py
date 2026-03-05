@@ -374,6 +374,23 @@ class DictsReprMixin(abc.ABC):
         Returns:
             List of dictionaries with formatted values.
         """
+        pretty_dicts, _, _ = self._to_pretty_dicts(
+            keys,
+            formatter,
+            max_rows=max_rows,
+            escape_markdown=False,
+        )
+        return pretty_dicts
+
+
+    def _to_pretty_dicts(
+        self,
+        keys: Sequence[str] | None = None,
+        formatter: Callable[[dict[str, object], str], str] = get_and_format_num,
+        *,
+        max_rows: int | None = None,
+        escape_markdown: bool,
+    ) -> tuple[list[dict[str, str]], dict[str, int], dict[str, str]]:
         if keys is None:
             keys = self.default_keys
         if max_rows is None:
@@ -381,15 +398,40 @@ class DictsReprMixin(abc.ABC):
 
         dicts = self.to_dicts()
         if max_rows <= 0 or len(dicts) <= max_rows:
-            return [{key: formatter(data, key) for key in keys} for data in dicts]
+            return _format_pretty_dicts(
+                dicts,
+                keys,
+                formatter,
+                escape_markdown=escape_markdown,
+            )
 
         bottom = max_rows // 2
         top = max_rows - bottom
-        return (
-            [{key: formatter(data, key) for key in keys} for data in dicts[:top]] +
-            [dict.fromkeys(keys, "…")] +
-            [{key: formatter(data, key) for key in keys} for data in dicts[-bottom:]]
+        top_dicts, widths, key_labels = _format_pretty_dicts(
+            dicts[:top],
+            keys,
+            formatter,
+            escape_markdown=escape_markdown,
         )
+        ellipsis_dicts, widths, key_labels = _format_pretty_dicts(
+            (dict.fromkeys(keys, "…"),),
+            keys,
+            lambda data, key: str(data[key]),
+            escape_markdown=escape_markdown,
+            key_labels=key_labels,
+            widths=widths,
+        )
+        bottom_dicts: list[dict[str, str]] = []
+        if bottom > 0:
+            bottom_dicts, widths, key_labels = _format_pretty_dicts(
+                dicts[-bottom:],
+                keys,
+                formatter,
+                escape_markdown=escape_markdown,
+                key_labels=key_labels,
+                widths=widths,
+            )
+        return top_dicts + ellipsis_dicts + bottom_dicts, widths, key_labels
 
 
     def to_string(
@@ -399,6 +441,7 @@ class DictsReprMixin(abc.ABC):
         *,
         max_rows: int | None = None,
         align: Literal["auto", "left", "right"] | None = None,
+        table_format: Literal["plain", "markdown"] = "plain",
     ) -> str:
         """Convert the object to a string.
 
@@ -431,6 +474,10 @@ class DictsReprMixin(abc.ABC):
                 - `"right"`: right-align all columns.
 
                 If `None`, the default value will be used.
+            table_format: Output table format:
+
+                - `"plain"`: plain text table.
+                - `"markdown"`: Markdown table.
 
         Returns:
             A table with results rendered as string.
@@ -444,26 +491,46 @@ class DictsReprMixin(abc.ABC):
             if align is None
             else check_scalar(align, "align", typ=str, in_={"auto", "left", "right"})
         )
+        table_format = check_scalar(
+            table_format,
+            "table_format",
+            typ=str,
+            in_={"plain", "markdown"},
+        )
 
-        def justify(key: str, val: str) -> str:
-            if align == "left":
-                return val.ljust(widths[key])
-            if align == "right":
-                return val.rjust(widths[key])
-            if key in self.default_text_keys:
-                return val.ljust(widths[key])
-            return val.rjust(widths[key])
+        left_aligned_keys: set[str]
+        if align == "auto":
+            left_aligned_keys = set(self.default_text_keys)
+        elif align == "left":
+            left_aligned_keys = set(keys)
+        else:
+            left_aligned_keys = set()
 
-        pretty_dicts = self.to_pretty_dicts(keys, formatter, max_rows=max_rows)
-        widths = {key: len(key) for key in keys}
-        for pretty_dict in pretty_dicts:
-            for key in keys:
-                widths[key] = max(widths[key], len(pretty_dict[key]))
+        def justify(key: str, val: str, fillchar: str = " ") -> str:
+            if key in left_aligned_keys:
+                return val.ljust(widths[key], fillchar)
+            return val.rjust(widths[key], fillchar)
 
-        sep = " "
-        rows = [sep.join(justify(key, key) for key in keys).rstrip()]
+        pretty_dicts, widths, key_labels = self._to_pretty_dicts(
+            keys,
+            formatter,
+            max_rows=max_rows,
+            escape_markdown=table_format == "markdown",
+        )
+        if table_format == "plain":
+            rows = [" ".join(justify(key, key) for key in keys).rstrip()]
+            rows.extend(
+                " ".join(justify(key, pretty_dict[key]) for key in keys).rstrip()
+                for pretty_dict in pretty_dicts
+            )
+            return "\n".join(rows)
+
+        rows = [
+            f"| {' | '.join(justify(key, key_labels[key]) for key in keys)} |",
+            f"| {' | '.join(justify(key, ':', '-') for key in keys)} |",
+        ]
         rows.extend(
-            sep.join(justify(key, pretty_dict[key]) for key in keys).rstrip()
+            f"| {' | '.join(justify(key, pretty_dict[key]) for key in keys)} |"
             for pretty_dict in pretty_dicts
         )
         return "\n".join(rows)
@@ -658,6 +725,43 @@ class DictsReprMixin(abc.ABC):
     def __str__(self) -> str:
         """Object string representation."""
         return self.to_string()
+
+
+def _format_pretty_dicts(
+    dicts: Sequence[dict[str, object]],
+    keys: Sequence[str],
+    formatter: Callable[[dict[str, object], str], str],
+    *,
+    escape_markdown: bool = False,
+    key_labels: dict[str, str] | None = None,
+    widths: dict[str, int] | None = None,
+) -> tuple[list[dict[str, str]], dict[str, int], dict[str, str]]:
+    if key_labels is None:
+        key_labels = {
+            key: _escape_markdown(key) if escape_markdown else key
+            for key in keys
+        }
+    if widths is None:
+        min_width = 3 if escape_markdown else 0
+        widths = {key: max(min_width, len(key_labels[key])) for key in keys}
+
+    pretty_dicts: list[dict[str, str]] = []
+    for data in dicts:
+        pretty_dict: dict[str, str] = {}
+        for key in keys:
+            value = formatter(data, key)
+            if escape_markdown:
+                value = _escape_markdown(value)
+            pretty_dict[key] = value
+            widths[key] = max(widths[key], len(value))
+        pretty_dicts.append(pretty_dict)
+
+    return pretty_dicts, widths, key_labels
+
+
+def _escape_markdown(text: str) -> str:
+    """Escape text for Markdown table rendering."""
+    return text.replace("\\", "\\\\").replace("|", "\\|").replace("\n", "<br>")
 
 
 class ReprMixin:
