@@ -306,6 +306,32 @@ def test_dicts_repr_mixin_to_string_markdown(
         | yy   | 0.346 | 0.457 |
         | zzz  | 0.568 | 0.679 |""")
 
+
+def test_dicts_repr_mixin_to_markdown(
+    dicts_repr: tea_tasting.utils.DictsReprMixin,
+) -> None:
+    assert dicts_repr.to_markdown() == textwrap.dedent("""\
+        | name |     a |     b |
+        | :--- | ----: | ----: |
+        | x    | 0.123 | 0.235 |
+        | yy   | 0.346 | 0.457 |
+        | zzz  | 0.568 | 0.679 |""")
+
+
+def test_dicts_repr_mixin_to_markdown_align_left_and_max_rows(
+    dicts_repr: tea_tasting.utils.DictsReprMixin,
+) -> None:
+    assert dicts_repr.to_markdown(
+        align="left",
+        max_rows=2,
+    ) == textwrap.dedent("""\
+        | name | a     | b     |
+        | :--- | :---- | :---- |
+        | x    | 0.123 | 0.235 |
+        | …    | …     | …     |
+        | zzz  | 0.568 | 0.679 |""")
+
+
 def test_dicts_repr_mixin_to_string_markdown_align_left(
     dicts_repr: tea_tasting.utils.DictsReprMixin,
 ) -> None:
