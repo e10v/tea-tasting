@@ -296,6 +296,67 @@ def test_dicts_repr_mixin_to_string_align_right(
           yy 0.346 0.457
          zzz 0.568 0.679""")
 
+def test_dicts_repr_mixin_to_string_markdown(
+    dicts_repr: tea_tasting.utils.DictsReprMixin,
+) -> None:
+    assert dicts_repr.to_string(table_format="markdown") == textwrap.dedent("""\
+        | name |     a |     b |
+        | :--- | ----: | ----: |
+        | x    | 0.123 | 0.235 |
+        | yy   | 0.346 | 0.457 |
+        | zzz  | 0.568 | 0.679 |""")
+
+def test_dicts_repr_mixin_to_string_markdown_align_left(
+    dicts_repr: tea_tasting.utils.DictsReprMixin,
+) -> None:
+    assert dicts_repr.to_string(
+        align="left",
+        table_format="markdown",
+    ) == textwrap.dedent("""\
+        | name | a     | b     |
+        | :--- | :---- | :---- |
+        | x    | 0.123 | 0.235 |
+        | yy   | 0.346 | 0.457 |
+        | zzz  | 0.568 | 0.679 |""")
+
+def test_dicts_repr_mixin_to_string_markdown_align_right(
+    dicts_repr: tea_tasting.utils.DictsReprMixin,
+) -> None:
+    assert dicts_repr.to_string(
+        align="right",
+        table_format="markdown",
+    ) == textwrap.dedent("""\
+        | name |     a |     b |
+        | ---: | ----: | ----: |
+        |    x | 0.123 | 0.235 |
+        |   yy | 0.346 | 0.457 |
+        |  zzz | 0.568 | 0.679 |""")
+
+def test_dicts_repr_mixin_to_string_markdown_max_rows(
+    dicts_repr: tea_tasting.utils.DictsReprMixin,
+) -> None:
+    assert dicts_repr.to_string(
+        max_rows=2,
+        table_format="markdown",
+    ) == textwrap.dedent("""\
+        | name |     a |     b |
+        | :--- | ----: | ----: |
+        | x    | 0.123 | 0.235 |
+        | …    |     … |     … |
+        | zzz  | 0.568 | 0.679 |""")
+
+def test_dicts_repr_mixin_to_string_markdown_escape() -> None:
+    class DictsRepr(tea_tasting.utils.DictsReprMixin):
+        default_keys = ("na|me", "val")
+        default_text_keys = ("na|me",)
+        def to_dicts(self) -> tuple[dict[str, object], ...]:
+            return ({"na|me": "a|b\\c\nd", "val": "x|y"},)
+
+    assert DictsRepr().to_string(table_format="markdown") == textwrap.dedent("""\
+        | na\\|me       |  val |
+        | :----------- | ---: |
+        | a\\|b\\\\c<br>d | x\\|y |""")
+
 def test_dicts_repr_mixin_to_html(
     dicts_repr: tea_tasting.utils.DictsReprMixin,
 ) -> None:
