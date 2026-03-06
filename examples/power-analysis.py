@@ -10,7 +10,7 @@
 
 import marimo
 
-__generated_with = "0.19.11"
+__generated_with = "0.20.1"
 app = marimo.App()
 
 
@@ -104,7 +104,7 @@ def _(mo):
     mo.md(r"""
     In the example above, tea-tasting calculates both the relative and absolute effect size for all metrics for two possible sample size values, `10_000` and `20_000`.
 
-    The `solve_power` methods of a [metric](https://tea-tasting.e10v.me/api/metrics/mean/#tea_tasting.metrics.mean.Mean.solve_power) and of an [experiment](https://tea-tasting.e10v.me/api/experiment/#tea_tasting.experiment.Experiment.solve_power) return instances of [`MetricPowerResults`](https://tea-tasting.e10v.me/api/metrics/base/#tea_tasting.metrics.base.MetricPowerResults) and [`ExperimentPowerResult`](https://tea-tasting.e10v.me/api/experiment/#tea_tasting.experiment.ExperimentPowerResult), respectively. These result classes provide serialization methods similar to those of experiment results: `to_dicts`, `to_arrow`, `to_pandas`, `to_polars`, `to_pretty_dicts`, `to_string`, `to_html`. They are also rendered as HTML tables in IPython and Jupyter, and as a table in marimo notebooks.
+    The `solve_power` methods of a [metric](https://tea-tasting.e10v.me/api/metrics/mean/#tea_tasting.metrics.mean.Mean.solve_power) and of an [experiment](https://tea-tasting.e10v.me/api/experiment/#tea_tasting.experiment.Experiment.solve_power) return instances of [`MetricPowerResults`](https://tea-tasting.e10v.me/api/metrics/base/#tea_tasting.metrics.base.MetricPowerResults) and [`ExperimentPowerResult`](https://tea-tasting.e10v.me/api/experiment/#tea_tasting.experiment.ExperimentPowerResult), respectively. These result classes provide serialization methods similar to those of experiment results: `to_dicts`, `to_arrow`, `to_pandas`, `to_polars`, `to_pretty_dicts`, `to_string`, `to_markdown`, `to_html`. They are also rendered as HTML tables in IPython and Jupyter, and as a table in marimo notebooks.
     """)
     return
 

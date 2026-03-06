@@ -11,7 +11,7 @@
 
 import marimo
 
-__generated_with = "0.19.11"
+__generated_with = "0.20.1"
 app = marimo.App()
 
 
@@ -245,9 +245,15 @@ def _(mo):
     - `to_polars`: Convert the result to a Polars DataFrame. Requires Polars to be installed.
     - `to_pretty_dicts`: Convert the result to a sequence of dictionaries with formatted values (as strings).
     - `to_string`: Convert the result to a string.
+    - `to_markdown`: Convert the result to a Markdown table.
     - `to_html`: Convert the result to HTML.
 
-    `result` is the same as `print(result.to_string())`. `ExperimentResult` also provides the `_repr_html_` method, which renders it as an HTML table in IPython and Jupyter, and the `_mime_` method, which renders it as a table in marimo notebooks.
+    `ExperimentResult` renders itself automatically based on where you display it:
+
+    - In a terminal or Python console, evaluating `result` or calling `print(result)`
+      shows the same plain-text table as `result.to_string()`.
+    - In IPython and Jupyter, `result` renders as an HTML table.
+    - In marimo notebooks, `result` renders as a table widget.
     """)
     return
 
@@ -261,7 +267,22 @@ def _(result):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    By default, methods `to_pretty_dicts`, `to_string`, and `to_html` return a predefined list of attributes. This list can be customized:
+    `to_markdown` is a convenience wrapper around `to_string(table_format="markdown")`:
+    """)
+    return
+
+
+@app.cell
+def _(result):
+    print(result.to_markdown())
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    By default, methods `to_pretty_dicts`, `to_string`, `to_markdown`, and `to_html`
+    return a predefined list of attributes. This list can be customized:
     """)
     return
 
