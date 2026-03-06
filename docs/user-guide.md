@@ -206,7 +206,12 @@ Fields in the result depend on the metric. For `Mean` and `RatioOfMeans`, the [f
 - `to_markdown`: Convert the result to a Markdown table.
 - `to_html`: Convert the result to HTML.
 
-`result` is the same as `print(result.to_string())`. `ExperimentResult` also provides the `_repr_html_` method, which renders it as an HTML table in IPython and Jupyter, and the `_mime_` method, which renders it as a table in marimo notebooks.
+`ExperimentResult` renders itself automatically based on where you display it:
+
+- In a terminal or Python console, evaluating `result` or calling `print(result)`
+  shows the same plain-text table as `result.to_string()`.
+- In IPython and Jupyter, `result` renders as an HTML table.
+- In marimo notebooks, `result` renders as a table widget.
 
 ```pycon
 >>> result
