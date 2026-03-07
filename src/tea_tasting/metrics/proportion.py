@@ -105,7 +105,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
                 - `"fisher"`: Fisher's exact test.
                 - `"log-likelihood"`: G-test.
                 - `"norm"`: Normal approximation of the binomial distribution.
-                    Also known as two-sample proportion Z-test.
+                    Also known as two-sample proportion z-test.
                     Confidence intervals for absolute and relative effect size are
                     calculated only for this method.
                 - `"pearson"`: Pearson's chi-squared test.
@@ -142,7 +142,7 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
             - [Boschloo's test](https://en.wikipedia.org/wiki/Boschloo%27s_test).
             - [Fisher's exact test](https://en.wikipedia.org/wiki/Fisher%27s_exact_test).
             - [G-test](https://en.wikipedia.org/wiki/G-test).
-            - [Two-proportion Z-test](https://en.wikipedia.org/wiki/Two-proportion_Z-test).
+            - [Two-proportion z-test](https://en.wikipedia.org/wiki/Two-proportion_Z-test).
             - [Pearson's chi-squared test](https://en.wikipedia.org/wiki/Pearson%27s_chi-squared_test).
 
         Examples:
