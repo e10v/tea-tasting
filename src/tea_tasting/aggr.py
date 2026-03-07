@@ -127,7 +127,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
         numer: str | None,
         denom: str | None,
     ) -> float | int:
-        """Sample variance of the ratio of two variables using the Delta method.
+        """Sample variance of the ratio of two variables using the delta method.
 
         Args:
             numer: Numerator variable name.
@@ -155,7 +155,7 @@ class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
         right_numer: str | None,
         right_denom: str | None,
     ) -> float | int:
-        """Sample covariance of the ratios of variables using the Delta method.
+        """Sample covariance of the ratios of variables using the delta method.
 
         Args:
             left_numer: First numerator variable name.

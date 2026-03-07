@@ -21,7 +21,7 @@ def _(mo):
 
     ## Intro
 
-    tea-tasting supports Student's t-test, Z-test, and [some other statistical tests](https://tea-tasting.e10v.me/api/metrics/index/) out of the box. However, you might want to analyze an experiment using other statistical criteria. In this case, you can define a custom metric with a statistical test of your choice.
+    tea-tasting supports Welch's and Student's t-tests, z-test, and [some other statistical tests](https://tea-tasting.e10v.me/api/metrics/index/) out of the box. However, you might want to analyze an experiment using other statistical criteria. In this case, you can define a custom metric with a statistical test of your choice.
 
     In tea-tasting, there are two types of metrics:
 
@@ -158,7 +158,7 @@ def _(mo):
 
     Method `analyze_aggregates` returns an instance of `ProportionResult`, defined earlier, with the analysis result.
 
-    Now we can analyze the proportion of users who created at least one order during the experiment. For comparison, let's also add a metric that performs a Z-test on the same column.
+    Now we can analyze the proportion of users who created at least one order during the experiment. For comparison, let's also add a metric that performs a z-test on the same column.
     """)
     return
 

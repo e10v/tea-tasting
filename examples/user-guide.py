@@ -87,7 +87,7 @@ def _(mo):
     - [Ibis](https://github.com/ibis-project/ibis) is a DataFrame API for various data backends. It supports many backends, including BigQuery, ClickHouse, PostgreSQL, Snowflake, Trino, and others. You can write an SQL query, [wrap](https://ibis-project.org/how-to/extending/sql#backend.sql) it as an Ibis Table, and pass it to tea-tasting.
     - [Narwhals](https://github.com/narwhals-dev/narwhals) is a compatibility layer between dataframe libraries. It supports cuDF, Daft, Dask, DuckDB, Modin, pandas, Polars, PyArrow, PySpark dataframes. You can use any of these dataframes as an input to tea-tasting.
 
-    Many statistical tests, such as the Student's t-test or the Z-test, require only aggregated data for analysis. For these tests, tea-tasting retrieves only aggregated statistics like mean and variance instead of downloading all detailed data. See more details in the [guide on data backends](https://tea-tasting.e10v.me/data-backends/).
+    Many statistical tests, such as t-test and z-test, require only aggregated data for analysis. For these tests, tea-tasting retrieves only aggregated statistics like mean and variance instead of downloading all detailed data. See more details in the [guide on data backends](https://tea-tasting.e10v.me/data-backends/).
 
     tea-tasting assumes that:
 
@@ -151,6 +151,8 @@ def _(mo):
     - `confidence_level`: Confidence level of the confidence interval. Default is `0.95`.
     - `equal_var`: Defines whether equal variance is assumed. If `True`, pooled variance is used for the calculation of the standard error of the difference between two means. Default is `False`.
     - `use_t`: Defines whether to use the Student's t-distribution (`True`) or the Normal distribution (`False`). Default is `True`.
+
+    With the default settings `use_t=True` and `equal_var=False`, `Mean` and `RatioOfMeans` use Welch's t-test. Set `equal_var=True` to use Student's t-test instead.
 
     Example usage:
     """)

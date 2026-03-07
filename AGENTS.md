@@ -7,7 +7,7 @@
 - `src/_internal`: docs tooling (marimo example generation, markdown extensions).
 - `src/tea_tasting/`: public package code:
     - `src/tea_tasting/metrics/`: built-in metrics and metrics base classes.
-    - `src/tea_tasting/aggr.py`: aggregated statistics helpers (count/mean/var/cov), Delta method for variance and covariance of ratio metrics.
+    - `src/tea_tasting/aggr.py`: aggregated statistics helpers (count/mean/var/cov), delta method for variance and covariance of ratio metrics.
     - `src/tea_tasting/config.py`: default parameter values used by other modules; can be set by users.
     - `src/tea_tasting/datasets.py`: simulated data generators.
     - `src/tea_tasting/experiment.py`: experiment orchestration (analyze/solve_power/simulate) and result classes.

@@ -25,7 +25,7 @@ def _(mo):
 
     tea-tasting supports a wide range of data backends such as BigQuery, ClickHouse, PostgreSQL, Snowflake, Trino, and many other backends supported by [Ibis](https://github.com/ibis-project/ibis). Ibis is a DataFrame API to various data backends.
 
-    Many statistical tests, such as the Student's t-test or the Z-test, require only aggregated data for analysis. For these tests, tea-tasting retrieves only aggregated statistics like mean and variance instead of downloading all detailed data.
+    Many statistical tests, such as t-test and z-test, require only aggregated data for analysis. For these tests, tea-tasting retrieves only aggregated statistics like mean and variance instead of downloading all detailed data.
 
     For example, if the raw experimental data are stored in ClickHouse, it's faster and more efficient to calculate counts, averages, variances, and covariances directly in ClickHouse rather than fetching granular data and performing aggregations in a Python environment.
 
@@ -175,7 +175,7 @@ def _(mo):
 
     ## Experiment analysis
 
-    The example above shows how to query metric averages. But for statistical inference, this is not enough. For example, Student's t-test and Z-test also require the number of rows and variances. Additionally, analysis of ratio metrics and variance reduction with CUPED require covariances.
+    The example above shows how to query metric averages. But for statistical inference, this is not enough. For example, t-test and z-test also require the number of rows and variances. Additionally, analysis of ratio metrics and variance reduction with CUPED require covariances.
 
     Querying all the required statistics manually can be a daunting and error-prone task. But don't worry—tea-tasting does this work for you. You just need to specify the metrics:
     """)
