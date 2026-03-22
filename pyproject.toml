@@ -14,14 +14,13 @@ dependencies = [
 ]
 requires-python = ">=3.10"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE*"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Information Technology",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -59,7 +58,7 @@ test = [
 
 
 [build-system]
-requires = ["pdm-backend"]
+requires = ["pdm-backend>=2.4.0"]
 build-backend = "pdm.backend"
 
 
@@ -121,6 +120,10 @@ reportUnknownParameterType = false
 reportUnknownVariableType = false
 
 
+[tool.tombi]
+schema.strict = false
+
+
 [tool.poe]
 executor = "uv"
 
@@ -154,11 +157,10 @@ markdownlint = 'markdownlint-cli2 "*.md" "docs/*.md"'
 readme = "python src/_internal/sync_readme.py"
 readme-check = "python src/_internal/sync_readme.py --check"
 reset = [
-    { cmd = "git checkout main" },
-    { cmd = "git pull" },
-    { cmd = "git checkout dev" },
-    { cmd = "git reset --hard main" },
-    { cmd = "git push --force" },
+    { cmd = "git fetch origin main" },
+    { cmd = "git switch dev" },
+    { cmd = "git reset --hard origin/main" },
+    { cmd = "git push --force-with-lease" },
 ]
 test = "coverage run -m pytest"
 type = "pyright"
