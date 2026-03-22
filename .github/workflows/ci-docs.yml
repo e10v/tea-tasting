@@ -18,11 +18,7 @@ on:
   workflow_dispatch:
 jobs:
   doctest-md:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.10"]
+    runs-on: ubuntu-latest
     steps:
       - name: checkout
         uses: actions/checkout@v6
@@ -30,9 +26,9 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           activate-environment: true
-          cache-suffix: "${{ matrix.python-version }}-test"
+          cache-suffix: "3.10-test"
           enable-cache: true
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.10"
       - name: install dependencies
         run: uv sync --group test
       - name: check readme sync
