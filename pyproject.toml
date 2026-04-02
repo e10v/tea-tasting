@@ -109,6 +109,10 @@ convention = "google"
 max-args = 8
 
 
+[tool.uv]
+exclude-newer = "7 days"
+
+
 [tool.pyright]
 exclude = ["examples", "**/node_modules", "**/__pycache__", "**/.*"]
 typeCheckingMode = "strict"
