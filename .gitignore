@@ -169,3 +169,6 @@ src/tea_tasting/_version.txt
 
 # uv lockfile
 uv.lock
+
+# Codex
+/.codex
