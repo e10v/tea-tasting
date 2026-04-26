@@ -176,6 +176,9 @@ def _(Proportion, data, tt):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    For a production implementation, see
+    [`proportion.py`](https://github.com/e10v/tea-tasting/blob/main/src/tea_tasting/metrics/proportion.py).
+
     ## Metrics based on granular data
 
     Now let's define a metric that performs the Mann-Whitney U test. While it's possible to use the aggregated sum of ranks for the test, this example uses granular data for analysis.
@@ -275,6 +278,9 @@ def _(MannWhitneyU, data, tt):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    For a production implementation, see
+    [`nonparametric.py`](https://github.com/e10v/tea-tasting/blob/main/src/tea_tasting/metrics/nonparametric.py).
+
     ## Analyzing two types of metrics together
 
     It's also possible to analyze both types of metrics in one experiment:

@@ -146,6 +146,9 @@ mean_users_with_orders   0.345     0.384             11%        [2.5%, 21%] 0.01
 
 ```
 
+For a production implementation, see
+[`proportion.py`](https://github.com/e10v/tea-tasting/blob/main/src/tea_tasting/metrics/proportion.py).
+
 ## Metrics based on granular data
 
 Now let's define a metric that performs the Mann-Whitney U test. While it's possible to use the aggregated sum of ranks for the test, this example uses granular data for analysis.
@@ -226,6 +229,9 @@ mwu_orders  0.0263   2069092
 mwu_revenue 0.0300   2068060
 
 ```
+
+For a production implementation, see
+[`nonparametric.py`](https://github.com/e10v/tea-tasting/blob/main/src/tea_tasting/metrics/nonparametric.py).
 
 ## Analyzing two types of metrics together
 
