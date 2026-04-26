@@ -11,7 +11,7 @@
 
 import marimo
 
-__generated_with = "0.20.1"
+__generated_with = "0.21.1"
 app = marimo.App()
 
 
@@ -151,8 +151,6 @@ def _(mo):
     - `confidence_level`: Confidence level of the confidence interval. Default is `0.95`.
     - `equal_var`: Defines whether equal variance is assumed. If `True`, pooled variance is used for the calculation of the standard error of the difference between two means. Default is `False`.
     - `use_t`: Defines whether to use the Student's t-distribution (`True`) or the Normal distribution (`False`). Default is `True`.
-
-    With the default settings `use_t=True` and `equal_var=False`, `Mean` and `RatioOfMeans` use Welch's t-test. Set `equal_var=True` to use Student's t-test instead.
 
     Example usage:
     """)
