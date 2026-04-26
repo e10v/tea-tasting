@@ -134,7 +134,7 @@ executor = "uv"
 [tool.poe.tasks]
 ci.sequence = ["doctest", "test", "cover", "lint", "type"]
 ci.ignore_fail = true
-ci-docs.sequence = ["doctest-md", "markdownlint", "readme-check"]
+ci-docs.sequence = ["doctest-md", "markdownlint", "readme-check", "examples-check"]
 ci-docs.ignore_fail = true
 cover = "coverage report -m"
 docserv = [
@@ -158,7 +158,7 @@ doctest-md = """pytest \
 examples = "python src/_internal/create_examples.py"
 examples-check = "python src/_internal/create_examples.py --check"
 lint = "ruff check ."
-markdownlint = 'markdownlint-cli2 "*.md" "docs/*.md"'
+markdownlint = 'markdownlint-cli2 "*.md" "docs/*.md" "examples/*.md"'
 readme = "python src/_internal/sync_readme.py"
 readme-check = "python src/_internal/sync_readme.py --check"
 reset = [

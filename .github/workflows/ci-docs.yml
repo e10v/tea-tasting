@@ -4,7 +4,7 @@ on:
     paths:
       - '*.md'
       - 'docs/*.md'
-      - 'examples/*.py'
+      - 'examples/*'
       - '.markdownlint.yml'
       - '.github/workflows/ci-docs.yml'
       - 'src/_internal/create_examples.py'
@@ -14,7 +14,7 @@ on:
     paths:
       - '*.md'
       - 'docs/*.md'
-      - 'examples/*.py'
+      - 'examples/*'
       - '.markdownlint.yml'
       - '.github/workflows/ci-docs.yml'
       - 'src/_internal/create_examples.py'
@@ -57,3 +57,4 @@ jobs:
           globs: |
             *.md
             docs/*.md
+            examples/*.md
