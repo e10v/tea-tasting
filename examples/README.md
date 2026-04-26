@@ -7,7 +7,7 @@ The tea-tasting repository includes [examples](https://github.com/e10v/tea-tasti
 To run the examples in your local environment, clone the repository and change to the project directory:
 
 ```bash
-git clone git@github.com:e10v/tea-tasting.git && cd tea-tasting
+git clone https://github.com/e10v/tea-tasting.git && cd tea-tasting
 ```
 
 Install marimo, tea-tasting, and other packages used in the examples:
