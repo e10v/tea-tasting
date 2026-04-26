@@ -2,13 +2,15 @@ name: ci
 on:
   pull_request:
     paths:
-      - '**.py'
+      - 'src/**'
+      - 'tests/**'
       - '.github/workflows/ci.yml'
       - 'pyproject.toml'
   push:
     branches: [main]
     paths:
-      - '**.py'
+      - 'src/**'
+      - 'tests/**'
       - '.github/workflows/ci.yml'
       - 'pyproject.toml'
   workflow_dispatch:
