@@ -3,7 +3,7 @@
 ## Project structure
 
 - `docs/`: documentation (for Material for MkDocs).
-- `examples/`: examples as marimo notebooks, auto-generated from `docs/*.md` guides, excluded from linting and type checking; don't edit directly.
+- `examples/`: examples as marimo notebooks, auto-generated from `docs/*.md` guides, excluded from code linting and type checking; don't edit directly.
 - `src/_internal`: docs tooling (marimo example generation, markdown extensions).
 - `src/tea_tasting/`: public package code:
     - `src/tea_tasting/metrics/`: built-in metrics and metrics base classes.
@@ -53,7 +53,8 @@
 - Tests and checks for docs changes:
     - Docs-only doctest: `uv run pytest --doctest-continue-on-failure --doctest-glob=*.md --ignore=tests/`
     - Check that `docs/index.md` is in sync with `README.md`: `uv run src/_internal/sync_readme.py --check`
-    - Markdown lint: `markdownlint-cli2 "*.md" "docs/*.md"`
+    - Check that examples are in sync with guides: `uv run src/_internal/create_examples.py --check`
+    - Markdown lint: `markdownlint-cli2 "*.md" "docs/*.md" "examples/*.md"`
 - Run them after creating or updating markdown files; fix errors.
 
 ## Code versioning
