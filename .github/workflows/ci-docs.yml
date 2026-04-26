@@ -4,16 +4,20 @@ on:
     paths:
       - '*.md'
       - 'docs/*.md'
+      - 'examples/*.py'
       - '.markdownlint.yml'
       - '.github/workflows/ci-docs.yml'
+      - 'src/_internal/create_examples.py'
       - 'src/_internal/sync_readme.py'
   push:
     branches: [main]
     paths:
       - '*.md'
       - 'docs/*.md'
+      - 'examples/*.py'
       - '.markdownlint.yml'
       - '.github/workflows/ci-docs.yml'
+      - 'src/_internal/create_examples.py'
       - 'src/_internal/sync_readme.py'
   workflow_dispatch:
 jobs:
@@ -31,6 +35,8 @@ jobs:
           python-version: "3.10"
       - name: install dependencies
         run: uv sync --group test
+      - name: check examples sync
+        run: uv run src/_internal/create_examples.py --check
       - name: check readme sync
         run: uv run src/_internal/sync_readme.py --check
       - name: doctest
