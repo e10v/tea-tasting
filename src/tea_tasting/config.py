@@ -11,7 +11,7 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Sequence
+    from collections.abc import Generator, Sequence
     from typing import Literal
 
 
@@ -194,7 +194,7 @@ def config_context(
     ratio: float | int | None = None,
     use_t: bool | None = None,
     **kwargs: object,
-) -> Iterator[object]:
+) -> Generator[object]:
     """A context manager that temporarily modifies the global configuration.
 
     Args:

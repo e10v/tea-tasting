@@ -17,6 +17,7 @@ from typing import (
 import ibis
 import ibis.expr.types
 import narwhals as nw
+import numpy as np
 import pyarrow as pa
 import pyarrow.compute as pc
 
@@ -29,6 +30,7 @@ if TYPE_CHECKING:
     from typing import Literal
 
     import narwhals.typing  # noqa: TC004
+    import numpy.typing as npt
 
 
 # The | operator doesn't work for NamedTuple, but Union works.
@@ -380,6 +382,25 @@ class MetricBaseGranular(MetricBase[MetricResultT], _HasCols):
         Returns:
             Analysis result.
         """
+
+
+def _handle_nan_policy(  # pyright: ignore[reportUnusedFunction]
+    control: npt.NDArray[np.number],
+    treatment: npt.NDArray[np.number],
+    nan_policy: Literal["propagate", "omit", "raise"],
+) -> tuple[npt.NDArray[np.number], npt.NDArray[np.number]]:
+    if nan_policy == "omit":
+        if control.ndim == 1:
+            return control[~np.isnan(control)], treatment[~np.isnan(treatment)]
+        return (
+            control[~np.isnan(control).any(axis=1)],
+            treatment[~np.isnan(treatment).any(axis=1)],
+        )
+
+    if nan_policy == "raise" and (np.isnan(control).any() or np.isnan(treatment).any()):
+        raise ValueError("Input contains nan.")
+
+    return control, treatment
 
 
 @overload

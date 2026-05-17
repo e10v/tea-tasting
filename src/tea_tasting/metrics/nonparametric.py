@@ -4,17 +4,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, NamedTuple
 
-import numpy as np
 import scipy.stats
 
 import tea_tasting.config
-from tea_tasting.metrics.base import MetricBaseGranular
+from tea_tasting.metrics.base import MetricBaseGranular, _handle_nan_policy
 import tea_tasting.utils
 
 
 if TYPE_CHECKING:
     from typing import Literal
 
+    import numpy as np
     import numpy.typing as npt
     import pyarrow as pa
 
@@ -199,17 +199,3 @@ class MannWhitneyU(MetricBaseGranular[MannWhitneyUResult]):  # noqa: D101
 
 def _select_as_numpy(data: pa.Table, column: str) -> npt.NDArray[np.number]:
     return data[column].combine_chunks().to_numpy(zero_copy_only=False)
-
-
-def _handle_nan_policy(
-    control: npt.NDArray[np.number],
-    treatment: npt.NDArray[np.number],
-    nan_policy: Literal["propagate", "omit", "raise"],
-) -> tuple[npt.NDArray[np.number], npt.NDArray[np.number]]:
-    if nan_policy == "omit":
-        return control[~np.isnan(control)], treatment[~np.isnan(treatment)]
-
-    if nan_policy == "raise" and (np.isnan(control).any() or np.isnan(treatment).any()):
-        raise ValueError("Input contains nan.")
-
-    return control, treatment
