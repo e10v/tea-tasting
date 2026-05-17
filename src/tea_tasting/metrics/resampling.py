@@ -243,7 +243,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
         contr = _select_as_numpy(control, self.columns)
         treat = _select_as_numpy(treatment, self.columns)
         contr, treat = _handle_nan_policy(contr, treat, self.nan_policy)
-        if len(contr) == 0 or len(treat) == 0:
+        if len(contr) <= 0 or len(treat) <= 0:
             return BootstrapResult(
                 control=float("nan"),
                 treatment=float("nan"),
@@ -256,7 +256,6 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
             )
 
         stat = statistic(contr, treat, axis=0)
-
         result = scipy.stats.bootstrap(
             (contr, treat),
             statistic,
