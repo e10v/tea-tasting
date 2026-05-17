@@ -10,7 +10,7 @@ import numpy as np
 import scipy.stats
 
 import tea_tasting.config
-from tea_tasting.metrics.base import MetricBaseGranular
+from tea_tasting.metrics.base import MetricBaseGranular, _handle_nan_policy
 import tea_tasting.utils
 
 
@@ -55,7 +55,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
         new="rng",
         func_name="Bootstrap",
     )
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         columns: str | Sequence[str],
         statistic: Callable[..., npt.NDArray[np.number]],
@@ -65,6 +65,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
         n_resamples: int | None = None,
         method: Literal["percentile", "basic", "bca"] = "bca",
         batch: int | None = None,
+        nan_policy: Literal["propagate", "omit", "raise"] = "propagate",
         rng: int | np.random.Generator | np.random.SeedSequence | None = None,
     ) -> None:
         """Metric for the analysis of a statistic using bootstrap resampling.
@@ -99,6 +100,12 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
                 to statistic. Memory usage is O(`batch * n`), where `n` is
                 the sample size. Default is `None`, in which case `batch = n_resamples`
                 (or `batch = max(n_resamples, n)` for method="bca").
+            nan_policy: Defines how to handle `nan` values:
+
+                - `"propagate"`: return `nan`,
+                - `"omit"`: ignore `nan` values,
+                - `"raise"`: raise an exception.
+
             rng: Pseudorandom number generator or seed used to generate
                 resamples.
                 The deprecated alias `random_state` is also accepted until
@@ -185,6 +192,14 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
 
         self.batch = tea_tasting.utils.check_scalar(batch, "batch", typ=int | None)
 
+        self.nan_policy: Literal["propagate", "omit", "raise"]
+        self.nan_policy = tea_tasting.utils.check_scalar(
+            nan_policy,
+            "nan_policy",
+            typ=str,
+            in_={"propagate", "omit", "raise"},
+        )
+
         self.rng = tea_tasting.utils.auto_check(rng, "rng")
         self.random_state = self.rng
 
@@ -227,6 +242,19 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
 
         contr = _select_as_numpy(control, self.columns)
         treat = _select_as_numpy(treatment, self.columns)
+        contr, treat = _handle_nan_policy(contr, treat, self.nan_policy)
+        if len(contr) == 0 or len(treat) == 0:
+            return BootstrapResult(
+                control=float("nan"),
+                treatment=float("nan"),
+                effect_size=float("nan"),
+                effect_size_ci_lower=float("nan"),
+                effect_size_ci_upper=float("nan"),
+                rel_effect_size=float("nan"),
+                rel_effect_size_ci_lower=float("nan"),
+                rel_effect_size_ci_upper=float("nan"),
+            )
+
         stat = statistic(contr, treat, axis=0)
 
         result = scipy.stats.bootstrap(
@@ -272,7 +300,7 @@ class Quantile(Bootstrap):  # noqa: D101
         new="rng",
         func_name="Quantile",
     )
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         column: str,
         q: float = 0.5,
@@ -282,6 +310,7 @@ class Quantile(Bootstrap):  # noqa: D101
         n_resamples: int | None = None,
         method: Literal["percentile", "basic", "bca"] = "basic",
         batch: int | None = None,
+        nan_policy: Literal["propagate", "omit", "raise"] = "omit",
         rng: int | np.random.Generator | np.random.SeedSequence | None = None,
     ) -> None:
         """Metric for the analysis of quantiles using bootstrap resampling.
@@ -315,6 +344,12 @@ class Quantile(Bootstrap):  # noqa: D101
                 to statistic. Memory usage is O(`batch * n`), where `n` is
                 the sample size. Default is `None`, in which case `batch = n_resamples`
                 (or `batch = max(n_resamples, n)` for method="bca").
+            nan_policy: Defines how to handle `nan` values:
+
+                - `"propagate"`: return `nan`,
+                - `"omit"`: ignore `nan` values,
+                - `"raise"`: raise an exception.
+
             rng: Pseudorandom number generator or seed used to generate
                 resamples.
                 The deprecated alias `random_state` is also accepted until
@@ -346,11 +381,12 @@ class Quantile(Bootstrap):  # noqa: D101
         self.q = tea_tasting.utils.check_scalar(q, "q", typ=float, ge=0, le=1)
         super().__init__(
             columns=column,
-            statistic=functools.partial(np.nanquantile, q=q),
+            statistic=functools.partial(np.quantile, q=q),
             alternative=alternative,
             confidence_level=confidence_level,
             n_resamples=n_resamples,
             method=method,
             batch=batch,
+            nan_policy=nan_policy,
             rng=rng,
         )
