@@ -13,6 +13,8 @@ import tea_tasting.metrics.resampling
 
 
 if TYPE_CHECKING:
+    from collections.abc import Hashable
+
     import numpy.typing as npt
 
 
@@ -21,7 +23,7 @@ def data_arrow() -> pa.Table:
     return tea_tasting.datasets.make_users_data(n_users=100, rng=42)
 
 @pytest.fixture
-def data_gran(data_arrow: pa.Table) -> dict[object, pa.Table]:
+def data_gran(data_arrow: pa.Table) -> dict[Hashable, pa.Table]:
     return tea_tasting.metrics.base.read_granular(
         data_arrow,
         ("sessions", "orders", "revenue"),
@@ -80,7 +82,7 @@ def test_bootstrap_analyze_frame(data_arrow: pa.Table) -> None:
     assert isinstance(result, tea_tasting.metrics.resampling.BootstrapResult)
 
 
-def test_bootstrap_analyze_default(data_gran: dict[object, pa.Table]) -> None:
+def test_bootstrap_analyze_default(data_gran: dict[Hashable, pa.Table]) -> None:
     metric = tea_tasting.metrics.resampling.Bootstrap(
         "revenue",
         np.mean,
@@ -98,7 +100,9 @@ def test_bootstrap_analyze_default(data_gran: dict[object, pa.Table]) -> None:
     assert result.rel_effect_size_ci_lower == pytest.approx(-0.5658493834599828)
     assert result.rel_effect_size_ci_upper == pytest.approx(1.8185473860534842)
 
-def test_bootstrap_analyze_multiple_columns(data_gran: dict[object, pa.Table]) -> None:
+def test_bootstrap_analyze_multiple_columns(
+    data_gran: dict[Hashable, pa.Table],
+) -> None:
     def ratio_of_means(
         sample: npt.NDArray[np.number],
         axis: int,
@@ -123,7 +127,9 @@ def test_bootstrap_analyze_multiple_columns(data_gran: dict[object, pa.Table]) -
     assert result.rel_effect_size_ci_lower == pytest.approx(-0.6424902672606227)
     assert result.rel_effect_size_ci_upper == pytest.approx(0.4374404130492657)
 
-def test_bootstrap_analyze_division_by_zero(data_gran: dict[object, pa.Table]) -> None:
+def test_bootstrap_analyze_division_by_zero(
+    data_gran: dict[Hashable, pa.Table],
+) -> None:
     metric = tea_tasting.metrics.resampling.Bootstrap(
         "orders",
         np.median,
@@ -148,7 +154,7 @@ def test_bootstrap_analyze_nan_policy_raise() -> None:
         np.mean,
         nan_policy="raise",
     )
-    data: dict[object, pa.Table] = {
+    data: dict[Hashable, pa.Table] = {
         0: pa.table({"value": [1.0, float("nan")]}),
         1: pa.table({"value": [2.0, 3.0]}),
     }
@@ -164,7 +170,7 @@ def test_bootstrap_analyze_nan_policy_omit() -> None:
         nan_policy="omit",
         rng=42,
     )
-    data: dict[object, pa.Table] = {
+    data: dict[Hashable, pa.Table] = {
         0: pa.table({"value": [1.0, float("nan"), 3.0]}),
         1: pa.table({"value": [2.0, 4.0, float("nan")]}),
     }
@@ -191,7 +197,7 @@ def test_bootstrap_analyze_nan_policy_omit_multiple_columns() -> None:
         nan_policy="omit",
         rng=42,
     )
-    data: dict[object, pa.Table] = {
+    data: dict[Hashable, pa.Table] = {
         0: pa.table({
             "a": [2.0, 4.0, float("nan"), 6.0],
             "b": [1.0, 2.0, 4.0, float("nan")],
@@ -214,7 +220,7 @@ def test_bootstrap_analyze_nan_policy_omit_empty() -> None:
         np.mean,
         nan_policy="omit",
     )
-    data: dict[object, pa.Table] = {
+    data: dict[Hashable, pa.Table] = {
         0: pa.table({"value": [float("nan"), float("nan")]}),
         1: pa.table({"value": [2.0, 3.0]}),
     }
@@ -229,7 +235,7 @@ def test_bootstrap_analyze_nan_policy_omit_empty() -> None:
     assert np.isnan(result.rel_effect_size_ci_upper)
 
 
-def test_quantile(data_gran: dict[object, pa.Table]) -> None:
+def test_quantile(data_gran: dict[Hashable, pa.Table]) -> None:
     metric = tea_tasting.metrics.resampling.Quantile(
         "revenue",
         q=0.8,
@@ -262,7 +268,7 @@ def test_quantile_analyze_nan_policy_propagate() -> None:
         rng=42,
         nan_policy="propagate",
     )
-    data: dict[object, pa.Table] = {
+    data: dict[Hashable, pa.Table] = {
         0: pa.table({"value": [1.0, float("nan"), 3.0]}),
         1: pa.table({"value": [2.0, 4.0, 6.0]}),
     }
@@ -282,7 +288,7 @@ def test_quantile_analyze_nan_policy_omit() -> None:
         nan_policy="omit",
         rng=42,
     )
-    data: dict[object, pa.Table] = {
+    data: dict[Hashable, pa.Table] = {
         0: pa.table({"value": [1.0, float("nan"), 3.0]}),
         1: pa.table({"value": [2.0, 4.0, float("nan")]}),
     }

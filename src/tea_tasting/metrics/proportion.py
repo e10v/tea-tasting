@@ -16,6 +16,7 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
+    from collections.abc import Hashable
     from typing import Literal
 
     import ibis.expr.types
@@ -424,7 +425,7 @@ class SampleRatioResult(NamedTuple):
 class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
     def __init__(
         self,
-        ratio: float | int | dict[object, float | int] = 1,
+        ratio: float | int | dict[Hashable, float | int] = 1,
         *,
         method: Literal["auto", "binom", "norm"] = "auto",
         correction: bool | None = None,
@@ -499,9 +500,9 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
     def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[
-            object, tea_tasting.aggr.Aggregates],
-        control: object,
-        treatment: object,
+            Hashable, tea_tasting.aggr.Aggregates],
+        control: Hashable,
+        treatment: Hashable,
         variant: str | None = None,
     ) -> SampleRatioResult:
         """Perform a sample ratio mismatch check.

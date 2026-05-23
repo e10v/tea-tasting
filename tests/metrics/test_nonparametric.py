@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 import unittest.mock
 
 import numpy as np
@@ -12,6 +12,10 @@ import tea_tasting.metrics.base
 import tea_tasting.metrics.nonparametric
 
 
+if TYPE_CHECKING:
+    from collections.abc import Hashable
+
+
 @pytest.fixture
 def data_arrow() -> pa.Table:
     return pa.table({
@@ -21,7 +25,7 @@ def data_arrow() -> pa.Table:
 
 
 @pytest.fixture
-def data_gran(data_arrow: pa.Table) -> dict[object, pa.Table]:
+def data_gran(data_arrow: pa.Table) -> dict[Hashable, pa.Table]:
     return tea_tasting.metrics.base.read_granular(
         data_arrow,
         ("value",),
@@ -72,7 +76,7 @@ def test_mann_whitney_u_analyze_frame(data_arrow: pa.Table) -> None:
     assert isinstance(result, tea_tasting.metrics.nonparametric.MannWhitneyUResult)
 
 
-def test_mann_whitney_u_analyze(data_gran: dict[object, pa.Table]) -> None:
+def test_mann_whitney_u_analyze(data_gran: dict[Hashable, pa.Table]) -> None:
     metric = tea_tasting.metrics.nonparametric.MannWhitneyU("value", method="exact")
     result = metric.analyze(data_gran, 0, 1)
     assert result.control == 0
@@ -84,7 +88,7 @@ def test_mann_whitney_u_analyze(data_gran: dict[object, pa.Table]) -> None:
 
 
 def test_mann_whitney_u_analyze_uses_treatment_order(
-    data_gran: dict[object, pa.Table],
+    data_gran: dict[Hashable, pa.Table],
 ) -> None:
     metric = tea_tasting.metrics.nonparametric.MannWhitneyU(
         "value",
@@ -117,7 +121,7 @@ def test_mann_whitney_u_analyze_uses_treatment_order(
 
 def test_mann_whitney_u_analyze_ties() -> None:
     metric = tea_tasting.metrics.nonparametric.MannWhitneyU("value")
-    data: dict[object, pa.Table] = {
+    data: dict[Hashable, pa.Table] = {
         0: pa.table({"value": [0.0, 0.0]}),
         1: pa.table({"value": [0.0, 0.0]}),
     }
@@ -133,7 +137,7 @@ def test_mann_whitney_u_analyze_nan_policy_raise() -> None:
         "value",
         nan_policy="raise",
     )
-    data: dict[object, pa.Table] = {
+    data: dict[Hashable, pa.Table] = {
         0: pa.table({"value": [1.0, float("nan")]}),
         1: pa.table({"value": [2.0, 3.0]}),
     }
@@ -146,7 +150,7 @@ def test_mann_whitney_u_analyze_nan_policy_omit_empty() -> None:
         "value",
         nan_policy="omit",
     )
-    data: dict[object, pa.Table] = {
+    data: dict[Hashable, pa.Table] = {
         0: pa.table({"value": [float("nan"), float("nan")]}),
         1: pa.table({"value": [2.0, 3.0]}),
     }

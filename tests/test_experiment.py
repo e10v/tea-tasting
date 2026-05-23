@@ -21,7 +21,7 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Callable, Hashable, Iterable
     from typing import Literal
 
     import narwhals.typing
@@ -58,9 +58,9 @@ class _Metric(
     def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[
-            object, tea_tasting.aggr.Aggregates],
-        control: object,
-        treatment: object,
+            Hashable, tea_tasting.aggr.Aggregates],
+        control: Hashable,
+        treatment: Hashable,
         variant: str,
     ) -> _MetricResultTuple:
         if not isinstance(data, dict):
@@ -275,7 +275,7 @@ def data_arrow_multi(data_arrow: pa.Table) -> pa.Table:
 
 
 @pytest.fixture
-def data_aggr(data_arrow: pa.Table) -> dict[object, tea_tasting.aggr.Aggregates]:
+def data_aggr(data_arrow: pa.Table) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
     return tea_tasting.aggr.read_aggregates(
         data_arrow,
         group_col="variant",
@@ -289,7 +289,7 @@ def data_aggr(data_arrow: pa.Table) -> dict[object, tea_tasting.aggr.Aggregates]
 @pytest.fixture
 def data_aggr_multi(
     data_arrow_multi: pa.Table,
-) -> dict[object, tea_tasting.aggr.Aggregates]:
+) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
     return tea_tasting.aggr.read_aggregates(
         data_arrow_multi,
         group_col="variant",
@@ -493,7 +493,7 @@ def test_experiment_analyze_gran(
 
 
 def test_experiment_analyze_aggregated_data(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
     ref_result: tea_tasting.experiment.ExperimentResult,
 ) -> None:
     experiment = tea_tasting.experiment.Experiment({
@@ -507,7 +507,7 @@ def test_experiment_analyze_aggregated_data(
 
 
 def test_experiment_analyze_aggregated_data_all_pairs(
-    data_aggr_multi: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr_multi: dict[Hashable, tea_tasting.aggr.Aggregates],
     ref_result: tea_tasting.experiment.ExperimentResult,
 ) -> None:
     experiment = tea_tasting.experiment.Experiment({
@@ -528,7 +528,7 @@ def test_experiment_analyze_aggregated_data_all_pairs(
 
 
 def test_experiment_analyze_aggregated_data_raises_for_non_aggregated_metric(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     experiment = tea_tasting.experiment.Experiment({
         "avg_sessions": _Metric("sessions"),
@@ -539,7 +539,7 @@ def test_experiment_analyze_aggregated_data_raises_for_non_aggregated_metric(
 
 
 def test_experiment_analyze_aggregated_data_raises_for_granular_metric(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     experiment = tea_tasting.experiment.Experiment({
         "avg_orders": _MetricAggregated("orders"),
@@ -673,7 +673,7 @@ def test_experiment_simulate_callable_aggregated() -> None:
     aggrs = []
     def make_data(
         rng: np.random.Generator,
-    ) -> dict[object, tea_tasting.aggr.Aggregates]:
+    ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
         table = tea_tasting.datasets.make_users_data(rng=rng, n_users=100)
         aggr = tea_tasting.aggr.read_aggregates(
             table,
@@ -696,7 +696,7 @@ def test_experiment_simulate_callable_aggregated_raises_for_ratio() -> None:
     })
     def make_data(
         rng: np.random.Generator,
-    ) -> dict[object, tea_tasting.aggr.Aggregates]:
+    ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
         return tea_tasting.aggr.read_aggregates(
             tea_tasting.datasets.make_users_data(rng=rng, n_users=100),
             group_col="variant",
@@ -715,7 +715,7 @@ def test_experiment_simulate_callable_aggregated_raises_for_treat() -> None:
     })
     def make_data(
         rng: np.random.Generator,
-    ) -> dict[object, tea_tasting.aggr.Aggregates]:
+    ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
         return tea_tasting.aggr.read_aggregates(
             tea_tasting.datasets.make_users_data(rng=rng, n_users=100),
             group_col="variant",

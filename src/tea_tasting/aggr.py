@@ -13,7 +13,7 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Hashable, Sequence
 
     import narwhals.typing  # noqa: TC004
 
@@ -237,7 +237,7 @@ def read_aggregates(
     mean_cols: Sequence[str],
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
-) -> dict[object, Aggregates]:
+) -> dict[Hashable, Aggregates]:
     ...
 
 @overload
@@ -260,7 +260,7 @@ def read_aggregates(
     mean_cols: Sequence[str],
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
-) -> dict[object, Aggregates] | Aggregates:
+) -> dict[Hashable, Aggregates] | Aggregates:
     """Extract aggregated statistics.
 
     Args:
