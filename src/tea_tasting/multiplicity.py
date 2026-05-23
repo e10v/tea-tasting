@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import abc
 from collections import UserDict
+from collections.abc import Hashable
 from typing import TYPE_CHECKING
 
 import tea_tasting.config
@@ -21,7 +22,7 @@ NO_NAME_COMPARISON = "-"
 
 class MultipleComparisonsResults(
     tea_tasting.utils.DictsReprMixin,
-    UserDict[object, tea_tasting.experiment.ExperimentResult],
+    UserDict[Hashable, tea_tasting.experiment.ExperimentResult],
 ):
     """Multiple comparisons result."""
     default_keys = (
@@ -47,7 +48,7 @@ class MultipleComparisonsResults(
 
 def adjust_fdr(
     experiment_results: tea_tasting.experiment.ExperimentResult | Mapping[
-        object, tea_tasting.experiment.ExperimentResult],
+        Hashable, tea_tasting.experiment.ExperimentResult],
     metrics: str | set[str] | Sequence[str] | None = None,
     *,
     alpha: float | None = None,
@@ -222,7 +223,7 @@ def adjust_fdr(
 
 def adjust_fwer(
     experiment_results: tea_tasting.experiment.ExperimentResult | Mapping[
-        object, tea_tasting.experiment.ExperimentResult],
+        Hashable, tea_tasting.experiment.ExperimentResult],
     metrics: str | set[str] | Sequence[str] | None = None,
     *,
     alpha: float | None = None,
@@ -405,10 +406,10 @@ def adjust_fwer(
 
 def _copy_results(
     experiment_results: tea_tasting.experiment.ExperimentResult | Mapping[
-        object, tea_tasting.experiment.ExperimentResult],
+        Hashable, tea_tasting.experiment.ExperimentResult],
     metrics: str | set[str] | Sequence[str] | None = None,
 ) -> tuple[
-    dict[object, tea_tasting.experiment.ExperimentResult],
+    dict[Hashable, tea_tasting.experiment.ExperimentResult],
     list[dict[str, object]],
 ]:
     if isinstance(experiment_results, tea_tasting.experiment.ExperimentResult):

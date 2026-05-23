@@ -26,7 +26,7 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Hashable, Sequence
     from typing import Literal
 
     import narwhals.typing  # noqa: TC004
@@ -62,8 +62,8 @@ class MetricBase(abc.ABC, Generic[MetricResultT], tea_tasting.utils.ReprMixin):
     def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
-        control: object,
-        treatment: object,
+        control: Hashable,
+        treatment: Hashable,
         variant: str,
     ) -> MetricResultT:
         """Analyze a metric in an experiment.
@@ -157,9 +157,9 @@ class MetricBaseAggregated(MetricBase[MetricResultT], _HasAggrCols):
     @overload
     def analyze(
         self,
-        data: dict[object, tea_tasting.aggr.Aggregates],
-        control: object,
-        treatment: object,
+        data: dict[Hashable, tea_tasting.aggr.Aggregates],
+        control: Hashable,
+        treatment: Hashable,
         variant: str | None = None,
     ) -> MetricResultT:
         ...
@@ -168,8 +168,8 @@ class MetricBaseAggregated(MetricBase[MetricResultT], _HasAggrCols):
     def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
-        control: object,
-        treatment: object,
+        control: Hashable,
+        treatment: Hashable,
         variant: str,
     ) -> MetricResultT:
         ...
@@ -177,9 +177,9 @@ class MetricBaseAggregated(MetricBase[MetricResultT], _HasAggrCols):
     def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[
-            object, tea_tasting.aggr.Aggregates],
-        control: object,
-        treatment: object,
+            Hashable, tea_tasting.aggr.Aggregates],
+        control: Hashable,
+        treatment: Hashable,
         variant: str | None = None,
     ) -> MetricResultT:
         """Analyze a metric in an experiment.
@@ -277,11 +277,11 @@ def aggregate_by_variants(
     data: (
         narwhals.typing.IntoFrame |
         ibis.expr.types.Table |
-        dict[object, tea_tasting.aggr.Aggregates]
+        dict[Hashable, tea_tasting.aggr.Aggregates]
     ),
     aggr_cols: AggrCols,
     variant: str | None = None,
-) ->  dict[object, tea_tasting.aggr.Aggregates]:
+) ->  dict[Hashable, tea_tasting.aggr.Aggregates]:
     """Aggregate experimental data by variants.
 
     Args:
@@ -317,9 +317,9 @@ class MetricBaseGranular(MetricBase[MetricResultT], _HasCols):
     @overload
     def analyze(
         self,
-        data: dict[object, pa.Table],
-        control: object,
-        treatment: object,
+        data: dict[Hashable, pa.Table],
+        control: Hashable,
+        treatment: Hashable,
         variant: str | None = None,
     ) -> MetricResultT:
         ...
@@ -328,8 +328,8 @@ class MetricBaseGranular(MetricBase[MetricResultT], _HasCols):
     def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
-        control: object,
-        treatment: object,
+        control: Hashable,
+        treatment: Hashable,
         variant: str,
     ) -> MetricResultT:
         ...
@@ -339,10 +339,10 @@ class MetricBaseGranular(MetricBase[MetricResultT], _HasCols):
         data: (
             narwhals.typing.IntoFrame |
             ibis.expr.types.Table |
-            dict[object, pa.Table]
+            dict[Hashable, pa.Table]
         ),
-        control: object,
-        treatment: object,
+        control: Hashable,
+        treatment: Hashable,
         variant: str | None = None,
     ) -> MetricResultT:
         """Analyze a metric in an experiment.
@@ -413,10 +413,10 @@ def read_granular(
 
 @overload
 def read_granular(
-    data: dict[object, pa.Table],
+    data: dict[Hashable, pa.Table],
     cols: Sequence[str] = (),
     variant: None = None,
-) -> dict[object, pa.Table]:
+) -> dict[Hashable, pa.Table]:
     ...
 
 @overload
@@ -425,11 +425,11 @@ def read_granular(
         narwhals.typing.IntoFrame |
         narwhals.typing.Frame |
         ibis.expr.types.Table |
-        dict[object, pa.Table]
+        dict[Hashable, pa.Table]
     ),
     cols: Sequence[str],
     variant: str,
-) -> dict[object, pa.Table]:
+) -> dict[Hashable, pa.Table]:
     ...
 
 def read_granular(
@@ -437,11 +437,11 @@ def read_granular(
         narwhals.typing.IntoFrame |
         narwhals.typing.Frame |
         ibis.expr.types.Table |
-        dict[object, pa.Table]
+        dict[Hashable, pa.Table]
     ),
     cols: Sequence[str] = (),
     variant: str | None = None,
-) -> pa.Table | dict[object, pa.Table]:
+) -> pa.Table | dict[Hashable, pa.Table]:
     """Read granular experimental data.
 
     Args:

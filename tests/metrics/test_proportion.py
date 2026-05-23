@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 import unittest.mock
 
 import pyarrow as pa
@@ -15,6 +15,10 @@ import tea_tasting.metrics.base
 import tea_tasting.metrics.proportion
 
 
+if TYPE_CHECKING:
+    from collections.abc import Hashable
+
+
 def append_has_order(data: pa.Table) -> pa.Table:
     return data.append_column(
         "has_order",
@@ -26,7 +30,7 @@ def data_arrow() -> pa.Table:
     return append_has_order(tea_tasting.datasets.make_users_data(n_users=100, rng=42))
 
 @pytest.fixture
-def data_aggr(data_arrow: pa.Table) -> dict[object, tea_tasting.aggr.Aggregates]:
+def data_aggr(data_arrow: pa.Table) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
     return tea_tasting.aggr.read_aggregates(
         data_arrow,
         group_col="variant",
@@ -123,7 +127,7 @@ def test_proportion_analyze_auto() -> None:
         assert not math.isnan(result.rel_effect_size_ci_upper)
 
 def test_proportion_analyze_barnard(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.Proportion("has_order", method="barnard")
     result = metric.analyze(data_aggr, 0, 1, variant="variant")
@@ -138,7 +142,7 @@ def test_proportion_analyze_barnard(
     assert result.pvalue == pytest.approx(0.530637102766593)
 
 def test_proportion_analyze_barnard_less_pooled(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.Proportion(
         "has_order", method="barnard", alternative="less", equal_var=True)
@@ -146,14 +150,14 @@ def test_proportion_analyze_barnard_less_pooled(
     assert result.pvalue == pytest.approx(0.2894571757676508)
 
 def test_proportion_analyze_boschloo(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.Proportion("has_order", method="boschloo")
     result = metric.analyze(data_aggr, 0, 1, variant="variant")
     assert result.pvalue == pytest.approx(0.4000169399363184)
 
 def test_proportion_analyze_boschloo_greater(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.Proportion(
         "has_order", method="boschloo", alternative="greater")
@@ -161,14 +165,14 @@ def test_proportion_analyze_boschloo_greater(
     assert result.pvalue == pytest.approx(0.8249417819623234)
 
 def test_proportion_analyze_fisher(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.Proportion("has_order", method="fisher")
     result = metric.analyze(data_aggr, 0, 1, variant="variant")
     assert result.pvalue == pytest.approx(0.3999948918153569)
 
 def test_proportion_analyze_fisher_less(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.Proportion(
         "has_order", method="fisher", alternative="less")
@@ -176,7 +180,7 @@ def test_proportion_analyze_fisher_less(
     assert result.pvalue == pytest.approx(0.2546303652212273)
 
 def test_proportion_analyze_log_likelihood(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.Proportion(
         "has_order", method="log-likelihood")
@@ -184,7 +188,7 @@ def test_proportion_analyze_log_likelihood(
     assert result.pvalue == pytest.approx(0.5076294534617167)
 
 def test_proportion_analyze_log_likelihood_no_corr(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.Proportion(
         "has_order", method="log-likelihood", correction=False)
@@ -192,7 +196,7 @@ def test_proportion_analyze_log_likelihood_no_corr(
     assert result.pvalue == pytest.approx(0.37976268998844287)
 
 def test_proportion_analyze_pearson(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.Proportion("has_order", method="pearson")
     result = metric.analyze(data_aggr, 0, 1, variant="variant")
@@ -208,7 +212,7 @@ def test_proportion_analyze_pearson_zero_margin() -> None:
     assert math.isnan(result.pvalue)
 
 def test_proportion_analyze_norm(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.Proportion("has_order", method="norm")
     result = metric.analyze(data_aggr, 0, 1, variant="variant")
@@ -219,7 +223,7 @@ def test_proportion_analyze_norm(
     assert result.pvalue == pytest.approx(0.5083165530405196)
 
 def test_proportion_analyze_norm_unpooled(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.Proportion(
         "has_order", method="norm", equal_var=False)
@@ -231,7 +235,7 @@ def test_proportion_analyze_norm_unpooled(
     assert result.pvalue == pytest.approx(0.5049066155125612)
 
 def test_proportion_analyze_norm_greater(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.Proportion(
         "has_order", method="norm", alternative="greater")
@@ -243,7 +247,7 @@ def test_proportion_analyze_norm_greater(
     assert result.pvalue == pytest.approx(0.2541582765202598)
 
 def test_proportion_analyze_norm_less(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.Proportion(
         "has_order", method="norm", alternative="less")
@@ -255,7 +259,7 @@ def test_proportion_analyze_norm_less(
     assert result.pvalue == pytest.approx(0.2541582765202598)
 
 def test_proportion_analyze_norm_no_corr(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.Proportion(
         "has_order", method="norm", correction=False)
@@ -268,7 +272,7 @@ def test_proportion_analyze_norm_no_corr(
 
 
 def test_proportion_analyze_norm_corr_widens_ci(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric_corr = tea_tasting.metrics.proportion.Proportion(
         "has_order", method="norm", correction=True)
@@ -359,7 +363,7 @@ def test_sample_ratio_analyze_auto() -> None:
         mock.assert_called_once()
 
 def test_sample_ratio_analyze_binom(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.SampleRatio(method="binom")
     result = metric.analyze(data_aggr, 0, 1, variant="variant")
@@ -368,7 +372,7 @@ def test_sample_ratio_analyze_binom(
     assert result.pvalue == pytest.approx(0.6172994135892521)
 
 def test_sample_ratio_analyze_norm_corr(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.SampleRatio(method="norm", correction=True)
     result = metric.analyze(data_aggr, 0, 1, variant="variant")
@@ -377,7 +381,7 @@ def test_sample_ratio_analyze_norm_corr(
     assert result.pvalue == pytest.approx(0.6170750774519738)
 
 def test_sample_ratio_analyze_norm_no_corr(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.SampleRatio(method="norm", correction=False)
     result = metric.analyze(data_aggr, 0, 1, variant="variant")
@@ -386,7 +390,7 @@ def test_sample_ratio_analyze_norm_no_corr(
     assert result.pvalue == pytest.approx(0.5485062355001472)
 
 def test_sample_ratio_analyze_aggregates(
-    data_aggr: dict[object, tea_tasting.aggr.Aggregates],
+    data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     metric = tea_tasting.metrics.proportion.SampleRatio()
     with pytest.raises(NotImplementedError):

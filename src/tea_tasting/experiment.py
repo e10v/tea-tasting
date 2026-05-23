@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import UserDict, UserList
+from collections.abc import Hashable
 import functools
 import inspect
 import itertools
@@ -38,7 +39,7 @@ if TYPE_CHECKING:
         (
             narwhals.typing.IntoFrame |
             ibis.expr.types.Table |
-            dict[object, tea_tasting.aggr.Aggregates]
+            dict[Hashable, tea_tasting.aggr.Aggregates]
         ),
     ]
 
@@ -107,7 +108,7 @@ class ExperimentResult(
 
 class ExperimentResults(
     tea_tasting.utils.DictsReprMixin,
-    UserDict[tuple[object, object], ExperimentResult],
+    UserDict[tuple[Hashable, Hashable], ExperimentResult],
 ):
     """Experiment results for multiple pairs of variants."""
     default_keys = (
@@ -284,7 +285,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
-        control: object = None,
+        control: Hashable | None = None,
         *,
         all_variants: Literal[False] = False,
     ) -> ExperimentResult:
@@ -294,7 +295,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     def analyze(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
-        control: object = None,
+        control: Hashable | None = None,
         *,
         all_variants: Literal[True],
     ) -> ExperimentResults:
@@ -303,8 +304,8 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     @overload
     def analyze(
         self,
-        data: dict[object, tea_tasting.aggr.Aggregates],
-        control: object = None,
+        data: dict[Hashable, tea_tasting.aggr.Aggregates],
+        control: Hashable | None = None,
         *,
         all_variants: Literal[False] = False,
     ) -> ExperimentResult:
@@ -313,8 +314,8 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     @overload
     def analyze(
         self,
-        data: dict[object, tea_tasting.aggr.Aggregates],
-        control: object = None,
+        data: dict[Hashable, tea_tasting.aggr.Aggregates],
+        control: Hashable | None = None,
         *,
         all_variants: Literal[True],
     ) -> ExperimentResults:
@@ -325,9 +326,9 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         data: (
             narwhals.typing.IntoFrame |
             ibis.expr.types.Table |
-            dict[object, tea_tasting.aggr.Aggregates]
+            dict[Hashable, tea_tasting.aggr.Aggregates]
         ),
-        control: object = None,
+        control: Hashable | None = None,
         *,
         all_variants: bool = False,
     ) -> ExperimentResult | ExperimentResults:
@@ -378,11 +379,11 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         data: (
             narwhals.typing.IntoFrame |
             ibis.expr.types.Table |
-            dict[object, tea_tasting.aggr.Aggregates]
+            dict[Hashable, tea_tasting.aggr.Aggregates]
         ),
     ) -> tuple[
-        dict[object, tea_tasting.aggr.Aggregates] | None,
-        dict[object, pa.Table] | None,
+        dict[Hashable, tea_tasting.aggr.Aggregates] | None,
+        dict[Hashable, pa.Table] | None,
     ]:
         if isinstance(data, dict):
             for name, metric in self.metrics.items():
@@ -401,11 +402,11 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         data: (
             narwhals.typing.IntoFrame |
             ibis.expr.types.Table |
-            dict[object, tea_tasting.aggr.Aggregates]
+            dict[Hashable, tea_tasting.aggr.Aggregates]
         ),
-        aggregated_data: dict[object, tea_tasting.aggr.Aggregates] | None,
-        granular_data: dict[object, pa.Table] | None,
-    ) -> list[object]:
+        aggregated_data: dict[Hashable, tea_tasting.aggr.Aggregates] | None,
+        granular_data: dict[Hashable, pa.Table] | None,
+    ) -> list[Hashable]:
         if aggregated_data is not None:
             variants = aggregated_data.keys()
         elif granular_data is not None:
@@ -417,9 +418,9 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
     def _get_variant_pairs(
         self,
-        variants: list[object],
-        control: object,
-    ) -> tuple[tuple[object, object], ...]:
+        variants: list[Hashable],
+        control: Hashable | None,
+    ) -> tuple[tuple[Hashable, Hashable], ...]:
         if control is not None:
             return tuple(
                 (control, treatment)
@@ -441,12 +442,12 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         data: (
             narwhals.typing.IntoFrame |
             ibis.expr.types.Table |
-            dict[object, tea_tasting.aggr.Aggregates]
+            dict[Hashable, tea_tasting.aggr.Aggregates]
         ),
-        aggregated_data: dict[object, tea_tasting.aggr.Aggregates] | None,
-        granular_data: dict[object, pa.Table] | None,
-        control: object,
-        treatment: object,
+        aggregated_data: dict[Hashable, tea_tasting.aggr.Aggregates] | None,
+        granular_data: dict[Hashable, pa.Table] | None,
+        control: Hashable,
+        treatment: Hashable,
     ) -> tea_tasting.metrics.MetricResult:
         if (
             isinstance(metric, tea_tasting.metrics.MetricBaseAggregated)
@@ -467,8 +468,8 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
     ) -> tuple[
-        dict[object, tea_tasting.aggr.Aggregates] | None,
-        dict[object, pa.Table] | None,
+        dict[Hashable, tea_tasting.aggr.Aggregates] | None,
+        dict[Hashable, pa.Table] | None,
     ]:
         aggr_cols = tea_tasting.metrics.AggrCols()
         gran_cols = set()
@@ -496,7 +497,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     def _read_variants(
         self,
         data: narwhals.typing.IntoFrame | narwhals.typing.Frame | ibis.expr.types.Table,
-    ) -> list[object]:
+    ) -> list[Hashable]:
         if isinstance(data, ibis.expr.types.Table):
             return (
                 data.select(self.variant)
@@ -635,7 +636,7 @@ def _simulate_once(
     raw_data: (
         narwhals.typing.IntoFrame |
         ibis.expr.types.Table |
-        dict[object, tea_tasting.aggr.Aggregates] |
+        dict[Hashable, tea_tasting.aggr.Aggregates] |
         pa.Table
     ) = data if isinstance(data, pa.Table) else _generate_data(data, rng)
 
@@ -686,7 +687,7 @@ def _generate_data(
 ) -> (
     narwhals.typing.IntoFrame |
     ibis.expr.types.Table |
-    dict[object, tea_tasting.aggr.Aggregates]
+    dict[Hashable, tea_tasting.aggr.Aggregates]
 ):
     try:
         params = _inspect_signature(data).parameters
@@ -713,7 +714,7 @@ def _generate_data_without_signature(
 ) -> (
     narwhals.typing.IntoFrame |
     ibis.expr.types.Table |
-    dict[object, tea_tasting.aggr.Aggregates]
+    dict[Hashable, tea_tasting.aggr.Aggregates]
 ):
     rng_error: TypeError
     try:
@@ -748,7 +749,7 @@ def _generate_data_with_variadic_kwargs(
 ) -> (
     narwhals.typing.IntoFrame |
     ibis.expr.types.Table |
-    dict[object, tea_tasting.aggr.Aggregates]
+    dict[Hashable, tea_tasting.aggr.Aggregates]
 ):
     rng_error: Exception
     try:
