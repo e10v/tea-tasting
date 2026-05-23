@@ -31,7 +31,7 @@ def _(mo):
     This guide uses [Polars](https://github.com/pola-rs/polars) and [marimo](https://github.com/marimo-team/marimo). Install these packages in addition to tea-tasting to reproduce the examples:
 
     ```bash
-    uv pip install polars marimo
+    uv add polars marimo
     ```
 
     ///

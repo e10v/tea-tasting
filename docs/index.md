@@ -27,8 +27,16 @@ tea-tasting also accepts dataframes supported by [Narwhals](https://github.com/n
 
 ## Installation
 
+Install with [uv](https://docs.astral.sh/uv/):
+
 ```bash
-uv pip install tea-tasting
+uv add tea-tasting
+```
+
+Or with pip:
+
+```bash
+pip install tea-tasting
 ```
 
 ## Basic example

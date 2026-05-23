@@ -11,7 +11,7 @@ A/A tests are useful for identifying potential issues before conducting the actu
 This guide uses [Polars](https://github.com/pola-rs/polars) and [tqdm](https://github.com/tqdm/tqdm). Install these packages in addition to tea-tasting to reproduce the examples:
 
 ```bash
-uv pip install polars tqdm
+uv add polars tqdm
 ```
 
 ///
