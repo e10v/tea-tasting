@@ -27,7 +27,7 @@ def _(mo):
     This guide uses [Polars](https://github.com/pola-rs/polars) as an example data backend. Install Polars in addition to tea-tasting to reproduce the examples:
 
     ```bash
-    uv pip install polars
+    uv add polars
     ```
 
     ///
