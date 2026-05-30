@@ -127,7 +127,7 @@ class _MetricAggregated(
         ))
 
 
-class _MetricGranular(tea_tasting.metrics.MetricBaseGranular[_MetricResultDict]):  # ty:ignore[invalid-type-arguments]
+class _MetricGranular(tea_tasting.metrics.MetricBaseGranular[_MetricResultDict]):
     def __init__(self, value: str) -> None:
         self.value = value
 
@@ -164,7 +164,7 @@ def get_result() -> Callable[
                 control=y[0],
                 treatment=y[1],
                 effect_size=y[2],
-            ),  # ty:ignore[invalid-argument-type]
+            ),
         )
 
     return _get_result

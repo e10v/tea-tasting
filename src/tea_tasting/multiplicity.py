@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 import tea_tasting.config
 import tea_tasting.experiment
+import tea_tasting.metrics.base
 import tea_tasting.utils
 
 
@@ -24,7 +25,7 @@ class MultipleComparisonsResults(
     tea_tasting.utils.DictsReprMixin,
     UserDict[Hashable, tea_tasting.experiment.ExperimentResult],
 ):
-    """Multiple comparisons result."""
+    """Multiple comparisons results."""
     default_keys = (
         "comparison",
         "metric",
@@ -427,11 +428,8 @@ def _copy_results(
         result = {}
         for metric, metric_result in experiment_result.items():
             if metrics is None or metric in metrics:
-                copy_of_metric_result = (
-                    metric_result.copy()
-                    if isinstance(metric_result, dict)
-                    else metric_result._asdict()
-                )
+                copy_of_metric_result = tea_tasting.metrics.base._result_to_dict(
+                    metric_result)
                 result |= {metric: copy_of_metric_result}
                 copy_of_metric_results.append(copy_of_metric_result)
         copy_of_experiment_results |= {

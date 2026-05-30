@@ -4,14 +4,15 @@ from __future__ import annotations
 
 import abc
 from collections import UserList
+from collections.abc import Mapping
 from typing import (
     TYPE_CHECKING,
     Any,
     Generic,
     NamedTuple,
+    Protocol,
     TypeAlias,
     TypeVar,
-    Union,
     overload,
 )
 
@@ -34,12 +35,25 @@ if TYPE_CHECKING:
     import numpy.typing as npt
 
 
-# The | operator doesn't work for NamedTuple, but Union works.
-MetricResult: TypeAlias = Union[NamedTuple, dict[str, Any]]
-MetricPowerResult: TypeAlias = Union[NamedTuple, dict[str, Any]]
+class _NamedTupleLike(Protocol):
+    def __getitem__(self, key: int, /) -> Any:
+        ...
+
+    def _asdict(self) -> Mapping[str, Any]:
+        ...
+
+
+MetricResult: TypeAlias = _NamedTupleLike | Mapping[str, Any]
+MetricPowerResult: TypeAlias = MetricResult
 
 MetricResultT = TypeVar("MetricResultT", bound=MetricResult)
 MetricPowerResultT = TypeVar("MetricPowerResultT", bound=MetricPowerResult)
+
+
+def _result_to_dict(result: MetricResult) -> dict[str, object]:
+    if isinstance(result, Mapping):
+        return dict(result.items())  # ty: ignore[invalid-return-type]
+    return dict(result._asdict().items())
 
 
 class MetricPowerResults(
@@ -52,7 +66,7 @@ class MetricPowerResults(
     @tea_tasting.utils._cache_method
     def to_dicts(self) -> tuple[dict[str, object], ...]:
         """Convert the results to a sequence of dictionaries."""
-        return tuple((v if isinstance(v, dict) else v._asdict()) for v in self)
+        return tuple(_result_to_dict(v) for v in self)
 
 MetricPowerResultsT = TypeVar("MetricPowerResultsT", bound=MetricPowerResults)
 
