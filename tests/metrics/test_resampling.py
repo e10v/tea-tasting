@@ -107,7 +107,7 @@ def test_bootstrap_analyze_multiple_columns(
         sample: npt.NDArray[np.number],
         axis: int,
     ) -> npt.NDArray[np.number]:
-        stat = np.mean(sample, axis=axis)  # ty:ignore[no-matching-overload]
+        stat = np.mean(sample, axis=axis)
         return stat[0] / stat[1]
 
     metric = tea_tasting.metrics.resampling.Bootstrap(
@@ -186,7 +186,7 @@ def test_bootstrap_analyze_nan_policy_omit_multiple_columns() -> None:
         sample: npt.NDArray[np.number],
         axis: int,
     ) -> npt.NDArray[np.number]:
-        stat = np.mean(sample, axis=axis)  # ty:ignore[no-matching-overload]
+        stat = np.mean(sample, axis=axis)
         return stat[0] / stat[1]
 
     metric = tea_tasting.metrics.resampling.Bootstrap(
