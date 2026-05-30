@@ -72,7 +72,13 @@ write_to = "tea_tasting/_version.txt"
 
 
 [tool.coverage.report]
-exclude_lines = ["if TYPE_CHECKING:", "pragma: no cover", "@overload", "@abc.abstractmethod"]
+exclude_lines = [
+    "if TYPE_CHECKING:",
+    "pragma: no cover",
+    "@overload",
+    "@abc.abstractmethod",
+    "^\\s*\\.\\.\\.\\s*$",
+]
 fail_under = 100
 
 [tool.coverage.run]

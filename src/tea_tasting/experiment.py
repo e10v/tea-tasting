@@ -101,7 +101,7 @@ class ExperimentResult(
             ```
         """
         return tuple(
-            {"metric": k} | (v if isinstance(v, dict) else v._asdict())
+            {"metric": k} | tea_tasting.metrics.base._result_to_dict(v)
             for k, v in self.items()
         )
 
