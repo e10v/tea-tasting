@@ -107,7 +107,7 @@ def test_bootstrap_analyze_multiple_columns(
         sample: npt.NDArray[np.number],
         axis: int,
     ) -> npt.NDArray[np.number]:
-        stat = np.mean(sample, axis=axis)  # type: ignore
+        stat = np.mean(sample, axis=axis)  # ty:ignore[no-matching-overload]
         return stat[0] / stat[1]
 
     metric = tea_tasting.metrics.resampling.Bootstrap(
@@ -186,7 +186,7 @@ def test_bootstrap_analyze_nan_policy_omit_multiple_columns() -> None:
         sample: npt.NDArray[np.number],
         axis: int,
     ) -> npt.NDArray[np.number]:
-        stat = np.mean(sample, axis=axis)  # type: ignore
+        stat = np.mean(sample, axis=axis)  # ty:ignore[no-matching-overload]
         return stat[0] / stat[1]
 
     metric = tea_tasting.metrics.resampling.Bootstrap(
@@ -307,7 +307,7 @@ def test_bootstrap_random_state_keyword_deprecated() -> None:
         metric = tea_tasting.metrics.resampling.Bootstrap(
             "a",
             np.mean,
-            random_state=42,  # pyright: ignore[reportCallIssue]
+            random_state=42,  # ty:ignore[unknown-argument]
         )
     assert metric.rng == 42
 
@@ -321,5 +321,5 @@ def test_bootstrap_rng_and_random_state_raise() -> None:
             "a",
             np.mean,
             rng=1,
-            random_state=42,  # pyright: ignore[reportCallIssue]
+            random_state=42,  # ty:ignore[unknown-argument]
         )

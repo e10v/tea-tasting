@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 def append_has_order(data: pa.Table) -> pa.Table:
     return data.append_column(
         "has_order",
-        pc.greater(data["orders"], 0).cast(pa.int64()),  # type: ignore
+        pc.greater(data["orders"], 0).cast(pa.int64()),
     )
 
 @pytest.fixture
@@ -208,7 +208,7 @@ def test_proportion_analyze_pearson_zero_margin() -> None:
         0: tea_tasting.aggr.Aggregates(count_=10, mean_={"has_order": 0}),
         1: tea_tasting.aggr.Aggregates(count_=10, mean_={"has_order": 0}),
     }
-    result = metric.analyze(data, 0, 1, variant="variant")  # type: ignore
+    result = metric.analyze(data, 0, 1, variant="variant")  # ty:ignore[no-matching-overload]
     assert math.isnan(result.pvalue)
 
 def test_proportion_analyze_norm(
@@ -302,11 +302,11 @@ def test_proportion_analyze_norm_ci_bounds_limited() -> None:
         0: tea_tasting.aggr.Aggregates(count_=20, mean_={"has_order": 0.05}),
         1: tea_tasting.aggr.Aggregates(count_=20, mean_={"has_order": 1.0}),
     }
-    result = metric.analyze(data, 0, 1, variant="variant")  # type: ignore
+    result = metric.analyze(data, 0, 1, variant="variant")  # ty:ignore[no-matching-overload]
     assert result.effect_size_ci_lower == pytest.approx(0.640490098153452)
     assert result.effect_size_ci_upper == 1
 
-    result = metric.analyze(data, 1, 0, variant="variant")  # type: ignore
+    result = metric.analyze(data, 1, 0, variant="variant")  # ty:ignore[no-matching-overload]
     assert result.effect_size_ci_lower == -1
     assert result.effect_size_ci_upper == pytest.approx(-0.640490098153452)
 

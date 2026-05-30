@@ -77,7 +77,7 @@ def data_pandas(data_arrow: pa.Table) -> pd.DataFrame:
 
 @pytest.fixture
 def data_polars(data_arrow: pa.Table) -> pl.DataFrame:
-    return pl.from_arrow(data_arrow)  # type: ignore
+    return pl.from_arrow(data_arrow)  # ty:ignore[invalid-return-type]
 
 @pytest.fixture
 def data_polars_lazy(data_polars: pl.DataFrame) -> pl.LazyFrame:
@@ -143,7 +143,7 @@ def correct_gran(
     variant_col = data_arrow["variant"]
     table = data_arrow.select(cols)
     return {
-        var: table.filter(pc.equal(variant_col, pa.scalar(var)))  # type: ignore
+        var: table.filter(pc.equal(variant_col, pa.scalar(var)))
         for var in variant_col.unique().to_pylist()
     }
 
@@ -236,7 +236,7 @@ def test_metric_power_results_to_dicts() -> None:
         "n_obs": 20_000,
     }
 
-    results = tea_tasting.metrics.base.MetricPowerResults[dict[str, float | int]](  # type: ignore
+    results = tea_tasting.metrics.base.MetricPowerResults[dict[str, float | int]](
         [result0, result1])
     assert results.to_dicts() == (result0, result1)
 
@@ -257,7 +257,7 @@ def test_metric_base_aggregated_analyze_frame(
     data_arrow: pa.Table,
     correct_aggrs: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
-    aggr_metric.analyze_aggregates = unittest.mock.MagicMock()
+    aggr_metric.analyze_aggregates = unittest.mock.MagicMock()  # ty:ignore[invalid-assignment]
     aggr_metric.analyze(data_arrow, control=0, treatment=1, variant="variant")
     aggr_metric.analyze_aggregates.assert_called_once()
     kwargs = aggr_metric.analyze_aggregates.call_args.kwargs
@@ -268,7 +268,7 @@ def test_metric_base_aggregated_analyze_aggrs(
     aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated[dict[str, object]],
     correct_aggrs: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
-    aggr_metric.analyze_aggregates = unittest.mock.MagicMock()
+    aggr_metric.analyze_aggregates = unittest.mock.MagicMock()  # ty:ignore[invalid-assignment]
     aggr_metric.analyze(correct_aggrs, control=0, treatment=1)
     aggr_metric.analyze_aggregates.assert_called_once()
     kwargs = aggr_metric.analyze_aggregates.call_args.kwargs
@@ -281,7 +281,7 @@ def test_power_base_aggregated_analyze_frame(
     data_arrow: pa.Table,
     correct_aggr: tea_tasting.aggr.Aggregates,
 ) -> None:
-    aggr_power.solve_power_from_aggregates = unittest.mock.MagicMock()
+    aggr_power.solve_power_from_aggregates = unittest.mock.MagicMock()  # ty:ignore[invalid-assignment]
     aggr_power.solve_power(data_arrow, "effect_size")
     aggr_power.solve_power_from_aggregates.assert_called_once()
     kwargs = aggr_power.solve_power_from_aggregates.call_args.kwargs
@@ -292,7 +292,7 @@ def test_power_base_aggregated_analyze_aggr(
     aggr_power: tea_tasting.metrics.base.PowerBaseAggregated[Any],
     correct_aggr: tea_tasting.aggr.Aggregates,
 ) -> None:
-    aggr_power.solve_power_from_aggregates = unittest.mock.MagicMock()
+    aggr_power.solve_power_from_aggregates = unittest.mock.MagicMock()  # ty:ignore[invalid-assignment]
     aggr_power.solve_power(correct_aggr, "rel_effect_size")
     aggr_power.solve_power_from_aggregates.assert_called_once()
     kwargs = aggr_power.solve_power_from_aggregates.call_args.kwargs
@@ -338,7 +338,7 @@ def test_metric_base_granular_frame(
     data_arrow: pa.Table,
     correct_gran: dict[Hashable, pa.Table],
 ) -> None:
-    gran_metric.analyze_granular = unittest.mock.MagicMock()
+    gran_metric.analyze_granular = unittest.mock.MagicMock()  # ty:ignore[invalid-assignment]
     gran_metric.analyze(data_arrow, control=0, treatment=1, variant="variant")
     gran_metric.analyze_granular.assert_called_once()
     kwargs = gran_metric.analyze_granular.call_args.kwargs
@@ -349,7 +349,7 @@ def test_metric_base_granular_gran(
     gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, object]],
     correct_gran: dict[Hashable, pa.Table],
 ) -> None:
-    gran_metric.analyze_granular = unittest.mock.MagicMock()
+    gran_metric.analyze_granular = unittest.mock.MagicMock()  # ty:ignore[invalid-assignment]
     gran_metric.analyze(correct_gran, control=0, treatment=1)
     gran_metric.analyze_granular.assert_called_once()
     kwargs = gran_metric.analyze_granular.call_args.kwargs

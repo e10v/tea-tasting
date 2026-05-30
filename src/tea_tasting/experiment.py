@@ -103,7 +103,7 @@ class ExperimentResult(
         return tuple(
             {"metric": k} | (v if isinstance(v, dict) else v._asdict())
             for k, v in self.items()
-        )  # type: ignore
+        )
 
 
 class ExperimentResults(
@@ -284,7 +284,11 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     @overload
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
+        data: (
+            narwhals.typing.IntoFrame |
+            ibis.expr.types.Table |
+            dict[Hashable, tea_tasting.aggr.Aggregates]
+        ),
         control: Hashable | None = None,
         *,
         all_variants: Literal[False] = False,
@@ -294,27 +298,11 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     @overload
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
-        control: Hashable | None = None,
-        *,
-        all_variants: Literal[True],
-    ) -> ExperimentResults:
-        ...
-
-    @overload
-    def analyze(
-        self,
-        data: dict[Hashable, tea_tasting.aggr.Aggregates],
-        control: Hashable | None = None,
-        *,
-        all_variants: Literal[False] = False,
-    ) -> ExperimentResult:
-        ...
-
-    @overload
-    def analyze(
-        self,
-        data: dict[Hashable, tea_tasting.aggr.Aggregates],
+        data: (
+            narwhals.typing.IntoFrame |
+            ibis.expr.types.Table |
+            dict[Hashable, tea_tasting.aggr.Aggregates]
+        ),
         control: Hashable | None = None,
         *,
         all_variants: Literal[True],
@@ -392,7 +380,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
                         "Aggregated data was provided, but metric "
                         f"{name!r} is not based on aggregated statistics.",
                     )
-            return data, None
+            return data, None  # ty:ignore[invalid-return-type]
 
         return self._read_data(data)
 
@@ -412,8 +400,8 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         elif granular_data is not None:
             variants = granular_data.keys()
         else:
-            variants = self._read_variants(data)  # pyright: ignore[reportArgumentType]
-        return sorted(variants)  # type: ignore
+            variants = self._read_variants(data)  # ty:ignore[invalid-argument-type]
+        return sorted(variants)
 
 
     def _get_variant_pairs(
@@ -432,7 +420,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             (control, treatment)
             for control in variants
             for treatment in variants
-            if control < treatment  # pyright: ignore[reportOperatorIssue]
+            if control < treatment  # ty:ignore[unsupported-operator]
         )
 
 
@@ -453,15 +441,15 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             isinstance(metric, tea_tasting.metrics.MetricBaseAggregated)
             and aggregated_data is not None
         ):
-            return metric.analyze(aggregated_data, control, treatment)
+            return metric.analyze(aggregated_data, control, treatment)  # ty:ignore[invalid-return-type]
 
         if (
             isinstance(metric, tea_tasting.metrics.MetricBaseGranular)
             and granular_data is not None
         ):
-            return metric.analyze(granular_data, control, treatment)
+            return metric.analyze(granular_data, control, treatment)  # ty:ignore[invalid-return-type]
 
-        return metric.analyze(data, control, treatment, self.variant)  # pyright: ignore[reportArgumentType]
+        return metric.analyze(data, control, treatment, self.variant)  # ty:ignore[invalid-argument-type]
 
 
     def _read_data(
@@ -507,7 +495,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             )
 
         data = nw.from_native(data)
-        if not isinstance(data, nw.LazyFrame):  # type: ignore
+        if not isinstance(data, nw.LazyFrame):
             data = data.lazy()
         return data.unique(self.variant).collect().get_column(self.variant).to_list()
 
@@ -546,9 +534,9 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         result = ExperimentPowerResult()
         for name, metric in self.metrics.items():
             if isinstance(metric, tea_tasting.metrics.PowerBaseAggregated):
-                result |= {name: metric.solve_power(aggr_data, parameter=parameter)}
+                result |= {name: metric.solve_power(aggr_data, parameter=parameter)}  # ty:ignore[unsupported-operator]
             elif isinstance(metric, tea_tasting.metrics.PowerBase):
-                result |= {name: metric.solve_power(data, parameter=parameter)}
+                result |= {name: metric.solve_power(data, parameter=parameter)}  # ty:ignore[unsupported-operator]
 
         return result
 
@@ -560,7 +548,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     )
     def simulate(
         self,
-        data: narwhals.typing.IntoFrame | ibis.expr.types.Table | DataGenerator,  # type: ignore
+        data: narwhals.typing.IntoFrame | ibis.expr.types.Table | DataGenerator,
         n_simulations: int = 10_000,
         *,
         rng: int | np.random.Generator | np.random.SeedSequence | None = None,
@@ -620,9 +608,9 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         results = map_(sim, np.random.default_rng(rng).spawn(n_simulations))
         if progress is not None:
             try:
-                results = progress(results, total=n_simulations)  # type: ignore
+                results = progress(results, total=n_simulations)
             except TypeError:
-                results = progress(results)  # type: ignore
+                results = progress(results)
         return SimulationResults(results)
 
 
@@ -667,8 +655,8 @@ def _simulate_once(
 
     if treat is not None:
         variant_array = table[experiment.variant]
-        contr_data = table.filter(pc.equal(variant_array, pa.scalar(0)))  # type: ignore
-        treat_data = treat(table.filter(pc.equal(variant_array, pa.scalar(1))))  # type: ignore
+        contr_data = table.filter(pc.equal(variant_array, pa.scalar(0)))  # ty:ignore[unresolved-attribute]
+        treat_data = treat(table.filter(pc.equal(variant_array, pa.scalar(1))))  # ty:ignore[unresolved-attribute]
         if not contr_data.schema.equals(treat_data.schema):
             schema = pa.unify_schemas(
                 [contr_data.schema, treat_data.schema],

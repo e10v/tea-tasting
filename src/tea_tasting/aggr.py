@@ -352,12 +352,12 @@ def _read_aggr_ibis(
     cov_op = ibis.expr.operations.Covariance
     if backend.has_operation(var_op) and backend.has_operation(cov_op):
         var_expr = {
-            _VAR.format(col): data[col].cast("float").var(how="sample")  # type: ignore
+            _VAR.format(col): data[col].cast("float").var(how="sample")
             for col in var_cols
         }
         cov_expr = {
-            _COV.format(left, right): data[left].cast("float").cov(  # type: ignore
-                data[right].cast("float"),  # type: ignore
+            _COV.format(left, right): data[left].cast("float").cov(
+                data[right].cast("float"),
                 how="sample",
             )
             for left, right in cov_cols
@@ -366,31 +366,31 @@ def _read_aggr_ibis(
         # Use demeaned values if backend doesn't have var and cov functions.
         if len(covar_cols) > 0:
             demean_expr = {
-                _DEMEAN.format(col): data[col] - data[col].cast("float").mean()  # type: ignore
+                _DEMEAN.format(col): data[col] - data[col].cast("float").mean()
                 for col in covar_cols
             }
-            grouped_data = data.group_by(group_col) if group_col is not None else data  # type: ignore
-            data = grouped_data.mutate(**demean_expr)  # type: ignore
+            grouped_data = data.group_by(group_col) if group_col is not None else data
+            data = grouped_data.mutate(**demean_expr)
 
         var_expr = {
             _VAR.format(col): (
                 data[_DEMEAN.format(col)] * data[_DEMEAN.format(col)]
-            ).sum() / (data.count() - 1)  # type: ignore
+            ).sum() / (data.count() - 1)
             for col in var_cols
         }
         cov_expr = {
             _COV.format(left, right): (
                 data[_DEMEAN.format(left)] * data[_DEMEAN.format(right)]
-            ).sum() / (data.count() - 1)  # type: ignore
+            ).sum() / (data.count() - 1)
             for left, right in cov_cols
         }
 
     count_expr = {_COUNT: data.count()} if has_count else {}
-    mean_expr = {_MEAN.format(col): data[col].cast("float").mean() for col in mean_cols}  # type: ignore
+    mean_expr = {_MEAN.format(col): data[col].cast("float").mean() for col in mean_cols}
     all_expr = count_expr | mean_expr | var_expr | cov_expr
 
-    grouped_data = data.group_by(group_col) if group_col is not None else data  # type: ignore
-    return grouped_data.aggregate(**all_expr).to_pyarrow().to_pylist()  # type: ignore
+    grouped_data = data.group_by(group_col) if group_col is not None else data
+    return grouped_data.aggregate(**all_expr).to_pyarrow().to_pylist()  # ty:ignore[invalid-argument-type]
 
 
 def _read_aggr_narwhals(
@@ -403,7 +403,7 @@ def _read_aggr_narwhals(
     cov_cols: Sequence[tuple[str, str]],
 ) -> list[dict[str, int | float]]:
     data = nw.from_native(data)
-    if not isinstance(data, nw.LazyFrame):  # type: ignore
+    if not isinstance(data, nw.LazyFrame):
         data = data.lazy()
 
     covar_cols = tuple({*var_cols, *itertools.chain(*cov_cols)})
@@ -471,7 +471,7 @@ def _get_aggregates(
     cov_cols: Sequence[tuple[str, str]],
 ) -> Aggregates:
     return Aggregates(
-        count_=data[_COUNT] if has_count else None,  # type: ignore
+        count_=data[_COUNT] if has_count else None,  # ty:ignore[invalid-argument-type]
         mean_={col: data[_MEAN.format(col)] for col in mean_cols},
         var_={col: data[_VAR.format(col)] for col in var_cols},
         cov_={cols: data[_COV.format(*cols)] for cols in cov_cols},

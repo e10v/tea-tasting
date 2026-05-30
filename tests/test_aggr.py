@@ -1,4 +1,3 @@
-# pyright: reportAttributeAccessIssue=false
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -33,7 +32,7 @@ def aggr() -> tea_tasting.aggr.Aggregates:
         count_=COUNT,
         mean_=MEAN,
         var_=VAR,
-        cov_=COV,  # type: ignore
+        cov_=COV,
     )
 
 
@@ -47,7 +46,7 @@ def data_pandas(data_arrow: pa.Table) -> pd.DataFrame:
 
 @pytest.fixture
 def data_polars(data_arrow: pa.Table) -> pl.DataFrame:
-    return pl.from_arrow(data_arrow)  # type: ignore
+    return pl.from_arrow(data_arrow)  # ty:ignore[invalid-return-type]
 
 @pytest.fixture
 def data_polars_lazy(data_polars: pl.DataFrame) -> pl.LazyFrame:

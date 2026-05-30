@@ -23,11 +23,11 @@
 - Exceptions:
     - Max line length: 88.
     - Use `uv run ruff check` for linting instead of `pylint`.
-    - Use `uv run pyright` for type checking instead of `pytype`.
-- When guides disagree, follow project tooling (Ruff/Pyright) and existing local conventions in this repo.
+    - Use `uv run ty check` for type checking instead of `pytype`.
+- When guides disagree, follow project tooling (Ruff/ty) and existing local conventions in this repo.
 - Imports must satisfy Ruff isort rules (sorted within sections; two blank lines after imports).
 - Type annotations are required for all modules including tests and internal tooling; keep type hints accurate and narrow.
-- Using `cast` is usually discouraged: prefer correct annotations; if needed, use suppression (`# pyright: ignore`) over `cast`.
+- Using `cast` is usually discouraged: prefer correct annotations; if needed, use suppression (`# ty: ignore[<rule>]`) over `cast`.
 - All code in `src/tea_tasting/` should be covered by tests in `tests/`, and expected code coverage is 100%.
 - Prefer pure functions and deterministic numeric behavior.
 
@@ -44,7 +44,7 @@
     - Code coverage (after tests): `uv run coverage report -m`
     - Full doctest: `uv run pytest --doctest-continue-on-failure --doctest-glob=*.md --doctest-modules --ignore=examples/ --ignore=tests/ --ignore-glob=src/_*`
     - Linting: `uv run ruff check`
-    - Type checking: `uv run pyright`
+    - Type checking: `uv run ty check`
 - Run them after creating or updating Python modules; fix errors.
 - Do not run a code formatter; `uv run ruff check --fix` is acceptable for lint autofixes.
 

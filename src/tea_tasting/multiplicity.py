@@ -14,7 +14,7 @@ import tea_tasting.utils
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
-    from typing import Literal
+    from typing import Any, Literal
 
 
 NO_NAME_COMPARISON = "-"
@@ -211,7 +211,7 @@ def adjust_fdr(
     # results and metric_results refer to the same dicts.
     results, metric_results = _copy_results(experiment_results, metrics)
     method = _Benjamini(
-        alpha=alpha,  # type: ignore
+        alpha=alpha,
         m=len(metric_results),
         arbitrary_dependence=arbitrary_dependence,
     )
@@ -396,7 +396,7 @@ def adjust_fwer(
     # results and metric_results refer to the same dicts.
     results, metric_results = _copy_results(experiment_results, metrics)
     method_cls = _Sidak if method == "sidak" else _Bonferroni
-    method_ = method_cls(alpha=alpha, m=len(metric_results))  # type: ignore
+    method_ = method_cls(alpha=alpha, m=len(metric_results))
     procedure = _holm_stepdown if arbitrary_dependence else _hochberg_stepup
     # In-place update.
     procedure(metric_results, method_.adjust)
@@ -441,17 +441,17 @@ def _copy_results(
 
 
 def _hochberg_stepup(
-    metric_results: Sequence[dict[str, object]],
+    metric_results: Sequence[dict[str, Any]],
     adjust: Callable[[float, int], tuple[float, float]],
 ) -> None:
     pvalue_adj_max = 1
     alpha_adj_min = 0
     m = len(metric_results)
     for i, metric_result in enumerate(
-        sorted(metric_results, key=lambda d: -d["pvalue"]),  # type: ignore
+        sorted(metric_results, key=lambda d: -d["pvalue"]),
     ):
         k = m - i
-        pvalue: float = metric_result["pvalue"]  # type: ignore
+        pvalue: float = metric_result["pvalue"]
         pvalue_adj, alpha_adj = adjust(pvalue, k)
 
         if alpha_adj_min == 0 and pvalue <= alpha_adj:
@@ -467,13 +467,13 @@ def _hochberg_stepup(
 
 
 def _holm_stepdown(
-    metric_results: Sequence[dict[str, object]],
+    metric_results: Sequence[dict[str, Any]],
     adjust: Callable[[float, int], tuple[float, float]],
 ) -> None:
     pvalue_adj_min = 0
     alpha_adj_max = 1
     for k, metric_result in enumerate(
-        sorted(metric_results, key=lambda d: d["pvalue"]),  # type: ignore
+        sorted(metric_results, key=lambda d: d["pvalue"]),
         start=1,
     ):
         pvalue: float = metric_result["pvalue"]

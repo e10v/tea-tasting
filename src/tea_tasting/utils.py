@@ -1,6 +1,5 @@
 """Useful functions and classes."""
 # ruff: noqa: SIM114
-# pyright: reportOperatorIssue=false
 
 from __future__ import annotations
 
@@ -20,7 +19,7 @@ import pyarrow as pa
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
-    from typing import Literal, ParamSpec, TypeAlias, TypeVar
+    from typing import Any, Literal, ParamSpec, TypeAlias, TypeVar
 
     import pandas as pd
     import polars as pl
@@ -35,13 +34,13 @@ def check_scalar(  # noqa: PLR0913
     value: R,
     name: str = "value",
     *,
-    typ: object = None,
-    ge: object = None,
-    gt: object = None,
-    le: object = None,
-    lt: object = None,
-    ne: object = None,
-    in_: object = None,
+    typ: Any = None,
+    ge: Any = None,
+    gt: Any = None,
+    le: Any = None,
+    lt: Any = None,
+    ne: Any = None,
+    in_: Any = None,
 ) -> R:
     """Check if a scalar parameter meets specified type and value constraints.
 
@@ -60,7 +59,7 @@ def check_scalar(  # noqa: PLR0913
     Returns:
         Parameter value.
     """
-    if typ is not None and not isinstance(value, typ):  # type: ignore
+    if typ is not None and not isinstance(value, typ):
         raise TypeError(f"{name} must be an instance of {typ}.")
     if ge is not None and value < ge:
         raise ValueError(f"{name} == {value}, must be >= {ge}.")
@@ -236,12 +235,12 @@ def format_num(
     result = format(val, f"_.{precision}{typ}")
 
     if thousands_sep is None:
-        thousands_sep = locale.localeconv().get("thousands_sep", "_")  # type: ignore
+        thousands_sep = locale.localeconv().get("thousands_sep", "_")
     if thousands_sep != "_":
         result = result.replace("_", thousands_sep)
 
     if decimal_point is None:
-        decimal_point = locale.localeconv().get("decimal_point", ".")  # type: ignore
+        decimal_point = locale.localeconv().get("decimal_point", ".")
     if decimal_point != ".":
         result = result.replace(".", decimal_point)
 
@@ -292,9 +291,10 @@ def _cache_method(
     def cached_method(self: DictsReprMixinT) -> R:
         if self._cache is None:
             self._cache = {}
-        if method.__name__ not in self._cache:
-            self._cache[method.__name__] = method(self)
-        return self._cache[method.__name__]  # type: ignore
+        name = method.__name__  # ty:ignore[unresolved-attribute]
+        if name not in self._cache:
+            self._cache[name] = method(self)
+        return self._cache[name]  # ty:ignore[invalid-return-type]
     return functools.update_wrapper(cached_method, method)
 
 class DictsReprMixin(abc.ABC):
@@ -683,7 +683,7 @@ class DictsReprMixin(abc.ABC):
             A copy of the object with the new default parameters.
         """
         new_instance = self.__class__.__new__(self.__class__)
-        new_instance.__dict__.update(self.__dict__)  # type: ignore
+        new_instance.__dict__.update(self.__dict__)
         new_instance._cache = None
         if keys is not None:
             new_instance.default_keys = keys
@@ -730,8 +730,10 @@ class DictsReprMixin(abc.ABC):
         try:
             import marimo as mo  # noqa: PLC0415
 
-            pretty_dicts = self.to_pretty_dicts(max_rows=0)
+            pretty_dicts: list[dict[str, Any]] = self.to_pretty_dicts(max_rows=0)
             n_rows = len(pretty_dicts)
+
+            text_justify_columns: dict[str, Literal["left", "center", "right"]]
             if self.default_align == "left":
                 text_justify_columns = dict.fromkeys(self.default_keys, "left")
             elif self.default_align == "right":
@@ -741,14 +743,15 @@ class DictsReprMixin(abc.ABC):
                     key: "left" if key in self.default_text_keys else "right"
                     for key in self.default_keys
                 }
-            return mo.ui.table(  # type: ignore
-                pretty_dicts,  # type: ignore
+
+            return mo.ui.table(
+                pretty_dicts,
                 selection=None,
                 pagination=self.default_max_rows > 0 and n_rows > self.default_max_rows,
                 page_size=self.default_max_rows
                     if self.default_max_rows > 0 and n_rows > self.default_max_rows
                     else None,
-                text_justify_columns=text_justify_columns,  # pyright: ignore
+                text_justify_columns=text_justify_columns,
             )._mime_()
         except Exception:  # noqa: BLE001
             return "text/html", self._repr_html_()
@@ -771,7 +774,7 @@ class DictsReprMixin(abc.ABC):
 
 
 def _format_pretty_dicts(
-    dicts: Sequence[dict[str, object]],
+    dicts: Sequence[dict[str, Any]],
     keys: Sequence[str],
     formatter: Callable[[dict[str, object], str], str],
     *,
@@ -863,73 +866,73 @@ class _NumericBase:
     value: float | int
     fill_zero_div: float | int | Literal["auto"] = "auto"
 
-    def __add__(self, other: object) -> Numeric:
+    def __add__(self, other: Any) -> Numeric:
         x, y = self.value, getattr(other, "value", other)
         return numeric(x + y, self.fill_zero_div)
 
-    def __sub__(self, other: object) -> Numeric:
+    def __sub__(self, other: Any) -> Numeric:
         x, y = self.value, getattr(other, "value", other)
         return numeric(x - y, self.fill_zero_div)
 
-    def __mul__(self, other: object) -> Numeric:
+    def __mul__(self, other: Any) -> Numeric:
         x, y = self.value, getattr(other, "value", other)
         return numeric(x * y, self.fill_zero_div)
 
-    def __truediv__(self, other: object) -> Numeric:
+    def __truediv__(self, other: Any) -> Numeric:
         x, y = self.value, getattr(other, "value", other)
-        return numeric(div(x, y, self.fill_zero_div), self.fill_zero_div)  # type: ignore
+        return numeric(div(x, y, self.fill_zero_div), self.fill_zero_div)
 
-    def __floordiv__(self, other: object) -> Numeric:
+    def __floordiv__(self, other: Any) -> Numeric:
         x, y = self.value, getattr(other, "value", other)
         return numeric(x // y, self.fill_zero_div)
 
-    def __mod__(self, other: object) -> Numeric:
+    def __mod__(self, other: Any) -> Numeric:
         x, y = self.value, getattr(other, "value", other)
         return numeric(x % y, self.fill_zero_div)
 
-    def __divmod__(self, other: object) -> tuple[Numeric, Numeric]:
+    def __divmod__(self, other: Any) -> tuple[Numeric, Numeric]:
         x, y = self.value, getattr(other, "value", other)
-        d, m = divmod(x, y)  # type: ignore
+        d, m = divmod(x, y)
         return numeric(d, self.fill_zero_div), numeric(m, self.fill_zero_div)
 
-    def __pow__(self, other: object, mod: object = None) -> Numeric:
+    def __pow__(self, other: Any, mod: Any = None) -> Numeric:
         x, y = self.value, getattr(other, "value", other)
         z = getattr(mod, "value", mod)
-        return numeric(pow(x, y, z), self.fill_zero_div)  # type: ignore
+        return numeric(pow(x, y, z), self.fill_zero_div)
 
-    def __radd__(self, other: object) -> Numeric:
+    def __radd__(self, other: Any) -> Numeric:
         y, x = self.value, getattr(other, "value", other)
         return numeric(x + y, self.fill_zero_div)
 
-    def __rsub__(self, other: object) -> Numeric:
+    def __rsub__(self, other: Any) -> Numeric:
         y, x = self.value, getattr(other, "value", other)
         return numeric(x - y, self.fill_zero_div)
 
-    def __rmul__(self, other: object) -> Numeric:
+    def __rmul__(self, other: Any) -> Numeric:
         y, x = self.value, getattr(other, "value", other)
         return numeric(x * y, self.fill_zero_div)
 
-    def __rtruediv__(self, other: object) -> Numeric:
+    def __rtruediv__(self, other: Any) -> Numeric:
         y, x = self.value, getattr(other, "value", other)
-        return numeric(div(x, y, self.fill_zero_div), self.fill_zero_div)  # type: ignore
+        return numeric(div(x, y, self.fill_zero_div), self.fill_zero_div)
 
-    def __rfloordiv__(self, other: object) -> Numeric:
+    def __rfloordiv__(self, other: Any) -> Numeric:
         y, x = self.value, getattr(other, "value", other)
         return numeric(x // y, self.fill_zero_div)
 
-    def __rmod__(self, other: object) -> Numeric:
+    def __rmod__(self, other: Any) -> Numeric:
         y, x = self.value, getattr(other, "value", other)
         return numeric(x % y, self.fill_zero_div)
 
-    def __rdivmod__(self, other: object) -> tuple[Numeric, Numeric]:
+    def __rdivmod__(self, other: Any) -> tuple[Numeric, Numeric]:
         y, x = self.value, getattr(other, "value", other)
-        d, m = divmod(x, y)  # type: ignore
+        d, m = divmod(x, y)
         return numeric(d, self.fill_zero_div), numeric(m, self.fill_zero_div)
 
-    def __rpow__(self, other: object, mod: object = None) -> Numeric:
+    def __rpow__(self, other: Any, mod: Any = None) -> Numeric:
         y, x = self.value, getattr(other, "value", other)
         z = getattr(mod, "value", mod)
-        return numeric(pow(x, y, z), self.fill_zero_div)  # type: ignore
+        return numeric(pow(x, y, z), self.fill_zero_div)
 
     def __neg__(self) -> Numeric:
         return numeric(-self.value, self.fill_zero_div)
@@ -963,12 +966,12 @@ class Float(_NumericBase, float):
     """Float that gracefully handles division by zero errors."""
     def __new__(
         cls,
-        value: object,
+        value: Any,
         fill_zero_div: float | int | Literal["auto"] = "auto",
     ) -> Float:
         """Float that gracefully handles division by zero errors."""
-        instance = float.__new__(cls, value)  # type: ignore
-        instance.value = float(value)  # type: ignore
+        instance = float.__new__(cls, value)
+        instance.value = float(value)
         instance.fill_zero_div = fill_zero_div
         return instance
 
@@ -976,12 +979,12 @@ class Int(_NumericBase, int):
     """Integer that gracefully handles division by zero errors."""
     def __new__(
         cls,
-        value: object,
+        value: Any,
         fill_zero_div: float | int | Literal["auto"] = "auto",
     ) -> Int:
         """Integer that gracefully handles division by zero errors."""
-        instance = int.__new__(cls, value)  # type: ignore
-        instance.value = int(value)  # type: ignore
+        instance = int.__new__(cls, value)
+        instance.value = int(value)
         instance.fill_zero_div = fill_zero_div
         return instance
 
@@ -1016,7 +1019,7 @@ def numeric(
         return Float(value, fill_zero_div)
 
 
-def _deprecate_keyword_alias(  # pyright: ignore[reportUnusedFunction]
+def _deprecate_keyword_alias(
     *,
     old: str,
     new: str,
@@ -1039,7 +1042,7 @@ def _deprecate_keyword_alias(  # pyright: ignore[reportUnusedFunction]
         @functools.wraps(func)
         def wrapped(*args: P.args, **kwargs: P.kwargs) -> R:
             if old in kwargs:
-                name = func_name or func.__name__
+                name = func_name or func.__name__  # ty:ignore[unresolved-attribute]
                 if new in kwargs:
                     raise TypeError(
                         f"{name}() got both '{new}' and deprecated keyword "
@@ -1051,7 +1054,7 @@ def _deprecate_keyword_alias(  # pyright: ignore[reportUnusedFunction]
                     DeprecationWarning,
                     stacklevel=3,
                 )
-                kwargs[new] = kwargs.pop(old)
+                kwargs[new] = kwargs.pop(old)  # ty:ignore[invalid-assignment]
             return func(*args, **kwargs)
         return wrapped
     return decorator

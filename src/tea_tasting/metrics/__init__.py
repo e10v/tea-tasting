@@ -9,7 +9,6 @@ For convenience, the API reference is provided by submodules of `tea_tasting.met
 - `tea_tasting.metrics.proportion`: Metrics for the analysis of proportions.
 - `tea_tasting.metrics.resampling`: Metrics analyzed using resampling methods.
 """
-# pyright: reportUnusedImport=false
 
 from tea_tasting.metrics.base import (
     AggrCols,
