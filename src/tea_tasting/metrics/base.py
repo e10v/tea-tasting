@@ -8,10 +8,8 @@ from collections.abc import Mapping
 from typing import (
     TYPE_CHECKING,
     Any,
-    Generic,
     NamedTuple,
     Protocol,
-    TypeAlias,
     TypeVar,
     overload,
 )
@@ -43,8 +41,8 @@ class _NamedTupleLike(Protocol):
         ...
 
 
-MetricResult: TypeAlias = _NamedTupleLike | Mapping[str, Any]
-MetricPowerResult: TypeAlias = MetricResult
+type MetricResult = _NamedTupleLike | Mapping[str, Any]
+type MetricPowerResult = MetricResult
 
 MetricResultT = TypeVar("MetricResultT", bound=MetricResult)
 MetricPowerResultT = TypeVar("MetricPowerResultT", bound=MetricPowerResult)
@@ -71,7 +69,7 @@ class MetricPowerResults(
 MetricPowerResultsT = TypeVar("MetricPowerResultsT", bound=MetricPowerResults)
 
 
-class MetricBase(abc.ABC, Generic[MetricResultT], tea_tasting.utils.ReprMixin):
+class MetricBase[MetricResultT: MetricResult](abc.ABC, tea_tasting.utils.ReprMixin):
     """Base class for metrics."""
     @abc.abstractmethod
     def analyze(
@@ -94,7 +92,9 @@ class MetricBase(abc.ABC, Generic[MetricResultT], tea_tasting.utils.ReprMixin):
         """
 
 
-class PowerBase(abc.ABC, Generic[MetricPowerResultsT], tea_tasting.utils.ReprMixin):
+class PowerBase[MetricPowerResultsT: MetricPowerResults](
+    abc.ABC, tea_tasting.utils.ReprMixin,
+):
     """Base class for the analysis of power."""
     @abc.abstractmethod
     def solve_power(

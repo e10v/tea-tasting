@@ -21,7 +21,7 @@ import tea_tasting.utils
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from typing import Literal, TypeAlias, TypeVar
+    from typing import Literal, TypeVar
 
 
     N = TypeVar("N", bound=float | int | None)
@@ -77,7 +77,7 @@ class MeanPowerResult(NamedTuple):
     rel_effect_size: float
     n_obs: float
 
-MeanPowerResults: TypeAlias = MetricPowerResults[MeanPowerResult]
+MeanPowerResults = MetricPowerResults[MeanPowerResult]
 
 
 class RatioOfMeans(  # noqa: D101
@@ -448,15 +448,15 @@ class RatioOfMeans(  # noqa: D101
             effect_size = (
                 self.effect_size if self.rel_effect_size is None
                 else tuple(
-                    rel_effect_size * metric_mean
-                    for rel_effect_size in _to_seq(self.rel_effect_size)
+                    rel_effect_size * metric_mean  # ty:ignore[unsupported-operator]
+                    for rel_effect_size in _to_seq(self.rel_effect_size)  # ty:ignore[invalid-argument-type]
                 )
             )
             rel_effect_size = (
                 self.rel_effect_size if self.effect_size is None
                 else tuple(
-                    effect_size / metric_mean
-                    for effect_size in _to_seq(self.effect_size)
+                    effect_size / metric_mean  # ty:ignore[unsupported-operator]
+                    for effect_size in _to_seq(self.effect_size)  # ty:ignore[invalid-argument-type]
                 )
             )
 
@@ -466,7 +466,7 @@ class RatioOfMeans(  # noqa: D101
         if parameter in {"effect_size", "rel_effect_size", "n_obs"}:
             power = self.power
 
-        return power, _to_seq(effect_size), _to_seq(rel_effect_size), _to_seq(n_obs)
+        return power, _to_seq(effect_size), _to_seq(rel_effect_size), _to_seq(n_obs)  # ty:ignore[invalid-return-type, invalid-argument-type]
 
 
     def _covariate_coef(self, aggr: tea_tasting.aggr.Aggregates) -> float:
@@ -716,7 +716,7 @@ def _find_boundary(
     return b
 
 
-def _to_seq(x: N | Sequence[N]) -> Sequence[N]:
+def _to_seq[T](x: N | Sequence[N]) -> Sequence[N]:
     if isinstance(x, Sequence):
         return x  # ty:ignore[invalid-return-type]
     return (x,)

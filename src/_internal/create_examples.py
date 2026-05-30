@@ -124,7 +124,7 @@ def create_header_comments(deps: tuple[str, ...]) -> str:
     )
     return textwrap.dedent("""
         # /// script
-        # requires-python = ">=3.10"
+        # requires-python = ">=3.12"
         # dependencies = [
         {dependencies}
         # ]

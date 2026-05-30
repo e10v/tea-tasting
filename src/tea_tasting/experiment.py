@@ -26,15 +26,15 @@ _inspect_signature = inspect.signature
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
-    from typing import Concatenate, Literal, TypeAlias, TypeVar
+    from typing import Concatenate, Literal, TypeVar
 
     import narwhals.typing  # noqa: TC004
 
 
     T = TypeVar("T")
-    MapLike: TypeAlias = Callable[Concatenate[Callable[..., T], ...], Iterable[T]]
-    ProgressFn: TypeAlias = Callable[Concatenate[Iterable[T], ...], Iterable[T]]
-    DataGenerator: TypeAlias =  Callable[
+    type MapLike[T] = Callable[Concatenate[Callable[..., T], ...], Iterable[T]]
+    type ProgressFn[T] = Callable[Concatenate[Iterable[T], ...], Iterable[T]]
+    type DataGenerator[T] =  Callable[
         ...,
         (
             narwhals.typing.IntoFrame |
@@ -77,10 +77,10 @@ class ExperimentResult(
             >>> pprint.pprint(result.to_dicts())
             ({'control': 0.5304003954522986,
               'effect_size': 0.04269014577177832,
-              'effect_size_ci_lower': -0.010800201598205515,
+              'effect_size_ci_lower': -0.010800201598205522,
               'effect_size_ci_upper': 0.09618049314176216,
               'metric': 'orders_per_user',
-              'pvalue': 0.11773177998716214,
+              'pvalue': 0.11773177998716207,
               'rel_effect_size': 0.08048664016431273,
               'rel_effect_size_ci_lower': -0.019515294044061937,
               'rel_effect_size_ci_upper': 0.1906880061278886,
@@ -91,7 +91,7 @@ class ExperimentResult(
               'effect_size_ci_lower': -0.13261881482742033,
               'effect_size_ci_upper': 1.1107850223083753,
               'metric': 'revenue_per_user',
-              'pvalue': 0.1230698855425058,
+              'pvalue': 0.12306988554250592,
               'rel_effect_size': 0.09331815958981626,
               'rel_effect_size_ci_lower': -0.02373770894855798,
               'rel_effect_size_ci_upper': 0.22440926894909308,
@@ -536,7 +536,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             if isinstance(metric, tea_tasting.metrics.PowerBaseAggregated):
                 result |= {name: metric.solve_power(aggr_data, parameter=parameter)}  # ty:ignore[unsupported-operator]
             elif isinstance(metric, tea_tasting.metrics.PowerBase):
-                result |= {name: metric.solve_power(data, parameter=parameter)}  # ty:ignore[unsupported-operator]
+                result |= {name: metric.solve_power(data, parameter=parameter)}  # ty:ignore[unsupported-operator, invalid-argument-type]
 
         return result
 
@@ -554,8 +554,8 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         rng: int | np.random.Generator | np.random.SeedSequence | None = None,
         ratio: float | int = 1,
         treat: Callable[[pa.Table], pa.Table] | None = None,
-        map_: MapLike[Any] = map,
-        progress: ProgressFn[Any] | type[Iterable[Any]] | None = None,
+        map_: MapLike = map,
+        progress: ProgressFn | type[Iterable[Any]] | None = None,
     ) -> SimulationResults:
         """Simulate the experiment analysis multiple times.
 

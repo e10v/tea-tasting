@@ -30,9 +30,9 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           activate-environment: true
-          cache-suffix: "3.10-test"
+          cache-suffix: "3.13-test"
           enable-cache: true
-          python-version: "3.10"
+          python-version: "3.13"
       - name: install dependencies
         run: uv sync --group test
       - name: check examples sync

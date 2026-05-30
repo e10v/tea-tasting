@@ -24,9 +24,9 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           activate-environment: true
-          cache-suffix: "3.10-test"
+          cache-suffix: "3.13-test"
           enable-cache: true
-          python-version: "3.10"
+          python-version: "3.13"
       - name: install dependencies
         run: uv sync --group test
       - name: doctest
@@ -47,9 +47,9 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           activate-environment: true
-          cache-suffix: "3.10-test-lowest"
+          cache-suffix: "3.12-test-lowest"
           enable-cache: true
-          python-version: "3.10"
+          python-version: "3.12"
       - name: install dependencies
         run: uv sync --group test --resolution lowest-direct
       - name: test-lowest
@@ -58,7 +58,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.12", "3.13", "3.14"]
     runs-on: ${{ matrix.os }}
     steps:
       - name: checkout
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.12", "3.13", "3.14"]
     steps:
       - name: checkout
         uses: actions/checkout@v6

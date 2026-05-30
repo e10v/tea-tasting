@@ -19,7 +19,7 @@ import pyarrow as pa
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
-    from typing import Any, Literal, ParamSpec, TypeAlias, TypeVar
+    from typing import Any, Literal, ParamSpec, TypeVar
 
     import pandas as pd
     import polars as pl
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     R = TypeVar("R")
 
 
-def check_scalar(  # noqa: PLR0913
+def check_scalar[R](  # noqa: PLR0913
     value: R,
     name: str = "value",
     *,
@@ -130,10 +130,10 @@ def auto_check(value: bool, name: Literal["use_t"]) -> bool:  # noqa: FBT001
     ...
 
 @overload
-def auto_check(value: R, name: str) -> R:
+def auto_check[R](value: R, name: str) -> R:
     ...
 
-def auto_check(value: R, name: str) -> R:  # noqa: C901, PLR0912
+def auto_check[R](value: R, name: str) -> R:  # noqa: C901, PLR0912
     """Automatically check a parameter's type and value based on its name.
 
     The following parameter names are supported: `"alpha"`, `"alternative"`,
@@ -285,7 +285,7 @@ def get_and_format_num(data: dict[str, object], key: str) -> str:
     return format_num(val, sig=sig, pct=pct)
 
 
-def _cache_method(
+def _cache_method[DictsReprMixinT: "DictsReprMixin", R](
     method: Callable[[DictsReprMixinT], R],
 ) -> Callable[[DictsReprMixinT], R]:
     def cached_method(self: DictsReprMixinT) -> R:
@@ -988,7 +988,7 @@ class Int(_NumericBase, int):
         instance.fill_zero_div = fill_zero_div
         return instance
 
-Numeric: TypeAlias = Float | Int
+type Numeric = Float | Int
 
 
 def numeric(
