@@ -16,7 +16,6 @@ For convenience, the API reference is provided by submodules:
 - `tea_tasting.aggr`: Module for working with aggregated statistics.
 - `tea_tasting.utils`: Useful functions and classes.
 """
-# pyright: reportUnusedImport=false
 
 from tea_tasting.config import config_context, get_config, set_config
 from tea_tasting.datasets import make_sessions_data, make_users_data

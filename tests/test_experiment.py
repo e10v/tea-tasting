@@ -1,4 +1,3 @@
-# pyright: reportAttributeAccessIssue=false
 from __future__ import annotations
 
 import concurrent.futures
@@ -22,7 +21,7 @@ import tea_tasting.utils
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Hashable, Iterable
-    from typing import Literal
+    from typing import Any, Literal
 
     import narwhals.typing
     import pandas as pd
@@ -73,10 +72,10 @@ class _Metric(
                 cov_cols=(),
             )
         return _MetricResultTuple(
-            control=data[control].mean(self.value),
-            treatment=data[treatment].mean(self.value),
-            effect_size=data[treatment].mean(self.value) -
-                data[control].mean(self.value),
+            control=data[control].mean(self.value),  # ty:ignore[invalid-argument-type]
+            treatment=data[treatment].mean(self.value),  # ty:ignore[invalid-argument-type]
+            effect_size=data[treatment].mean(self.value) -  # ty:ignore[invalid-argument-type]
+                data[control].mean(self.value),  # ty:ignore[invalid-argument-type]
         )
 
     def solve_power(
@@ -121,14 +120,14 @@ class _MetricAggregated(
         data: tea_tasting.aggr.Aggregates,  # noqa: ARG002
         parameter: Literal[  # noqa: ARG002
             "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
-    ) -> tea_tasting.metrics.MetricPowerResults[dict[str, object]]:
+    ) -> tea_tasting.metrics.MetricPowerResults[dict[str, Any]]:
         return tea_tasting.metrics.MetricPowerResults((
             {"power": 0.8, "effect_size": 1, "rel_effect_size": 0.05, "n_obs": 10_000},
             {"power": 0.9, "effect_size": 2, "rel_effect_size": 0.1, "n_obs": 20_000},
         ))
 
 
-class _MetricGranular(tea_tasting.metrics.MetricBaseGranular[_MetricResultDict]):  # type: ignore
+class _MetricGranular(tea_tasting.metrics.MetricBaseGranular[_MetricResultDict]):  # ty:ignore[invalid-type-arguments]
     def __init__(self, value: str) -> None:
         self.value = value
 
@@ -141,8 +140,8 @@ class _MetricGranular(tea_tasting.metrics.MetricBaseGranular[_MetricResultDict])
         control: pa.Table,
         treatment: pa.Table,
     ) -> _MetricResultDict:
-        contr_mean = pc.mean(control[self.value]).as_py()  # type: ignore
-        treat_mean = pc.mean(treatment[self.value]).as_py()  # type: ignore
+        contr_mean = pc.mean(control[self.value]).as_py()
+        treat_mean = pc.mean(treatment[self.value]).as_py()
         return _MetricResultDict(
             control=contr_mean,
             treatment=treat_mean,
@@ -165,7 +164,7 @@ def get_result() -> Callable[
                 control=y[0],
                 treatment=y[1],
                 effect_size=y[2],
-            ),  # type: ignore
+            ),  # ty:ignore[invalid-argument-type]
         )
 
     return _get_result
@@ -239,7 +238,7 @@ def data_pandas(data_arrow: pa.Table) -> pd.DataFrame:
 
 @pytest.fixture
 def data_polars(data_arrow: pa.Table) -> pl.DataFrame:
-    return pl.from_arrow(data_arrow)  # type: ignore
+    return pl.from_arrow(data_arrow)  # ty:ignore[invalid-return-type]
 
 @pytest.fixture
 def data_polars_lazy(data_polars: pl.DataFrame) -> pl.LazyFrame:
@@ -310,7 +309,7 @@ def ref_result(
     return tea_tasting.experiment.ExperimentResult(
         avg_sessions=sessions.analyze(data_arrow, 0, 1, "variant"),
         avg_orders=orders.analyze(data_arrow, 0, 1, "variant"),
-        avg_revenue=revenue.analyze(data_arrow, 0, 1, "variant"),  # type: ignore
+        avg_revenue=revenue.analyze(data_arrow, 0, 1, "variant"),
     )
 
 
@@ -397,7 +396,7 @@ def test_experiment_power_result_to_dicts() -> None:
         {"power": 0.9, "effect_size": 2, "rel_effect_size": 0.1, "n_obs": 20_000},
     )
     result = tea_tasting.experiment.ExperimentPowerResult({
-        "metric_dict": tea_tasting.metrics.MetricPowerResults[dict[str, float | int]](  # type: ignore
+        "metric_dict": tea_tasting.metrics.MetricPowerResults[dict[str, float | int]](
             raw_results[0:2]),
         "metric_tuple": tea_tasting.metrics.MetricPowerResults[_PowerResult]([
             _PowerResult(**raw_results[2]),
@@ -425,7 +424,7 @@ def test_experiment_init_default() -> None:
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     }
-    experiment = tea_tasting.experiment.Experiment(metrics)  # type: ignore
+    experiment = tea_tasting.experiment.Experiment(metrics)  # ty:ignore[invalid-argument-type]
     assert experiment.metrics == metrics
     assert experiment.variant == "variant"
 
@@ -435,7 +434,7 @@ def test_experiment_init_kwargs() -> None:
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     }
-    experiment = tea_tasting.experiment.Experiment(**metrics)  # type: ignore
+    experiment = tea_tasting.experiment.Experiment(**metrics)  # ty:ignore[invalid-argument-type]
     assert experiment.metrics == metrics
     assert experiment.variant == "variant"
 
@@ -445,7 +444,7 @@ def test_experiment_init_custom() -> None:
         "avg_orders": _MetricAggregated("orders"),
         "avg_revenue": _MetricGranular("revenue"),
     }
-    experiment = tea_tasting.experiment.Experiment(metrics, "group")  # type: ignore
+    experiment = tea_tasting.experiment.Experiment(metrics, "group")  # ty:ignore[invalid-argument-type]
     assert experiment.metrics == metrics
     assert experiment.variant == "group"
 
@@ -609,18 +608,18 @@ def test_experiment_solve_power(data_arrow: pa.Table) -> None:
 
 
 class ExperimentWithSimulationResults(tea_tasting.experiment.Experiment):
-    def __init__(self, *args: object, **kwargs: object) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self.simulation_results = tea_tasting.experiment.SimulationResults()
         self.data = []
-        super().__init__(*args, **kwargs)  # type: ignore
+        super().__init__(*args, **kwargs)
 
-    def analyze(  # type: ignore
+    def analyze(
         self,
-        *args: object,
-        **kwargs: object,
-    ) -> tea_tasting.experiment.ExperimentResult:
+        *args: Any,
+        **kwargs: Any,
+    ) -> tea_tasting.experiment.ExperimentResult:  # ty:ignore[invalid-method-override]
         self.data.append(args[0])
-        result = super().analyze(*args, **kwargs)  # type: ignore
+        result = super().analyze(*args, **kwargs)
         self.simulation_results.append(result)
         return result
 
@@ -773,8 +772,8 @@ def test_experiment_simulate_treat() -> None:
     def treat(data: pa.Table) -> pa.Table:
         return (
             data.drop_columns(["orders", "revenue"])
-            .append_column("orders", pc.multiply(data["orders"], pa.scalar(1.1)))  # type: ignore
-            .append_column("revenue", pc.multiply(data["revenue"], pa.scalar(1.1)))  # type: ignore
+            .append_column("orders", pc.multiply(data["orders"], pa.scalar(1.1)))
+            .append_column("revenue", pc.multiply(data["revenue"], pa.scalar(1.1)))
         )
     results = experiment.simulate(data, 100, rng=42, treat=treat)
     means = (
@@ -795,10 +794,10 @@ def test_experiment_simulate_seed_keyword_deprecated(data: Frame) -> None:
         "avg_revenue": _Metric("revenue"),
     })
     with pytest.warns(DeprecationWarning, match="'seed' keyword is deprecated"):
-        assert experiment.simulate(  # pyright: ignore[reportCallIssue]
+        assert experiment.simulate(
             data,
             10,
-            seed=42,  # pyright: ignore[reportCallIssue]
+            seed=42,  # ty:ignore[unknown-argument]
         ) == experiment.simulation_results
 
 
@@ -873,11 +872,11 @@ def test_experiment_simulate_seed_and_rng_raise(data: Frame) -> None:
         "avg_revenue": _Metric("revenue"),
     })
     with pytest.raises(TypeError, match="both 'rng' and deprecated keyword 'seed'"):
-        experiment.simulate(  # pyright: ignore[reportCallIssue]
+        experiment.simulate(
             data,
             10,
             rng=42,
-            seed=21,  # pyright: ignore[reportCallIssue]
+            seed=21,  # ty:ignore[unknown-argument]
         )
 
 

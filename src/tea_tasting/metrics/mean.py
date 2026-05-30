@@ -402,22 +402,22 @@ class RatioOfMeans(  # noqa: D101
                     power=power,
                 )
                 result.append(MeanPowerResult(
-                    power=parameter_value if parameter == "power" else power,  # type: ignore
+                    power=parameter_value if parameter == "power" else power,  # ty:ignore[invalid-argument-type]
                     effect_size=(
                         parameter_value
                         if parameter in {"effect_size", "rel_effect_size"}
                         else effect_size_i
-                    ),  # type: ignore
+                    ),  # ty:ignore[invalid-argument-type]
                     rel_effect_size=(
                         parameter_value / metric_mean
                         if parameter in {"effect_size", "rel_effect_size"}
                         else rel_effect_size_i
-                    ),  # type: ignore
+                    ),  # ty:ignore[invalid-argument-type]
                     n_obs=(
                         math.ceil(parameter_value)
                         if parameter == "n_obs"
                         else n_obs_i
-                    ),  # type: ignore
+                    ),  # ty:ignore[invalid-argument-type]
                 ))
 
         return result
@@ -612,7 +612,7 @@ class RatioOfMeans(  # noqa: D101
             lower_bound = 3
             upper_bound = _find_boundary(fn, 10)
 
-        return scipy.optimize.brentq(fn, lower_bound, upper_bound, maxiter=MAX_ITER)  # type: ignore
+        return scipy.optimize.brentq(fn, lower_bound, upper_bound, maxiter=MAX_ITER)
 
 
     def _power_from_stats(
@@ -718,7 +718,7 @@ def _find_boundary(
 
 def _to_seq(x: N | Sequence[N]) -> Sequence[N]:
     if isinstance(x, Sequence):
-        return x
+        return x  # ty:ignore[invalid-return-type]
     return (x,)
 
 

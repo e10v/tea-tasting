@@ -44,7 +44,7 @@ source = "https://github.com/e10v/tea-tasting"
 
 [dependency-groups]
 docs = ["mkdocs-material", "mkdocstrings[python]"]
-lint = ["markdown", "marimo", "pyright", "ruff"]
+lint = ["markdown", "marimo", "ruff", "ty"]
 test = [
     "coverage[toml]>=7",
     "ibis-framework[duckdb,sqlite]",
@@ -109,19 +109,18 @@ convention = "google"
 max-args = 8
 
 
+[tool.ty.src]
+include = ["src", "tests"]
+
+[[tool.ty.overrides]]
+include = ["tests"]
+
+[tool.ty.overrides.rules]
+unresolved-attribute = "ignore"
+
+
 [tool.uv]
 exclude-newer = "7 days"
-
-
-[tool.pyright]
-exclude = ["examples", "**/node_modules", "**/__pycache__", "**/.*"]
-typeCheckingMode = "strict"
-reportMissingTypeStubs = false
-reportPrivateUsage = false
-reportUnknownArgumentType = false
-reportUnknownMemberType = false
-reportUnknownParameterType = false
-reportUnknownVariableType = false
 
 
 [tool.tombi]
@@ -157,7 +156,7 @@ doctest-md = """pytest \
 """
 examples = "python src/_internal/create_examples.py"
 examples-check = "python src/_internal/create_examples.py --check"
-lint = "ruff check ."
+lint = "ruff check"
 markdownlint = 'markdownlint-cli2 "*.md" "docs/*.md" "examples/*.md"'
 readme = "python src/_internal/sync_readme.py"
 readme-check = "python src/_internal/sync_readme.py --check"
@@ -168,5 +167,5 @@ reset = [
     { cmd = "git push --force-with-lease" },
 ]
 test = "coverage run -m pytest"
-type = "pyright"
+type = "ty check"
 upgrade = "uv sync --all-groups --upgrade"

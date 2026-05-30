@@ -6,6 +6,7 @@ import abc
 from collections import UserList
 from typing import (
     TYPE_CHECKING,
+    Any,
     Generic,
     NamedTuple,
     TypeAlias,
@@ -34,8 +35,8 @@ if TYPE_CHECKING:
 
 
 # The | operator doesn't work for NamedTuple, but Union works.
-MetricResult: TypeAlias = Union[NamedTuple, dict[str, object]]
-MetricPowerResult: TypeAlias = Union[NamedTuple, dict[str, object]]
+MetricResult: TypeAlias = Union[NamedTuple, dict[str, Any]]
+MetricPowerResult: TypeAlias = Union[NamedTuple, dict[str, Any]]
 
 MetricResultT = TypeVar("MetricResultT", bound=MetricResult)
 MetricPowerResultT = TypeVar("MetricPowerResultT", bound=MetricPowerResult)
@@ -53,7 +54,7 @@ class MetricPowerResults(
         """Convert the results to a sequence of dictionaries."""
         return tuple((v if isinstance(v, dict) else v._asdict()) for v in self)
 
-MetricPowerResultsT = TypeVar("MetricPowerResultsT", bound=MetricPowerResults)  # type: ignore
+MetricPowerResultsT = TypeVar("MetricPowerResultsT", bound=MetricPowerResults)
 
 
 class MetricBase(abc.ABC, Generic[MetricResultT], tea_tasting.utils.ReprMixin):
@@ -132,7 +133,7 @@ class AggrCols(NamedTuple):
             }),
         )
 
-    def __len__(self) -> int:
+    def __len__(self) -> int:  # ty:ignore[invalid-method-override]
         """Total length of all object attributes.
 
         If has_count is True then its value is 1, or 0 otherwise.
@@ -293,7 +294,7 @@ def aggregate_by_variants(
         Experimental data as a dictionary of Aggregates.
     """
     if isinstance(data, dict):
-        return data
+        return data  # ty:ignore[invalid-return-type]
 
     if variant is None:
         raise ValueError("The variant parameter is required but was not provided.")
@@ -384,7 +385,7 @@ class MetricBaseGranular(MetricBase[MetricResultT], _HasCols):
         """
 
 
-def _handle_nan_policy(  # pyright: ignore[reportUnusedFunction]
+def _handle_nan_policy(
     control: npt.NDArray[np.number],
     treatment: npt.NDArray[np.number],
     nan_policy: Literal["propagate", "omit", "raise"],
@@ -462,7 +463,7 @@ def read_granular(
         table = data.to_pyarrow()
     else:
         data = nw.from_native(data)
-        if isinstance(data, nw.LazyFrame): # type: ignore
+        if isinstance(data, nw.LazyFrame):
             data = data.collect()
         if len(cols) + len(variant_cols) > 0:
             data = data.select(*cols, *variant_cols)
@@ -475,6 +476,6 @@ def read_granular(
     if len(cols) > 0:
         table = table.select(cols)
     return {
-        var: table.filter(pc.equal(variant_array, pa.scalar(var)))  # type: ignore
+        var: table.filter(pc.equal(variant_array, pa.scalar(var)))  # ty:ignore[unresolved-attribute]
         for var in variant_array.unique().to_pylist()
     }

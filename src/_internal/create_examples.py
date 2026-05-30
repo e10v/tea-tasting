@@ -1,5 +1,4 @@
 """Convert guides to examples as marimo notebooks."""
-# pyright: reportPrivateImportUsage=false
 
 from __future__ import annotations
 

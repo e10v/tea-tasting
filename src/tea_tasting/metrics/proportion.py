@@ -276,24 +276,24 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
 
         if method == "barnard":
             pvalue = scipy.stats.barnard_exact(
-                data,  # type: ignore
+                data,
                 alternative=self.alternative,
                 pooled=self.equal_var,
             ).pvalue
         elif method == "boschloo":
             pvalue = scipy.stats.boschloo_exact(
-                data, alternative=self.alternative).pvalue  # type: ignore
+                data, alternative=self.alternative).pvalue
         elif method == "fisher":
-            pvalue = scipy.stats.fisher_exact(data, alternative=self.alternative).pvalue  # type: ignore
+            pvalue = scipy.stats.fisher_exact(data, alternative=self.alternative).pvalue
         elif method in {"log-likelihood", "pearson"}:
-            if np.any(data.sum(axis=0) == 0) or np.any(data.sum(axis=1) == 0):  # type: ignore
+            if np.any(data.sum(axis=0) == 0) or np.any(data.sum(axis=1) == 0):
                 pvalue = float("nan")
             else:
                 pvalue = scipy.stats.chi2_contingency(
-                    data,  # type: ignore
+                    data,
                     correction=self.correction,
                     lambda_=self.method,
-                ).pvalue  # type: ignore
+                ).pvalue
         else:  # norm
             norm_result = self._2sample_proportion_ztest(
                 p_contr=p_contr,

@@ -265,13 +265,13 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
             confidence_level=self.confidence_level,
             alternative=self.alternative,
             method=self.method,
-            random_state=self.rng,  # type: ignore
+            random_state=self.rng,
         )
         ci = result.confidence_interval
 
         return BootstrapResult(
-            control=float(self.statistic(contr, axis=0)),  # type: ignore
-            treatment=float(self.statistic(treat, axis=0)),  # type: ignore
+            control=float(self.statistic(contr, axis=0)),
+            treatment=float(self.statistic(treat, axis=0)),
             effect_size=float(stat[0]),
             effect_size_ci_lower=float(ci.low[0]),
             effect_size_ci_upper=float(ci.high[0]),

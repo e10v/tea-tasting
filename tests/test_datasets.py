@@ -1,4 +1,3 @@
-# pyright: reportAttributeAccessIssue=false
 from __future__ import annotations
 
 import pandas as pd
@@ -129,25 +128,25 @@ def test_make_sessions_data_covariates() -> None:
 
 def test_make_users_data_seed_keyword_deprecated() -> None:
     with pytest.warns(DeprecationWarning, match="'seed' keyword is deprecated"):
-        data = tea_tasting.datasets.make_users_data(  # pyright: ignore[reportCallIssue]
+        data = tea_tasting.datasets.make_users_data(
             seed=42,
             n_users=100,
-        )
+        )  # ty:ignore[no-matching-overload]
     assert isinstance(data, pa.Table)
 
 
 def test_make_sessions_data_seed_keyword_deprecated() -> None:
     with pytest.warns(DeprecationWarning, match="'seed' keyword is deprecated"):
-        data = tea_tasting.datasets.make_sessions_data(  # pyright: ignore[reportCallIssue]
+        data = tea_tasting.datasets.make_sessions_data(
             seed=42,
             n_users=100,
-        )
+        )  # ty:ignore[no-matching-overload]
     assert isinstance(data, pa.Table)
 
 
 def test_make_users_data_seed_and_rng_raise() -> None:
     with pytest.raises(TypeError, match="both 'rng' and deprecated keyword 'seed'"):
-        tea_tasting.datasets.make_users_data(  # pyright: ignore[reportCallIssue]
+        tea_tasting.datasets.make_users_data(
             seed=42,
             rng=1,
-        )
+        )  # ty:ignore[no-matching-overload]

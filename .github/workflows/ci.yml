@@ -100,6 +100,6 @@ jobs:
       - name: install dependencies
         run: uv sync --group lint --group test
       - name: lint
-        run: ruff check .
+        run: ruff check
       - name: check types
-        run: pyright
+        run: ty check
