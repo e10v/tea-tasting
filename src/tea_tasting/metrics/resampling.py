@@ -50,11 +50,6 @@ class BootstrapResult(NamedTuple):
 
 
 class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
-    @tea_tasting.utils._deprecate_keyword_alias(
-        old="random_state",
-        new="rng",
-        func_name="Bootstrap",
-    )
     def __init__(  # noqa: PLR0913
         self,
         columns: str | Sequence[str],
@@ -108,8 +103,6 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
 
             rng: Pseudorandom number generator or seed used to generate
                 resamples.
-                The deprecated alias `random_state` is also accepted until
-                tea-tasting 2.0.
 
         Parameter defaults:
             Defaults for parameters `alternative`, `confidence_level`,
@@ -201,7 +194,6 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
         )
 
         self.rng = tea_tasting.utils.auto_check(rng, "rng")
-        self.random_state = self.rng
 
 
     @property
@@ -294,11 +286,6 @@ def _select_as_numpy(
 
 
 class Quantile(Bootstrap):  # noqa: D101
-    @tea_tasting.utils._deprecate_keyword_alias(
-        old="random_state",
-        new="rng",
-        func_name="Quantile",
-    )
     def __init__(  # noqa: PLR0913
         self,
         column: str,
@@ -351,8 +338,6 @@ class Quantile(Bootstrap):  # noqa: D101
 
             rng: Pseudorandom number generator or seed used to generate
                 resamples.
-                The deprecated alias `random_state` is also accepted until
-                tea-tasting 2.0.
 
         Parameter defaults:
             Defaults for parameters `alternative`, `confidence_level`,

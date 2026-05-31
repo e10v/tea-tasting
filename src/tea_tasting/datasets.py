@@ -71,11 +71,6 @@ def make_users_data(
     ...
 
 
-@tea_tasting.utils._deprecate_keyword_alias(
-    old="seed",
-    new="rng",
-    func_name="make_users_data",
-)
 def make_users_data(
     *,
     covariates: bool = False,
@@ -114,7 +109,6 @@ def make_users_data(
         covariates: If `True`, generates pre-experimental data as the covariates
             in addition to default columns.
         rng: Pseudorandom number generator or seed.
-            The deprecated alias `seed` is also accepted until tea-tasting 2.0.
         n_users: Number of users.
         ratio: Ratio of the number of users in treatment relative to control.
         sessions_uplift: Sessions uplift in the treatment variant, relative to control.
@@ -296,11 +290,6 @@ def make_sessions_data(
     ...
 
 
-@tea_tasting.utils._deprecate_keyword_alias(
-    old="seed",
-    new="rng",
-    func_name="make_sessions_data",
-)
 def make_sessions_data(
     *,
     covariates: bool = False,
@@ -339,7 +328,6 @@ def make_sessions_data(
         covariates: If `True`, generates pre-experimental data as the covariates
             in addition to default columns.
         rng: Pseudorandom number generator or seed.
-            The deprecated alias `seed` is also accepted until tea-tasting 2.0.
         n_users: Number of users.
         ratio: Ratio of the number of users in treatment relative to control.
         sessions_uplift: Sessions uplift in the treatment variant, relative to control.

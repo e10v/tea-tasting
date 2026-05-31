@@ -42,7 +42,6 @@ def test_bootstrap_init_default() -> None:
     assert metric.batch is None
     assert metric.nan_policy == "propagate"
     assert metric.rng is None
-    assert metric.random_state is None
 
 def test_bootstrap_init_custom() -> None:
     metric = tea_tasting.metrics.resampling.Bootstrap(
@@ -65,7 +64,6 @@ def test_bootstrap_init_custom() -> None:
     assert metric.batch == 100
     assert metric.nan_policy == "omit"
     assert metric.rng == 42
-    assert metric.random_state == 42
 
 
 def test_bootstrap_cols() -> None:
@@ -297,29 +295,3 @@ def test_quantile_analyze_nan_policy_omit() -> None:
     assert result.treatment == 3
     assert result.effect_size == 1
     assert result.rel_effect_size == 0.5
-
-
-def test_bootstrap_random_state_keyword_deprecated() -> None:
-    with pytest.warns(
-        DeprecationWarning,
-        match="'random_state' keyword is deprecated",
-    ):
-        metric = tea_tasting.metrics.resampling.Bootstrap(
-            "a",
-            np.mean,
-            random_state=42,  # ty:ignore[unknown-argument]
-        )
-    assert metric.rng == 42
-
-
-def test_bootstrap_rng_and_random_state_raise() -> None:
-    with pytest.raises(
-        TypeError,
-        match="both 'rng' and deprecated keyword 'random_state'",
-    ):
-        tea_tasting.metrics.resampling.Bootstrap(
-            "a",
-            np.mean,
-            rng=1,
-            random_state=42,  # ty:ignore[unknown-argument]
-        )
