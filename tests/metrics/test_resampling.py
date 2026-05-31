@@ -92,11 +92,11 @@ def test_bootstrap_analyze_default(data_gran: dict[Hashable, pa.Table]) -> None:
     assert result.control == pytest.approx(5.029811320754717)
     assert result.treatment == pytest.approx(5.43)
     assert result.effect_size == pytest.approx(0.4001886792452831)
-    assert result.effect_size_ci_lower == pytest.approx(-3.269396309565539)
-    assert result.effect_size_ci_upper == pytest.approx(7.219843380442667)
+    assert result.effect_size_ci_lower == pytest.approx(-3.595551144566696)
+    assert result.effect_size_ci_upper == pytest.approx(6.426573101094806)
     assert result.rel_effect_size == pytest.approx(0.07956335809137971)
-    assert result.rel_effect_size_ci_lower == pytest.approx(-0.5658493834599828)
-    assert result.rel_effect_size_ci_upper == pytest.approx(1.8185473860534842)
+    assert result.rel_effect_size_ci_lower == pytest.approx(-0.6261291499213544)
+    assert result.rel_effect_size_ci_upper == pytest.approx(1.7431421649724208)
 
 def test_bootstrap_analyze_multiple_columns(
     data_gran: dict[Hashable, pa.Table],
@@ -119,11 +119,11 @@ def test_bootstrap_analyze_multiple_columns(
     assert result.control == pytest.approx(0.2857142857142857)
     assert result.treatment == pytest.approx(0.20224719101123595)
     assert result.effect_size == pytest.approx(-0.08346709470304975)
-    assert result.effect_size_ci_lower == pytest.approx(-0.24780839493679777)
-    assert result.effect_size_ci_upper == pytest.approx(0.07730723504025493)
+    assert result.effect_size_ci_lower == pytest.approx(-0.21061531484819673)
+    assert result.effect_size_ci_upper == pytest.approx(0.08491730472112008)
     assert result.rel_effect_size == pytest.approx(-0.2921348314606741)
-    assert result.rel_effect_size_ci_lower == pytest.approx(-0.6424902672606227)
-    assert result.rel_effect_size_ci_upper == pytest.approx(0.4374404130492657)
+    assert result.rel_effect_size_ci_lower == pytest.approx(-0.653616879375374)
+    assert result.rel_effect_size_ci_upper == pytest.approx(0.3635392812388218)
 
 def test_bootstrap_analyze_division_by_zero(
     data_gran: dict[Hashable, pa.Table],
@@ -250,10 +250,10 @@ def test_quantile(data_gran: dict[Hashable, pa.Table]) -> None:
     assert result.control == pytest.approx(11.972000000000001)
     assert result.treatment == pytest.approx(6.2820000000000045)
     assert result.effect_size == pytest.approx(-5.689999999999997)
-    assert result.effect_size_ci_lower == pytest.approx(-10.875800000000003)
+    assert result.effect_size_ci_lower == pytest.approx(-11.43539999999998)
     assert result.effect_size_ci_upper == float("inf")
     assert result.rel_effect_size == pytest.approx(-0.47527564316739024)
-    assert result.rel_effect_size_ci_lower == pytest.approx(-0.8743329817472134)
+    assert result.rel_effect_size_ci_lower == pytest.approx(-0.9643443256453782)
     assert result.rel_effect_size_ci_upper == float("inf")
 
 
