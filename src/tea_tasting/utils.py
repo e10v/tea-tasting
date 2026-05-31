@@ -9,7 +9,7 @@ import functools
 import inspect
 import locale
 import math
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING, TypeGuard, overload
 import xml.etree.ElementTree as ET
 
 import numpy as np
@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
     from typing import Any, Literal, TypeVar
 
+    import ibis.expr.types
     import pandas as pd
     import polars as pl
 
@@ -1015,3 +1016,15 @@ def numeric(
         return Int(value, fill_zero_div)
     except ValueError:
         return Float(value, fill_zero_div)
+
+
+def _is_ibis_table(data: object) -> TypeGuard[ibis.expr.types.Table]:
+    """Return whether data is an Ibis Table."""
+    try:
+        import ibis.expr.types  # noqa: PLC0415
+    except ModuleNotFoundError as exc:
+        if exc.name == "ibis":
+            return False
+        raise
+
+    return isinstance(data, ibis.expr.types.Table)

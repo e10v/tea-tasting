@@ -14,8 +14,6 @@ from typing import (
     overload,
 )
 
-import ibis
-import ibis.expr.types
 import narwhals as nw
 import numpy as np
 import pyarrow as pa
@@ -74,7 +72,7 @@ class MetricBase[MetricResultT: MetricResult](abc.ABC, tea_tasting.utils.ReprMix
     @abc.abstractmethod
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
+        data: narwhals.typing.IntoFrame,
         control: Hashable,
         treatment: Hashable,
         variant: str,
@@ -99,7 +97,7 @@ class PowerBase[MetricPowerResultsT: MetricPowerResults](
     @abc.abstractmethod
     def solve_power(
         self,
-        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
+        data: narwhals.typing.IntoFrame,
         parameter: Literal[
             "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> MetricPowerResultsT:
@@ -182,7 +180,7 @@ class MetricBaseAggregated(MetricBase[MetricResultT], _HasAggrCols):
     @overload
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
+        data: narwhals.typing.IntoFrame,
         control: Hashable,
         treatment: Hashable,
         variant: str,
@@ -191,8 +189,7 @@ class MetricBaseAggregated(MetricBase[MetricResultT], _HasAggrCols):
 
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[
-            Hashable, tea_tasting.aggr.Aggregates],
+        data: narwhals.typing.IntoFrame | dict[Hashable, tea_tasting.aggr.Aggregates],
         control: Hashable,
         treatment: Hashable,
         variant: str | None = None,
@@ -240,11 +237,7 @@ class PowerBaseAggregated(PowerBase[MetricPowerResultsT], _HasAggrCols):
     """Base class for the analysis of power using aggregated statistics."""
     def solve_power(
         self,
-        data: (
-            narwhals.typing.IntoFrame |
-            ibis.expr.types.Table |
-            tea_tasting.aggr.Aggregates
-        ),
+        data: narwhals.typing.IntoFrame | tea_tasting.aggr.Aggregates,
         parameter: Literal[
             "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> MetricPowerResultsT:
@@ -289,11 +282,7 @@ class PowerBaseAggregated(PowerBase[MetricPowerResultsT], _HasAggrCols):
 
 
 def aggregate_by_variants(
-    data: (
-        narwhals.typing.IntoFrame |
-        ibis.expr.types.Table |
-        dict[Hashable, tea_tasting.aggr.Aggregates]
-    ),
+    data: narwhals.typing.IntoFrame | dict[Hashable, tea_tasting.aggr.Aggregates],
     aggr_cols: AggrCols,
     variant: str | None = None,
 ) ->  dict[Hashable, tea_tasting.aggr.Aggregates]:
@@ -342,7 +331,7 @@ class MetricBaseGranular(MetricBase[MetricResultT], _HasCols):
     @overload
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame | ibis.expr.types.Table,
+        data: narwhals.typing.IntoFrame,
         control: Hashable,
         treatment: Hashable,
         variant: str,
@@ -351,11 +340,7 @@ class MetricBaseGranular(MetricBase[MetricResultT], _HasCols):
 
     def analyze(
         self,
-        data: (
-            narwhals.typing.IntoFrame |
-            ibis.expr.types.Table |
-            dict[Hashable, pa.Table]
-        ),
+        data: narwhals.typing.IntoFrame | dict[Hashable, pa.Table],
         control: Hashable,
         treatment: Hashable,
         variant: str | None = None,
@@ -420,7 +405,7 @@ def _handle_nan_policy(
 
 @overload
 def read_granular(
-    data: narwhals.typing.IntoFrame | narwhals.typing.Frame | ibis.expr.types.Table,
+    data: narwhals.typing.IntoFrame | narwhals.typing.Frame,
     cols: Sequence[str] = (),
     variant: None = None,
 ) -> pa.Table:
@@ -436,24 +421,14 @@ def read_granular(
 
 @overload
 def read_granular(
-    data: (
-        narwhals.typing.IntoFrame |
-        narwhals.typing.Frame |
-        ibis.expr.types.Table |
-        dict[Hashable, pa.Table]
-    ),
+    data: narwhals.typing.IntoFrame | narwhals.typing.Frame | dict[Hashable, pa.Table],
     cols: Sequence[str],
     variant: str,
 ) -> dict[Hashable, pa.Table]:
     ...
 
 def read_granular(
-    data: (
-        narwhals.typing.IntoFrame |
-        narwhals.typing.Frame |
-        ibis.expr.types.Table |
-        dict[Hashable, pa.Table]
-    ),
+    data: narwhals.typing.IntoFrame | narwhals.typing.Frame | dict[Hashable, pa.Table],
     cols: Sequence[str] = (),
     variant: str | None = None,
 ) -> pa.Table | dict[Hashable, pa.Table]:
@@ -471,7 +446,7 @@ def read_granular(
         return data
 
     variant_cols = () if variant is None else (variant,)
-    if isinstance(data, ibis.expr.types.Table):
+    if tea_tasting.utils._is_ibis_table(data):
         if len(cols) + len(variant_cols) > 0:
             data = data.select(*cols, *variant_cols)
         table = data.to_pyarrow()
