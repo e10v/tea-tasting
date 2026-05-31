@@ -5,10 +5,8 @@ from __future__ import annotations
 from collections import UserDict, UserList
 from collections.abc import Hashable
 import functools
-import inspect
 import itertools
 from typing import TYPE_CHECKING, Any, overload
-import warnings
 
 import ibis.expr.types
 import narwhals as nw
@@ -19,9 +17,6 @@ import pyarrow.compute as pc
 import tea_tasting.aggr
 import tea_tasting.metrics
 import tea_tasting.utils
-
-
-_inspect_signature = inspect.signature
 
 
 if TYPE_CHECKING:
@@ -541,11 +536,6 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         return result
 
 
-    @tea_tasting.utils._deprecate_keyword_alias(
-        old="seed",
-        new="rng",
-        func_name="simulate",
-    )
     def simulate(
         self,
         data: narwhals.typing.IntoFrame | ibis.expr.types.Table | DataGenerator,
@@ -563,7 +553,6 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             data: Experimental data or a callable that generates the data.
             n_simulations: Number of simulations.
             rng: Pseudorandom number generator or seed.
-                The deprecated alias `seed` is also accepted until tea-tasting 2.0.
             ratio: Ratio of the number of users in treatment relative to control.
             treat: Treatment function that takes a PyArrow Table as an input
                 and returns an updated PyArrow Table.
@@ -626,7 +615,7 @@ def _simulate_once(
         ibis.expr.types.Table |
         dict[Hashable, tea_tasting.aggr.Aggregates] |
         pa.Table
-    ) = data if isinstance(data, pa.Table) else _generate_data(data, rng)
+    ) = data if isinstance(data, pa.Table) else data(rng=rng)
 
     if isinstance(raw_data, dict):
         if ratio != 1:
@@ -667,119 +656,3 @@ def _simulate_once(
         table = pa.concat_tables((contr_data, treat_data))
 
     return experiment.analyze(table)
-
-
-def _generate_data(
-    data: DataGenerator,
-    rng: np.random.Generator,
-) -> (
-    narwhals.typing.IntoFrame |
-    ibis.expr.types.Table |
-    dict[Hashable, tea_tasting.aggr.Aggregates]
-):
-    try:
-        params = _inspect_signature(data).parameters
-    except (TypeError, ValueError):
-        return _generate_data_without_signature(data, rng)
-    rng_param = params.get("rng")
-    if rng_param is not None:
-        return data(rng=rng)
-
-    seed_param = params.get("seed")
-    if seed_param is not None:
-        _warn_data_generator_seed_parameter_deprecated()
-        return data(seed=rng)
-
-    if any(param.kind is inspect.Parameter.VAR_KEYWORD for param in params.values()):
-        return _generate_data_with_variadic_kwargs(data, rng)
-
-    return data(rng=rng)
-
-
-def _generate_data_without_signature(
-    data: DataGenerator,
-    rng: np.random.Generator,
-) -> (
-    narwhals.typing.IntoFrame |
-    ibis.expr.types.Table |
-    dict[Hashable, tea_tasting.aggr.Aggregates]
-):
-    rng_error: TypeError
-    try:
-        return data(rng=rng)
-    except TypeError as err:
-        if _is_callable_type_error(err, data):
-            raise
-        rng_error = err
-
-    try:
-        result = data(seed=rng)
-    except TypeError as seed_error:
-        if _is_callable_type_error(seed_error, data):
-            raise
-        raise rng_error from seed_error
-    _warn_data_generator_seed_parameter_deprecated()
-    return result
-
-
-def _warn_data_generator_seed_parameter_deprecated() -> None:
-    warnings.warn(
-        "The data generator keyword parameter 'seed' is deprecated and will be "
-        "removed in tea-tasting 2.0. Use 'rng' instead.",
-        DeprecationWarning,
-        stacklevel=3,
-    )
-
-
-def _generate_data_with_variadic_kwargs(
-    data: DataGenerator,
-    rng: np.random.Generator,
-) -> (
-    narwhals.typing.IntoFrame |
-    ibis.expr.types.Table |
-    dict[Hashable, tea_tasting.aggr.Aggregates]
-):
-    rng_error: Exception
-    try:
-        return data(rng=rng)
-    except Exception as err:
-        if not _is_variadic_seed_fallback_error(err):
-            raise
-        rng_error = err
-
-    try:
-        result = data(seed=rng)
-    except Exception as seed_error:
-        raise rng_error from seed_error
-    _warn_data_generator_seed_parameter_deprecated()
-    return result
-
-
-def _is_variadic_seed_fallback_error(error: Exception) -> bool:
-    if isinstance(error, KeyError):
-        return len(error.args) == 1 and error.args[0] == "seed"
-    if isinstance(error, TypeError):
-        message = str(error)
-        return (
-            "unexpected keyword argument 'rng'" in message or
-            "got an unexpected keyword argument 'rng'" in message
-        )
-    return False
-
-
-def _is_callable_type_error(error: TypeError, data: DataGenerator) -> bool:
-    code_objects = []
-    code_object = getattr(data, "__code__", None)
-    if code_object is not None:
-        code_objects.append(code_object)
-
-    call_code_object = getattr(data.__call__, "__code__", None)
-    if call_code_object is not None:
-        code_objects.append(call_code_object)
-
-    tb = error.__traceback__
-    while tb is not None:
-        if tb.tb_frame.f_code in code_objects:
-            return True
-        tb = tb.tb_next
-    return False
