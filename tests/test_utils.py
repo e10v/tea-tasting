@@ -19,6 +19,7 @@ import tea_tasting.utils
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
+    from types import ModuleType
     from typing import Literal
 
 
@@ -637,3 +638,48 @@ def test_numeric() -> None:
     assert isinstance(tea_tasting.utils.numeric("1"), tea_tasting.utils.Int)
     assert isinstance(tea_tasting.utils.numeric(1.0), tea_tasting.utils.Float)
     assert isinstance(tea_tasting.utils.numeric("inf"), tea_tasting.utils.Float)
+
+
+def test_is_ibis_table_without_ibis(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def import_without_ibis(
+        name: str,
+        globals_: dict[str, object] | None = None,
+        locals_: dict[str, object] | None = None,
+        fromlist: tuple[str, ...] = (),
+        level: int = 0,
+    ) -> ModuleType:
+        if name == "ibis" or name.startswith("ibis."):
+            raise ModuleNotFoundError("No module named 'ibis'", name="ibis")
+        return real_import(name, globals_, locals_, fromlist, level)
+
+    real_import = builtins.__import__
+    monkeypatch.setattr(builtins, "__import__", import_without_ibis)
+
+    assert not tea_tasting.utils._is_ibis_table(object())
+
+
+def test_is_ibis_table_missing_ibis_dependency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def import_with_missing_dependency(
+        name: str,
+        globals_: dict[str, object] | None = None,
+        locals_: dict[str, object] | None = None,
+        fromlist: tuple[str, ...] = (),
+        level: int = 0,
+    ) -> ModuleType:
+        if name == "ibis" or name.startswith("ibis."):
+            raise ModuleNotFoundError("No module named 'missing'", name="missing")
+        return real_import(name, globals_, locals_, fromlist, level)
+
+    real_import = builtins.__import__
+    monkeypatch.setattr(builtins, "__import__", import_with_missing_dependency)
+
+    with pytest.raises(ModuleNotFoundError):
+        tea_tasting.utils._is_ibis_table(object())
+
+
+def test_is_ibis_table() -> None:
+    assert not tea_tasting.utils._is_ibis_table(object())

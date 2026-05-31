@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from collections.abc import Hashable
     from typing import Literal
 
-    import ibis.expr.types
     import narwhals.typing
 
 
@@ -499,8 +498,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
 
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[
-            Hashable, tea_tasting.aggr.Aggregates],
+        data: narwhals.typing.IntoFrame | dict[Hashable, tea_tasting.aggr.Aggregates],
         control: Hashable,
         treatment: Hashable,
         variant: str | None = None,

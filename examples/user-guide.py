@@ -34,6 +34,12 @@ def _(mo):
     pip install tea-tasting
     ```
 
+    To use Ibis data backends, install Ibis with the extra for your backend, such as:
+
+    ```bash
+    uv add 'ibis-framework[duckdb]'
+    ```
+
     Install Pandas or Polars to serialize analysis results as a Pandas DataFrame or a Polars DataFrame, respectively. These packages are not installed with tea-tasting by default.
 
     ## Basic usage
@@ -92,7 +98,7 @@ def _(mo):
 
     tea-tasting can process data in the form of an Ibis Table or a DataFrame supported by Narwhals:
 
-    - [Ibis](https://github.com/ibis-project/ibis) is a DataFrame API for various data backends. It supports many backends, including BigQuery, ClickHouse, PostgreSQL, Snowflake, Trino, and others. You can write an SQL query, [wrap](https://ibis-project.org/how-to/extending/sql#backend.sql) it as an Ibis Table, and pass it to tea-tasting.
+    - [Ibis](https://github.com/ibis-project/ibis) is an optional DataFrame API for various data backends. It supports many backends, including BigQuery, ClickHouse, PostgreSQL, Snowflake, Trino, and others. You can write an SQL query, [wrap](https://ibis-project.org/how-to/extending/sql#backend.sql) it as an Ibis Table, and pass it to tea-tasting.
     - [Narwhals](https://github.com/narwhals-dev/narwhals) is a compatibility layer between dataframe libraries. It supports cuDF, Daft, Dask, DuckDB, Modin, pandas, Polars, PyArrow, PySpark dataframes. You can use any of these dataframes as an input to tea-tasting.
 
     Many statistical tests, such as t-test and z-test, require only aggregated data for analysis. For these tests, tea-tasting retrieves only aggregated statistics like mean and variance instead of downloading all detailed data. See more details in the [guide on data backends](https://tea-tasting.e10v.me/data-backends/).

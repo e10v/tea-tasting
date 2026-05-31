@@ -5,8 +5,6 @@ from __future__ import annotations
 import itertools
 from typing import TYPE_CHECKING, overload
 
-import ibis.expr.operations
-import ibis.expr.types
 import narwhals as nw
 
 import tea_tasting.utils
@@ -15,6 +13,7 @@ import tea_tasting.utils
 if TYPE_CHECKING:
     from collections.abc import Hashable, Sequence
 
+    import ibis.expr.types
     import narwhals.typing  # noqa: TC004
 
 
@@ -230,7 +229,7 @@ def _add_cov(left: Aggregates, right: Aggregates, cols: tuple[str, str]) -> floa
 
 @overload
 def read_aggregates(
-    data: ibis.expr.types.Table | narwhals.typing.IntoFrame,
+    data: narwhals.typing.IntoFrame,
     group_col: str,
     *,
     has_count: bool,
@@ -242,7 +241,7 @@ def read_aggregates(
 
 @overload
 def read_aggregates(
-    data: ibis.expr.types.Table | narwhals.typing.IntoFrame,
+    data: narwhals.typing.IntoFrame,
     group_col: None,
     *,
     has_count: bool,
@@ -253,7 +252,7 @@ def read_aggregates(
     ...
 
 def read_aggregates(
-    data: ibis.expr.types.Table | narwhals.typing.IntoFrame,
+    data: narwhals.typing.IntoFrame,
     group_col: str | None,
     *,
     has_count: bool,
@@ -277,7 +276,7 @@ def read_aggregates(
     """
     mean_cols, var_cols, cov_cols = _validate_aggr_cols(mean_cols, var_cols, cov_cols)
 
-    if isinstance(data, ibis.expr.types.Table):
+    if tea_tasting.utils._is_ibis_table(data):
         aggr_data = _read_aggr_ibis(
             data=data,
             group_col=group_col,
@@ -346,6 +345,9 @@ def _read_aggr_ibis(
     var_cols: Sequence[str],
     cov_cols: Sequence[tuple[str, str]],
 ) -> list[dict[str, int | float]]:
+    import ibis  # noqa: PLC0415
+    import ibis.expr.operations  # noqa: PLC0415
+
     covar_cols = tuple({*var_cols, *itertools.chain(*cov_cols)})
     backend = ibis.get_backend(data)
     var_op = ibis.expr.operations.Variance

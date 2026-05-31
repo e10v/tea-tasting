@@ -40,7 +40,7 @@ def _(mo):
 
     /// admonition | Note
 
-    This guide uses [DuckDB](https://github.com/duckdb/duckdb), an in-process analytical database, and [Polars](https://github.com/pola-rs/polars) as example backends. Install these packages in addition to tea-tasting to reproduce the examples:
+    This guide uses [DuckDB](https://github.com/duckdb/duckdb), an in-process analytical database, and [Polars](https://github.com/pola-rs/polars) as example backends. Ibis is optional in tea-tasting, so install Ibis with the DuckDB extra and Polars in addition to tea-tasting to reproduce the examples:
 
     ```bash
     uv add 'ibis-framework[duckdb]' polars
