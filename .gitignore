@@ -170,5 +170,10 @@ src/tea_tasting/_version.txt
 # uv lockfile
 uv.lock
 
+# Marimo
+marimo/_static/
+marimo/_lsp/
+__marimo__/
+
 # Codex
-/.codex
+.codex
