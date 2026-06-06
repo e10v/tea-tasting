@@ -34,7 +34,7 @@ def _(mo):
     pip install tea-tasting
     ```
 
-    To use Ibis data backends, install Ibis with the extra for your backend, such as:
+    To use Ibis data backends, [install Ibis](https://ibis-project.org/install) with the extra for your backend, such as:
 
     ```bash
     uv add 'ibis-framework[duckdb]'

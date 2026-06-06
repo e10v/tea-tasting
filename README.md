@@ -39,7 +39,7 @@ Or with pip:
 pip install tea-tasting
 ```
 
-To use Ibis data backends, install Ibis with the extra for your backend, such as:
+To use Ibis data backends, [install Ibis](https://ibis-project.org/install) with the extra for your backend, such as:
 
 ```bash
 uv add 'ibis-framework[duckdb]'
@@ -90,7 +90,7 @@ git clone https://github.com/e10v/tea-tasting.git && cd tea-tasting
 Install marimo, tea-tasting, and other packages used in the examples:
 
 ```bash
-uv venv && uv pip install marimo tea-tasting polars ibis-framework[duckdb]
+uv venv && uv pip install marimo tea-tasting polars 'ibis-framework[duckdb]'
 ```
 
 Launch the notebook server:
