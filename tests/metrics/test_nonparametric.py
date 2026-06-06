@@ -39,7 +39,7 @@ def test_mann_whitney_u_init_default() -> None:
     assert metric.alternative == tea_tasting.config.get_config("alternative")
     assert metric.correction == tea_tasting.config.get_config("correction")
     assert metric.method == "auto"
-    assert metric.nan_policy == "propagate"
+    assert metric.nan_policy == tea_tasting.config.get_config("nan_policy")
 
 
 def test_mann_whitney_u_init_custom() -> None:
@@ -58,11 +58,16 @@ def test_mann_whitney_u_init_custom() -> None:
 
 
 def test_mann_whitney_u_init_config() -> None:
-    with tea_tasting.config.config_context(alternative="less", correction=True):
+    with tea_tasting.config.config_context(
+        alternative="less",
+        correction=True,
+        nan_policy="omit",
+    ):
         metric = tea_tasting.metrics.nonparametric.MannWhitneyU("value")
     assert metric.column == "value"
     assert metric.alternative == "less"
     assert metric.correction is True
+    assert metric.nan_policy == "omit"
 
 
 def test_mann_whitney_u_cols() -> None:

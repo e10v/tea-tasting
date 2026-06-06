@@ -50,7 +50,7 @@ class MannWhitneyU(MetricBaseGranular[MannWhitneyUResult]):  # noqa: D101
         alternative: Literal["two-sided", "greater", "less"] | None = None,
         correction: bool | None = None,
         method: Literal["auto", "asymptotic", "exact"] = "auto",
-        nan_policy: Literal["propagate", "omit", "raise"] = "propagate",
+        nan_policy: Literal["propagate", "omit", "raise"] | None = None,
     ) -> None:
         """Metric for nonparametric analysis with the Mann-Whitney U test.
 
@@ -80,9 +80,11 @@ class MannWhitneyU(MetricBaseGranular[MannWhitneyUResult]):  # noqa: D101
                 - `"omit"`: ignore `nan` values,
                 - `"raise"`: raise an exception.
 
+                Defaults to the global config value (`"propagate"`).
+
         Parameter defaults:
-            Defaults for parameters `alternative` and `correction` can be changed using
-            the `config_context` and `set_config` functions.
+            Defaults for parameters `alternative`, `correction`, and `nan_policy`
+            can be changed using the `config_context` and `set_config` functions.
             See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
             reference for details.
 
@@ -140,11 +142,10 @@ class MannWhitneyU(MetricBaseGranular[MannWhitneyUResult]):  # noqa: D101
             in_={"auto", "asymptotic", "exact"},
         )
         self.nan_policy: Literal["propagate", "omit", "raise"]
-        self.nan_policy = tea_tasting.utils.check_scalar(
-            nan_policy,
-            "nan_policy",
-            typ=str,
-            in_={"propagate", "omit", "raise"},
+        self.nan_policy = (
+            tea_tasting.utils.auto_check(nan_policy, "nan_policy")
+            if nan_policy is not None
+            else tea_tasting.config.get_config("nan_policy")
         )
 
     @property

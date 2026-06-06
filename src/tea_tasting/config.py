@@ -23,6 +23,7 @@ _DEFAULT_CONFIG: dict[str, object] = {
     "equal_var": False,
     "n_obs": None,
     "n_resamples": 10_000,
+    "nan_policy": "propagate",
     "power": 0.8,
     "ratio": 1,
     "use_t": True,
@@ -62,6 +63,10 @@ def get_config(option: Literal["n_obs"]) -> int | Sequence[int] | None:
 
 @overload
 def get_config(option: Literal["n_resamples"]) -> int:
+    ...
+
+@overload
+def get_config(option: Literal["nan_policy"]) -> Literal["propagate", "omit", "raise"]:
     ...
 
 @overload
@@ -124,6 +129,7 @@ def set_config(
     equal_var: bool | None = None,
     n_obs: int | Sequence[int] | None = None,
     n_resamples: int | None = None,
+    nan_policy: Literal["propagate", "omit", "raise"] | None = None,
     power: float | None = None,
     ratio: float | int | None = None,
     use_t: bool | None = None,
@@ -153,6 +159,7 @@ def set_config(
             Default is `None`.
         n_resamples: The number of resamples performed to form the bootstrap
             distribution of a statistic. Default is `10_000`.
+        nan_policy: Defines how to handle `nan` values. Default is `"propagate"`.
         power: Statistical power. Default is 0.8.
         ratio: Ratio of the number of observations in the treatment
             relative to the control. Default is 1.
@@ -190,6 +197,7 @@ def config_context(
     equal_var: bool | None = None,
     n_obs: int | Sequence[int] | None = None,
     n_resamples: int | None = None,
+    nan_policy: Literal["propagate", "omit", "raise"] | None = None,
     power: float | None = None,
     ratio: float | int | None = None,
     use_t: bool | None = None,
@@ -219,6 +227,7 @@ def config_context(
             Default is `None`.
         n_resamples: The number of resamples performed to form the bootstrap
             distribution of a statistic. Default is `10_000`.
+        nan_policy: Defines how to handle `nan` values. Default is `"propagate"`.
         power: Statistical power. Default is 0.8.
         ratio: Ratio of the number of observations in the treatment
             relative to the control. Default is 1.
