@@ -3,6 +3,7 @@ from __future__ import annotations
 import concurrent.futures
 from typing import TYPE_CHECKING, NamedTuple, TypedDict
 
+import duckdb
 import ibis
 import ibis.expr.types
 import polars as pl
@@ -236,6 +237,10 @@ def data_pandas(data_arrow: pa.Table) -> pd.DataFrame:
     return data_arrow.to_pandas()
 
 @pytest.fixture
+def data_duckdb(data_arrow: pa.Table) -> duckdb.DuckDBPyRelation:
+    return duckdb.from_arrow(data_arrow)
+
+@pytest.fixture
 def data_polars(data_arrow: pa.Table) -> pl.DataFrame:
     return pl.from_arrow(data_arrow)  # ty:ignore[invalid-return-type]
 
@@ -244,17 +249,17 @@ def data_polars_lazy(data_polars: pl.DataFrame) -> pl.LazyFrame:
     return data_polars.lazy()
 
 @pytest.fixture
-def data_duckdb(data_arrow: pa.Table) -> ibis.expr.types.Table:
+def data_ibis_duckdb(data_arrow: pa.Table) -> ibis.expr.types.Table:
     return ibis.connect("duckdb://").create_table("data", data_arrow)
 
 @pytest.fixture
-def data_sqlite(data_arrow: pa.Table) -> ibis.expr.types.Table:
+def data_ibis_sqlite(data_arrow: pa.Table) -> ibis.expr.types.Table:
     return ibis.connect("sqlite://").create_table("data", data_arrow)
 
 @pytest.fixture(params=[
-    "data_arrow", "data_pandas",
+    "data_arrow", "data_pandas", "data_duckdb",
     "data_polars", "data_polars_lazy",
-    "data_duckdb", "data_sqlite",
+    "data_ibis_duckdb", "data_ibis_sqlite",
 ])
 def data(request: pytest.FixtureRequest) -> Frame:
     return request.getfixturevalue(request.param)
