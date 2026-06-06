@@ -725,7 +725,7 @@ def _to_seq[T](x: N | Sequence[N]) -> Sequence[N]:
 class Mean(RatioOfMeans):  # noqa: D101
     def __init__(  # noqa: PLR0913
         self,
-        value: str,
+        column: str,
         covariate: str | None = None,
         *,
         alternative: Literal["two-sided", "greater", "less"] | None = None,
@@ -742,7 +742,7 @@ class Mean(RatioOfMeans):  # noqa: D101
         """Metric for the analysis of means.
 
         Args:
-            value: Metric value column name.
+            column: Metric column name.
             covariate: Metric covariate column name.
             alternative: Alternative hypothesis:
 
@@ -857,7 +857,7 @@ class Mean(RatioOfMeans):  # noqa: D101
             ```
         """  # noqa: E501
         super().__init__(
-            numer=value,
+            numer=column,
             denom=None,
             numer_covariate=covariate,
             denom_covariate=None,
@@ -872,5 +872,5 @@ class Mean(RatioOfMeans):  # noqa: D101
             rel_effect_size=rel_effect_size,
             n_obs=n_obs,
         )
-        self.value = value
+        self.column = column
         self.covariate = covariate
