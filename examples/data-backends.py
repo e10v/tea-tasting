@@ -55,6 +55,7 @@ def _(mo):
 
 @app.cell
 def _():
+    import duckdb
     import ibis
     import polars as pl
     import tea_tasting as tt
@@ -62,7 +63,7 @@ def _():
     users_data = tt.make_users_data(rng=42)
     con = ibis.connect("duckdb://")
     con.create_table("users_data", users_data)
-    return con, ibis, pl, tt, users_data
+    return con, duckdb, ibis, pl, tt, users_data
 
 
 @app.cell(hide_code=True)
@@ -245,6 +246,23 @@ def _(mo):
 def _(experiment, pl, users_data):
     data_polars = pl.from_arrow(users_data)
     experiment.analyze(data_polars)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## DuckDB relation example
+
+    Here’s an example of how to analyze data using a DuckDB relation directly:
+    """)
+    return
+
+
+@app.cell
+def _(duckdb, experiment, users_data):
+    data_duckdb = duckdb.from_arrow(users_data)
+    experiment.analyze(data_duckdb)
     return
 
 
