@@ -215,6 +215,7 @@ To speed up simulations and run them in parallel, use the `map_` parameter with 
 ...         100,
 ...         rng=42,
 ...         treat=treat,
+...         batch_size=10,
 ...         map_=executor.map,
 ...         progress=tqdm.tqdm,
 ...     )  # doctest: +SKIP
