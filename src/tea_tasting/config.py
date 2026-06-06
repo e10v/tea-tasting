@@ -180,7 +180,7 @@ def set_config(
         ... )
         >>> tt.set_config(equal_var=False, use_t=True)
         >>> experiment.metrics["orders_per_user"]
-        Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
+        Mean(column='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
 
         ```
     """  # noqa: E501
@@ -247,7 +247,7 @@ def config_context(
         ...         revenue_per_user=tt.Mean("revenue"),
         ...     )
         >>> experiment.metrics["orders_per_user"]
-        Mean(value='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
+        Mean(column='orders', covariate=None, alternative='two-sided', confidence_level=0.95, equal_var=True, use_t=False, alpha=0.05, ratio=1, power=0.8, effect_size=None, rel_effect_size=None, n_obs=None)
 
         ```
     """  # noqa: E501

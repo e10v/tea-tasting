@@ -50,8 +50,8 @@ class _Metric(
     tea_tasting.metrics.MetricBase[_MetricResultTuple],
     tea_tasting.metrics.PowerBase[tea_tasting.metrics.MetricPowerResults[_PowerResult]],
 ):
-    def __init__(self, value: str) -> None:
-        self.value = value
+    def __init__(self, column: str) -> None:
+        self.column = column
 
     def analyze(
         self,
@@ -66,15 +66,15 @@ class _Metric(
                 data,
                 variant,
                 has_count=False,
-                mean_cols=(self.value,),
+                mean_cols=(self.column,),
                 var_cols=(),
                 cov_cols=(),
             )
         return _MetricResultTuple(
-            control=data[control].mean(self.value),  # ty:ignore[invalid-argument-type]
-            treatment=data[treatment].mean(self.value),  # ty:ignore[invalid-argument-type]
-            effect_size=data[treatment].mean(self.value) -  # ty:ignore[invalid-argument-type]
-                data[control].mean(self.value),  # ty:ignore[invalid-argument-type]
+            control=data[control].mean(self.column),  # ty:ignore[invalid-argument-type]
+            treatment=data[treatment].mean(self.column),  # ty:ignore[invalid-argument-type]
+            effect_size=data[treatment].mean(self.column) -  # ty:ignore[invalid-argument-type]
+                data[control].mean(self.column),  # ty:ignore[invalid-argument-type]
         )
 
     def solve_power(
@@ -94,20 +94,20 @@ class _MetricAggregated(
     tea_tasting.metrics.PowerBaseAggregated[
         tea_tasting.metrics.MetricPowerResults[dict[str, object]]],
 ):
-    def __init__(self, value: str) -> None:
-        self.value = value
+    def __init__(self, column: str) -> None:
+        self.column = column
 
     @property
     def aggr_cols(self) -> tea_tasting.metrics.AggrCols:
-        return tea_tasting.metrics.AggrCols(mean_cols=(self.value,))
+        return tea_tasting.metrics.AggrCols(mean_cols=(self.column,))
 
     def analyze_aggregates(
         self,
         control: tea_tasting.aggr.Aggregates,
         treatment: tea_tasting.aggr.Aggregates,
     ) -> _MetricResultTuple:
-        contr_mean = control.mean(self.value)
-        treat_mean = treatment.mean(self.value)
+        contr_mean = control.mean(self.column)
+        treat_mean = treatment.mean(self.column)
         return _MetricResultTuple(
             control=contr_mean,
             treatment=treat_mean,
@@ -127,20 +127,20 @@ class _MetricAggregated(
 
 
 class _MetricGranular(tea_tasting.metrics.MetricBaseGranular[_MetricResultDict]):
-    def __init__(self, value: str) -> None:
-        self.value = value
+    def __init__(self, column: str) -> None:
+        self.column = column
 
     @property
     def cols(self) -> tuple[str, ...]:
-        return (self.value,)
+        return (self.column,)
 
     def analyze_granular(
         self,
         control: pa.Table,
         treatment: pa.Table,
     ) -> _MetricResultDict:
-        contr_mean = pc.mean(control[self.value]).as_py()
-        treat_mean = pc.mean(treatment[self.value]).as_py()
+        contr_mean = pc.mean(control[self.column]).as_py()
+        treat_mean = pc.mean(treatment[self.column]).as_py()
         return _MetricResultDict(
             control=contr_mean,
             treatment=treat_mean,
