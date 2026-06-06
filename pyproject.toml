@@ -56,7 +56,7 @@ test = [
 
 
 [build-system]
-requires = ["pdm-backend>=2.4.0"]
+requires = ["pdm-backend>=2.4,<3"]
 build-backend = "pdm.backend"
 
 
