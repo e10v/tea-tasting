@@ -18,7 +18,7 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Hashable, Iterable
+    from collections.abc import Callable, Hashable
     from typing import Any, Literal
 
     import narwhals.typing
@@ -740,21 +740,84 @@ def test_experiment_simulate_map(data_arrow: pa.Table) -> None:
         results = experiment.simulate(data_arrow, 10, rng=42, map_=executor.map)
     assert results == experiment.simulate(data_arrow, 10, rng=42)
 
+
+def test_experiment_simulate_batch_size(data_arrow: pa.Table) -> None:
+    experiment = tea_tasting.experiment.Experiment({
+        "avg_sessions": _MetricAggregated("sessions"),
+        "avg_orders": _MetricGranular("orders"),
+        "avg_revenue": _Metric("revenue"),
+    })
+    results = experiment.simulate(data_arrow, 10, rng=42, batch_size=4)
+    assert results == experiment.simulate(data_arrow, 10, rng=42, batch_size=1)
+
+
 def test_experiment_simulate_progress(data_arrow: pa.Table) -> None:
     experiment = tea_tasting.experiment.Experiment({
         "avg_sessions": _MetricAggregated("sessions"),
         "avg_orders": _MetricGranular("orders"),
         "avg_revenue": _Metric("revenue"),
     })
-    simulation_results = tea_tasting.experiment.SimulationResults()
+    events: list[object] = []
+
+    class ProgressBar:
+        def __enter__(self) -> ProgressBar:
+            events.append("__enter__")
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            events.append("__exit__")
+
+        def update(self, n: int) -> None:
+            events.append(n)
+
     def progress(
-        results: Iterable[tea_tasting.experiment.ExperimentResult],
-    ) -> Iterable[tea_tasting.experiment.ExperimentResult]:
-        results = tuple(results)
-        simulation_results.extend(results)
-        return results
-    results = experiment.simulate(data_arrow, 10, rng=42, progress=progress)
-    assert results == simulation_results
+        *args: object,
+        total: int,
+        **kwargs: object,  # noqa: ARG001
+    ) -> ProgressBar:
+        events.append((args, total))
+        return ProgressBar()
+
+    results = experiment.simulate(
+        data_arrow,
+        10,
+        rng=42,
+        batch_size=4,
+        progress=progress,
+    )
+    assert results == experiment.simulate(data_arrow, 10, rng=42)
+    assert events == [((), 10), "__enter__", 4, 4, 2, "__exit__"]
+
+
+def test_experiment_simulate_progress_tqdm(data_arrow: pa.Table) -> None:
+    tqdm = pytest.importorskip("tqdm")
+    experiment = tea_tasting.experiment.Experiment({
+        "avg_sessions": _MetricAggregated("sessions"),
+    })
+    results = experiment.simulate(
+        data_arrow,
+        2,
+        rng=42,
+        batch_size=2,
+        progress=tqdm.tqdm,
+    )
+    assert results == experiment.simulate(data_arrow, 2, rng=42)
+
+
+def test_experiment_simulate_progress_marimo(data_arrow: pa.Table) -> None:
+    marimo = pytest.importorskip("marimo")
+    experiment = tea_tasting.experiment.Experiment({
+        "avg_sessions": _MetricAggregated("sessions"),
+    })
+    results = experiment.simulate(
+        data_arrow,
+        2,
+        rng=42,
+        batch_size=2,
+        progress=marimo.status.progress_bar,
+    )
+    assert results == experiment.simulate(data_arrow, 2, rng=42)
+
 
 def test_experiment_simulate_treat() -> None:
     experiment = tea_tasting.experiment.Experiment({

@@ -20,18 +20,40 @@ import tea_tasting.utils
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
-    from typing import Concatenate, Literal, TypeVar
+    from typing import Concatenate, Literal, Protocol
 
     import narwhals.typing  # noqa: TC004
 
 
-    T = TypeVar("T")
     type MapLike[T] = Callable[Concatenate[Callable[..., T], ...], Iterable[T]]
-    type ProgressFn[T] = Callable[Concatenate[Iterable[T], ...], Iterable[T]]
     type DataGenerator[T] =  Callable[
         ...,
         narwhals.typing.IntoFrame | dict[Hashable, tea_tasting.aggr.Aggregates],
     ]
+
+    class _ProgressLike(Protocol):
+        def update(self, __n: int, /) -> object:
+            ...
+
+    class _ProgressContextLike(Protocol):
+        def __enter__(self) -> _ProgressLike:
+            ...
+
+        def __exit__(self, *args: object) -> object:
+            ...
+
+    class TqdmLike(Protocol):
+        """Progress factory compatible with `tqdm.tqdm`."""
+
+        def __call__(
+            self,
+            *args: object,
+            total: int,
+            **kwargs: object,
+        ) -> _ProgressContextLike:
+            """Create a progress context manager."""
+            ...
+
 
 
 class ExperimentResult(
@@ -516,7 +538,8 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         ratio: float | int = 1,
         treat: Callable[[pa.Table], pa.Table] | None = None,
         map_: MapLike = map,
-        progress: ProgressFn | type[Iterable[Any]] | None = None,
+        batch_size: int = 1,
+        progress: TqdmLike | None = None,
     ) -> SimulationResults:
         """Simulate the experiment analysis multiple times.
 
@@ -528,12 +551,16 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             treat: Treatment function that takes a PyArrow Table as an input
                 and returns an updated PyArrow Table.
             map_: Map-like function to run simulations.
-            progress: tqdm-like class or function to show the progress of simulations.
+            batch_size: Number of simulations to run in each batch.
+            progress: Progress class or function, such as `tqdm.tqdm` or
+                `marimo.status.progress_bar`, that returns a context manager whose
+                `__enter__` method returns an object with an `update(n)` method.
 
         Returns:
             Simulation results.
         """
         tea_tasting.utils.check_scalar(n_simulations, "n_simulations", typ=int, gt=0)
+        tea_tasting.utils.check_scalar(batch_size, "batch_size", typ=int, gt=0)
         tea_tasting.utils.auto_check(ratio, "ratio")
         rng = tea_tasting.utils.auto_check(rng, "rng")
 
@@ -557,21 +584,44 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             if self.variant in data.column_names:
                 data = data.drop_columns(self.variant)
 
-        sim = functools.partial(
-            _simulate_once,
+        sim_batch = functools.partial(
+            _simulate_batch,
             experiment=self,
             data=data,
             ratio=ratio,
             treat=treat,
         )
 
-        results = map_(sim, np.random.default_rng(rng).spawn(n_simulations))
+        rngs = np.random.default_rng(rng).spawn(n_simulations)
+        batches = itertools.batched(rngs, batch_size)
+        batch_results = map_(sim_batch, batches)
         if progress is not None:
-            try:
-                results = progress(results, total=n_simulations)
-            except TypeError:
-                results = progress(results)
-        return SimulationResults(results)
+            results = SimulationResults()
+            with progress(total=n_simulations) as progress_bar:
+                for batch_result in batch_results:
+                    results.extend(batch_result)
+                    progress_bar.update(len(batch_result))
+            return results
+        return SimulationResults(itertools.chain.from_iterable(batch_results))
+
+
+def _simulate_batch(
+    rngs: Iterable[np.random.Generator],
+    experiment: Experiment,
+    data: pa.Table | DataGenerator,
+    ratio: float | int,
+    treat: Callable[[pa.Table], pa.Table] | None,
+) -> tuple[ExperimentResult, ...]:
+    return tuple(
+        _simulate_once(
+            rng=rng,
+            experiment=experiment,
+            data=data,
+            ratio=ratio,
+            treat=treat,
+        )
+        for rng in rngs
+    )
 
 
 def _simulate_once(

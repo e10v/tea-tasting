@@ -213,6 +213,7 @@ def _(data, experiment, mo, treat):
             100,
             rng=42,
             treat=treat,
+            batch_size=10,
             map_=executor.map,
             progress=mo.status.progress_bar,
         )
