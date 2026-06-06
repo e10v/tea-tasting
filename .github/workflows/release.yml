@@ -9,9 +9,9 @@ jobs:
       id-token: write
     steps:
       - name: checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.3
       - name: set up uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v8.2.0
         with:
           activate-environment: true
           python-version: "3.13"

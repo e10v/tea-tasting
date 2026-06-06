@@ -19,9 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.3
       - name: set up uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v8.2.0
         with:
           activate-environment: true
           cache-suffix: "3.13-test"
@@ -42,9 +42,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.3
       - name: set up uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v8.2.0
         with:
           activate-environment: true
           cache-suffix: "3.12-test-lowest"
@@ -62,9 +62,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.3
       - name: set up uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v8.2.0
         with:
           activate-environment: true
           cache-suffix: "${{ matrix.python-version }}-test"
@@ -77,7 +77,7 @@ jobs:
       - name: convert coverage report
         run: coverage xml
       - name: upload coverage reports to codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6.0.1
         with:
           files: ./coverage.xml
         env:
@@ -89,9 +89,9 @@ jobs:
         python-version: ["3.12", "3.13", "3.14"]
     steps:
       - name: checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.3
       - name: set up uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v8.2.0
         with:
           activate-environment: true
           cache-suffix: "${{ matrix.python-version }}-lint"
