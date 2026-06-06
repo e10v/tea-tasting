@@ -30,6 +30,7 @@ uv add 'ibis-framework[duckdb]' polars
 First, let's prepare a demo database:
 
 ```pycon
+>>> import duckdb
 >>> import ibis
 >>> import polars as pl
 >>> import tea_tasting as tt
@@ -248,6 +249,21 @@ Here’s an example of how to analyze data using a Polars DataFrame:
 ```pycon
 >>> data_polars = pl.from_arrow(users_data)
 >>> experiment.analyze(data_polars)
+metric             control treatment rel_effect_size rel_effect_size_ci pvalue
+sessions_per_user     2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
+orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
+orders_per_user      0.530     0.573            8.0%       [-2.0%, 19%]  0.118
+revenue_per_user      5.24      5.73            9.3%       [-2.4%, 22%]  0.123
+
+```
+
+## DuckDB relation example
+
+Here’s an example of how to analyze data using a DuckDB relation directly:
+
+```pycon
+>>> data_duckdb = duckdb.from_arrow(users_data)
+>>> experiment.analyze(data_duckdb)
 metric             control treatment rel_effect_size rel_effect_size_ci pvalue
 sessions_per_user     2.00      1.98          -0.66%      [-3.7%, 2.5%]  0.674
 orders_per_session   0.266     0.289            8.8%      [-0.89%, 19%] 0.0762
