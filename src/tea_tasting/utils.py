@@ -110,6 +110,13 @@ def auto_check(value: int, name: Literal["n_resamples"]) -> int:
     ...
 
 @overload
+def auto_check(
+    value: str,
+    name: Literal["nan_policy"],
+) -> Literal["propagate", "omit", "raise"]:
+    ...
+
+@overload
 def auto_check(value: float, name: Literal["power"]) -> float:
     ...
 
@@ -137,7 +144,7 @@ def auto_check[R](value: R, name: str) -> R:  # noqa: C901, PLR0912
 
     The following parameter names are supported: `"alpha"`, `"alternative"`,
     `"confidence_level"`, `"correction"`, `"equal_var"`, `"n_obs"`,
-    `"n_resamples"`, `"power"`, `"ratio"`, `"rng"`, `"use_t"`.
+    `"n_resamples"`, `"nan_policy"`, `"power"`, `"ratio"`, `"rng"`, `"use_t"`.
 
     Args:
         value: Parameter value.
@@ -165,6 +172,8 @@ def auto_check[R](value: R, name: str) -> R:  # noqa: C901, PLR0912
                 check_scalar(val, name, typ=int, gt=1)
     elif name == "n_resamples":
         check_scalar(value, name, typ=int, gt=0)
+    elif name == "nan_policy":
+        check_scalar(value, name, typ=str, in_={"propagate", "omit", "raise"})
     elif name == "power":
         check_scalar(value, name, typ=float, gt=0, lt=1)
     elif name == "ratio":

@@ -40,7 +40,7 @@ def test_bootstrap_init_default() -> None:
     assert metric.n_resamples == tea_tasting.config.get_config("n_resamples")
     assert metric.method == "bca"
     assert metric.batch is None
-    assert metric.nan_policy == "propagate"
+    assert metric.nan_policy == tea_tasting.config.get_config("nan_policy")
     assert metric.rng is None
 
 def test_bootstrap_init_custom() -> None:
@@ -244,7 +244,7 @@ def test_quantile(data_gran: dict[Hashable, pa.Table]) -> None:
     )
     assert metric.column == "revenue"
     assert metric.q == 0.8
-    assert metric.nan_policy == "omit"
+    assert metric.nan_policy == tea_tasting.config.get_config("nan_policy")
     result = metric.analyze(data_gran, 0, 1)
     assert isinstance(result, tea_tasting.metrics.resampling.BootstrapResult)
     assert result.control == pytest.approx(11.972000000000001)

@@ -60,7 +60,7 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
         n_resamples: int | None = None,
         method: Literal["percentile", "basic", "bca"] = "bca",
         batch: int | None = None,
-        nan_policy: Literal["propagate", "omit", "raise"] = "propagate",
+        nan_policy: Literal["propagate", "omit", "raise"] | None = None,
         rng: int | np.random.Generator | np.random.SeedSequence | None = None,
     ) -> None:
         """Metric for the analysis of a statistic using bootstrap resampling.
@@ -101,12 +101,14 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
                 - `"omit"`: ignore `nan` values,
                 - `"raise"`: raise an exception.
 
+                Defaults to the global config value (`"propagate"`).
+
             rng: Pseudorandom number generator or seed used to generate
                 resamples.
 
         Parameter defaults:
             Defaults for parameters `alternative`, `confidence_level`,
-            and `n_resamples` can be changed using the
+            `n_resamples`, and `nan_policy` can be changed using the
             `config_context` and `set_config` functions.
             See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
             reference for details.
@@ -186,11 +188,10 @@ class Bootstrap(MetricBaseGranular[BootstrapResult]):  # noqa: D101
         self.batch = tea_tasting.utils.check_scalar(batch, "batch", typ=int | None)
 
         self.nan_policy: Literal["propagate", "omit", "raise"]
-        self.nan_policy = tea_tasting.utils.check_scalar(
-            nan_policy,
-            "nan_policy",
-            typ=str,
-            in_={"propagate", "omit", "raise"},
+        self.nan_policy = (
+            tea_tasting.utils.auto_check(nan_policy, "nan_policy")
+            if nan_policy is not None
+            else tea_tasting.config.get_config("nan_policy")
         )
 
         self.rng = tea_tasting.utils.auto_check(rng, "rng")
@@ -296,7 +297,7 @@ class Quantile(Bootstrap):  # noqa: D101
         n_resamples: int | None = None,
         method: Literal["percentile", "basic", "bca"] = "basic",
         batch: int | None = None,
-        nan_policy: Literal["propagate", "omit", "raise"] = "omit",
+        nan_policy: Literal["propagate", "omit", "raise"] | None = None,
         rng: int | np.random.Generator | np.random.SeedSequence | None = None,
     ) -> None:
         """Metric for the analysis of quantiles using bootstrap resampling.
@@ -336,12 +337,14 @@ class Quantile(Bootstrap):  # noqa: D101
                 - `"omit"`: ignore `nan` values,
                 - `"raise"`: raise an exception.
 
+                Defaults to the global config value (`"propagate"`).
+
             rng: Pseudorandom number generator or seed used to generate
                 resamples.
 
         Parameter defaults:
             Defaults for parameters `alternative`, `confidence_level`,
-            and `n_resamples` can be changed using the
+            `n_resamples`, and `nan_policy` can be changed using the
             `config_context` and `set_config` functions.
             See the [Global configuration](https://tea-tasting.e10v.me/api/config/)
             reference for details.
