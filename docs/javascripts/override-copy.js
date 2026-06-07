@@ -1,9 +1,9 @@
 function attachCustomCopy() {
-  document.querySelectorAll("button.md-clipboard").forEach((button) => {
+  document.querySelectorAll("button.md-code__button").forEach((button) => {
     button.removeEventListener("click", handleCopy);
   });
 
-  document.querySelectorAll("button.md-clipboard").forEach((button) => {
+  document.querySelectorAll("button.md-code__button").forEach((button) => {
     button.addEventListener("click", handleCopy);
   });
 }
