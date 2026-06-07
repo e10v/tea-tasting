@@ -196,6 +196,8 @@ def _(mo):
 
     The code below won't work in the [marimo online playground](https://docs.marimo.io/guides/publishing/playground/) as it relies on the `multiprocessing` module which is currently [not supported](https://docs.marimo.io/guides/wasm/#limitations) by WASM notebooks. [WASM notebooks](https://docs.marimo.io/guides/wasm/) are the marimo notebooks that run entirely in the browser.
 
+    The code also won't work on Windows because it uses the `"fork"` multiprocessing start method, which is only available on POSIX systems. This start method lets worker processes inherit functions defined in the current notebook session. Windows uses the `"spawn"` start method, where worker processes must import those functions from a Python module.
+
     ///
 
     To speed up simulations and run them in parallel, use the `map_` parameter with an alternative mapping function.
@@ -206,8 +208,10 @@ def _(mo):
 @app.cell
 def _(data, experiment, mo, treat):
     import concurrent.futures
+    import multiprocessing as mp
 
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    ctx = mp.get_context("fork")
+    with concurrent.futures.ProcessPoolExecutor(mp_context=ctx) as executor:
         results_parallel = experiment.simulate(
             data,
             100,
@@ -225,7 +229,14 @@ def _(mo):
     mo.md(r"""
     As an alternative to [`concurrent.futures.ProcessPoolExecutor`](https://docs.python.org/3/library/concurrent.futures.html#processpoolexecutor), you can use the `map`, `imap`, or `imap_unordered` methods of [`multiprocessing.pool.Pool`](https://docs.python.org/3/library/multiprocessing.html#module-multiprocessing.pool).
 
-    It's also possible to run simulations on a distributed [Dask](https://distributed.dask.org/en/stable/api.html#distributed.Client.map) or [Ray](https://docs.ray.io/en/latest/ray-core/api/doc/ray.util.ActorPool.map.html#ray.util.ActorPool.map) cluster.
+    For cross-platform multiprocessing, put the simulation code in a Python module or script, define the treatment function and any data generator at the top level of that module, and start the process pool inside an `if __name__ == "__main__":` block. This makes the functions importable by worker processes that use the `"spawn"` or `"forkserver"` start methods.
+
+    Other options for parallel execution include:
+
+    - [`concurrent.futures.ThreadPoolExecutor`](https://docs.python.org/3/library/concurrent.futures.html#threadpoolexecutor): avoids multiprocessing importability issues because threads run in the same process. Speedups depend on how much work releases the global interpreter lock (GIL).
+    - [`concurrent.futures.InterpreterPoolExecutor`](https://docs.python.org/3/library/concurrent.futures.html#interpreterpoolexecutor): available in Python 3.14 or later and can run Python code on multiple cores. It still serializes callables and arguments.
+    - [`joblib`](https://joblib.readthedocs.io/): provides process-based parallelism with serialization that can work better for interactive workflows.
+    - Distributed engines such as [Dask](https://distributed.dask.org/en/stable/api.html#distributed.Client.map) or [Ray](https://docs.ray.io/en/latest/ray-core/api/doc/ray.util.ActorPool.map.html#ray.util.ActorPool.map): useful when simulations need to run across many workers or machines.
     """)
     return
 
