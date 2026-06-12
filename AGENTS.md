@@ -34,7 +34,7 @@
 ## Docs style
 
 - When writing guides and docstrings, follow the Microsoft Writing Style Guide and Google developer documentation style guide.
-- All classes and functions except tests and auto-generated examples must have Google-style docstrings.
+- All classes and functions except tests, auto-generated examples, and internal modules (`src/_internal/*`) must have Google-style docstrings.
 - Exception: if the class has an explicit `__init__`, put the class documentation in `__init__`'s docstring (suppress rule `D101` when Ruff reports it); otherwise, use a class docstring.
 
 ## Code testing and checking
@@ -53,7 +53,7 @@
 - Tests and checks for docs changes:
     - Docs-only doctest: `uv run pytest --doctest-continue-on-failure --doctest-glob=*.md --ignore=tests/`
     - Check that `docs/index.md` is in sync with `README.md`: `uv run src/_internal/sync_readme.py --check`
-    - Check that examples are in sync with guides: `uv run src/_internal/create_examples.py --check`
+    - Check that examples are in sync with guides: `uv run src/_internal/sync_examples.py --check`
     - Markdown lint: `markdownlint-cli2 "*.md" "docs/*.md" "examples/*.md"`
 - Run them after creating or updating markdown files; fix errors.
 

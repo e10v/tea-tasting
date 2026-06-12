@@ -1,4 +1,4 @@
-"""Convert guides to examples as marimo notebooks."""
+"""Sync examples with guides as marimo notebooks."""
 
 from __future__ import annotations
 
@@ -7,12 +7,18 @@ from pathlib import Path
 import re
 import sys
 import textwrap
+import tomllib
 
 import marimo._ast.cell
 import marimo._ast.codegen
 import marimo._ast.names
 import marimo._convert.common
 
+
+DOCS_DIR = Path("docs")
+EXAMPLES_DIR = Path("examples")
+PYPROJECT_PATH = Path("pyproject.toml")
+SITE_URL = "https://tea-tasting.e10v.me/"
 
 GUIDES: dict[str, tuple[str, ...]] = {
     "user-guide": ("polars",),
@@ -31,8 +37,74 @@ RE_DOCTEST = re.compile(r"\s+# doctest:.*")
 RE_GENERATED_WITH = re.compile(r'^__generated_with = "[^"]+"$', re.MULTILINE)
 
 
+def main() -> int:
+    args = parse_args()
+
+    if args.check:
+        out_of_sync = get_out_of_sync_examples()
+        if not out_of_sync:
+            sys.stdout.write("Examples are in sync with guides.\n")
+            return 0
+
+        sys.stdout.write(
+            "Examples are out of sync with guides. "
+            "Run `uv run python src/_internal/sync_examples.py`.\n",
+        )
+        sys.stdout.write("\nOut-of-sync files:\n")
+        for path in out_of_sync:
+            sys.stdout.write(f"  {path}\n")
+        return 1
+
+    if sync_examples():
+        sys.stdout.write("Updated examples from guides.\n")
+    else:
+        sys.stdout.write("Examples are already up to date.\n")
+    return 0
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Sync guides to marimo notebook examples.",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Check whether generated examples are in sync with guides.",
+    )
+    return parser.parse_args()
+
+
+def get_out_of_sync_examples() -> list[Path]:
+    out_of_sync = []
+    for name, deps in GUIDES.items():
+        path = EXAMPLES_DIR / f"{name}.py"
+        content = "" if not path.exists() else path.read_text(encoding="utf-8")
+        if normalize_example_for_check(content) != normalize_example_for_check(
+            convert_guide(name, deps),
+        ):
+            out_of_sync.append(path)
+    return out_of_sync
+
+
+def sync_examples() -> bool:
+    updated = False
+    for name, deps in GUIDES.items():
+        path = EXAMPLES_DIR / f"{name}.py"
+        content = convert_guide(name, deps)
+        if path.exists() and path.read_text(encoding="utf-8") == content:
+            continue
+
+        path.write_text(content, encoding="utf-8")
+        updated = True
+    return updated
+
+
+def normalize_example_for_check(code: str) -> str:
+    return RE_GENERATED_WITH.sub('__generated_with = "<ignored>"', code)
+
+
 def convert_guide(name: str, deps: tuple[str, ...]) -> str:
-    guide_text = Path(f"docs/{name}.md").read_text()
+    guide_text = (DOCS_DIR / f"{name}.md").read_text(encoding="utf-8")
 
     sources = []
     cell_configs = []
@@ -58,33 +130,6 @@ def convert_guide(name: str, deps: tuple[str, ...]) -> str:
         config=None,
         header_comments=create_header_comments(deps),
     )
-
-
-def write_examples() -> None:
-    for name, deps in GUIDES.items():
-        Path(f"examples/{name}.py").write_text(convert_guide(name, deps))
-
-
-def check_examples() -> int:
-    out_of_sync = [
-        f"examples/{name}.py"
-        for name, deps in GUIDES.items()
-        if normalize_example_for_check(Path(f"examples/{name}.py").read_text()) !=
-            normalize_example_for_check(convert_guide(name, deps))
-    ]
-    if not out_of_sync:
-        return 0
-
-    sys.stderr.write("Examples are out of sync. Run:\n")
-    sys.stderr.write("  uv run src/_internal/create_examples.py\n")
-    sys.stderr.write("\nOut-of-sync files:\n")
-    for path in out_of_sync:
-        sys.stderr.write(f"  {path}\n")
-    return 1
-
-
-def normalize_example_for_check(code: str) -> str:
-    return RE_GENERATED_WITH.sub('__generated_with = "<ignored>"', code)
 
 
 def convert_code(code: str) -> str:
@@ -113,7 +158,7 @@ def convert_md(md: str) -> str:
 def update_link(match: re.Match[str]) -> str:
     label = match.group(1)
     url = match.group(2).replace(".md", "/")
-    root = "" if url.startswith("http") else "https://tea-tasting.e10v.me/"
+    root = "" if url.startswith("http") else SITE_URL
     return f"[{label}]({root}{url})"
 
 
@@ -122,30 +167,23 @@ def create_header_comments(deps: tuple[str, ...]) -> str:
         f'#     "{dep}",'
         for dep in sorted((*deps, "marimo", "tea-tasting"))
     )
+    requires_python = get_requires_python()
     return textwrap.dedent("""
         # /// script
-        # requires-python = ">=3.12"
+        # requires-python = "{requires_python}"
         # dependencies = [
         {dependencies}
         # ]
         # [tool.marimo.display]
         # cell_output = "below"
         # ///
-    """).format(dependencies=dependencies)
+    """).format(dependencies=dependencies, requires_python=requires_python)
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Convert guides to marimo notebook examples.",
-    )
-    parser.add_argument(
-        "--check",
-        action="store_true",
-        help="Check whether generated examples are in sync with guides.",
-    )
-    return parser.parse_args()
+def get_requires_python() -> str:
+    pyproject = tomllib.loads(PYPROJECT_PATH.read_text(encoding="utf-8"))
+    return pyproject["project"]["requires-python"]
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    raise SystemExit(check_examples() if args.check else write_examples())
+    raise SystemExit(main())

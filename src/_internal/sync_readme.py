@@ -11,74 +11,7 @@ README_PATH = Path("README.md")
 INDEX_PATH = Path("docs/index.md")
 
 
-def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments.
-
-    Returns:
-        Parsed command-line arguments.
-    """
-    parser = argparse.ArgumentParser(
-        description="Copy README.md to docs/index.md.",
-    )
-    parser.add_argument(
-        "--check",
-        action="store_true",
-        help="Fail if README.md and docs/index.md are different.",
-    )
-    return parser.parse_args()
-
-
-def read_text(path: Path) -> str:
-    """Read a text file as UTF-8.
-
-    Args:
-        path: File path.
-
-    Returns:
-        File content.
-    """
-    return path.read_text(encoding="utf-8")
-
-
-def is_synced(readme_path: Path, index_path: Path) -> bool:
-    """Return whether the files have the same content.
-
-    Args:
-        readme_path: Path to README.md.
-        index_path: Path to docs/index.md.
-
-    Returns:
-        True if files are equal, otherwise False.
-    """
-    if not index_path.exists():
-        return False
-    return read_text(readme_path) == read_text(index_path)
-
-
-def sync_readme(readme_path: Path, index_path: Path) -> bool:
-    """Copy README content into docs/index.md.
-
-    Args:
-        readme_path: Path to README.md.
-        index_path: Path to docs/index.md.
-
-    Returns:
-        True if docs/index.md was updated, otherwise False.
-    """
-    readme_text = read_text(readme_path)
-    if index_path.exists() and readme_text == read_text(index_path):
-        return False
-
-    index_path.write_text(readme_text, encoding="utf-8")
-    return True
-
-
 def main() -> int:
-    """Run the CLI.
-
-    Returns:
-        Process exit code.
-    """
     args = parse_args()
 
     if args.check:
@@ -96,6 +29,35 @@ def main() -> int:
     else:
         sys.stdout.write("docs/index.md is already up to date.\n")
     return 0
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Copy README.md to docs/index.md.",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Fail if README.md and docs/index.md are different.",
+    )
+    return parser.parse_args()
+
+
+def is_synced(readme_path: Path, index_path: Path) -> bool:
+    if not index_path.exists():
+        return False
+    return readme_path.read_text(encoding="utf-8") == index_path.read_text(
+        encoding="utf-8",
+    )
+
+
+def sync_readme(readme_path: Path, index_path: Path) -> bool:
+    readme_text = readme_path.read_text(encoding="utf-8")
+    if index_path.exists() and readme_text == index_path.read_text(encoding="utf-8"):
+        return False
+
+    index_path.write_text(readme_text, encoding="utf-8")
+    return True
 
 
 if __name__ == "__main__":
