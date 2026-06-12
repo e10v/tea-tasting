@@ -34,7 +34,7 @@
 ## Docs style
 
 - When writing guides and docstrings, follow the Microsoft Writing Style Guide and Google developer documentation style guide.
-- All classes and functions except tests and auto-generated examples must have Google-style docstrings.
+- All classes and functions except tests, auto-generated examples, and internal modules (`src/_internal/*`) must have Google-style docstrings.
 - Exception: if the class has an explicit `__init__`, put the class documentation in `__init__`'s docstring (suppress rule `D101` when Ruff reports it); otherwise, use a class docstring.
 
 ## Code testing and checking
