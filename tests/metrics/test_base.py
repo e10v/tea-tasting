@@ -9,6 +9,7 @@ import polars as pl
 import pyarrow as pa
 import pyarrow.compute as pc
 import pytest
+import sqlframe.duckdb
 
 import tea_tasting.aggr
 import tea_tasting.datasets
@@ -23,7 +24,13 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
-    Frame = ibis.expr.types.Table | pa.Table | pd.DataFrame | pl.LazyFrame
+    Frame = (
+        ibis.expr.types.Table |
+        pa.Table |
+        pd.DataFrame |
+        pl.LazyFrame |
+        sqlframe.duckdb.DuckDBDataFrame
+    )
 
 
 def test_aggr_cols_or() -> None:
@@ -89,6 +96,12 @@ def data_polars_lazy(data_polars: pl.DataFrame) -> pl.LazyFrame:
     return data_polars.lazy()
 
 @pytest.fixture
+def data_sqlframe_duckdb(
+    data_pandas: pd.DataFrame,
+) -> sqlframe.duckdb.DuckDBDataFrame:
+    return sqlframe.duckdb.DuckDBSession().createDataFrame(data_pandas)
+
+@pytest.fixture
 def data_ibis_duckdb(data_arrow: pa.Table) -> ibis.expr.types.Table:
     return ibis.connect("duckdb://").create_table("data", data_arrow)
 
@@ -99,6 +112,7 @@ def data_ibis_sqlite(data_arrow: pa.Table) -> ibis.expr.types.Table:
 @pytest.fixture(params=[
     "data_arrow", "data_pandas", "data_duckdb",
     "data_polars", "data_polars_lazy",
+    "data_sqlframe_duckdb",
     "data_ibis_duckdb", "data_ibis_sqlite",
 ])
 def data(request: pytest.FixtureRequest) -> Frame:
