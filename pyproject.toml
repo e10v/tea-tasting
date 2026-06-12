@@ -50,6 +50,7 @@ test = [
     "pandas>=2.3",
     "polars>=1",
     "pytest>=9",
+    "sqlframe[duckdb]>=4",
     "sqlglot>=25.5,!=28.7.0",
     "tqdm>=4.66",
 ]
