@@ -158,8 +158,8 @@ doctest-md = """pytest \
 --ignore=tests/ \
 --ignore-glob=src/_*
 """
-examples = "python src/_internal/create_examples.py"
-examples-check = "python src/_internal/create_examples.py --check"
+examples = "python src/_internal/sync_examples.py"
+examples-check = "python src/_internal/sync_examples.py --check"
 lint = "ruff check"
 markdownlint = 'markdownlint-cli2 "*.md" "docs/*.md" "examples/*.md"'
 readme = "python src/_internal/sync_readme.py"
