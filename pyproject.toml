@@ -43,14 +43,14 @@ source = "https://github.com/e10v/tea-tasting"
 docs = ["mkdocs-material", "mkdocstrings[python]"]
 lint = ["markdown", "marimo", "ruff", "ty"]
 test = [
-    "coverage[toml]>=7",
+    "coverage[toml]>=7.14.1",
     "duckdb>=1.3",
     "ibis-framework[duckdb,sqlite]>=9",
     "marimo>=0.10",
-    "pandas>=2.3",
+    "pandas>=2",
     "polars>=1",
-    "pytest>=9",
-    "sqlframe[duckdb]>=4",
+    "pytest>=9.0.3",
+    "sqlframe[duckdb]>=3",
     "sqlglot>=25.5,!=28.7.0",
     "tqdm>=4.66",
 ]
