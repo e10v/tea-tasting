@@ -7,6 +7,7 @@ import pytest
 
 import tea_tasting.aggr
 import tea_tasting.config
+import tea_tasting.data
 import tea_tasting.datasets
 import tea_tasting.metrics.base
 import tea_tasting.metrics.mean
@@ -28,18 +29,20 @@ def data_aggr(data_arrow: pa.Table) -> dict[Hashable, tea_tasting.aggr.Aggregate
         "sessions", "orders", "revenue",
         "sessions_covariate", "orders_covariate", "revenue_covariate",
     )
-    return tea_tasting.aggr.read_aggregates(
+    return tea_tasting.data.read_aggregates(
         data_arrow,
-        group_col="variant",
-        has_count=True,
-        mean_cols=cols,
-        var_cols=cols,
-        cov_cols=tuple(
-            (col0, col1)
-            for col0 in cols
-            for col1 in cols
-            if col0 < col1
+        aggr_cols=tea_tasting.data.AggrCols(
+            has_count=True,
+            mean_cols=cols,
+            var_cols=cols,
+            cov_cols=tuple(
+                (col0, col1)
+                for col0 in cols
+                for col1 in cols
+                if col0 < col1
+            ),
         ),
+        variant="variant",
     )
 
 @pytest.fixture
@@ -55,17 +58,18 @@ def power_data_aggr(power_data_arrow: pa.Table) -> tea_tasting.aggr.Aggregates:
         "sessions", "orders", "revenue",
         "sessions_covariate", "orders_covariate", "revenue_covariate",
     )
-    return tea_tasting.aggr.read_aggregates(
+    return tea_tasting.data.read_aggregates(
         power_data_arrow,
-        group_col=None,
-        has_count=True,
-        mean_cols=cols,
-        var_cols=cols,
-        cov_cols=tuple(
-            (col0, col1)
-            for col0 in cols
-            for col1 in cols
-            if col0 < col1
+        aggr_cols=tea_tasting.data.AggrCols(
+            has_count=True,
+            mean_cols=cols,
+            var_cols=cols,
+            cov_cols=tuple(
+                (col0, col1)
+                for col0 in cols
+                for col1 in cols
+                if col0 < col1
+            ),
         ),
     )
 
@@ -149,10 +153,12 @@ def test_ratio_of_means_aggr_cols() -> None:
         numer_covariate="c",
     )
     aggr_cols = metric.aggr_cols
-    assert isinstance(aggr_cols, tea_tasting.metrics.base.AggrCols)
+    assert isinstance(aggr_cols, tea_tasting.data.AggrCols)
     assert aggr_cols.has_count is True
-    assert aggr_cols.mean_cols == ("a", "b", "c")
-    assert aggr_cols.var_cols == ("a", "b", "c")
+    assert set(aggr_cols.mean_cols) == {"a", "b", "c"}
+    assert len(aggr_cols.mean_cols) == 3
+    assert set(aggr_cols.var_cols) == {"a", "b", "c"}
+    assert len(aggr_cols.var_cols) == 3
     assert len(aggr_cols.cov_cols) == 3
     assert set(aggr_cols.cov_cols) == {("a", "b"), ("a", "c"), ("b", "c")}
 

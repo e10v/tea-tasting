@@ -12,19 +12,9 @@ import tea_tasting.datasets
 
 
 if TYPE_CHECKING:
+    import narwhals.typing
     import pandas as pd
     import pyarrow as pa
-
-
-    Frame = (
-        duckdb.DuckDBPyRelation |
-        ibis.Table |
-        pa.Table |
-        pd.DataFrame |
-        pl.DataFrame |
-        pl.LazyFrame |
-        sqlframe.duckdb.DuckDBDataFrame
-    )
 
 
 @pytest.fixture
@@ -69,11 +59,25 @@ def data_ibis_sqlite(data_arrow: pa.Table) -> ibis.Table:
     return ibis.connect("sqlite://").create_table("data", data_arrow)
 
 
+@pytest.fixture(params=["data_ibis_duckdb", "data_ibis_sqlite"])
+def data_ibis(request: pytest.FixtureRequest) -> ibis.Table:
+    return request.getfixturevalue(request.param)
+
+
+@pytest.fixture(params=[
+    "data_arrow", "data_pandas", "data_duckdb",
+    "data_polars", "data_polars_lazy",
+    "data_sqlframe_duckdb",
+])
+def data_narwhals(request: pytest.FixtureRequest) -> narwhals.typing.IntoFrame:
+    return request.getfixturevalue(request.param)
+
+
 @pytest.fixture(params=[
     "data_arrow", "data_pandas", "data_duckdb",
     "data_polars", "data_polars_lazy",
     "data_sqlframe_duckdb",
     "data_ibis_duckdb", "data_ibis_sqlite",
 ])
-def data(request: pytest.FixtureRequest) -> Frame:
+def data(request: pytest.FixtureRequest) -> narwhals.typing.IntoFrame:
     return request.getfixturevalue(request.param)

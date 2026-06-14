@@ -1,20 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import numpy as np
 import pyarrow as pa
 import pyarrow.compute as pc
 import pytest
 
 import tea_tasting.aggr
-
-
-if TYPE_CHECKING:
-    from tests.fixtures import Frame
-
-
-pytest_plugins = ("tests.fixtures",)
+import tea_tasting.datasets
 
 
 COUNT = 100
@@ -31,6 +23,9 @@ def aggr() -> tea_tasting.aggr.Aggregates:
         cov_=COV,
     )
 
+@pytest.fixture
+def data_arrow() -> pa.Table:
+    return tea_tasting.datasets.make_users_data(n_users=100, rng=42)
 
 @pytest.fixture
 def correct_aggr(data_arrow: pa.Table) -> tea_tasting.aggr.Aggregates:
@@ -126,52 +121,3 @@ def test_aggregates_add(
     assert aggrs_add.mean_ == pytest.approx(correct_aggr.mean_)
     assert aggrs_add.var_ == pytest.approx(correct_aggr.var_)
     assert aggrs_add.cov_ == pytest.approx(correct_aggr.cov_)
-
-
-def test_read_aggregates_groups(
-    data: Frame,
-    correct_aggrs: dict[int, tea_tasting.aggr.Aggregates],
-) -> None:
-    aggrs = tea_tasting.aggr.read_aggregates(
-        data,
-        group_col="variant",
-        has_count=True,
-        mean_cols=("sessions", "orders"),
-        var_cols=("sessions", "orders"),
-        cov_cols=(("sessions", "orders"),),
-    )
-    for i in (0, 1):
-        assert aggrs[i].count_ == pytest.approx(correct_aggrs[i].count_)
-        assert aggrs[i].mean_ == pytest.approx(correct_aggrs[i].mean_)
-        assert aggrs[i].var_ == pytest.approx(correct_aggrs[i].var_)
-        assert aggrs[i].cov_ == pytest.approx(correct_aggrs[i].cov_)
-
-def test_read_aggregates_no_groups(
-    data: Frame,
-    correct_aggr: tea_tasting.aggr.Aggregates,
-) -> None:
-    aggr = tea_tasting.aggr.read_aggregates(
-        data,
-        group_col=None,
-        has_count=True,
-        mean_cols=("sessions", "orders"),
-        var_cols=("sessions", "orders"),
-        cov_cols=(("sessions", "orders"),),
-    )
-    assert aggr.count_ == pytest.approx(correct_aggr.count_)
-    assert aggr.mean_ == pytest.approx(correct_aggr.mean_)
-    assert aggr.var_ == pytest.approx(correct_aggr.var_)
-    assert aggr.cov_ == pytest.approx(correct_aggr.cov_)
-
-def test_read_aggregates_no_count(data_arrow: pa.Table) -> None:
-    aggr = tea_tasting.aggr.read_aggregates(
-        data_arrow,
-        group_col=None,
-        has_count=False,
-        mean_cols=("sessions", "orders"),
-        var_cols=(),
-        cov_cols=(),
-    )
-    assert aggr.count_ is None
-    assert aggr.var_ == {}
-    assert aggr.cov_ == {}

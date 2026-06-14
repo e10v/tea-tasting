@@ -3,12 +3,12 @@ from __future__ import annotations
 import concurrent.futures
 from typing import TYPE_CHECKING, NamedTuple, TypedDict
 
-import ibis.expr.types
 import pyarrow as pa
 import pyarrow.compute as pc
 import pytest
 
 import tea_tasting.aggr
+import tea_tasting.data
 import tea_tasting.datasets
 import tea_tasting.experiment
 import tea_tasting.metrics
@@ -19,11 +19,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Hashable
     from typing import Any, Literal
 
-    import ibis
     import narwhals.typing
     import numpy as np
-
-    from tests.fixtures import Frame
 
 
 pytest_plugins = ("tests.fixtures",)
@@ -55,31 +52,28 @@ class _Metric(
 
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame | ibis.expr.types.Table | dict[
-            Hashable, tea_tasting.aggr.Aggregates],
+        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
         control: Hashable,
         treatment: Hashable,
         variant: str,
     ) -> _MetricResultTuple:
         if not isinstance(data, dict):
-            data = tea_tasting.aggr.read_aggregates(
+            data = tea_tasting.data.read_aggregates(
                 data,
-                variant,
-                has_count=False,
-                mean_cols=(self.column,),
-                var_cols=(),
-                cov_cols=(),
+                aggr_cols=tea_tasting.data.AggrCols(mean_cols=(self.column,)),
+                variant=variant,
             )
+        aggr: dict[Hashable, tea_tasting.aggr.Aggregates] = data  # ty: ignore[invalid-assignment]
         return _MetricResultTuple(
-            control=data[control].mean(self.column),  # ty:ignore[invalid-argument-type]
-            treatment=data[treatment].mean(self.column),  # ty:ignore[invalid-argument-type]
-            effect_size=data[treatment].mean(self.column) -  # ty:ignore[invalid-argument-type]
-                data[control].mean(self.column),  # ty:ignore[invalid-argument-type]
+            control=aggr[control].mean(self.column),
+            treatment=aggr[treatment].mean(self.column),
+            effect_size=aggr[treatment].mean(self.column) -
+                aggr[control].mean(self.column),
         )
 
     def solve_power(
         self,
-        data: narwhals.typing.IntoFrame | ibis.Table,  # noqa: ARG002
+        data: tea_tasting.data.Table,  # noqa: ARG002
         parameter: Literal[  # noqa: ARG002
             "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> tea_tasting.metrics.MetricPowerResults[_PowerResult]:
@@ -98,8 +92,8 @@ class _MetricAggregated(
         self.column = column
 
     @property
-    def aggr_cols(self) -> tea_tasting.metrics.AggrCols:
-        return tea_tasting.metrics.AggrCols(mean_cols=(self.column,))
+    def aggr_cols(self) -> tea_tasting.data.AggrCols:
+        return tea_tasting.data.AggrCols(mean_cols=(self.column,))
 
     def analyze_aggregates(
         self,
@@ -242,13 +236,10 @@ def data_arrow_multi(data_arrow: pa.Table) -> pa.Table:
 
 @pytest.fixture
 def data_aggr(data_arrow: pa.Table) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
-    return tea_tasting.aggr.read_aggregates(
+    return tea_tasting.data.read_aggregates(
         data_arrow,
-        group_col="variant",
-        has_count=False,
-        mean_cols=("sessions", "orders"),
-        var_cols=(),
-        cov_cols=(),
+        aggr_cols=tea_tasting.data.AggrCols(mean_cols=("sessions", "orders")),
+        variant="variant",
     )
 
 
@@ -256,13 +247,10 @@ def data_aggr(data_arrow: pa.Table) -> dict[Hashable, tea_tasting.aggr.Aggregate
 def data_aggr_multi(
     data_arrow_multi: pa.Table,
 ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
-    return tea_tasting.aggr.read_aggregates(
+    return tea_tasting.data.read_aggregates(
         data_arrow_multi,
-        group_col="variant",
-        has_count=False,
-        mean_cols=("sessions", "orders"),
-        var_cols=(),
-        cov_cols=(),
+        aggr_cols=tea_tasting.data.AggrCols(mean_cols=("sessions", "orders")),
+        variant="variant",
     )
 
 
@@ -417,7 +405,7 @@ def test_experiment_init_custom() -> None:
 
 
 def test_experiment_analyze_default(
-    data: Frame,
+    data: narwhals.typing.IntoFrame,
     ref_result: tea_tasting.experiment.ExperimentResult,
 ) -> None:
     experiment = tea_tasting.experiment.Experiment({
@@ -428,7 +416,7 @@ def test_experiment_analyze_default(
     assert experiment.analyze(data) == ref_result
 
 def test_experiment_analyze_base(
-    data: Frame,
+    data: narwhals.typing.IntoFrame,
     ref_result: tea_tasting.experiment.ExperimentResult,
 ) -> None:
     experiment = tea_tasting.experiment.Experiment({
@@ -438,7 +426,7 @@ def test_experiment_analyze_base(
         avg_sessions=ref_result["avg_sessions"])
 
 def test_experiment_analyze_aggr(
-    data: Frame,
+    data: narwhals.typing.IntoFrame,
     ref_result: tea_tasting.experiment.ExperimentResult,
 ) -> None:
     experiment = tea_tasting.experiment.Experiment({
@@ -448,7 +436,7 @@ def test_experiment_analyze_aggr(
         avg_orders=ref_result["avg_orders"])
 
 def test_experiment_analyze_gran(
-    data: Frame,
+    data: narwhals.typing.IntoFrame,
     ref_result: tea_tasting.experiment.ExperimentResult,
 ) -> None:
     experiment = tea_tasting.experiment.Experiment({
@@ -590,7 +578,7 @@ class ExperimentWithSimulationResults(tea_tasting.experiment.Experiment):
         self.simulation_results.append(result)
         return result
 
-def test_experiment_simulate_default(data: Frame) -> None:
+def test_experiment_simulate_default(data: narwhals.typing.IntoFrame) -> None:
     experiment = ExperimentWithSimulationResults({
         "avg_sessions": _MetricAggregated("sessions"),
         "avg_orders": _MetricGranular("orders"),
@@ -598,7 +586,10 @@ def test_experiment_simulate_default(data: Frame) -> None:
     })
     assert experiment.simulate(data, 10, rng=42) == experiment.simulation_results
 
-def test_experiment_simulate_cols(data: Frame, data_arrow: pa.Table) -> None:
+def test_experiment_simulate_cols(
+    data: narwhals.typing.IntoFrame,
+    data_arrow: pa.Table,
+) -> None:
     experiment = ExperimentWithSimulationResults({
         "avg_sessions": _MetricAggregated("sessions"),
     })
@@ -641,13 +632,10 @@ def test_experiment_simulate_callable_aggregated() -> None:
         rng: np.random.Generator,
     ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
         table = tea_tasting.datasets.make_users_data(rng=rng, n_users=100)
-        aggr = tea_tasting.aggr.read_aggregates(
+        aggr = tea_tasting.data.read_aggregates(
             table,
-            group_col="variant",
-            has_count=False,
-            mean_cols=("sessions", "orders"),
-            var_cols=(),
-            cov_cols=(),
+            aggr_cols=tea_tasting.data.AggrCols(mean_cols=("sessions", "orders")),
+            variant="variant",
         )
         aggrs.append(aggr)
         return aggr
@@ -663,13 +651,10 @@ def test_experiment_simulate_callable_aggregated_raises_for_ratio() -> None:
     def make_data(
         rng: np.random.Generator,
     ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
-        return tea_tasting.aggr.read_aggregates(
+        return tea_tasting.data.read_aggregates(
             tea_tasting.datasets.make_users_data(rng=rng, n_users=100),
-            group_col="variant",
-            has_count=False,
-            mean_cols=("sessions",),
-            var_cols=(),
-            cov_cols=(),
+            aggr_cols=tea_tasting.data.AggrCols(mean_cols=("sessions",)),
+            variant="variant",
         )
     with pytest.raises(ValueError, match="ratio parameter"):
         experiment.simulate(make_data, 1, rng=42, ratio=2)
@@ -682,13 +667,10 @@ def test_experiment_simulate_callable_aggregated_raises_for_treat() -> None:
     def make_data(
         rng: np.random.Generator,
     ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
-        return tea_tasting.aggr.read_aggregates(
+        return tea_tasting.data.read_aggregates(
             tea_tasting.datasets.make_users_data(rng=rng, n_users=100),
-            group_col="variant",
-            has_count=False,
-            mean_cols=("sessions",),
-            var_cols=(),
-            cov_cols=(),
+            aggr_cols=tea_tasting.data.AggrCols(mean_cols=("sessions",)),
+            variant="variant",
         )
 
     def treat(data: pa.Table) -> pa.Table:

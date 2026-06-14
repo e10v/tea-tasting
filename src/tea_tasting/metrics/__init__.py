@@ -11,7 +11,6 @@ For convenience, the API reference is provided by submodules of `tea_tasting.met
 """
 
 from tea_tasting.metrics.base import (
-    AggrCols,
     MetricBase,
     MetricBaseAggregated,
     MetricBaseGranular,
@@ -19,8 +18,6 @@ from tea_tasting.metrics.base import (
     MetricResult,
     PowerBase,
     PowerBaseAggregated,
-    aggregate_by_variants,
-    read_granular,
 )
 from tea_tasting.metrics.mean import Mean, RatioOfMeans
 from tea_tasting.metrics.nonparametric import MannWhitneyU

@@ -10,8 +10,8 @@ import scipy.stats
 
 import tea_tasting.aggr
 import tea_tasting.config
+import tea_tasting.data
 from tea_tasting.metrics.base import (
-    AggrCols,
     MetricBaseAggregated,
     MetricPowerResults,
     PowerBaseAggregated,
@@ -306,7 +306,7 @@ class RatioOfMeans(  # noqa: D101
 
 
     @property
-    def aggr_cols(self) -> AggrCols:
+    def aggr_cols(self) -> tea_tasting.data.AggrCols:
         """Columns to be aggregated for a metric analysis."""
         cols = tuple(
             col for col in (
@@ -317,7 +317,7 @@ class RatioOfMeans(  # noqa: D101
             )
             if col is not None
         )
-        return AggrCols(
+        return tea_tasting.data.AggrCols(
             has_count=True,
             mean_cols=cols,
             var_cols=cols,

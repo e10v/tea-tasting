@@ -10,16 +10,15 @@ import scipy.stats
 
 import tea_tasting.aggr
 import tea_tasting.config
+import tea_tasting.data
 import tea_tasting.metrics
-from tea_tasting.metrics.base import AggrCols, MetricBaseAggregated
+from tea_tasting.metrics.base import MetricBaseAggregated
 import tea_tasting.utils
 
 
 if TYPE_CHECKING:
     from collections.abc import Hashable
     from typing import Literal
-
-    import narwhals.typing
 
 
 _MAX_EXACT_THRESHOLD = 1000
@@ -228,9 +227,9 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
 
 
     @property
-    def aggr_cols(self) -> AggrCols:
+    def aggr_cols(self) -> tea_tasting.data.AggrCols:
         """Columns to be aggregated for a metric analysis."""
-        return tea_tasting.metrics.AggrCols(
+        return tea_tasting.data.AggrCols(
             has_count=True,
             mean_cols=(self.column,),
         )
@@ -491,14 +490,14 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
 
 
     @property
-    def aggr_cols(self) -> AggrCols:
+    def aggr_cols(self) -> tea_tasting.data.AggrCols:
         """Columns to be aggregated for a metric analysis."""
-        return AggrCols(has_count=True)
+        return tea_tasting.data.AggrCols(has_count=True)
 
 
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame | dict[Hashable, tea_tasting.aggr.Aggregates],
+        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
         control: Hashable,
         treatment: Hashable,
         variant: str | None = None,
@@ -515,11 +514,19 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
             Analysis result.
         """
         tea_tasting.utils.check_scalar(variant, "variant", typ=str | None)
-        aggr = tea_tasting.metrics.aggregate_by_variants(
-            data,
-            aggr_cols=self.aggr_cols,
-            variant=variant,
-        )
+        aggr: dict[Hashable, tea_tasting.aggr.Aggregates]
+        if isinstance(data, dict):
+            aggr = data  # ty: ignore[invalid-assignment]
+        else:
+            if variant is None:
+                raise ValueError(
+                    "The variant parameter is required but was not provided.",
+                )
+            aggr = tea_tasting.data.read_aggregates(
+                data,
+                aggr_cols=self.aggr_cols,
+                variant=variant,
+            )
 
         k = aggr[treatment].count()
         n = k + aggr[control].count()

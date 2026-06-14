@@ -8,18 +8,15 @@ from collections.abc import Mapping
 from typing import (
     TYPE_CHECKING,
     Any,
-    NamedTuple,
     Protocol,
     TypeVar,
     overload,
 )
 
-import narwhals as nw
 import numpy as np
-import pyarrow as pa
-import pyarrow.compute as pc
 
 import tea_tasting.aggr
+import tea_tasting.data
 import tea_tasting.utils
 
 
@@ -27,8 +24,8 @@ if TYPE_CHECKING:
     from collections.abc import Hashable, Sequence
     from typing import Literal
 
-    import narwhals.typing  # noqa: TC004
     import numpy.typing as npt
+    import pyarrow as pa
 
 
 class _NamedTupleLike(Protocol):
@@ -72,7 +69,7 @@ class MetricBase[MetricResultT: MetricResult](abc.ABC, tea_tasting.utils.ReprMix
     @abc.abstractmethod
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame,
+        data: tea_tasting.data.Table,
         control: Hashable,
         treatment: Hashable,
         variant: str,
@@ -97,7 +94,7 @@ class PowerBase[MetricPowerResultsT: MetricPowerResults](
     @abc.abstractmethod
     def solve_power(
         self,
-        data: narwhals.typing.IntoFrame,
+        data: tea_tasting.data.Table,
         parameter: Literal[
             "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> MetricPowerResultsT:
@@ -112,56 +109,10 @@ class PowerBase[MetricPowerResultsT: MetricPowerResults](
         """
 
 
-class AggrCols(NamedTuple):
-    """Columns to be aggregated for a metric analysis.
-
-    Attributes:
-        has_count: If `True`, include the sample size.
-        mean_cols: Column names for calculation of sample means.
-        var_cols: Column names for calculation of sample variances.
-        cov_cols: Pairs of column names for calculation of sample covariances.
-    """
-    has_count: bool = False
-    mean_cols: Sequence[str] = ()
-    var_cols: Sequence[str] = ()
-    cov_cols: Sequence[tuple[str, str]] = ()
-
-    def __or__(self, other: AggrCols) -> AggrCols:
-        """Merge two aggregation column specifications.
-
-        Args:
-            other: Second object.
-
-        Returns:
-            Merged column specifications.
-        """
-        return AggrCols(
-            has_count=self.has_count or other.has_count,
-            mean_cols=tuple({*self.mean_cols, *other.mean_cols}),
-            var_cols=tuple({*self.var_cols, *other.var_cols}),
-            cov_cols=tuple({
-                tea_tasting.aggr._sorted_tuple(*cols)
-                for cols in tuple({*self.cov_cols, *other.cov_cols})
-            }),
-        )
-
-    def __len__(self) -> int:  # ty:ignore[invalid-method-override]
-        """Total length of all object attributes.
-
-        If has_count is True then its value is 1, or 0 otherwise.
-        """
-        return (
-            int(self.has_count)
-            + len(self.mean_cols)
-            + len(self.var_cols)
-            + len(self.cov_cols)
-        )
-
-
 class _HasAggrCols(abc.ABC):
     @property
     @abc.abstractmethod
-    def aggr_cols(self) -> AggrCols:
+    def aggr_cols(self) -> tea_tasting.data.AggrCols:
         """Columns to be aggregated for an analysis."""
 
 
@@ -180,7 +131,7 @@ class MetricBaseAggregated(MetricBase[MetricResultT], _HasAggrCols):
     @overload
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame,
+        data: tea_tasting.data.Table,
         control: Hashable,
         treatment: Hashable,
         variant: str,
@@ -189,7 +140,7 @@ class MetricBaseAggregated(MetricBase[MetricResultT], _HasAggrCols):
 
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame | dict[Hashable, tea_tasting.aggr.Aggregates],
+        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
         control: Hashable,
         treatment: Hashable,
         variant: str | None = None,
@@ -206,11 +157,19 @@ class MetricBaseAggregated(MetricBase[MetricResultT], _HasAggrCols):
             Analysis result.
         """
         tea_tasting.utils.check_scalar(variant, "variant", typ=str | None)
-        aggr = aggregate_by_variants(
-            data,
-            aggr_cols=self.aggr_cols,
-            variant=variant,
-        )
+        aggr: dict[Hashable, tea_tasting.aggr.Aggregates]
+        if isinstance(data, dict):
+            aggr = data  # ty: ignore[invalid-assignment]
+        else:
+            if variant is None:
+                raise ValueError(
+                    "The variant parameter is required but was not provided.",
+                )
+            aggr = tea_tasting.data.read_aggregates(
+                data,
+                aggr_cols=self.aggr_cols,
+                variant=variant,
+            )
         return self.analyze_aggregates(
             control=aggr[control],
             treatment=aggr[treatment],
@@ -237,7 +196,7 @@ class PowerBaseAggregated(PowerBase[MetricPowerResultsT], _HasAggrCols):
     """Base class for the analysis of power using aggregated statistics."""
     def solve_power(
         self,
-        data: narwhals.typing.IntoFrame | tea_tasting.aggr.Aggregates,
+        data: tea_tasting.data.Table | tea_tasting.aggr.Aggregates,
         parameter: Literal[
             "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> MetricPowerResultsT:
@@ -256,10 +215,9 @@ class PowerBaseAggregated(PowerBase[MetricPowerResultsT], _HasAggrCols):
             in_={"power", "effect_size", "rel_effect_size", "n_obs"},
         )
         if not isinstance(data, tea_tasting.aggr.Aggregates):
-            data = tea_tasting.aggr.read_aggregates(
-                data=data,
-                group_col=None,
-                **self.aggr_cols._asdict(),
+            data = tea_tasting.data.read_aggregates(
+                data,
+                aggr_cols=self.aggr_cols,
             )
         return self.solve_power_from_aggregates(data=data, parameter=parameter)
 
@@ -279,35 +237,6 @@ class PowerBaseAggregated(PowerBase[MetricPowerResultsT], _HasAggrCols):
         Returns:
             Power analysis result.
         """
-
-
-def aggregate_by_variants(
-    data: narwhals.typing.IntoFrame | dict[Hashable, tea_tasting.aggr.Aggregates],
-    aggr_cols: AggrCols,
-    variant: str | None = None,
-) ->  dict[Hashable, tea_tasting.aggr.Aggregates]:
-    """Aggregate experimental data by variants.
-
-    Args:
-        data: Experimental data.
-        aggr_cols: Columns to be aggregated.
-        variant: Variant column name.
-
-    Returns:
-        Experimental data as a dictionary of Aggregates.
-    """
-    if isinstance(data, dict):
-        return data  # ty:ignore[invalid-return-type]
-
-    if variant is None:
-        raise ValueError("The variant parameter is required but was not provided.")
-
-    return tea_tasting.aggr.read_aggregates(
-        data=data,
-        group_col=variant,
-        **aggr_cols._asdict(),
-    )
-
 
 class _HasCols(abc.ABC):
     @property
@@ -331,7 +260,7 @@ class MetricBaseGranular(MetricBase[MetricResultT], _HasCols):
     @overload
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame,
+        data: tea_tasting.data.Table,
         control: Hashable,
         treatment: Hashable,
         variant: str,
@@ -340,7 +269,7 @@ class MetricBaseGranular(MetricBase[MetricResultT], _HasCols):
 
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame | dict[Hashable, pa.Table],
+        data: tea_tasting.data.Table | dict[Hashable, pa.Table],
         control: Hashable,
         treatment: Hashable,
         variant: str | None = None,
@@ -357,11 +286,18 @@ class MetricBaseGranular(MetricBase[MetricResultT], _HasCols):
             Analysis result.
         """
         tea_tasting.utils.check_scalar(variant, "variant", typ=str | None)
-        dfs = read_granular(
-            data,
-            cols=self.cols,
-            variant=variant,
-        )
+        if isinstance(data, dict):
+            dfs = tea_tasting.data.read_granular(data, cols=self.cols)
+        else:
+            if variant is None:
+                raise ValueError(
+                    "The variant parameter is required but was not provided.",
+                )
+            dfs = tea_tasting.data.read_granular(
+                data,
+                cols=self.cols,
+                variant=variant,
+            )
         return self.analyze_granular(
             control=dfs[control],
             treatment=dfs[treatment],
@@ -401,70 +337,3 @@ def _handle_nan_policy(
         raise ValueError("Input contains nan.")
 
     return control, treatment
-
-
-@overload
-def read_granular(
-    data: narwhals.typing.IntoFrame | narwhals.typing.Frame,
-    cols: Sequence[str] = (),
-    variant: None = None,
-) -> pa.Table:
-    ...
-
-@overload
-def read_granular(
-    data: dict[Hashable, pa.Table],
-    cols: Sequence[str] = (),
-    variant: None = None,
-) -> dict[Hashable, pa.Table]:
-    ...
-
-@overload
-def read_granular(
-    data: narwhals.typing.IntoFrame | narwhals.typing.Frame | dict[Hashable, pa.Table],
-    cols: Sequence[str],
-    variant: str,
-) -> dict[Hashable, pa.Table]:
-    ...
-
-def read_granular(
-    data: narwhals.typing.IntoFrame | narwhals.typing.Frame | dict[Hashable, pa.Table],
-    cols: Sequence[str] = (),
-    variant: str | None = None,
-) -> pa.Table | dict[Hashable, pa.Table]:
-    """Read granular experimental data.
-
-    Args:
-        data: Experimental data.
-        cols: Columns to read.
-        variant: Variant column name.
-
-    Returns:
-        Experimental data as a dictionary of PyArrow Tables.
-    """
-    if isinstance(data, dict):
-        return data
-
-    variant_cols = () if variant is None else (variant,)
-    if tea_tasting.utils._is_ibis_table(data):
-        if len(cols) + len(variant_cols) > 0:
-            data = data.select(*cols, *variant_cols)
-        table = data.to_pyarrow()
-    else:
-        data = nw.from_native(data)
-        if isinstance(data, nw.LazyFrame):
-            data = data.collect()
-        if len(cols) + len(variant_cols) > 0:
-            data = data.select(*cols, *variant_cols)
-        table = data.to_arrow()
-
-    if variant is None:
-        return table
-
-    variant_array = table[variant]
-    if len(cols) > 0:
-        table = table.select(cols)
-    return {
-        var: table.filter(pc.equal(variant_array, pa.scalar(var)))  # ty:ignore[unresolved-attribute]
-        for var in variant_array.unique().to_pylist()
-    }

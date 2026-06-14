@@ -24,6 +24,12 @@ nav:
       - Proportion: api/metrics/proportion.md
       - Resampling: api/metrics/resampling.md
     - Experiment: api/experiment.md
+    - Data: api/data.md
+    - Backends:
+      - Backends: api/backends/index.md
+      - Base: api/backends/base.md
+      - Ibis: api/backends/ibis.md
+      - Narwhals: api/backends/narwhals.md
     - Multiplicity: api/multiplicity.md
     - Datasets: api/datasets.md
     - Global configuration: api/config.md
