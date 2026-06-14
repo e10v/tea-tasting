@@ -34,7 +34,11 @@ nav:
     - Datasets: api/datasets.md
     - Global configuration: api/config.md
     - Aggregates: api/aggr.md
-    - Utilities: api/utils.md
+    - Utilities:
+      - Utilities: api/utils/index.md
+      - Checks: api/utils/checks.md
+      - Display: api/utils/display.md
+      - Num: api/utils/num.md
 
 theme:
   name: material

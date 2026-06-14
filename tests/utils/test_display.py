@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 import builtins
-import math
 import textwrap
 from typing import TYPE_CHECKING
 import unittest.mock
 
-import numpy as np
 import pandas as pd
 import pandas.testing
 import polars as pl
@@ -14,7 +12,7 @@ import polars.testing
 import pyarrow as pa
 import pytest
 
-import tea_tasting.utils
+import tea_tasting.utils.display
 
 
 if TYPE_CHECKING:
@@ -22,145 +20,22 @@ if TYPE_CHECKING:
     from typing import Literal
 
 
-def test_check_scalar_typ() -> None:
-    assert tea_tasting.utils.check_scalar(1, typ=int) == 1
-    with pytest.raises(TypeError):
-        tea_tasting.utils.check_scalar(1, typ=str)
-
-def test_check_scalar_ge() -> None:
-    assert tea_tasting.utils.check_scalar(1, ge=1) == 1
-    with pytest.raises(ValueError, match="must be >="):
-        tea_tasting.utils.check_scalar(1, ge=2)
-
-def test_check_scalar_gt() -> None:
-    assert tea_tasting.utils.check_scalar(1, gt=0) == 1
-    with pytest.raises(ValueError, match="must be >"):
-        tea_tasting.utils.check_scalar(1, gt=1)
-
-def test_check_scalar_le() -> None:
-    assert tea_tasting.utils.check_scalar(1, le=1) == 1
-    with pytest.raises(ValueError, match="must be <="):
-        tea_tasting.utils.check_scalar(1, le=0)
-
-def test_check_scalar_lt() -> None:
-    assert tea_tasting.utils.check_scalar(1, lt=2) == 1
-    with pytest.raises(ValueError, match="must be <"):
-        tea_tasting.utils.check_scalar(1, lt=1)
-
-def test_check_scalar_ne() -> None:
-    assert tea_tasting.utils.check_scalar(1, ne=2) == 1
-    with pytest.raises(ValueError, match="must be !="):
-        tea_tasting.utils.check_scalar(1, ne=1)
-
-def test_check_scalar_is_in() -> None:
-    assert tea_tasting.utils.check_scalar(1, in_={0, 1}) == 1
-    with pytest.raises(ValueError, match="must be in"):
-        tea_tasting.utils.check_scalar(1, in_={0, 2})
-
-
-def test_auto_check_alpha() -> None:
-    assert tea_tasting.utils.auto_check(0.05, "alpha") == 0.05
-    with pytest.raises(TypeError):
-        tea_tasting.utils.auto_check(0, "alpha")
-    with pytest.raises(ValueError, match="must be >"):
-        tea_tasting.utils.auto_check(0.0, "alpha")
-    with pytest.raises(ValueError, match="must be <"):
-        tea_tasting.utils.auto_check(1.0, "alpha")
-
-def test_auto_check_alternative() -> None:
-    assert tea_tasting.utils.auto_check("two-sided", "alternative") == "two-sided"
-    with pytest.raises(TypeError):
-        tea_tasting.utils.auto_check(2, "alternative")
-    with pytest.raises(ValueError, match="must be in"):
-        tea_tasting.utils.auto_check("2s", "alternative")
-
-def test_auto_check_confidence_level() -> None:
-    assert tea_tasting.utils.auto_check(0.95, "confidence_level") == 0.95
-    with pytest.raises(TypeError):
-        tea_tasting.utils.auto_check(0, "confidence_level")
-    with pytest.raises(ValueError, match="must be >"):
-        tea_tasting.utils.auto_check(0.0, "confidence_level")
-    with pytest.raises(ValueError, match="must be <"):
-        tea_tasting.utils.auto_check(1.0, "confidence_level")
-
-def test_auto_check_correction() -> None:
-    assert tea_tasting.utils.auto_check(True, "correction") is True
-    with pytest.raises(TypeError):
-        tea_tasting.utils.auto_check(0, "correction")
-
-def test_auto_check_equal_var() -> None:
-    assert tea_tasting.utils.auto_check(True, "equal_var") is True
-    with pytest.raises(TypeError):
-        tea_tasting.utils.auto_check(0, "equal_var")
-
-def test_auto_check_n_obs() -> None:
-    assert tea_tasting.utils.auto_check(2, "n_obs") == 2
-    assert tea_tasting.utils.auto_check((2, 3), "n_obs") == (2, 3)
-    assert tea_tasting.utils.auto_check(None, "n_obs") is None
-    with pytest.raises(TypeError):
-        tea_tasting.utils.auto_check(0.5, "n_obs")
-    with pytest.raises(TypeError):
-        tea_tasting.utils.auto_check((0.5, 2), "n_obs")
-    with pytest.raises(ValueError, match="must be >"):
-        tea_tasting.utils.auto_check(1, "n_obs")
-    with pytest.raises(ValueError, match="must be >"):
-        tea_tasting.utils.auto_check((1, 2), "n_obs")
-
-def test_auto_check_n_resamples() -> None:
-    assert tea_tasting.utils.auto_check(1, "n_resamples") == 1
-    with pytest.raises(ValueError, match="must be >"):
-        tea_tasting.utils.auto_check(0, "n_resamples")
-    with pytest.raises(TypeError):
-        tea_tasting.utils.auto_check(0.5, "n_resamples")
-
-def test_auto_check_power() -> None:
-    assert tea_tasting.utils.auto_check(0.8, "power") == 0.8
-    with pytest.raises(TypeError):
-        tea_tasting.utils.auto_check(0, "power")
-    with pytest.raises(ValueError, match="must be >"):
-        tea_tasting.utils.auto_check(0.0, "power")
-    with pytest.raises(ValueError, match="must be <"):
-        tea_tasting.utils.auto_check(1.0, "power")
-
-def test_auto_check_ratio() -> None:
-    assert tea_tasting.utils.auto_check(1.5, "ratio") == 1.5
-    with pytest.raises(TypeError):
-        tea_tasting.utils.auto_check("str", "ratio")
-    with pytest.raises(ValueError, match="must be >"):
-        tea_tasting.utils.auto_check(0.0, "ratio")
-
-def test_auto_check_rng() -> None:
-    generator = np.random.default_rng(42)
-    seed_sequence = np.random.SeedSequence(42)
-    assert tea_tasting.utils.auto_check(42, "rng") == 42
-    assert tea_tasting.utils.auto_check(generator, "rng") is generator
-    assert tea_tasting.utils.auto_check(seed_sequence, "rng") is seed_sequence
-    assert tea_tasting.utils.auto_check(None, "rng") is None
-    with pytest.raises(TypeError):
-        tea_tasting.utils.auto_check(0.5, "rng")
-
-def test_auto_check_use_t() -> None:
-    assert tea_tasting.utils.auto_check(False, "use_t") is False
-    with pytest.raises(TypeError):
-        tea_tasting.utils.auto_check(0, "use_t")
-
-
 def test_format_num() -> None:
-    assert tea_tasting.utils.format_num(1.2345) == "1.23"
-    assert tea_tasting.utils.format_num(0.9999) == "1.00"
-    assert tea_tasting.utils.format_num(1.2345, sig=2) == "1.2"
-    assert tea_tasting.utils.format_num(0.12345, pct=True) == "12.3%"
-    assert tea_tasting.utils.format_num(None) == "-"
-    assert tea_tasting.utils.format_num(float("nan")) == "-"
-    assert tea_tasting.utils.format_num(float("inf")) == "∞"
-    assert tea_tasting.utils.format_num(float("-inf")) == "-∞"
-    assert tea_tasting.utils.format_num(0.00012345) == "1.23e-04"
-    assert tea_tasting.utils.format_num(0.00099999) == "1.00e-03"
-    assert tea_tasting.utils.format_num(9_999_999) == "9999999"
-    assert tea_tasting.utils.format_num(10_000_000) == "1.00e+07"
-    assert tea_tasting.utils.format_num(12345, thousands_sep=" ") == "12 345"
-    assert tea_tasting.utils.format_num(1.2345, decimal_point=",") == "1,23"
-    assert tea_tasting.utils.format_num(0) == "0.00"
+    assert tea_tasting.utils.display.format_num(1.2345) == "1.23"
+    assert tea_tasting.utils.display.format_num(0.9999) == "1.00"
+    assert tea_tasting.utils.display.format_num(1.2345, sig=2) == "1.2"
+    assert tea_tasting.utils.display.format_num(0.12345, pct=True) == "12.3%"
+    assert tea_tasting.utils.display.format_num(None) == "-"
+    assert tea_tasting.utils.display.format_num(float("nan")) == "-"
+    assert tea_tasting.utils.display.format_num(float("inf")) == "∞"
+    assert tea_tasting.utils.display.format_num(float("-inf")) == "-∞"
+    assert tea_tasting.utils.display.format_num(0.00012345) == "1.23e-04"
+    assert tea_tasting.utils.display.format_num(0.00099999) == "1.00e-03"
+    assert tea_tasting.utils.display.format_num(9_999_999) == "9999999"
+    assert tea_tasting.utils.display.format_num(10_000_000) == "1.00e+07"
+    assert tea_tasting.utils.display.format_num(12345, thousands_sep=" ") == "12 345"
+    assert tea_tasting.utils.display.format_num(1.2345, decimal_point=",") == "1,23"
+    assert tea_tasting.utils.display.format_num(0) == "0.00"
 
 
 def test_get_and_format_num() -> None:
@@ -174,17 +49,23 @@ def test_get_and_format_num() -> None:
         "rel_metric_ci_upper": 0.98765,
         "power": 0.87654,
     }
-    assert tea_tasting.utils.get_and_format_num(data, "name") == "metric"
-    assert tea_tasting.utils.get_and_format_num(data, "metric") == "0.123"
-    assert tea_tasting.utils.get_and_format_num(data, "rel_metric") == "12%"
-    assert tea_tasting.utils.get_and_format_num(data, "metric_ci") == "[0.123, 0.988]"
-    assert tea_tasting.utils.get_and_format_num(data, "rel_metric_ci") == "[12%, 99%]"
-    assert tea_tasting.utils.get_and_format_num(data, "power") == "88%"
+    assert tea_tasting.utils.display.get_and_format_num(data, "name") == "metric"
+    assert tea_tasting.utils.display.get_and_format_num(data, "metric") == "0.123"
+    assert tea_tasting.utils.display.get_and_format_num(data, "rel_metric") == "12%"
+    assert (
+        tea_tasting.utils.display.get_and_format_num(data, "metric_ci")
+        == "[0.123, 0.988]"
+    )
+    assert (
+        tea_tasting.utils.display.get_and_format_num(data, "rel_metric_ci")
+        == "[12%, 99%]"
+    )
+    assert tea_tasting.utils.display.get_and_format_num(data, "power") == "88%"
 
 
 @pytest.fixture
-def dicts_repr() -> tea_tasting.utils.DictsReprMixin:
-    class DictsRepr(tea_tasting.utils.DictsReprMixin):
+def dicts_repr() -> tea_tasting.utils.display.DictsReprMixin:
+    class DictsRepr(tea_tasting.utils.display.DictsReprMixin):
         default_keys = ("name", "a", "b")
         default_text_keys = ("name",)
         def to_dicts(self) -> tuple[dict[str, object], ...]:
@@ -196,7 +77,7 @@ def dicts_repr() -> tea_tasting.utils.DictsReprMixin:
     return DictsRepr()
 
 def test_dicts_repr_mixin_to_arrow(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_arrow().equals(pa.table({
         "name": ("x", "yy", "zzz"),
@@ -205,7 +86,7 @@ def test_dicts_repr_mixin_to_arrow(
     }))
 
 def test_dicts_repr_mixin_to_pandas(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     pandas.testing.assert_frame_equal(
         dicts_repr.to_pandas(),
@@ -217,7 +98,7 @@ def test_dicts_repr_mixin_to_pandas(
     )
 
 def test_dicts_repr_mixin_to_polars(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     polars.testing.assert_frame_equal(
         dicts_repr.to_polars(),
@@ -229,7 +110,7 @@ def test_dicts_repr_mixin_to_polars(
     )
 
 def test_dicts_repr_mixin_to_pretty_dicts_default(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_pretty_dicts() == [
         {"name": "x", "a": "0.123", "b": "0.235"},
@@ -238,7 +119,7 @@ def test_dicts_repr_mixin_to_pretty_dicts_default(
     ]
 
 def test_dicts_repr_mixin_to_pretty_dicts_max_rows(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_pretty_dicts(max_rows=2) == [
         {"name": "x", "a": "0.123", "b": "0.235"},
@@ -247,7 +128,7 @@ def test_dicts_repr_mixin_to_pretty_dicts_max_rows(
     ]
 
 def test_dicts_repr_mixin_with_defaults(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     new_dicts_repr = dicts_repr.with_defaults(
         keys=("c", "d"),
@@ -260,17 +141,17 @@ def test_dicts_repr_mixin_with_defaults(
     assert new_dicts_repr.default_align == "left"
 
 def test_dicts_repr_mixin_with_keys(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.with_keys(("c", "d")).default_keys == ("c", "d")
 
 def test_dicts_repr_mixin_with_max_rows(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.with_max_rows(42).default_max_rows == 42
 
 def test_dicts_repr_mixin_to_string(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_string() == textwrap.dedent("""\
         name     a     b
@@ -279,7 +160,7 @@ def test_dicts_repr_mixin_to_string(
         zzz  0.568 0.679""")
 
 def test_dicts_repr_mixin_to_string_align_left(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_string(align="left") == textwrap.dedent("""\
         name a     b
@@ -288,7 +169,7 @@ def test_dicts_repr_mixin_to_string_align_left(
         zzz  0.568 0.679""")
 
 def test_dicts_repr_mixin_to_string_align_right(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_string(align="right") == textwrap.dedent("""\
         name     a     b
@@ -297,7 +178,7 @@ def test_dicts_repr_mixin_to_string_align_right(
          zzz 0.568 0.679""")
 
 def test_dicts_repr_mixin_to_string_markdown(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_string(table_format="markdown") == textwrap.dedent("""\
         | name |     a |     b |
@@ -308,7 +189,7 @@ def test_dicts_repr_mixin_to_string_markdown(
 
 
 def test_dicts_repr_mixin_to_markdown(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_markdown() == textwrap.dedent("""\
         | name |     a |     b |
@@ -319,7 +200,7 @@ def test_dicts_repr_mixin_to_markdown(
 
 
 def test_dicts_repr_mixin_to_markdown_align_left_and_max_rows(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_markdown(
         align="left",
@@ -333,7 +214,7 @@ def test_dicts_repr_mixin_to_markdown_align_left_and_max_rows(
 
 
 def test_dicts_repr_mixin_to_string_markdown_align_left(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_string(
         align="left",
@@ -346,7 +227,7 @@ def test_dicts_repr_mixin_to_string_markdown_align_left(
         | zzz  | 0.568 | 0.679 |""")
 
 def test_dicts_repr_mixin_to_string_markdown_align_right(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_string(
         align="right",
@@ -359,7 +240,7 @@ def test_dicts_repr_mixin_to_string_markdown_align_right(
         |  zzz | 0.568 | 0.679 |""")
 
 def test_dicts_repr_mixin_to_string_markdown_max_rows(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_string(
         max_rows=2,
@@ -372,7 +253,7 @@ def test_dicts_repr_mixin_to_string_markdown_max_rows(
         | zzz  | 0.568 | 0.679 |""")
 
 def test_dicts_repr_mixin_to_string_markdown_escape() -> None:
-    class DictsRepr(tea_tasting.utils.DictsReprMixin):
+    class DictsRepr(tea_tasting.utils.display.DictsReprMixin):
         default_keys = ("na|me", "val")
         default_text_keys = ("na|me",)
         def to_dicts(self) -> tuple[dict[str, object], ...]:
@@ -384,7 +265,7 @@ def test_dicts_repr_mixin_to_string_markdown_escape() -> None:
         | a\\|b\\\\c<br>d | x\\|y |""")
 
 def test_dicts_repr_mixin_to_html(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_html() == (
         '<table class="dataframe" style="text-align: right;">'
@@ -398,7 +279,7 @@ def test_dicts_repr_mixin_to_html(
     )
 
 def test_dicts_repr_mixin_to_html_align_left(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_html(align="left") == (
         '<table class="dataframe" style="text-align: left;">'
@@ -411,7 +292,7 @@ def test_dicts_repr_mixin_to_html_align_left(
     )
 
 def test_dicts_repr_mixin_to_html_align_right(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_html(align="right") == (
         '<table class="dataframe" style="text-align: right;">'
@@ -424,7 +305,7 @@ def test_dicts_repr_mixin_to_html_align_right(
     )
 
 def test_dicts_repr_mixin_to_html_indent(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr.to_html(indent="    ") == textwrap.dedent("""\
         <table class="dataframe" style="text-align: right;">
@@ -455,7 +336,7 @@ def test_dicts_repr_mixin_to_html_indent(
         </table>""")
 
 def test_dicts_repr_mixin_mime_marimo(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     mime_type, data = dicts_repr._mime_()
     assert mime_type == "text/html"
@@ -470,7 +351,7 @@ def test_dicts_repr_mixin_mime_marimo(
     ],
 )
 def test_dicts_repr_mixin_mime_marimo_text_justify_columns(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
     align: Literal["auto", "left", "right"],
     expected: dict[str, str],
 ) -> None:
@@ -485,7 +366,7 @@ def test_dicts_repr_mixin_mime_marimo_text_justify_columns(
     assert table.call_args.kwargs["text_justify_columns"] == expected
 
 def test_dicts_repr_mixin_mime_exception(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     def import_side_effect(
         name: str,
@@ -503,7 +384,7 @@ def test_dicts_repr_mixin_mime_exception(
     assert data.startswith('<table class="dataframe"')
 
 def test_dicts_repr_mixin_repr_html(
-    dicts_repr: tea_tasting.utils.DictsReprMixin,
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
 ) -> None:
     assert dicts_repr._repr_html_() == (
         '<table class="dataframe" style="text-align: right;">'
@@ -516,14 +397,18 @@ def test_dicts_repr_mixin_repr_html(
         '</tbody></table>'
     )
 
-def test_dicts_repr_mixin_repr(dicts_repr: tea_tasting.utils.DictsReprMixin) -> None:
+def test_dicts_repr_mixin_repr(
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
+) -> None:
     assert repr(dicts_repr) == textwrap.dedent("""\
         name     a     b
         x    0.123 0.235
         yy   0.346 0.457
         zzz  0.568 0.679""")
 
-def test_dicts_repr_mixin_str(dicts_repr: tea_tasting.utils.DictsReprMixin) -> None:
+def test_dicts_repr_mixin_str(
+    dicts_repr: tea_tasting.utils.display.DictsReprMixin,
+) -> None:
     assert str(dicts_repr) == textwrap.dedent("""\
         name     a     b
         x    0.123 0.235
@@ -532,7 +417,7 @@ def test_dicts_repr_mixin_str(dicts_repr: tea_tasting.utils.DictsReprMixin) -> N
 
 
 def test_repr_mixin_repr() -> None:
-    class Repr(tea_tasting.utils.ReprMixin):
+    class Repr(tea_tasting.utils.display.ReprMixin):
         def __init__(self, a: int, *, b: bool, c: str) -> None:
             self._a = -1
             self.a_ = -1
@@ -544,96 +429,15 @@ def test_repr_mixin_repr() -> None:
     assert repr(r) == f"Repr(a=1, b=False, c={'c'!r})"
 
 def test_repr_mixin_repr_obj() -> None:
-    class Obj(tea_tasting.utils.ReprMixin):
+    class Obj(tea_tasting.utils.display.ReprMixin):
         ...
     obj = Obj()
     assert repr(obj) == "Obj()"
 
 def test_repr_mixin_repr_pos() -> None:
-    class Pos(tea_tasting.utils.ReprMixin):
+    class Pos(tea_tasting.utils.display.ReprMixin):
         def __init__(self, *args: int) -> None:
             self.args = args
     pos = Pos(1, 2, 3)
     with pytest.raises(RuntimeError):
         repr(pos)
-
-
-def test_div() -> None:
-    assert tea_tasting.utils.div(1, 2) == 0.5
-    assert tea_tasting.utils.div(1, 0, 3) == 3
-    assert tea_tasting.utils.div(1, 0) == float("inf")
-    assert math.isnan(tea_tasting.utils.div(0, 0))
-    assert math.isnan(tea_tasting.utils.div(-1, 0))
-
-
-def test_float() -> None:
-    typ = tea_tasting.utils.Float
-    assert typ(1) + 2 == typ(3)
-    assert 1 + typ(2) == typ(3)
-    assert typ(1) - 2 == typ(-1)
-    assert 1 - typ(2) == typ(-1)
-    assert typ(1) / 2 == 0.5
-    assert 1 / typ(2) == 0.5
-    assert math.isnan(typ(0) / 0)
-    assert math.isnan(0 / typ(0))
-    assert typ(1) / 0 == float("inf")
-    assert 1 / typ(0) == float("inf")
-    assert math.isnan(typ(-1) / 0)
-    assert math.isnan(-1 / typ(0))
-    assert typ(5) // 2 == typ(2)
-    assert 5 // typ(2) == typ(2)
-    assert typ(5) % 2 == typ(1)
-    assert 5 % typ(2) == typ(1)
-    assert divmod(typ(5), 2) == (typ(2), typ(1))
-    assert divmod(5, typ(2)) == (typ(2), typ(1))
-    assert typ(2) ** 3 == typ(8)
-    assert 2 ** typ(3) == typ(8)
-    assert -typ(1) == typ(-1)
-    assert +typ(1) == typ(1)
-    assert abs(typ(-1)) == typ(1)
-    assert int(typ(1.0)) == 1
-    assert float(typ(1.0)) == 1.0
-    assert round(typ(11), -1) == typ(10)
-    assert math.trunc(typ(1.2)) == typ(1)
-    assert math.floor(typ(1.2)) == typ(1)
-    assert math.ceil(typ(1.2)) == typ(2)
-
-
-def test_int() -> None:
-    typ = tea_tasting.utils.Int
-    assert typ(1) + 2 == typ(3)
-    assert 1 + typ(2) == typ(3)
-    assert typ(1) - 2 == typ(-1)
-    assert 1 - typ(2) == typ(-1)
-    assert typ(1) / 2 == 0.5
-    assert 1 / typ(2) == 0.5
-    assert math.isnan(typ(0) / 0)
-    assert math.isnan(0 / typ(0))
-    assert typ(1) / 0 == float("inf")
-    assert 1 / typ(0) == float("inf")
-    assert math.isnan(typ(-1) / 0)
-    assert math.isnan(-1 / typ(0))
-    assert typ(5) // 2 == typ(2)
-    assert 5 // typ(2) == typ(2)
-    assert typ(5) % 2 == typ(1)
-    assert 5 % typ(2) == typ(1)
-    assert divmod(typ(5), 2) == (typ(2), typ(1))
-    assert divmod(5, typ(2)) == (typ(2), typ(1))
-    assert typ(2) ** 3 == typ(8)
-    assert 2 ** typ(3) == typ(8)
-    assert -typ(1) == typ(-1)
-    assert +typ(1) == typ(1)
-    assert abs(typ(-1)) == typ(1)
-    assert int(typ(1.0)) == 1
-    assert float(typ(1.0)) == 1.0
-    assert round(typ(11), -1) == typ(10)
-    assert math.trunc(typ(1.2)) == typ(1)
-    assert math.floor(typ(1.2)) == typ(1)
-    assert math.ceil(typ(1.2)) == typ(1)
-
-
-def test_numeric() -> None:
-    assert isinstance(tea_tasting.utils.numeric(1), tea_tasting.utils.Int)
-    assert isinstance(tea_tasting.utils.numeric("1"), tea_tasting.utils.Int)
-    assert isinstance(tea_tasting.utils.numeric(1.0), tea_tasting.utils.Float)
-    assert isinstance(tea_tasting.utils.numeric("inf"), tea_tasting.utils.Float)
