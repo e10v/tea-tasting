@@ -26,11 +26,9 @@ if TYPE_CHECKING:
     import tea_tasting.aggr
 
 
-class IbisTable(BaseTable):
-    """Ibis table adapter."""
-
+class IbisTable(BaseTable):  # noqa: D101
     def __init__(self, data: ibis.expr.types.Table) -> None:
-        """Create an Ibis table adapter.
+        """Ibis table adapter.
 
         Args:
             data: Ibis Table.
@@ -106,11 +104,9 @@ class IbisTable(BaseTable):
         )
 
 
-class IbisTableGroupBy(BaseTableGroupBy):
-    """Grouped Ibis table adapter."""
-
+class IbisTableGroupBy(BaseTableGroupBy):  # noqa: D101
     def __init__(self, data: ibis.expr.types.Table, by: str) -> None:
-        """Create a grouped Ibis table adapter.
+        """Grouped Ibis table adapter.
 
         Args:
             data: Ibis Table.

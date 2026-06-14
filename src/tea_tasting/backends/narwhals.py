@@ -28,14 +28,12 @@ if TYPE_CHECKING:
     import tea_tasting.aggr
 
 
-class NarwhalsFrame(BaseTable):
-    """Narwhals-compatible frame adapter."""
-
+class NarwhalsFrame(BaseTable):  # noqa: D101
     def __init__(
         self,
         data: narwhals.typing.IntoFrame | narwhals.typing.Frame,
     ) -> None:
-        """Create a Narwhals-compatible frame adapter.
+        """Narwhals-compatible frame adapter.
 
         Args:
             data: Narwhals-compatible native frame.
@@ -118,15 +116,13 @@ class NarwhalsFrame(BaseTable):
         )
 
 
-class NarwhalsFrameGroupBy(BaseTableGroupBy):
-    """Grouped Narwhals-compatible frame adapter."""
-
+class NarwhalsFrameGroupBy(BaseTableGroupBy):  # noqa: D101
     def __init__(
         self,
         data: narwhals.typing.IntoFrame | narwhals.typing.Frame,
         by: str,
     ) -> None:
-        """Create a grouped Narwhals-compatible frame adapter.
+        """Grouped Narwhals-compatible frame adapter.
 
         Args:
             data: Narwhals-compatible native frame.

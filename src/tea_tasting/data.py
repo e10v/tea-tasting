@@ -26,9 +26,7 @@ type Table = (
 )
 
 
-class AggrCols(tea_tasting.utils.ReprMixin):
-    """Columns to be aggregated for a metric analysis."""
-
+class AggrCols(tea_tasting.utils.ReprMixin):  # noqa: D101
     has_count: bool
     mean_cols: tuple[str, ...]
     var_cols: tuple[str, ...]
@@ -41,7 +39,7 @@ class AggrCols(tea_tasting.utils.ReprMixin):
         var_cols: Sequence[str] = (),
         cov_cols: Sequence[tuple[str, str]] = (),
     ) -> None:
-        """Create aggregation column specifications.
+        """Columns to be aggregated for a metric analysis.
 
         Args:
             has_count: If `True`, include the sample size.
