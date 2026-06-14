@@ -18,21 +18,21 @@ nav:
     - API reference: api/index.md
     - Metrics:
       - Metrics: api/metrics/index.md
-      - Base: api/metrics/base.md
       - Mean: api/metrics/mean.md
-      - Nonparametric: api/metrics/nonparametric.md
       - Proportion: api/metrics/proportion.md
+      - Nonparametric: api/metrics/nonparametric.md
       - Resampling: api/metrics/resampling.md
+      - Base: api/metrics/base.md
     - Experiment: api/experiment.md
-    - Data: api/data.md
-    - Backends:
-      - Backends: api/backends/index.md
-      - Base: api/backends/base.md
-      - Ibis: api/backends/ibis.md
-      - Narwhals: api/backends/narwhals.md
     - Multiplicity: api/multiplicity.md
     - Datasets: api/datasets.md
     - Global configuration: api/config.md
+    - Data: api/data.md
+    - Backends:
+      - Backends: api/backends/index.md
+      - Narwhals: api/backends/narwhals.md
+      - Ibis: api/backends/ibis.md
+      - Base: api/backends/base.md
     - Aggregates: api/aggr.md
     - Utilities:
       - Utilities: api/utils/index.md
