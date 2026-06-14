@@ -7,12 +7,20 @@
 - `src/_internal`: docs tooling (marimo example generation, markdown extensions).
 - `src/tea_tasting/`: public package code:
     - `src/tea_tasting/metrics/`: built-in metrics and metrics base classes.
-    - `src/tea_tasting/aggr.py`: aggregated statistics helpers (count/mean/var/cov), delta method for variance and covariance of ratio metrics.
+    - `src/tea_tasting/backends/`: data backend adapters:
+        - `base.py`: backend protocol and shared aggregation helpers.
+        - `ibis.py`: Ibis table adapter.
+        - `narwhals.py`: Narwhals-compatible frame adapter.
+    - `src/tea_tasting/aggr.py`: `Aggregates` container for count/mean/var/cov statistics, delta method for variance and covariance of ratio metrics.
     - `src/tea_tasting/config.py`: default parameter values used by other modules; can be set by users.
+    - `src/tea_tasting/data.py`: data access helpers, aggregation column specs, backend dispatch, and readers for aggregates, granular data, and variants.
     - `src/tea_tasting/datasets.py`: simulated data generators.
     - `src/tea_tasting/experiment.py`: experiment orchestration (analyze/solve_power/simulate) and result classes.
     - `src/tea_tasting/multiplicity.py`: multiple testing corrections.
-    - `src/tea_tasting/utils.py`: parameters validation, results formatting and rendering, graceful division by zero.
+    - `src/tea_tasting/utils/`: utility helpers:
+        - `checks.py`: parameter validation.
+        - `display.py`: results formatting, rendering, and repr mixins.
+        - `num.py`: numeric wrappers and graceful division by zero.
     - `src/tea_tasting/version.py`: package version extracted from `src/tea_tasting/_version.txt`.
 - `tests/`: unit tests for pytest; mirrors `src/tea_tasting/` structure.
 
