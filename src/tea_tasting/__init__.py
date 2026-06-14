@@ -13,6 +13,8 @@ For convenience, the API reference is provided by submodules:
 - `tea_tasting.multiplicity`: Multiple hypothesis testing.
 - `tea_tasting.datasets`: Example datasets.
 - `tea_tasting.config`: Global configuration.
+- `tea_tasting.data`: Data access helpers and backend dispatch.
+- `tea_tasting.backends`: Data backend adapters.
 - `tea_tasting.aggr`: Module for working with aggregated statistics.
 - `tea_tasting.utils`: Useful functions and classes.
 """

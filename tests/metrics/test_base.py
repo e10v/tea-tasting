@@ -8,6 +8,8 @@ import pyarrow.compute as pc
 import pytest
 
 import tea_tasting.aggr
+import tea_tasting.data
+import tea_tasting.datasets
 import tea_tasting.metrics.base
 
 
@@ -15,57 +17,10 @@ if TYPE_CHECKING:
     from collections.abc import Hashable
     from typing import Any, Literal
 
-    from tests.fixtures import Frame
-
-
-pytest_plugins = ("tests.fixtures",)
-
-
-def test_aggr_cols_or() -> None:
-    aggr_cols0 = tea_tasting.metrics.base.AggrCols(
-        has_count=False,
-        mean_cols=("a", "b"),
-        var_cols=("b", "c"),
-        cov_cols=(("a", "b"), ("c", "b")),
-    )
-
-    aggr_cols1 = tea_tasting.metrics.base.AggrCols(
-        has_count=True,
-        mean_cols=("b", "c"),
-        var_cols=("c", "d"),
-        cov_cols=(("b", "c"), ("d", "c")),
-    )
-
-    aggr_cols = aggr_cols0 | aggr_cols1
-
-    assert isinstance(aggr_cols, tea_tasting.metrics.base.AggrCols)
-    assert aggr_cols.has_count is True
-    assert set(aggr_cols.mean_cols) == {"a", "b", "c"}
-    assert len(aggr_cols.mean_cols) == 3
-    assert set(aggr_cols.var_cols) == {"b", "c", "d"}
-    assert len(aggr_cols.var_cols) == 3
-    assert set(aggr_cols.cov_cols) == {("a", "b"), ("b", "c"), ("c", "d")}
-    assert len(aggr_cols.cov_cols) == 3
-
-
-def test_aggr_cols_len() -> None:
-    assert len(tea_tasting.metrics.base.AggrCols(
-        has_count=False,
-        mean_cols=("a", "b"),
-        var_cols=("b", "c"),
-        cov_cols=(("a", "b"), ("c", "b")),
-    )) == 6
-    assert len(tea_tasting.metrics.base.AggrCols(
-        has_count=True,
-        mean_cols=("b", "c"),
-        var_cols=("c", "d"),
-        cov_cols=(("b", "c"), ("d", "c")),
-    )) == 7
-
 
 @pytest.fixture
-def aggr_cols() -> tea_tasting.metrics.base.AggrCols:
-    return tea_tasting.metrics.base.AggrCols(
+def aggr_cols() -> tea_tasting.data.AggrCols:
+    return tea_tasting.data.AggrCols(
         has_count=True,
         mean_cols=("sessions", "orders"),
         var_cols=("orders", "revenue"),
@@ -75,28 +30,32 @@ def aggr_cols() -> tea_tasting.metrics.base.AggrCols:
 @pytest.fixture
 def correct_aggrs(
     data_arrow: pa.Table,
-    aggr_cols: tea_tasting.metrics.base.AggrCols,
+    aggr_cols: tea_tasting.data.AggrCols,
 ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
-    return tea_tasting.aggr.read_aggregates(
+    return tea_tasting.data.read_aggregates(
         data_arrow,
-        group_col="variant",
-        **aggr_cols._asdict(),
+        aggr_cols=aggr_cols,
+        variant="variant",
     )
 
 @pytest.fixture
 def correct_aggr(
     data_arrow: pa.Table,
-    aggr_cols: tea_tasting.metrics.base.AggrCols,
+    aggr_cols: tea_tasting.data.AggrCols,
 ) -> tea_tasting.aggr.Aggregates:
-    return tea_tasting.aggr.read_aggregates(
+    return tea_tasting.data.read_aggregates(
         data_arrow,
-        group_col=None,
-        **aggr_cols._asdict(),
+        aggr_cols=aggr_cols,
     )
 
 @pytest.fixture
 def cols() -> tuple[str, ...]:
     return ("sessions", "orders", "revenue")
+
+
+@pytest.fixture
+def data_arrow() -> pa.Table:
+    return tea_tasting.datasets.make_users_data(n_users=100, rng=42)
 
 @pytest.fixture
 def correct_gran(
@@ -112,11 +71,11 @@ def correct_gran(
 
 @pytest.fixture
 def aggr_metric(
-    aggr_cols: tea_tasting.metrics.base.AggrCols,
+    aggr_cols: tea_tasting.data.AggrCols,
 ) -> tea_tasting.metrics.base.MetricBaseAggregated[dict[str, object]]:
     class AggrMetric(tea_tasting.metrics.base.MetricBaseAggregated[dict[str, object]]):
         @property
-        def aggr_cols(self) -> tea_tasting.metrics.base.AggrCols:
+        def aggr_cols(self) -> tea_tasting.data.AggrCols:
             return aggr_cols
 
         def analyze_aggregates(
@@ -130,7 +89,7 @@ def aggr_metric(
 
 @pytest.fixture
 def aggr_power(
-    aggr_cols: tea_tasting.metrics.base.AggrCols,
+    aggr_cols: tea_tasting.data.AggrCols,
 ) -> tea_tasting.metrics.base.PowerBaseAggregated[
     tea_tasting.metrics.base.MetricPowerResults[dict[str, object]]
 ]:
@@ -140,7 +99,7 @@ def aggr_power(
         ],
     ):
         @property
-        def aggr_cols(self) -> tea_tasting.metrics.base.AggrCols:
+        def aggr_cols(self) -> tea_tasting.data.AggrCols:
             return aggr_cols
 
         def solve_power_from_aggregates(
@@ -263,37 +222,24 @@ def test_power_base_aggregated_analyze_aggr(
     assert kwargs["parameter"] == "rel_effect_size"
 
 
-def test_aggregate_by_variants_frame(
+def test_metric_base_aggregated_requires_variant(
     data_arrow: pa.Table,
-    aggr_cols: tea_tasting.metrics.base.AggrCols,
-    correct_aggrs: dict[Hashable, tea_tasting.aggr.Aggregates],
+    aggr_cols: tea_tasting.data.AggrCols,
 ) -> None:
-    aggrs = tea_tasting.metrics.base.aggregate_by_variants(
-        data_arrow,
-        aggr_cols=aggr_cols,
-        variant="variant",
-    )
-    _compare_aggrs(aggrs[0], correct_aggrs[0])
-    _compare_aggrs(aggrs[1], correct_aggrs[1])
+    class AggrMetric(tea_tasting.metrics.base.MetricBaseAggregated[dict[str, object]]):
+        @property
+        def aggr_cols(self) -> tea_tasting.data.AggrCols:
+            return aggr_cols
 
-def test_aggregate_by_variants_aggrs(
-    aggr_cols: tea_tasting.metrics.base.AggrCols,
-    correct_aggrs: dict[Hashable, tea_tasting.aggr.Aggregates],
-) -> None:
-    aggrs = tea_tasting.metrics.base.aggregate_by_variants(
-        correct_aggrs,
-        aggr_cols=aggr_cols,
-        variant="variant",
-    )
-    _compare_aggrs(aggrs[0], correct_aggrs[0])
-    _compare_aggrs(aggrs[1], correct_aggrs[1])
+        def analyze_aggregates(
+            self,
+            control: tea_tasting.aggr.Aggregates,  # noqa: ARG002
+            treatment: tea_tasting.aggr.Aggregates,  # noqa: ARG002
+        ) -> dict[str, object]:
+            return {}
 
-def test_aggregate_by_variants_raises(
-    data_arrow: pa.Table,
-    aggr_cols: tea_tasting.metrics.base.AggrCols,
-) -> None:
     with pytest.raises(ValueError, match="variant"):
-        tea_tasting.metrics.base.aggregate_by_variants(data_arrow, aggr_cols=aggr_cols)
+        AggrMetric().analyze(data_arrow, control=0, treatment=1)
 
 
 def test_metric_base_granular_frame(
@@ -320,35 +266,9 @@ def test_metric_base_granular_gran(
     assert kwargs["treatment"].equals(correct_gran[1])
 
 
-def test_read_granular_frame(
-    data: Frame,
-    cols: tuple[str, ...],
-    correct_gran: dict[Hashable, pa.Table],
-) -> None:
-    gran = tea_tasting.metrics.base.read_granular(
-        data,
-        cols=cols,
-        variant="variant",
-    )
-    assert gran[0].equals(correct_gran[0])
-    assert gran[1].equals(correct_gran[1])
-
-def test_read_granular_dict(
-    cols: tuple[str, ...],
-    correct_gran: dict[Hashable, pa.Table],
-) -> None:
-    gran = tea_tasting.metrics.base.read_granular(
-        correct_gran,
-        cols=cols,
-        variant="variant",
-    )
-    assert gran[0].equals(correct_gran[0])
-    assert gran[1].equals(correct_gran[1])
-
-def test_read_granular_none(
-    data: Frame,
-    cols: tuple[str, ...],
+def test_metric_base_granular_requires_variant(
+    gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, object]],
     data_arrow: pa.Table,
 ) -> None:
-    gran = tea_tasting.metrics.base.read_granular(data, cols=cols)
-    assert gran.equals(data_arrow.select(cols))
+    with pytest.raises(ValueError, match="variant"):
+        gran_metric.analyze(data_arrow, control=0, treatment=1)

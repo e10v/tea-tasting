@@ -7,8 +7,8 @@ import pyarrow as pa
 import pytest
 
 import tea_tasting.config
+import tea_tasting.data
 import tea_tasting.datasets
-import tea_tasting.metrics.base
 import tea_tasting.metrics.resampling
 
 
@@ -24,7 +24,7 @@ def data_arrow() -> pa.Table:
 
 @pytest.fixture
 def data_gran(data_arrow: pa.Table) -> dict[Hashable, pa.Table]:
-    return tea_tasting.metrics.base.read_granular(
+    return tea_tasting.data.read_granular(
         data_arrow,
         ("sessions", "orders", "revenue"),
         variant="variant",

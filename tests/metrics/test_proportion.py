@@ -10,8 +10,8 @@ import pytest
 
 import tea_tasting.aggr
 import tea_tasting.config
+import tea_tasting.data
 import tea_tasting.datasets
-import tea_tasting.metrics.base
 import tea_tasting.metrics.proportion
 
 
@@ -31,13 +31,13 @@ def data_arrow() -> pa.Table:
 
 @pytest.fixture
 def data_aggr(data_arrow: pa.Table) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
-    return tea_tasting.aggr.read_aggregates(
+    return tea_tasting.data.read_aggregates(
         data_arrow,
-        group_col="variant",
-        has_count=True,
-        mean_cols=("has_order",),
-        var_cols=(),
-        cov_cols=(),
+        aggr_cols=tea_tasting.data.AggrCols(
+            has_count=True,
+            mean_cols=("has_order",),
+        ),
+        variant="variant",
     )
 
 
@@ -92,10 +92,11 @@ def test_proportion_init_raises() -> None:
 
 def test_proportion_aggr_cols() -> None:
     metric = tea_tasting.metrics.proportion.Proportion("a")
-    assert metric.aggr_cols == tea_tasting.metrics.base.AggrCols(
-        has_count=True,
-        mean_cols=("a",),
-    )
+    aggr_cols = metric.aggr_cols
+    assert aggr_cols.has_count is True
+    assert aggr_cols.mean_cols == ("a",)
+    assert aggr_cols.var_cols == ()
+    assert aggr_cols.cov_cols == ()
 
 
 def test_proportion_analyze_frame(data_arrow: pa.Table) -> None:
@@ -335,13 +336,24 @@ def test_sample_ratio_init_config() -> None:
 
 def test_sample_ratio_aggr_cols() -> None:
     metric = tea_tasting.metrics.proportion.SampleRatio()
-    assert metric.aggr_cols == tea_tasting.metrics.base.AggrCols(has_count=True)
+    aggr_cols = metric.aggr_cols
+    assert aggr_cols.has_count is True
+    assert aggr_cols.mean_cols == ()
+    assert aggr_cols.var_cols == ()
+    assert aggr_cols.cov_cols == ()
 
 
 def test_sample_ratio_analyze_frame(data_arrow: pa.Table) -> None:
     metric = tea_tasting.metrics.proportion.SampleRatio()
     result = metric.analyze(data_arrow, 0, 1, variant="variant")
     assert isinstance(result, tea_tasting.metrics.proportion.SampleRatioResult)
+
+
+def test_sample_ratio_analyze_frame_requires_variant(data_arrow: pa.Table) -> None:
+    metric = tea_tasting.metrics.proportion.SampleRatio()
+    with pytest.raises(ValueError, match="variant"):
+        metric.analyze(data_arrow, 0, 1)
+
 
 def test_sample_ratio_analyze_auto() -> None:
     metric = tea_tasting.metrics.proportion.SampleRatio()

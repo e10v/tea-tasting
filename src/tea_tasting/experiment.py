@@ -8,12 +8,12 @@ import functools
 import itertools
 from typing import TYPE_CHECKING, Any, overload
 
-import narwhals as nw
 import numpy as np
 import pyarrow as pa
 import pyarrow.compute as pc
 
 import tea_tasting.aggr
+import tea_tasting.data
 import tea_tasting.metrics
 import tea_tasting.utils
 
@@ -22,13 +22,11 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
     from typing import Concatenate, Literal, Protocol
 
-    import narwhals.typing  # noqa: TC004
-
 
     type MapLike[T] = Callable[Concatenate[Callable[..., T], ...], Iterable[T]]
     type DataGenerator[T] =  Callable[
         ...,
-        narwhals.typing.IntoFrame | dict[Hashable, tea_tasting.aggr.Aggregates],
+        tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
     ]
 
     class _ProgressLike(Protocol):
@@ -296,7 +294,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     @overload
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame | dict[Hashable, tea_tasting.aggr.Aggregates],
+        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
         control: Hashable | None = None,
         *,
         all_variants: Literal[False] = False,
@@ -306,7 +304,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     @overload
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame | dict[Hashable, tea_tasting.aggr.Aggregates],
+        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
         control: Hashable | None = None,
         *,
         all_variants: Literal[True],
@@ -315,7 +313,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
     def analyze(
         self,
-        data: narwhals.typing.IntoFrame | dict[Hashable, tea_tasting.aggr.Aggregates],
+        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
         control: Hashable | None = None,
         *,
         all_variants: bool = False,
@@ -333,8 +331,8 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             Experiment result.
         """
         tea_tasting.utils.check_scalar(all_variants, "all_variants", typ=bool)
-        aggregated_data, granular_data = self._prepare_data(data)
-        variants = self._collect_variants(data, aggregated_data, granular_data)
+        aggregated_data, granular_data = self._read_data(data)
+        variants = self._read_variants(data, aggregated_data, granular_data)
         variant_pairs = self._get_variant_pairs(variants, control)
 
         if len(variant_pairs) != 1 and not all_variants:
@@ -362,9 +360,9 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         return results
 
 
-    def _prepare_data(
+    def _read_data(
         self,
-        data: narwhals.typing.IntoFrame | dict[Hashable, tea_tasting.aggr.Aggregates],
+        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
     ) -> tuple[
         dict[Hashable, tea_tasting.aggr.Aggregates] | None,
         dict[Hashable, pa.Table] | None,
@@ -378,12 +376,32 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
                     )
             return data, None  # ty:ignore[invalid-return-type]
 
-        return self._read_data(data)
+        aggr_cols = tea_tasting.data.AggrCols()
+        gran_cols = set()
+        for metric in self.metrics.values():
+            if isinstance(metric, tea_tasting.metrics.MetricBaseAggregated):
+                aggr_cols |= metric.aggr_cols
+            if isinstance(metric, tea_tasting.metrics.MetricBaseGranular):
+                gran_cols |= set(metric.cols)
+
+        aggregated_data = tea_tasting.data.read_aggregates(
+            data,
+            aggr_cols=aggr_cols,
+            variant=self.variant,
+        ) if len(aggr_cols) > 0 else None
+
+        granular_data = tea_tasting.data.read_granular(
+            data,
+            cols=tuple(gran_cols),
+            variant=self.variant,
+        ) if len(gran_cols) > 0 else None
+
+        return aggregated_data, granular_data
 
 
-    def _collect_variants(
+    def _read_variants(
         self,
-        data: narwhals.typing.IntoFrame | dict[Hashable, tea_tasting.aggr.Aggregates],
+        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
         aggregated_data: dict[Hashable, tea_tasting.aggr.Aggregates] | None,
         granular_data: dict[Hashable, pa.Table] | None,
     ) -> list[Hashable]:
@@ -392,7 +410,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         elif granular_data is not None:
             variants = granular_data.keys()
         else:
-            variants = self._read_variants(data)  # ty:ignore[invalid-argument-type]
+            variants = tea_tasting.data.read_variants(data, self.variant)  # ty:ignore[invalid-argument-type]
         return sorted(variants)
 
 
@@ -419,7 +437,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     def _analyze_metric(
         self,
         metric: tea_tasting.metrics.MetricBase[Any],
-        data: narwhals.typing.IntoFrame | dict[Hashable, tea_tasting.aggr.Aggregates],
+        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
         aggregated_data: dict[Hashable, tea_tasting.aggr.Aggregates] | None,
         granular_data: dict[Hashable, pa.Table] | None,
         control: Hashable,
@@ -440,57 +458,9 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
         return metric.analyze(data, control, treatment, self.variant)  # ty:ignore[invalid-argument-type]
 
 
-    def _read_data(
-        self,
-        data: narwhals.typing.IntoFrame,
-    ) -> tuple[
-        dict[Hashable, tea_tasting.aggr.Aggregates] | None,
-        dict[Hashable, pa.Table] | None,
-    ]:
-        aggr_cols = tea_tasting.metrics.AggrCols()
-        gran_cols = set()
-        for metric in self.metrics.values():
-            if isinstance(metric, tea_tasting.metrics.MetricBaseAggregated):
-                aggr_cols |= metric.aggr_cols
-            if isinstance(metric, tea_tasting.metrics.MetricBaseGranular):
-                gran_cols |= set(metric.cols)
-
-        aggregated_data = tea_tasting.metrics.aggregate_by_variants(
-            data,
-            aggr_cols=aggr_cols,
-            variant=self.variant,
-        ) if len(aggr_cols) > 0 else None
-
-        granular_data = tea_tasting.metrics.read_granular(
-            data,
-            cols=tuple(gran_cols),
-            variant=self.variant,
-        ) if len(gran_cols) > 0 else None
-
-        return aggregated_data, granular_data
-
-
-    def _read_variants(
-        self,
-        data: narwhals.typing.IntoFrame | narwhals.typing.Frame,
-    ) -> list[Hashable]:
-        if tea_tasting.utils._is_ibis_table(data):
-            return (
-                data.select(self.variant)
-                .distinct()
-                .to_pyarrow()[self.variant]
-                .to_pylist()
-            )
-
-        data = nw.from_native(data)
-        if not isinstance(data, nw.LazyFrame):
-            data = data.lazy()
-        return data.unique(self.variant).collect().get_column(self.variant).to_list()
-
-
     def solve_power(
         self,
-        data: narwhals.typing.IntoFrame,
+        data: tea_tasting.data.Table,
         parameter: Literal[
             "power", "effect_size", "rel_effect_size", "n_obs"] = "rel_effect_size",
     ) -> ExperimentPowerResult:
@@ -508,15 +478,14 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             "parameter",
             in_={"power", "effect_size", "rel_effect_size", "n_obs"},
         )
-        aggr_cols = tea_tasting.metrics.AggrCols()
+        aggr_cols = tea_tasting.data.AggrCols()
         for metric in self.metrics.values():
             if isinstance(metric, tea_tasting.metrics.PowerBaseAggregated):
                 aggr_cols |= metric.aggr_cols
 
-        aggr_data = tea_tasting.aggr.read_aggregates(
+        aggr_data = tea_tasting.data.read_aggregates(
             data,
-            group_col=None,
-            **aggr_cols._asdict(),
+            aggr_cols=aggr_cols,
         ) if len(aggr_cols) > 0 else tea_tasting.aggr.Aggregates()
 
         result = ExperimentPowerResult()
@@ -531,7 +500,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
     def simulate(
         self,
-        data: narwhals.typing.IntoFrame | DataGenerator,
+        data: tea_tasting.data.Table | DataGenerator,
         n_simulations: int = 10_000,
         *,
         rng: int | np.random.Generator | np.random.SeedSequence | None = None,
@@ -580,7 +549,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
                     gran_cols = set()
                     break
             cols = tuple(gran_cols)
-            data: pa.Table = tea_tasting.metrics.read_granular(data, cols)
+            data: pa.Table = tea_tasting.data.read_granular(data, cols)
             if self.variant in data.column_names:
                 data = data.drop_columns(self.variant)
 
@@ -632,7 +601,7 @@ def _simulate_once(
     treat: Callable[[pa.Table], pa.Table] | None,
 ) -> ExperimentResult:
     raw_data: (
-        narwhals.typing.IntoFrame |
+        tea_tasting.data.Table |
         dict[Hashable, tea_tasting.aggr.Aggregates] |
         pa.Table
     ) = data if isinstance(data, pa.Table) else data(rng=rng)
@@ -653,7 +622,7 @@ def _simulate_once(
     table: pa.Table = (
         raw_data
         if isinstance(raw_data, pa.Table)
-        else tea_tasting.metrics.read_granular(raw_data)
+        else tea_tasting.data.read_granular(raw_data)
     )
 
     if experiment.variant not in table.column_names:

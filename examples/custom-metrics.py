@@ -10,7 +10,7 @@
 
 import marimo
 
-__generated_with = "0.23.8"
+__generated_with = "0.23.9"
 app = marimo.App()
 
 
@@ -45,6 +45,7 @@ def _():
     import tea_tasting as tt
     import tea_tasting.aggr
     import tea_tasting.config
+    import tea_tasting.data
     import tea_tasting.metrics
     import tea_tasting.utils
 
@@ -115,8 +116,8 @@ def _(Literal, ProportionResult, np, scipy, tea_tasting):
             self.method = tea_tasting.utils.check_scalar(
                 method, "method", typ=str, in_={"g-test", "pearson"})
         @property
-        def aggr_cols(self) -> tea_tasting.metrics.AggrCols:
-            return tea_tasting.metrics.AggrCols(
+        def aggr_cols(self) -> tea_tasting.data.AggrCols:
+            return tea_tasting.data.AggrCols(
                 has_count=True,
                 mean_cols=(self.column,),
             )
@@ -152,7 +153,7 @@ def _(mo):
     mo.md(r"""
     Method `__init__` saves metric parameters to be used in the analysis. You can use utility functions [`check_scalar`](https://tea-tasting.e10v.me/api/utils/#tea_tasting.utils.check_scalar) and [`auto_check`](https://tea-tasting.e10v.me/api/utils/#tea_tasting.utils.auto_check) to check parameter values.
 
-    Property `aggr_cols` returns an instance of [`AggrCols`](https://tea-tasting.e10v.me/api/metrics/base/#tea_tasting.metrics.base.AggrCols). Analysis of proportion requires the number of rows (`has_count=True`) and the average value for the column of interest (`mean_cols=(self.column,)`) for each variant.
+    Property `aggr_cols` returns an instance of [`AggrCols`](https://tea-tasting.e10v.me/api/data/#tea_tasting.data.AggrCols). Analysis of proportion requires the number of rows (`has_count=True`) and the average value for the column of interest (`mean_cols=(self.column,)`) for each variant.
 
     Method `analyze_aggregates` accepts two parameters: `control` and `treatment` data as instances of class [`Aggregates`](https://tea-tasting.e10v.me/api/aggr/#tea_tasting.aggr.Aggregates). They contain values for statistics and columns specified in `aggr_cols`.
 
