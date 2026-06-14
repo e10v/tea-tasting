@@ -125,7 +125,7 @@ Let's define the metric and discuss each method in detail:
 
 ```
 
-Method `__init__` saves metric parameters to be used in the analysis. You can use utility functions [`check_scalar`](api/utils.md#tea_tasting.utils.check_scalar) and [`auto_check`](api/utils.md#tea_tasting.utils.auto_check) to check parameter values.
+Method `__init__` saves metric parameters to be used in the analysis. You can use utility functions [`check_scalar`](api/utils/checks.md#tea_tasting.utils.checks.check_scalar) and [`auto_check`](api/utils/checks.md#tea_tasting.utils.checks.auto_check) to check parameter values.
 
 Property `aggr_cols` returns an instance of [`AggrCols`](api/data.md#tea_tasting.data.AggrCols). Analysis of proportion requires the number of rows (`has_count=True`) and the average value for the column of interest (`mean_cols=(self.column,)`) for each variant.
 

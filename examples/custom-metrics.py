@@ -151,7 +151,7 @@ def _(Literal, ProportionResult, np, scipy, tea_tasting):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Method `__init__` saves metric parameters to be used in the analysis. You can use utility functions [`check_scalar`](https://tea-tasting.e10v.me/api/utils/#tea_tasting.utils.check_scalar) and [`auto_check`](https://tea-tasting.e10v.me/api/utils/#tea_tasting.utils.auto_check) to check parameter values.
+    Method `__init__` saves metric parameters to be used in the analysis. You can use utility functions [`check_scalar`](https://tea-tasting.e10v.me/api/utils/checks/#tea_tasting.utils.checks.check_scalar) and [`auto_check`](https://tea-tasting.e10v.me/api/utils/checks/#tea_tasting.utils.checks.auto_check) to check parameter values.
 
     Property `aggr_cols` returns an instance of [`AggrCols`](https://tea-tasting.e10v.me/api/data/#tea_tasting.data.AggrCols). Analysis of proportion requires the number of rows (`has_count=True`) and the average value for the column of interest (`mean_cols=(self.column,)`) for each variant.
 
