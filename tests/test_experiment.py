@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import concurrent.futures
+from types import MappingProxyType
 from typing import TYPE_CHECKING, NamedTuple, TypedDict
 
 import pyarrow as pa
@@ -446,7 +447,7 @@ def test_experiment_analyze_gran(
         avg_revenue=ref_result["avg_revenue"])
 
 
-def test_experiment_analyze_aggregated_data(
+def test_experiment_analyze_aggregated_mapping(
     data_aggr: dict[Hashable, tea_tasting.aggr.Aggregates],
     ref_result: tea_tasting.experiment.ExperimentResult,
 ) -> None:
@@ -454,7 +455,9 @@ def test_experiment_analyze_aggregated_data(
         "avg_sessions": _MetricAggregated("sessions"),
         "avg_orders": _MetricAggregated("orders"),
     })
-    assert experiment.analyze(data_aggr) == tea_tasting.experiment.ExperimentResult(
+    assert experiment.analyze(
+        MappingProxyType(data_aggr),
+    ) == tea_tasting.experiment.ExperimentResult(
         avg_sessions=ref_result["avg_sessions"],
         avg_orders=ref_result["avg_orders"],
     )

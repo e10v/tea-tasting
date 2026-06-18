@@ -497,7 +497,7 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
 
     def analyze(
         self,
-        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
+        data: tea_tasting.data.Table | tea_tasting.data.AggregatesByVariant,
         control: Hashable,
         treatment: Hashable,
         variant: str | None = None,
@@ -514,9 +514,9 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
             Analysis result.
         """
         tea_tasting.utils.check_scalar(variant, "variant", typ=str | None)
-        aggr: dict[Hashable, tea_tasting.aggr.Aggregates]
-        if isinstance(data, dict):
-            aggr = data  # ty: ignore[invalid-assignment]
+        aggr: tea_tasting.data.AggregatesByVariant
+        if tea_tasting.data._is_aggregates_mapping(data):
+            aggr = data
         else:
             if variant is None:
                 raise ValueError(

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from types import MappingProxyType
 from typing import TYPE_CHECKING, NamedTuple
 import unittest.mock
 
@@ -186,12 +187,12 @@ def test_metric_base_aggregated_analyze_frame(
     _compare_aggrs(kwargs["control"], correct_aggrs[0])
     _compare_aggrs(kwargs["treatment"], correct_aggrs[1])
 
-def test_metric_base_aggregated_analyze_aggrs(
+def test_metric_base_aggregated_analyze_aggr_mapping(
     aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated[dict[str, object]],
     correct_aggrs: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     aggr_metric.analyze_aggregates = unittest.mock.MagicMock()  # ty:ignore[invalid-assignment]
-    aggr_metric.analyze(correct_aggrs, control=0, treatment=1)
+    aggr_metric.analyze(MappingProxyType(correct_aggrs), control=0, treatment=1)
     aggr_metric.analyze_aggregates.assert_called_once()
     kwargs = aggr_metric.analyze_aggregates.call_args.kwargs
     _compare_aggrs(kwargs["control"], correct_aggrs[0])
@@ -254,12 +255,12 @@ def test_metric_base_granular_frame(
     assert kwargs["control"].equals(correct_gran[0])
     assert kwargs["treatment"].equals(correct_gran[1])
 
-def test_metric_base_granular_gran(
+def test_metric_base_granular_mapping(
     gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, object]],
     correct_gran: dict[Hashable, pa.Table],
 ) -> None:
     gran_metric.analyze_granular = unittest.mock.MagicMock()  # ty:ignore[invalid-assignment]
-    gran_metric.analyze(correct_gran, control=0, treatment=1)
+    gran_metric.analyze(MappingProxyType(correct_gran), control=0, treatment=1)
     gran_metric.analyze_granular.assert_called_once()
     kwargs = gran_metric.analyze_granular.call_args.kwargs
     assert kwargs["control"].equals(correct_gran[0])

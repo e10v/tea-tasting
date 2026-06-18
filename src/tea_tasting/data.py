@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Hashable, Mapping
 from typing import TYPE_CHECKING, TypeGuard, overload
 
 import narwhals.typing
@@ -14,7 +15,7 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Hashable, Sequence
+    from collections.abc import Sequence
 
     import ibis.expr.types
 
@@ -24,6 +25,8 @@ type Table = (
     narwhals.typing.IntoFrame |
     narwhals.typing.Frame
 )
+type AggregatesByVariant = Mapping[Hashable, tea_tasting.aggr.Aggregates]
+type TablesByVariant = Mapping[Hashable, pa.Table]
 
 
 class AggrCols(tea_tasting.utils.ReprMixin):  # noqa: D101
@@ -92,10 +95,10 @@ class AggrCols(tea_tasting.utils.ReprMixin):  # noqa: D101
 
 @overload
 def read_aggregates(
-    data: dict[Hashable, tea_tasting.aggr.Aggregates],
+    data: AggregatesByVariant,
     aggr_cols: AggrCols,
     variant: str | None = None,
-) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
+) -> AggregatesByVariant:
     ...
 
 @overload
@@ -108,7 +111,7 @@ def read_aggregates(
 
 @overload
 def read_aggregates(
-    data: Table | dict[Hashable, tea_tasting.aggr.Aggregates],
+    data: Table,
     aggr_cols: AggrCols,
     variant: str,
 ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
@@ -117,10 +120,10 @@ def read_aggregates(
 def read_aggregates(
     data: Table
         | tea_tasting.aggr.Aggregates
-        | dict[Hashable, tea_tasting.aggr.Aggregates],
+        | AggregatesByVariant,
     aggr_cols: AggrCols,
     variant: str | None = None,
-) -> tea_tasting.aggr.Aggregates | dict[Hashable, tea_tasting.aggr.Aggregates]:
+) -> tea_tasting.aggr.Aggregates | AggregatesByVariant:
     """Read aggregated statistics.
 
     Args:
@@ -131,14 +134,14 @@ def read_aggregates(
     Returns:
         Aggregated statistics.
     """
-    if isinstance(data, dict):
-        return data  # ty: ignore[invalid-return-type]
+    if _is_aggregates_mapping(data):
+        return data
     if isinstance(data, tea_tasting.aggr.Aggregates):
         if variant is not None:
             raise ValueError("The variant parameter is not supported for Aggregates.")
         return data
 
-    table = _table(data)
+    table = _table(data)  # ty: ignore[invalid-argument-type]
     if variant is not None:
         table = table.group_by(variant)
     return table.aggregate(
@@ -159,25 +162,25 @@ def read_granular(
 
 @overload
 def read_granular(
-    data: dict[Hashable, pa.Table],
+    data: TablesByVariant,
     cols: Sequence[str] = (),
-    variant: None = None,
-) -> dict[Hashable, pa.Table]:
+    variant: str | None = None,
+) -> TablesByVariant:
     ...
 
 @overload
 def read_granular(
-    data: Table | dict[Hashable, pa.Table],
+    data: Table,
     cols: Sequence[str],
     variant: str,
 ) -> dict[Hashable, pa.Table]:
     ...
 
 def read_granular(
-    data: Table | dict[Hashable, pa.Table],
+    data: Table | TablesByVariant,
     cols: Sequence[str] = (),
     variant: str | None = None,
-) -> pa.Table | dict[Hashable, pa.Table]:
+) -> pa.Table | TablesByVariant:
     """Read granular experimental data.
 
     Args:
@@ -188,11 +191,11 @@ def read_granular(
     Returns:
         Experimental data as a PyArrow Table or as PyArrow Tables by variant.
     """
-    if isinstance(data, dict):
+    if _is_tables_mapping(data):
         return data
 
     variant_cols = () if variant is None else (variant,)
-    table = _table(data).select(*cols, *variant_cols)
+    table = _table(data).select(*cols, *variant_cols)  # ty: ignore[invalid-argument-type]
     if variant is None:
         return table
 
@@ -237,6 +240,14 @@ def _table(data: Table) -> tea_tasting.backends.BaseTable:
     if _is_ibis_table(data):
         return tea_tasting.backends.IbisTable(data)
     return tea_tasting.backends.NarwhalsFrame(data)
+
+
+def _is_aggregates_mapping(data: object) -> TypeGuard[AggregatesByVariant]:
+    return isinstance(data, Mapping)
+
+
+def _is_tables_mapping(data: object) -> TypeGuard[TablesByVariant]:
+    return isinstance(data, Mapping)
 
 
 def _is_ibis_table(data: object) -> TypeGuard[ibis.expr.types.Table]:

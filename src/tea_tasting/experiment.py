@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     type MapLike[T] = Callable[Concatenate[Callable[..., T], ...], Iterable[T]]
     type DataGenerator[T] =  Callable[
         ...,
-        tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
+        tea_tasting.data.Table | tea_tasting.data.AggregatesByVariant,
     ]
 
     class _ProgressLike(Protocol):
@@ -294,7 +294,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     @overload
     def analyze(
         self,
-        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
+        data: tea_tasting.data.Table | tea_tasting.data.AggregatesByVariant,
         control: Hashable | None = None,
         *,
         all_variants: Literal[False] = False,
@@ -304,7 +304,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     @overload
     def analyze(
         self,
-        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
+        data: tea_tasting.data.Table | tea_tasting.data.AggregatesByVariant,
         control: Hashable | None = None,
         *,
         all_variants: Literal[True],
@@ -313,7 +313,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
     def analyze(
         self,
-        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
+        data: tea_tasting.data.Table | tea_tasting.data.AggregatesByVariant,
         control: Hashable | None = None,
         *,
         all_variants: bool = False,
@@ -362,19 +362,19 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
     def _read_data(
         self,
-        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
+        data: tea_tasting.data.Table | tea_tasting.data.AggregatesByVariant,
     ) -> tuple[
-        dict[Hashable, tea_tasting.aggr.Aggregates] | None,
-        dict[Hashable, pa.Table] | None,
+        tea_tasting.data.AggregatesByVariant | None,
+        tea_tasting.data.TablesByVariant | None,
     ]:
-        if isinstance(data, dict):
+        if tea_tasting.data._is_aggregates_mapping(data):
             for name, metric in self.metrics.items():
                 if not isinstance(metric, tea_tasting.metrics.MetricBaseAggregated):
                     raise TypeError(
                         "Aggregated data was provided, but metric "
                         f"{name!r} is not based on aggregated statistics.",
                     )
-            return data, None  # ty:ignore[invalid-return-type]
+            return data, None
 
         aggr_cols = tea_tasting.data.AggrCols()
         gran_cols = set()
@@ -401,9 +401,9 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
 
     def _read_variants(
         self,
-        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
-        aggregated_data: dict[Hashable, tea_tasting.aggr.Aggregates] | None,
-        granular_data: dict[Hashable, pa.Table] | None,
+        data: tea_tasting.data.Table | tea_tasting.data.AggregatesByVariant,
+        aggregated_data: tea_tasting.data.AggregatesByVariant | None,
+        granular_data: tea_tasting.data.TablesByVariant | None,
     ) -> list[Hashable]:
         if aggregated_data is not None:
             variants = aggregated_data.keys()
@@ -437,9 +437,9 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
     def _analyze_metric(
         self,
         metric: tea_tasting.metrics.MetricBase[Any],
-        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
-        aggregated_data: dict[Hashable, tea_tasting.aggr.Aggregates] | None,
-        granular_data: dict[Hashable, pa.Table] | None,
+        data: tea_tasting.data.Table | tea_tasting.data.AggregatesByVariant,
+        aggregated_data: tea_tasting.data.AggregatesByVariant | None,
+        granular_data: tea_tasting.data.TablesByVariant | None,
         control: Hashable,
         treatment: Hashable,
     ) -> tea_tasting.metrics.MetricResult:
@@ -601,12 +601,10 @@ def _simulate_once(
     treat: Callable[[pa.Table], pa.Table] | None,
 ) -> ExperimentResult:
     raw_data: (
-        tea_tasting.data.Table |
-        dict[Hashable, tea_tasting.aggr.Aggregates] |
-        pa.Table
+        tea_tasting.data.Table | tea_tasting.data.AggregatesByVariant
     ) = data if isinstance(data, pa.Table) else data(rng=rng)
 
-    if isinstance(raw_data, dict):
+    if tea_tasting.data._is_aggregates_mapping(raw_data):
         if ratio != 1:
             raise ValueError(
                 "The ratio parameter is not supported when callable data "

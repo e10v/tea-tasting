@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import builtins
+from types import MappingProxyType
 from typing import TYPE_CHECKING
 
 import narwhals as nw
@@ -262,16 +263,17 @@ def test_read_aggregates_accepts_precomputed() -> None:
             variant="variant",
         )  # ty: ignore[no-matching-overload]
 
-def test_read_aggregates_accepts_precomputed_groups(
+def test_read_aggregates_accepts_precomputed_mapping(
     aggr_cols: tea_tasting.data.AggrCols,
     correct_aggrs: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
+    aggr_mapping = MappingProxyType(correct_aggrs)
     aggrs = tea_tasting.data.read_aggregates(
-        correct_aggrs,
+        aggr_mapping,
         aggr_cols=aggr_cols,
         variant="variant",
     )
-    assert aggrs is correct_aggrs
+    assert aggrs is aggr_mapping
 
 def test_read_aggregates_custom_backend(data_arrow: pa.Table) -> None:
     aggr = tea_tasting.data.read_aggregates(
@@ -323,16 +325,17 @@ def test_read_granular_groups(
     assert gran[0].equals(correct_gran[0])
     assert gran[1].equals(correct_gran[1])
 
-def test_read_granular_dict(
+def test_read_granular_mapping(
     cols: tuple[str, ...],
     correct_gran: dict[Hashable, pa.Table],
 ) -> None:
+    gran_mapping = MappingProxyType(correct_gran)
     gran = tea_tasting.data.read_granular(
-        correct_gran,
+        gran_mapping,
         cols=cols,
         variant="variant",
     )
-    assert gran is correct_gran
+    assert gran is gran_mapping
 
 def test_read_granular_narwhals_frame(data_arrow: pa.Table) -> None:
     assert tea_tasting.data.read_granular(
