@@ -121,7 +121,7 @@ class MetricBaseAggregated(MetricBase[MetricResultT], _HasAggrCols):
     @overload
     def analyze(
         self,
-        data: dict[Hashable, tea_tasting.aggr.Aggregates],
+        data: tea_tasting.data.AggregatesByVariant,
         control: Hashable,
         treatment: Hashable,
         variant: str | None = None,
@@ -140,7 +140,7 @@ class MetricBaseAggregated(MetricBase[MetricResultT], _HasAggrCols):
 
     def analyze(
         self,
-        data: tea_tasting.data.Table | dict[Hashable, tea_tasting.aggr.Aggregates],
+        data: tea_tasting.data.Table | tea_tasting.data.AggregatesByVariant,
         control: Hashable,
         treatment: Hashable,
         variant: str | None = None,
@@ -157,9 +157,9 @@ class MetricBaseAggregated(MetricBase[MetricResultT], _HasAggrCols):
             Analysis result.
         """
         tea_tasting.utils.check_scalar(variant, "variant", typ=str | None)
-        aggr: dict[Hashable, tea_tasting.aggr.Aggregates]
-        if isinstance(data, dict):
-            aggr = data  # ty: ignore[invalid-assignment]
+        aggr: tea_tasting.data.AggregatesByVariant
+        if tea_tasting.data._is_aggregates_mapping(data):
+            aggr = data
         else:
             if variant is None:
                 raise ValueError(
@@ -250,7 +250,7 @@ class MetricBaseGranular(MetricBase[MetricResultT], _HasCols):
     @overload
     def analyze(
         self,
-        data: dict[Hashable, pa.Table],
+        data: tea_tasting.data.TablesByVariant,
         control: Hashable,
         treatment: Hashable,
         variant: str | None = None,
@@ -269,7 +269,7 @@ class MetricBaseGranular(MetricBase[MetricResultT], _HasCols):
 
     def analyze(
         self,
-        data: tea_tasting.data.Table | dict[Hashable, pa.Table],
+        data: tea_tasting.data.Table | tea_tasting.data.TablesByVariant,
         control: Hashable,
         treatment: Hashable,
         variant: str | None = None,
@@ -286,7 +286,7 @@ class MetricBaseGranular(MetricBase[MetricResultT], _HasCols):
             Analysis result.
         """
         tea_tasting.utils.check_scalar(variant, "variant", typ=str | None)
-        if isinstance(data, dict):
+        if tea_tasting.data._is_tables_mapping(data):
             dfs = tea_tasting.data.read_granular(data, cols=self.cols)
         else:
             if variant is None:
