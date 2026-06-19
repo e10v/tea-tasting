@@ -243,11 +243,20 @@ def _table(data: Table) -> tea_tasting.backends.BaseTable:
 
 
 def _is_aggregates_mapping(data: object) -> TypeGuard[AggregatesByVariant]:
-    return isinstance(data, Mapping)
+    return (
+        isinstance(data, Mapping)
+        and all(
+            isinstance(value, tea_tasting.aggr.Aggregates)
+            for value in data.values()
+        )
+    )
 
 
 def _is_tables_mapping(data: object) -> TypeGuard[TablesByVariant]:
-    return isinstance(data, Mapping)
+    return (
+        isinstance(data, Mapping)
+        and all(isinstance(value, pa.Table) for value in data.values())
+    )
 
 
 def _is_ibis_table(data: object) -> TypeGuard[ibis.expr.types.Table]:
