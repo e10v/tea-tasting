@@ -8,7 +8,7 @@ import pyarrow.compute as pc
 import pytest
 
 import tea_tasting.aggr
-import tea_tasting.backends
+import tea_tasting.backends.ibis
 
 
 if TYPE_CHECKING:
@@ -21,14 +21,14 @@ pytest_plugins = ("tests.fixtures",)
 
 
 @pytest.fixture
-def adapter(data_ibis: ibis.Frame) -> tea_tasting.backends.IbisTable:
-    return tea_tasting.backends.IbisTable(data_ibis)
+def adapter(data_ibis: ibis.Frame) -> tea_tasting.backends.ibis.IbisTable:
+    return tea_tasting.backends.ibis.IbisTable(data_ibis)
 
 
 @pytest.fixture
 def group_adapter(
-    adapter: tea_tasting.backends.IbisTable,
-) -> tea_tasting.backends.IbisTableGroupBy:
+    adapter: tea_tasting.backends.ibis.IbisTable,
+) -> tea_tasting.backends.ibis.IbisTableGroupBy:
     return adapter.group_by("variant")
 
 
@@ -164,7 +164,7 @@ def test_ibis_table_init(data_ibis: ibis.Frame) -> None:
     import ibis  # noqa: PLC0415
     import ibis.expr.operations  # noqa: PLC0415
 
-    adapter = tea_tasting.backends.IbisTable(data_ibis)
+    adapter = tea_tasting.backends.ibis.IbisTable(data_ibis)
     assert adapter.data is data_ibis
     backend = ibis.get_backend(data_ibis)
     assert adapter.has_var is backend.has_operation(ibis.expr.operations.Variance)
@@ -172,7 +172,7 @@ def test_ibis_table_init(data_ibis: ibis.Frame) -> None:
 
 
 def test_ibis_table_init_overrides(data_ibis: ibis.Frame) -> None:
-    adapter = tea_tasting.backends.IbisTable(
+    adapter = tea_tasting.backends.ibis.IbisTable(
         data_ibis,
         has_var=False,
         has_cov=True,
@@ -181,35 +181,33 @@ def test_ibis_table_init_overrides(data_ibis: ibis.Frame) -> None:
     assert adapter.has_cov is True
 
 
-def test_ibis_table_select(adapter: tea_tasting.backends.IbisTable) -> None:
+def test_ibis_table_select(adapter: tea_tasting.backends.ibis.IbisTable) -> None:
     selected = adapter.select("sessions", "orders")
     assert selected.column_names == ["sessions", "orders"]
 
 
 def test_ibis_table_select_all(
-    adapter: tea_tasting.backends.IbisTable,
+    adapter: tea_tasting.backends.ibis.IbisTable,
     data_arrow: pa.Table,
 ) -> None:
     assert adapter.select().equals(data_arrow)
 
 
 def test_ibis_table_select_col_unique(
-    adapter: tea_tasting.backends.IbisTable,
+    adapter: tea_tasting.backends.ibis.IbisTable,
 ) -> None:
     assert set(adapter.select_col_unique("variant")) == {0, 1}
 
 
-def test_ibis_table_group_by(adapter: tea_tasting.backends.IbisTable) -> None:
+def test_ibis_table_group_by(adapter: tea_tasting.backends.ibis.IbisTable) -> None:
     grouped = adapter.group_by("variant")
-    assert isinstance(grouped, tea_tasting.backends.IbisTableGroupBy)
-    assert grouped.data is adapter.data
+    assert isinstance(grouped, tea_tasting.backends.ibis.IbisTableGroupBy)
+    assert grouped.ibis_table is adapter
     assert grouped.by == "variant"
-    assert grouped.has_var is adapter.has_var
-    assert grouped.has_cov is adapter.has_cov
 
 
 def test_ibis_table_aggregate(
-    adapter: tea_tasting.backends.IbisTable,
+    adapter: tea_tasting.backends.ibis.IbisTable,
     data_arrow: pa.Table,
 ) -> None:
     aggr = adapter.aggregate(
@@ -222,7 +220,7 @@ def test_ibis_table_aggregate(
 
 
 def test_ibis_table_aggregate_no_count(
-    adapter: tea_tasting.backends.IbisTable,
+    adapter: tea_tasting.backends.ibis.IbisTable,
 ) -> None:
     aggr = adapter.aggregate(
         has_count=False,
@@ -239,20 +237,21 @@ def test_ibis_table_aggregate_no_count(
 def test_ibis_table_group_by_init(
     data_ibis: ibis.Frame,
 ) -> None:
-    grouped = tea_tasting.backends.IbisTableGroupBy(
+    adapter = tea_tasting.backends.ibis.IbisTable(
         data_ibis,
-        "variant",
         has_var=True,
         has_cov=False,
     )
-    assert grouped.data is data_ibis
+    grouped = tea_tasting.backends.ibis.IbisTableGroupBy(
+        adapter,
+        "variant",
+    )
+    assert grouped.ibis_table is adapter
     assert grouped.by == "variant"
-    assert grouped.has_var is True
-    assert grouped.has_cov is False
 
 
 def test_ibis_table_group_by_aggregate(
-    group_adapter: tea_tasting.backends.IbisTableGroupBy,
+    group_adapter: tea_tasting.backends.ibis.IbisTableGroupBy,
     data_arrow: pa.Table,
 ) -> None:
     aggrs = group_adapter.aggregate(
@@ -281,7 +280,7 @@ def test_ibis_table_aggregate_nulls(
     has_var: bool,  # noqa: FBT001
     has_cov: bool,  # noqa: FBT001
 ) -> None:
-    adapter = tea_tasting.backends.IbisTable(
+    adapter = tea_tasting.backends.ibis.IbisTable(
         data_ibis_null,
         has_var=has_var,
         has_cov=has_cov,
@@ -311,7 +310,7 @@ def test_ibis_table_aggregate_fallback_is_numerically_stable() -> None:
         ),
     })
     data_ibis = ibis.connect("duckdb://").create_table("data", data)
-    adapter = tea_tasting.backends.IbisTable(
+    adapter = tea_tasting.backends.ibis.IbisTable(
         data_ibis,
         has_var=False,
         has_cov=False,
@@ -342,7 +341,7 @@ def test_ibis_table_group_by_aggregate_nulls(
     has_var: bool,  # noqa: FBT001
     has_cov: bool,  # noqa: FBT001
 ) -> None:
-    group_adapter = tea_tasting.backends.IbisTable(
+    group_adapter = tea_tasting.backends.ibis.IbisTable(
         data_ibis_null,
         has_var=has_var,
         has_cov=has_cov,

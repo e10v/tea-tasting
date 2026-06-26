@@ -79,7 +79,7 @@ class NarwhalsFrame(BaseTable):  # noqa: D101
         Returns:
             Grouped Narwhals-compatible frame adapter.
         """
-        return NarwhalsFrameGroupBy(self.data, by)
+        return NarwhalsFrameGroupBy(self, by)
 
     def aggregate(
         self,
@@ -119,16 +119,16 @@ class NarwhalsFrame(BaseTable):  # noqa: D101
 class NarwhalsFrameGroupBy(BaseTableGroupBy):  # noqa: D101
     def __init__(
         self,
-        data: narwhals.typing.IntoFrame | narwhals.typing.Frame,
+        narwhals_frame: NarwhalsFrame,
         by: str,
     ) -> None:
         """Grouped Narwhals-compatible frame adapter.
 
         Args:
-            data: Narwhals-compatible native frame.
+            narwhals_frame: Narwhals-compatible frame adapter.
             by: Column name to group by.
         """
-        self.data = data
+        self.narwhals_frame = narwhals_frame
         self.by = by
 
     def aggregate(
@@ -159,7 +159,7 @@ class NarwhalsFrameGroupBy(BaseTableGroupBy):  # noqa: D101
                 cov_cols=cov_cols,
             )
             for group_data in _read_aggr_narwhals(
-                data=self.data,
+                data=self.narwhals_frame.data,
                 group_col=self.by,
                 has_count=has_count,
                 mean_cols=mean_cols,
