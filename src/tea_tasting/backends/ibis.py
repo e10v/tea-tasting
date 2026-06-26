@@ -90,12 +90,7 @@ class IbisTable(BaseTable):  # noqa: D101
         Returns:
             Grouped Ibis table adapter.
         """
-        return IbisTableGroupBy(
-            self.data,
-            by,
-            has_var=self.has_var,
-            has_cov=self.has_cov,
-        )
+        return IbisTableGroupBy(self, by)
 
     def aggregate(
         self,
@@ -137,24 +132,17 @@ class IbisTable(BaseTable):  # noqa: D101
 class IbisTableGroupBy(BaseTableGroupBy):  # noqa: D101
     def __init__(
         self,
-        data: ibis.expr.types.Table,
+        ibis_table: IbisTable,
         by: str,
-        *,
-        has_var: bool,
-        has_cov: bool,
     ) -> None:
         """Grouped Ibis table adapter.
 
         Args:
-            data: Ibis Table.
+            ibis_table: Ibis table adapter.
             by: Column name to group by.
-            has_var: If `True`, assume that the backend supports sample variance.
-            has_cov: If `True`, assume that the backend supports sample covariance.
         """
-        self.data = data
+        self.ibis_table = ibis_table
         self.by = by
-        self.has_var = has_var
-        self.has_cov = has_cov
 
     def aggregate(
         self,
@@ -184,14 +172,14 @@ class IbisTableGroupBy(BaseTableGroupBy):  # noqa: D101
                 cov_cols=cov_cols,
             )
             for group_data in _aggregate(
-                data=self.data,
+                data=self.ibis_table.data,
                 group_col=self.by,
                 has_count=has_count,
                 mean_cols=mean_cols,
                 var_cols=var_cols,
                 cov_cols=cov_cols,
-                has_var=self.has_var,
-                has_cov=self.has_cov,
+                has_var=self.ibis_table.has_var,
+                has_cov=self.ibis_table.has_cov,
             )
         }
 

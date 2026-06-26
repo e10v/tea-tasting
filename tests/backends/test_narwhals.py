@@ -8,7 +8,7 @@ import pyarrow.compute as pc
 import pytest
 
 import tea_tasting.aggr
-import tea_tasting.backends
+import tea_tasting.backends.narwhals
 
 
 if TYPE_CHECKING:
@@ -23,16 +23,16 @@ pytest_plugins = ("tests.fixtures",)
 @pytest.fixture
 def adapter(
     data_narwhals: narwhals.typing.IntoFrame,
-) -> tea_tasting.backends.NarwhalsFrame:
-    return tea_tasting.backends.NarwhalsFrame(data_narwhals)
+) -> tea_tasting.backends.narwhals.NarwhalsFrame:
+    return tea_tasting.backends.narwhals.NarwhalsFrame(data_narwhals)
 
 
 @pytest.fixture
 def group_adapter(
-    data_narwhals: narwhals.typing.IntoFrame,
-) -> tea_tasting.backends.NarwhalsFrameGroupBy:
-    return tea_tasting.backends.NarwhalsFrameGroupBy(
-        data_narwhals,
+    adapter: tea_tasting.backends.narwhals.NarwhalsFrame,
+) -> tea_tasting.backends.narwhals.NarwhalsFrameGroupBy:
+    return tea_tasting.backends.narwhals.NarwhalsFrameGroupBy(
+        adapter,
         "variant",
     )
 
@@ -79,41 +79,41 @@ def _compare_aggrs(
 
 
 def test_narwhals_frame_init(data_narwhals: narwhals.typing.IntoFrame) -> None:
-    adapter = tea_tasting.backends.NarwhalsFrame(data_narwhals)
+    adapter = tea_tasting.backends.narwhals.NarwhalsFrame(data_narwhals)
     assert adapter.data is data_narwhals
 
 
 def test_narwhals_frame_select(
-    adapter: tea_tasting.backends.NarwhalsFrame,
+    adapter: tea_tasting.backends.narwhals.NarwhalsFrame,
 ) -> None:
     selected = adapter.select("sessions", "orders")
     assert selected.column_names == ["sessions", "orders"]
 
 
 def test_narwhals_frame_select_all(
-    adapter: tea_tasting.backends.NarwhalsFrame,
+    adapter: tea_tasting.backends.narwhals.NarwhalsFrame,
     data_arrow: pa.Table,
 ) -> None:
     assert adapter.select().equals(data_arrow)
 
 
 def test_narwhals_frame_select_col_unique(
-    adapter: tea_tasting.backends.NarwhalsFrame,
+    adapter: tea_tasting.backends.narwhals.NarwhalsFrame,
 ) -> None:
     assert set(adapter.select_col_unique("variant")) == {0, 1}
 
 
 def test_narwhals_frame_group_by(
-    adapter: tea_tasting.backends.NarwhalsFrame,
+    adapter: tea_tasting.backends.narwhals.NarwhalsFrame,
 ) -> None:
     grouped = adapter.group_by("variant")
-    assert isinstance(grouped, tea_tasting.backends.NarwhalsFrameGroupBy)
-    assert grouped.data is adapter.data
+    assert isinstance(grouped, tea_tasting.backends.narwhals.NarwhalsFrameGroupBy)
+    assert grouped.narwhals_frame is adapter
     assert grouped.by == "variant"
 
 
 def test_narwhals_frame_aggregate(
-    adapter: tea_tasting.backends.NarwhalsFrame,
+    adapter: tea_tasting.backends.narwhals.NarwhalsFrame,
     data_arrow: pa.Table,
 ) -> None:
     aggr = adapter.aggregate(
@@ -126,7 +126,7 @@ def test_narwhals_frame_aggregate(
 
 
 def test_narwhals_frame_aggregate_no_count(
-    adapter: tea_tasting.backends.NarwhalsFrame,
+    adapter: tea_tasting.backends.narwhals.NarwhalsFrame,
 ) -> None:
     aggr = adapter.aggregate(
         has_count=False,
@@ -141,16 +141,17 @@ def test_narwhals_frame_aggregate_no_count(
 
 
 def test_narwhals_frame_group_by_init(data_narwhals: narwhals.typing.IntoFrame) -> None:
-    grouped = tea_tasting.backends.NarwhalsFrameGroupBy(
-        data_narwhals,
+    adapter = tea_tasting.backends.narwhals.NarwhalsFrame(data_narwhals)
+    grouped = tea_tasting.backends.narwhals.NarwhalsFrameGroupBy(
+        adapter,
         "variant",
     )
-    assert grouped.data is data_narwhals
+    assert grouped.narwhals_frame is adapter
     assert grouped.by == "variant"
 
 
 def test_narwhals_frame_group_by_aggregate(
-    group_adapter: tea_tasting.backends.NarwhalsFrameGroupBy,
+    group_adapter: tea_tasting.backends.narwhals.NarwhalsFrameGroupBy,
     data_arrow: pa.Table,
 ) -> None:
     aggrs = group_adapter.aggregate(
