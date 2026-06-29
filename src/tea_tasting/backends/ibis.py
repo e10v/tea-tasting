@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
-import math
 from typing import TYPE_CHECKING
 
-import tea_tasting.aggr
-from tea_tasting.backends.base import BaseTable, BaseTableGroupBy
+from tea_tasting.backends.base import (
+    _COUNT,
+    _COV,
+    _MEAN,
+    _VAR,
+    BaseTable,
+    BaseTableGroupBy,
+    _get_aggregates,
+)
 
 
 if TYPE_CHECKING:
@@ -15,16 +21,12 @@ if TYPE_CHECKING:
     import ibis.expr.types
     import pyarrow as pa
 
+    import tea_tasting.aggr
 
-_COUNT = "__count__"
-_MEAN = "__mean__{}__"
-_VAR = "__var__{}__"
-_COV = "__cov__{}__{}__"
+
 _VAR_MEAN = "__var_mean__{}__"
-_VAR_CENTERED = "__var_centered__{}__"
 _COV_LEFT_MEAN = "__cov_left_mean__{}__{}__"
 _COV_RIGHT_MEAN = "__cov_right_mean__{}__{}__"
-_COV_CENTERED = "__cov_centered__{}__{}__"
 
 
 class IbisTable(BaseTable):  # noqa: D101
@@ -194,7 +196,7 @@ def _aggregate(
     cov_cols: Sequence[tuple[str, str]],
     has_var: bool,
     has_cov: bool,
-) -> list[dict[str, object]]:
+) -> list[dict[str, int | float]]:
     fallback_var_cols = () if has_var else var_cols
     fallback_cov_cols = () if has_cov else cov_cols
     if len(fallback_var_cols) > 0 or len(fallback_cov_cols) > 0:
@@ -242,7 +244,6 @@ def _add_fallback_aggr_cols(
 ) -> ibis.expr.types.Table:
     import ibis  # noqa: PLC0415
 
-    data = data.select(*keep_cols)
     null = ibis.null()
 
     stats_expr = {}
@@ -260,25 +261,7 @@ def _add_fallback_aggr_cols(
         stats_expr[_COV_RIGHT_MEAN.format(left, right)] = (
             _mean(data, valid.ifelse(right_expr, null), group_col)
         )
-
-    data = data.mutate(**stats_expr)
-
-    centered_expr = {}
-    for col in var_cols:
-        col_expr = data[col].cast("float")
-        diff = col_expr - data[_VAR_MEAN.format(col)]
-        centered_expr[_VAR_CENTERED.format(col)] = (
-            data[col].notnull().ifelse(diff * diff, null)
-        )
-
-    for left, right in cov_cols:
-        left_diff = data[left].cast("float") - data[_COV_LEFT_MEAN.format(left, right)]
-        right_diff = (
-            data[right].cast("float") - data[_COV_RIGHT_MEAN.format(left, right)]
-        )
-        centered_expr[_COV_CENTERED.format(left, right)] = left_diff * right_diff
-
-    return data.select(*keep_cols, **centered_expr)
+    return data.select(*keep_cols, **stats_expr)
 
 
 def _mean(
@@ -289,7 +272,7 @@ def _mean(
     import ibis  # noqa: PLC0415
 
     if group_col is None:
-        return expr.mean().as_scalar()  # ty: ignore[unresolved-attribute]
+        return expr.mean().over(ibis.window())  # ty: ignore[unresolved-attribute]
     return expr.mean().over(ibis.window(group_by=data[group_col]))  # ty:ignore[unresolved-attribute]
 
 
@@ -301,7 +284,8 @@ def _sample_var(
 ) -> ibis.expr.types.Value:
     if has_var:
         return data[col].cast("float").var(how="sample")
-    return _fallback_sample_aggr(data, _VAR_CENTERED.format(col))
+    diff = data[col].cast("float") - data[_VAR_MEAN.format(col)]
+    return _fallback_sample_aggr(diff * diff)
 
 
 def _sample_cov(
@@ -313,35 +297,15 @@ def _sample_cov(
 ) -> ibis.expr.types.Value:
     if has_cov:
         return data[left].cast("float").cov(data[right].cast("float"), how="sample")
-    return _fallback_sample_aggr(data, _COV_CENTERED.format(left, right))
+    left_diff = data[left].cast("float") - data[_COV_LEFT_MEAN.format(left, right)]
+    right_diff = data[right].cast("float") - data[_COV_RIGHT_MEAN.format(left, right)]
+    return _fallback_sample_aggr(left_diff * right_diff)
 
 
 def _fallback_sample_aggr(
-    data: ibis.expr.types.Table,
-    centered_alias: str,
+    centered_expr: ibis.expr.types.Column,
 ) -> ibis.expr.types.Value:
     import ibis  # noqa: PLC0415
 
-    centered_expr = data[centered_alias]
     count = centered_expr.count()
     return (count > 1).ifelse(centered_expr.sum() / (count - 1), ibis.null())  # ty:ignore[unsupported-operator]
-
-
-def _get_aggregates(
-    data: dict[str, object],
-    *,
-    has_count: bool,
-    mean_cols: Sequence[str],
-    var_cols: Sequence[str],
-    cov_cols: Sequence[tuple[str, str]],
-) -> tea_tasting.aggr.Aggregates:
-    return tea_tasting.aggr.Aggregates(
-        count_=data[_COUNT] if has_count else None,  # ty:ignore[invalid-argument-type]
-        mean_={col: _metric_value(data[_MEAN.format(col)]) for col in mean_cols},
-        var_={col: _metric_value(data[_VAR.format(col)]) for col in var_cols},
-        cov_={cols: _metric_value(data[_COV.format(*cols)]) for cols in cov_cols},
-    )
-
-
-def _metric_value(value: object) -> float:
-    return math.nan if value is None else float(value)  # ty: ignore[invalid-argument-type]

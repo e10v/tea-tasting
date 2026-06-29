@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import abc
+import math
 from typing import TYPE_CHECKING
 
 import tea_tasting.aggr
@@ -14,11 +15,11 @@ if TYPE_CHECKING:
     import pyarrow as pa
 
 
-_COUNT = "_count"
-_MEAN = "_mean__{}"
-_VAR = "_var__{}"
-_COV = "_cov__{}__{}"
-_DEMEAN = "_demean__{}"
+_COUNT = "__count__"
+_MEAN = "__mean__{}__"
+_VAR = "__var__{}__"
+_COV = "__cov__{}__{}__"
+_DEMEAN = "__demean__{}__"
 
 
 class BaseTable(abc.ABC):
@@ -113,8 +114,12 @@ def _get_aggregates(
     cov_cols: Sequence[tuple[str, str]],
 ) -> tea_tasting.aggr.Aggregates:
     return tea_tasting.aggr.Aggregates(
-        count_=data[_COUNT] if has_count else None,  # ty:ignore[invalid-argument-type]
-        mean_={col: data[_MEAN.format(col)] for col in mean_cols},
-        var_={col: data[_VAR.format(col)] for col in var_cols},
-        cov_={cols: data[_COV.format(*cols)] for cols in cov_cols},
+        count_=int(data[_COUNT]) if has_count else None,
+        mean_={col: _float(data[_MEAN.format(col)]) for col in mean_cols},
+        var_={col: _float(data[_VAR.format(col)]) for col in var_cols},
+        cov_={cols: _float(data[_COV.format(*cols)]) for cols in cov_cols},
     )
+
+
+def _float(value: object) -> float:
+    return math.nan if value is None else float(value)  # ty: ignore[invalid-argument-type]
