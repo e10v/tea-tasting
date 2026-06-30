@@ -330,6 +330,51 @@ def test_ibis_table_aggregate_fallback_is_numerically_stable() -> None:
 @pytest.mark.parametrize(
     ("has_var", "has_cov"),
     [
+        (True, False),
+        (False, True),
+    ],
+)
+def test_ibis_table_aggregate_mixed_fallback_with_overlapping_cols(
+    data_ibis_duckdb: ibis.Frame,
+    data_arrow: pa.Table,
+    has_var: bool,  # noqa: FBT001
+    has_cov: bool,  # noqa: FBT001
+) -> None:
+    adapter = tea_tasting.backends.ibis.IbisTable(
+        data_ibis_duckdb,
+        has_var=has_var,
+        has_cov=has_cov,
+    )
+
+    aggr = adapter.aggregate(
+        has_count=False,
+        mean_cols=("sessions",),
+        var_cols=("sessions",),
+        cov_cols=(("orders", "sessions"),),
+    )
+
+    expected = tea_tasting.aggr.Aggregates(
+        count_=None,
+        mean_={"sessions": pc.mean(data_arrow["sessions"]).as_py()},
+        var_={"sessions": pc.variance(data_arrow["sessions"], ddof=1).as_py()},
+        cov_={
+            ("orders", "sessions"): np.cov(
+                data_arrow["sessions"].combine_chunks().to_numpy(
+                    zero_copy_only=False,
+                ),
+                data_arrow["orders"].combine_chunks().to_numpy(
+                    zero_copy_only=False,
+                ),
+                ddof=1,
+            )[0, 1],
+        },
+    )
+    _compare_aggrs(aggr, expected)
+
+
+@pytest.mark.parametrize(
+    ("has_var", "has_cov"),
+    [
         (True, True),
         (True, False),
         (False, True),
