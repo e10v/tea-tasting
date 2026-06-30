@@ -24,9 +24,9 @@ if TYPE_CHECKING:
     import tea_tasting.aggr
 
 
-_VAR_MEAN = "__var_mean__{}__"
-_COV_LEFT_MEAN = "__cov_left_mean__{}__{}__"
-_COV_RIGHT_MEAN = "__cov_right_mean__{}__{}__"
+_CENTERED = "__centered__{}__"
+_CENTERED_LEFT = "__centered__left__{}__{}__"
+_CENTERED_RIGHT = "__centered_right__{}__{}__"
 
 
 class IbisTable(BaseTable):  # noqa: D101
@@ -200,14 +200,14 @@ def _aggregate(
     fallback_var_cols = () if has_var else var_cols
     fallback_cov_cols = () if has_cov else cov_cols
     if len(fallback_var_cols) > 0 or len(fallback_cov_cols) > 0:
-        keep_cols = {
-            *mean_cols,
-            *var_cols,
-            *(col for cols in cov_cols for col in cols),
-        }
+        keep_cols = set(mean_cols)
+        if len(fallback_var_cols) == 0:
+            keep_cols.update(var_cols)
+        if len(fallback_cov_cols) == 0:
+            keep_cols.update(col for cols in cov_cols for col in cols)
         if group_col is not None:
             keep_cols.add(group_col)
-        data = _add_fallback_aggr_cols(
+        data = _add_centered_cols(
             data=data,
             group_col=group_col,
             keep_cols=keep_cols,
@@ -234,7 +234,7 @@ def _aggregate(
     return grouped_data.aggregate(**all_expr).to_pyarrow().to_pylist()  # ty:ignore[invalid-argument-type]
 
 
-def _add_fallback_aggr_cols(
+def _add_centered_cols(
     data: ibis.expr.types.Table,
     group_col: str | None,
     *,
@@ -249,17 +249,17 @@ def _add_fallback_aggr_cols(
     stats_expr = {}
     for col in var_cols:
         col_expr = data[col].cast("float")
-        stats_expr[_VAR_MEAN.format(col)] = _mean(data, col_expr, group_col)
+        stats_expr[_CENTERED.format(col)] = col_expr - _mean(data, col_expr, group_col)
 
     for left, right in cov_cols:
         valid = data[left].notnull() & data[right].notnull()
         left_expr = data[left].cast("float")
         right_expr = data[right].cast("float")
-        stats_expr[_COV_LEFT_MEAN.format(left, right)] = (
-            _mean(data, valid.ifelse(left_expr, null), group_col)
+        stats_expr[_CENTERED_LEFT.format(left, right)] = (
+            left_expr - _mean(data, valid.ifelse(left_expr, null), group_col)
         )
-        stats_expr[_COV_RIGHT_MEAN.format(left, right)] = (
-            _mean(data, valid.ifelse(right_expr, null), group_col)
+        stats_expr[_CENTERED_RIGHT.format(left, right)] = (
+            right_expr - _mean(data, valid.ifelse(right_expr, null), group_col)
         )
     return data.select(*keep_cols, **stats_expr)
 
@@ -271,9 +271,9 @@ def _mean(
 ) -> ibis.expr.types.Value:
     import ibis  # noqa: PLC0415
 
-    if group_col is None:
-        return expr.mean().over(ibis.window())  # ty: ignore[unresolved-attribute]
-    return expr.mean().over(ibis.window(group_by=data[group_col]))  # ty:ignore[unresolved-attribute]
+    return expr.mean().over(ibis.window(  # ty:ignore[unresolved-attribute]
+        group_by=data[group_col] if group_col is not None else None,
+    ))
 
 
 def _sample_var(
@@ -284,8 +284,9 @@ def _sample_var(
 ) -> ibis.expr.types.Value:
     if has_var:
         return data[col].cast("float").var(how="sample")
-    diff = data[col].cast("float") - data[_VAR_MEAN.format(col)]
-    return _fallback_sample_aggr(diff * diff)
+    return _fallback_sample_aggr(
+        data[_CENTERED.format(col)] * data[_CENTERED.format(col)],
+    )
 
 
 def _sample_cov(
@@ -297,9 +298,10 @@ def _sample_cov(
 ) -> ibis.expr.types.Value:
     if has_cov:
         return data[left].cast("float").cov(data[right].cast("float"), how="sample")
-    left_diff = data[left].cast("float") - data[_COV_LEFT_MEAN.format(left, right)]
-    right_diff = data[right].cast("float") - data[_COV_RIGHT_MEAN.format(left, right)]
-    return _fallback_sample_aggr(left_diff * right_diff)
+    return _fallback_sample_aggr(
+        data[_CENTERED_LEFT.format(left, right)] *
+        data[_CENTERED_RIGHT.format(left, right)],
+    )
 
 
 def _fallback_sample_aggr(
