@@ -180,7 +180,7 @@ def test_metric_base_aggregated_analyze_frame(
     data_arrow: pa.Table,
     correct_aggrs: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
-    aggr_metric.analyze_aggregates = unittest.mock.MagicMock()  # ty:ignore[invalid-assignment]
+    aggr_metric.analyze_aggregates = unittest.mock.MagicMock()
     aggr_metric.analyze(data_arrow, control=0, treatment=1, variant="variant")
     aggr_metric.analyze_aggregates.assert_called_once()
     kwargs = aggr_metric.analyze_aggregates.call_args.kwargs
@@ -191,7 +191,7 @@ def test_metric_base_aggregated_analyze_aggr_mapping(
     aggr_metric: tea_tasting.metrics.base.MetricBaseAggregated[dict[str, object]],
     correct_aggrs: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
-    aggr_metric.analyze_aggregates = unittest.mock.MagicMock()  # ty:ignore[invalid-assignment]
+    aggr_metric.analyze_aggregates = unittest.mock.MagicMock()
     aggr_metric.analyze(MappingProxyType(correct_aggrs), control=0, treatment=1)
     aggr_metric.analyze_aggregates.assert_called_once()
     kwargs = aggr_metric.analyze_aggregates.call_args.kwargs
@@ -204,7 +204,7 @@ def test_power_base_aggregated_analyze_frame(
     data_arrow: pa.Table,
     correct_aggr: tea_tasting.aggr.Aggregates,
 ) -> None:
-    aggr_power.solve_power_from_aggregates = unittest.mock.MagicMock()  # ty:ignore[invalid-assignment]
+    aggr_power.solve_power_from_aggregates = unittest.mock.MagicMock()
     aggr_power.solve_power(data_arrow, "effect_size")
     aggr_power.solve_power_from_aggregates.assert_called_once()
     kwargs = aggr_power.solve_power_from_aggregates.call_args.kwargs
@@ -215,7 +215,7 @@ def test_power_base_aggregated_analyze_aggr(
     aggr_power: tea_tasting.metrics.base.PowerBaseAggregated[Any],
     correct_aggr: tea_tasting.aggr.Aggregates,
 ) -> None:
-    aggr_power.solve_power_from_aggregates = unittest.mock.MagicMock()  # ty:ignore[invalid-assignment]
+    aggr_power.solve_power_from_aggregates = unittest.mock.MagicMock()
     aggr_power.solve_power(correct_aggr, "rel_effect_size")
     aggr_power.solve_power_from_aggregates.assert_called_once()
     kwargs = aggr_power.solve_power_from_aggregates.call_args.kwargs
@@ -248,7 +248,7 @@ def test_metric_base_granular_frame(
     data_arrow: pa.Table,
     correct_gran: dict[Hashable, pa.Table],
 ) -> None:
-    gran_metric.analyze_granular = unittest.mock.MagicMock()  # ty:ignore[invalid-assignment]
+    gran_metric.analyze_granular = unittest.mock.MagicMock()
     gran_metric.analyze(data_arrow, control=0, treatment=1, variant="variant")
     gran_metric.analyze_granular.assert_called_once()
     kwargs = gran_metric.analyze_granular.call_args.kwargs
@@ -259,7 +259,7 @@ def test_metric_base_granular_mapping(
     gran_metric: tea_tasting.metrics.base.MetricBaseGranular[dict[str, object]],
     correct_gran: dict[Hashable, pa.Table],
 ) -> None:
-    gran_metric.analyze_granular = unittest.mock.MagicMock()  # ty:ignore[invalid-assignment]
+    gran_metric.analyze_granular = unittest.mock.MagicMock()
     gran_metric.analyze(MappingProxyType(correct_gran), control=0, treatment=1)
     gran_metric.analyze_granular.assert_called_once()
     kwargs = gran_metric.analyze_granular.call_args.kwargs
