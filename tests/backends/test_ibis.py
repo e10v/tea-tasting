@@ -169,6 +169,7 @@ def test_ibis_table_init(data_ibis: ibis.Frame) -> None:
     backend = ibis.get_backend(data_ibis)
     assert adapter.has_var is backend.has_operation(ibis.expr.operations.Variance)
     assert adapter.has_cov is backend.has_operation(ibis.expr.operations.Covariance)
+    assert adapter.chunk_size == 100_000
 
 
 def test_ibis_table_init_overrides(data_ibis: ibis.Frame) -> None:
@@ -176,9 +177,11 @@ def test_ibis_table_init_overrides(data_ibis: ibis.Frame) -> None:
         data_ibis,
         has_var=False,
         has_cov=True,
+        chunk_size=None,
     )
     assert adapter.has_var is False
     assert adapter.has_cov is True
+    assert adapter.chunk_size is None
 
 
 def test_ibis_table_select(adapter: tea_tasting.backends.ibis.IbisTable) -> None:
@@ -190,6 +193,14 @@ def test_ibis_table_select_all(
     adapter: tea_tasting.backends.ibis.IbisTable,
     data_arrow: pa.Table,
 ) -> None:
+    assert adapter.select().equals(data_arrow)
+
+
+def test_ibis_table_select_all_without_chunks(
+    data_ibis: ibis.Frame,
+    data_arrow: pa.Table,
+) -> None:
+    adapter = tea_tasting.backends.ibis.IbisTable(data_ibis, chunk_size=None)
     assert adapter.select().equals(data_arrow)
 
 
