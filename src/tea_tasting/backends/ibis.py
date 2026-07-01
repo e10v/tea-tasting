@@ -13,6 +13,7 @@ from tea_tasting.backends.base import (
     BaseTableGroupBy,
     _get_aggregates,
 )
+import tea_tasting.utils
 
 
 if TYPE_CHECKING:
@@ -21,7 +22,7 @@ if TYPE_CHECKING:
     import ibis.expr.types
     import pyarrow as pa
 
-    import tea_tasting.aggr
+    import tea_tasting.aggr  # noqa: TC004
 
 
 _CENTERED = "__centered__{}__"
@@ -36,6 +37,7 @@ class IbisTable(BaseTable):  # noqa: D101
         *,
         has_var: bool | None = None,
         has_cov: bool | None = None,
+        chunk_size: int | None = 100_000,
     ) -> None:
         """Ibis table adapter.
 
@@ -45,7 +47,13 @@ class IbisTable(BaseTable):  # noqa: D101
                 If `None`, use the Ibis backend's operation support.
             has_cov: If `True`, assume that the backend supports sample covariance.
                 If `None`, use the Ibis backend's operation support.
+            chunk_size: Chunk size for fetching data. If `None`, fetch all rows.
         """
+        tea_tasting.utils.check_scalar(has_var, "has_var", typ=bool | None)
+        tea_tasting.utils.check_scalar(has_cov, "has_cov", typ=bool | None)
+        if chunk_size is not None:
+            tea_tasting.utils.check_scalar(chunk_size, "chunk_size", typ=int, gt=1)
+
         if has_var is None or has_cov is None:
             import ibis  # noqa: PLC0415
             import ibis.expr.operations  # noqa: PLC0415
@@ -59,6 +67,7 @@ class IbisTable(BaseTable):  # noqa: D101
         self.data = data
         self.has_var = has_var
         self.has_cov = has_cov
+        self.chunk_size = chunk_size
 
     def select(self, *cols: str) -> pa.Table:
         """Select columns and return data as a PyArrow Table.
@@ -70,7 +79,7 @@ class IbisTable(BaseTable):  # noqa: D101
             Selected data.
         """
         data = self.data.select(*cols) if len(cols) > 0 else self.data
-        return data.to_pyarrow()
+        return _to_pyarrow(data, self.chunk_size)
 
     def select_col_unique(self, col: str) -> list[Hashable]:
         """Select unique column values.
@@ -81,7 +90,10 @@ class IbisTable(BaseTable):  # noqa: D101
         Returns:
             Unique column values.
         """
-        return self.data.select(col).distinct().to_pyarrow()[col].to_pylist()
+        return _to_pyarrow(
+            self.data.select(col).distinct(),
+            self.chunk_size,
+        )[col].to_pylist()
 
     def group_by(self, by: str) -> IbisTableGroupBy:
         """Group table by a column.
@@ -123,6 +135,7 @@ class IbisTable(BaseTable):  # noqa: D101
                 cov_cols=cov_cols,
                 has_var=self.has_var,
                 has_cov=self.has_cov,
+                chunk_size=self.chunk_size,
             )[0],
             has_count=has_count,
             mean_cols=mean_cols,
@@ -165,6 +178,7 @@ class IbisTableGroupBy(BaseTableGroupBy):  # noqa: D101
         Returns:
             Aggregated statistics by group value.
         """
+        ibis_table = self.ibis_table
         return {
             group_data[self.by]: _get_aggregates(
                 group_data,
@@ -174,19 +188,20 @@ class IbisTableGroupBy(BaseTableGroupBy):  # noqa: D101
                 cov_cols=cov_cols,
             )
             for group_data in _aggregate(
-                data=self.ibis_table.data,
+                data=ibis_table.data,
                 group_col=self.by,
                 has_count=has_count,
                 mean_cols=mean_cols,
                 var_cols=var_cols,
                 cov_cols=cov_cols,
-                has_var=self.ibis_table.has_var,
-                has_cov=self.ibis_table.has_cov,
+                has_var=ibis_table.has_var,
+                has_cov=ibis_table.has_cov,
+                chunk_size=ibis_table.chunk_size,
             )
         }
 
 
-def _aggregate(
+def _aggregate(  # noqa: PLR0913
     data: ibis.expr.types.Table,
     group_col: str | None,
     *,
@@ -196,6 +211,7 @@ def _aggregate(
     cov_cols: Sequence[tuple[str, str]],
     has_var: bool,
     has_cov: bool,
+    chunk_size: int | None,
 ) -> list[dict[str, int | float]]:
     fallback_var_cols = () if has_var else var_cols
     fallback_cov_cols = () if has_cov else cov_cols
@@ -231,7 +247,7 @@ def _aggregate(
     all_expr = count_expr | mean_expr | var_expr | cov_expr
 
     grouped_data = data.group_by(group_col) if group_col is not None else data
-    return grouped_data.aggregate(**all_expr).to_pyarrow().to_pylist()  # ty:ignore[invalid-argument-type]
+    return _to_pyarrow(grouped_data.aggregate(**all_expr), chunk_size).to_pylist()  # ty:ignore[invalid-argument-type]
 
 
 def _add_centered_cols(
@@ -311,3 +327,12 @@ def _fallback_sample_aggr(
 
     count = centered_expr.count()
     return (count > 1).ifelse(centered_expr.sum() / (count - 1), ibis.null())  # ty:ignore[unsupported-operator]
+
+
+def _to_pyarrow(
+    data: ibis.expr.types.Table,
+    chunk_size: int | None,
+) -> pa.Table:
+    if chunk_size is None:
+        return data.to_pyarrow()
+    return data.to_pyarrow_batches(chunk_size=chunk_size).read_all()
