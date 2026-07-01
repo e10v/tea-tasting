@@ -52,7 +52,7 @@ class IbisTable(BaseTable):  # noqa: D101
         tea_tasting.utils.check_scalar(has_var, "has_var", typ=bool | None)
         tea_tasting.utils.check_scalar(has_cov, "has_cov", typ=bool | None)
         if chunk_size is not None:
-            tea_tasting.utils.check_scalar(chunk_size, "chunk_size", typ=int, gt=1)
+            tea_tasting.utils.check_scalar(chunk_size, "chunk_size", typ=int, gt=0)
 
         if has_var is None or has_cov is None:
             import ibis  # noqa: PLC0415
