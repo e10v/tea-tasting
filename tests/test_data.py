@@ -17,7 +17,7 @@ import tea_tasting.data
 
 
 if TYPE_CHECKING:
-    from collections.abc import Hashable, Sequence
+    from collections.abc import Hashable
     from types import ModuleType
 
 
@@ -25,8 +25,8 @@ pytest_plugins = ("tests.fixtures",)
 
 
 @pytest.fixture
-def aggr_cols() -> tea_tasting.data.AggrCols:
-    return tea_tasting.data.AggrCols(
+def aggr_cols() -> tea_tasting.aggr.AggrCols:
+    return tea_tasting.aggr.AggrCols(
         has_count=True,
         mean_cols=("sessions", "orders"),
         var_cols=("sessions", "orders"),
@@ -120,18 +120,9 @@ class FakeTable(tea_tasting.backends.BaseTable):
 
     def aggregate(
         self,
-        *,
-        has_count: bool,
-        mean_cols: Sequence[str],
-        var_cols: Sequence[str],
-        cov_cols: Sequence[tuple[str, str]],
+        aggr_cols: tea_tasting.aggr.AggrCols,
     ) -> tea_tasting.aggr.Aggregates:
-        return tea_tasting.backends.NarwhalsFrame(self.data).aggregate(
-            has_count=has_count,
-            mean_cols=mean_cols,
-            var_cols=var_cols,
-            cov_cols=cov_cols,
-        )
+        return tea_tasting.backends.NarwhalsFrame(self.data).aggregate(aggr_cols)
 
 
 class FakeTableGroupBy(tea_tasting.backends.BaseTableGroupBy):
@@ -141,24 +132,15 @@ class FakeTableGroupBy(tea_tasting.backends.BaseTableGroupBy):
 
     def aggregate(
         self,
-        *,
-        has_count: bool,
-        mean_cols: Sequence[str],
-        var_cols: Sequence[str],
-        cov_cols: Sequence[tuple[str, str]],
+        aggr_cols: tea_tasting.aggr.AggrCols,
     ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
         return tea_tasting.backends.NarwhalsFrame(self.data).group_by(
             self.group_col,
-        ).aggregate(
-            has_count=has_count,
-            mean_cols=mean_cols,
-            var_cols=var_cols,
-            cov_cols=cov_cols,
-        )
+        ).aggregate(aggr_cols)
 
 
 def test_aggr_cols() -> None:
-    aggr_cols = tea_tasting.data.AggrCols(
+    aggr_cols = tea_tasting.aggr.AggrCols(
         has_count=True,
         mean_cols=("b", "a", "a"),
         var_cols=("c", "b", "b"),
@@ -176,14 +158,14 @@ def test_aggr_cols() -> None:
 
 
 def test_aggr_cols_or() -> None:
-    aggr_cols0 = tea_tasting.data.AggrCols(
+    aggr_cols0 = tea_tasting.aggr.AggrCols(
         has_count=False,
         mean_cols=("a", "b"),
         var_cols=("b", "c"),
         cov_cols=(("a", "b"), ("c", "b")),
     )
 
-    aggr_cols1 = tea_tasting.data.AggrCols(
+    aggr_cols1 = tea_tasting.aggr.AggrCols(
         has_count=True,
         mean_cols=("b", "c"),
         var_cols=("c", "d"),
@@ -192,7 +174,7 @@ def test_aggr_cols_or() -> None:
 
     aggr_cols = aggr_cols0 | aggr_cols1
 
-    assert isinstance(aggr_cols, tea_tasting.data.AggrCols)
+    assert isinstance(aggr_cols, tea_tasting.aggr.AggrCols)
     assert aggr_cols.has_count is True
     assert set(aggr_cols.mean_cols) == {"a", "b", "c"}
     assert len(aggr_cols.mean_cols) == 3
@@ -203,13 +185,13 @@ def test_aggr_cols_or() -> None:
 
 
 def test_aggr_cols_len() -> None:
-    assert len(tea_tasting.data.AggrCols(
+    assert len(tea_tasting.aggr.AggrCols(
         has_count=False,
         mean_cols=("a", "b"),
         var_cols=("b", "c"),
         cov_cols=(("a", "b"), ("c", "b")),
     )) == 6
-    assert len(tea_tasting.data.AggrCols(
+    assert len(tea_tasting.aggr.AggrCols(
         has_count=True,
         mean_cols=("b", "c"),
         var_cols=("c", "d"),
@@ -219,7 +201,7 @@ def test_aggr_cols_len() -> None:
 
 def test_read_aggregates_no_groups(
     data: narwhals.typing.IntoFrame,
-    aggr_cols: tea_tasting.data.AggrCols,
+    aggr_cols: tea_tasting.aggr.AggrCols,
     correct_aggr: tea_tasting.aggr.Aggregates,
 ) -> None:
     aggr = tea_tasting.data.read_aggregates(data, aggr_cols=aggr_cols)
@@ -227,7 +209,7 @@ def test_read_aggregates_no_groups(
 
 def test_read_aggregates_groups(
     data: narwhals.typing.IntoFrame,
-    aggr_cols: tea_tasting.data.AggrCols,
+    aggr_cols: tea_tasting.aggr.AggrCols,
     correct_aggrs: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     aggrs = tea_tasting.data.read_aggregates(
@@ -241,7 +223,7 @@ def test_read_aggregates_groups(
 def test_read_aggregates_no_count(data_arrow: pa.Table) -> None:
     aggr = tea_tasting.data.read_aggregates(
         data_arrow,
-        aggr_cols=tea_tasting.data.AggrCols(
+        aggr_cols=tea_tasting.aggr.AggrCols(
             has_count=False,
             mean_cols=("sessions", "orders"),
         ),
@@ -254,17 +236,17 @@ def test_read_aggregates_accepts_precomputed() -> None:
     aggr = tea_tasting.aggr.Aggregates(count_=1)
     assert tea_tasting.data.read_aggregates(
         aggr,
-        tea_tasting.data.AggrCols(),
+        tea_tasting.aggr.AggrCols(),
     ) is aggr
     with pytest.raises(ValueError, match="variant"):
         tea_tasting.data.read_aggregates(
             aggr,
-            tea_tasting.data.AggrCols(),
+            tea_tasting.aggr.AggrCols(),
             variant="variant",
         )  # ty: ignore[no-matching-overload]
 
 def test_read_aggregates_accepts_precomputed_mapping(
-    aggr_cols: tea_tasting.data.AggrCols,
+    aggr_cols: tea_tasting.aggr.AggrCols,
     correct_aggrs: dict[Hashable, tea_tasting.aggr.Aggregates],
 ) -> None:
     aggr_mapping = MappingProxyType(correct_aggrs)
@@ -278,7 +260,7 @@ def test_read_aggregates_accepts_precomputed_mapping(
 def test_read_aggregates_custom_backend(data_arrow: pa.Table) -> None:
     aggr = tea_tasting.data.read_aggregates(
         FakeTable(data_arrow),
-        tea_tasting.data.AggrCols(
+        tea_tasting.aggr.AggrCols(
             has_count=True,
             mean_cols=("sessions", "orders"),
             var_cols=("sessions",),

@@ -222,10 +222,12 @@ def test_ibis_table_aggregate(
     data_arrow: pa.Table,
 ) -> None:
     aggr = adapter.aggregate(
-        has_count=True,
-        mean_cols=("sessions", "orders"),
-        var_cols=("sessions", "orders"),
-        cov_cols=(("orders", "sessions"),),
+        tea_tasting.aggr.AggrCols(
+            has_count=True,
+            mean_cols=("sessions", "orders"),
+            var_cols=("sessions", "orders"),
+            cov_cols=(("orders", "sessions"),),
+        ),
     )
     _compare_aggrs(aggr, _expected_aggr(data_arrow))
 
@@ -234,10 +236,12 @@ def test_ibis_table_aggregate_no_count(
     adapter: tea_tasting.backends.ibis.IbisTable,
 ) -> None:
     aggr = adapter.aggregate(
-        has_count=False,
-        mean_cols=("sessions",),
-        var_cols=(),
-        cov_cols=(),
+        tea_tasting.aggr.AggrCols(
+            has_count=False,
+            mean_cols=("sessions",),
+            var_cols=(),
+            cov_cols=(),
+        ),
     )
     assert aggr.count_ is None
     assert set(aggr.mean_) == {"sessions"}
@@ -266,10 +270,12 @@ def test_ibis_table_group_by_aggregate(
     data_arrow: pa.Table,
 ) -> None:
     aggrs = group_adapter.aggregate(
-        has_count=True,
-        mean_cols=("sessions", "orders"),
-        var_cols=("sessions", "orders"),
-        cov_cols=(("orders", "sessions"),),
+        tea_tasting.aggr.AggrCols(
+            has_count=True,
+            mean_cols=("sessions", "orders"),
+            var_cols=("sessions", "orders"),
+            cov_cols=(("orders", "sessions"),),
+        ),
     )
     expected = _expected_aggrs(data_arrow)
     assert set(aggrs) == {0, 1}
@@ -298,10 +304,12 @@ def test_ibis_table_aggregate_nulls(
     )
 
     aggr = adapter.aggregate(
-        has_count=True,
-        mean_cols=("x", "y", "z", "empty"),
-        var_cols=("x", "y", "z", "empty"),
-        cov_cols=(("x", "y"), ("x", "z"), ("empty", "x")),
+        tea_tasting.aggr.AggrCols(
+            has_count=True,
+            mean_cols=("x", "y", "z", "empty"),
+            var_cols=("x", "y", "z", "empty"),
+            cov_cols=(("x", "y"), ("x", "z"), ("empty", "x")),
+        ),
     )
 
     _compare_aggrs(aggr, _expected_null_aggr())
@@ -328,10 +336,12 @@ def test_ibis_table_aggregate_fallback_is_numerically_stable() -> None:
     )
 
     aggr = adapter.aggregate(
-        has_count=False,
-        mean_cols=(),
-        var_cols=("x",),
-        cov_cols=(("x", "y"),),
+        tea_tasting.aggr.AggrCols(
+            has_count=False,
+            mean_cols=(),
+            var_cols=("x",),
+            cov_cols=(("x", "y"),),
+        ),
     )
 
     assert aggr.var_ == pytest.approx({"x": 5 / 3})
@@ -358,10 +368,12 @@ def test_ibis_table_aggregate_mixed_fallback_with_overlapping_cols(
     )
 
     aggr = adapter.aggregate(
-        has_count=False,
-        mean_cols=("sessions",),
-        var_cols=("sessions",),
-        cov_cols=(("orders", "sessions"),),
+        tea_tasting.aggr.AggrCols(
+            has_count=False,
+            mean_cols=("sessions",),
+            var_cols=("sessions",),
+            cov_cols=(("orders", "sessions"),),
+        ),
     )
 
     expected = tea_tasting.aggr.Aggregates(
@@ -404,10 +416,12 @@ def test_ibis_table_group_by_aggregate_nulls(
     ).group_by("variant")
 
     aggrs = group_adapter.aggregate(
-        has_count=True,
-        mean_cols=("x", "y", "z", "empty"),
-        var_cols=("x", "y", "z", "empty"),
-        cov_cols=(("x", "y"), ("x", "z"), ("empty", "x")),
+        tea_tasting.aggr.AggrCols(
+            has_count=True,
+            mean_cols=("x", "y", "z", "empty"),
+            var_cols=("x", "y", "z", "empty"),
+            cov_cols=(("x", "y"), ("x", "z"), ("empty", "x")),
+        ),
     )
 
     expected = _expected_null_aggrs()

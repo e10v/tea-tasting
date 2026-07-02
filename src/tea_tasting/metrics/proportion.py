@@ -227,9 +227,9 @@ class Proportion(MetricBaseAggregated[ProportionResult]):  # noqa: D101
 
 
     @property
-    def aggr_cols(self) -> tea_tasting.data.AggrCols:
+    def aggr_cols(self) -> tea_tasting.aggr.AggrCols:
         """Columns to be aggregated for a metric analysis."""
-        return tea_tasting.data.AggrCols(
+        return tea_tasting.aggr.AggrCols(
             has_count=True,
             mean_cols=(self.column,),
         )
@@ -490,9 +490,9 @@ class SampleRatio(MetricBaseAggregated[SampleRatioResult]):  # noqa: D101
 
 
     @property
-    def aggr_cols(self) -> tea_tasting.data.AggrCols:
+    def aggr_cols(self) -> tea_tasting.aggr.AggrCols:
         """Columns to be aggregated for a metric analysis."""
-        return tea_tasting.data.AggrCols(has_count=True)
+        return tea_tasting.aggr.AggrCols(has_count=True)
 
 
     def analyze(

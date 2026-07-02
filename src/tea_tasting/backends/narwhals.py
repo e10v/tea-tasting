@@ -21,7 +21,7 @@ from tea_tasting.backends.base import (
 
 
 if TYPE_CHECKING:
-    from collections.abc import Hashable, Sequence
+    from collections.abc import Hashable
 
     import pyarrow as pa
 
@@ -83,19 +83,12 @@ class NarwhalsFrame(BaseTable):  # noqa: D101
 
     def aggregate(
         self,
-        *,
-        has_count: bool,
-        mean_cols: Sequence[str],
-        var_cols: Sequence[str],
-        cov_cols: Sequence[tuple[str, str]],
+        aggr_cols: tea_tasting.aggr.AggrCols,
     ) -> tea_tasting.aggr.Aggregates:
         """Aggregate table data.
 
         Args:
-            has_count: If `True`, calculate the sample size.
-            mean_cols: Column names for calculation of sample means.
-            var_cols: Column names for calculation of sample variances.
-            cov_cols: Pairs of column names for calculation of sample covariances.
+            aggr_cols: Columns to be aggregated.
 
         Returns:
             Aggregated statistics.
@@ -103,16 +96,10 @@ class NarwhalsFrame(BaseTable):  # noqa: D101
         return _get_aggregates(
             _read_aggr_narwhals(
                 data=self.data,
+                aggr_cols=aggr_cols,
                 group_col=None,
-                has_count=has_count,
-                mean_cols=mean_cols,
-                var_cols=var_cols,
-                cov_cols=cov_cols,
             )[0],
-            has_count=has_count,
-            mean_cols=mean_cols,
-            var_cols=var_cols,
-            cov_cols=cov_cols,
+            aggr_cols,
         )
 
 
@@ -133,55 +120,37 @@ class NarwhalsFrameGroupBy(BaseTableGroupBy):  # noqa: D101
 
     def aggregate(
         self,
-        *,
-        has_count: bool,
-        mean_cols: Sequence[str],
-        var_cols: Sequence[str],
-        cov_cols: Sequence[tuple[str, str]],
+        aggr_cols: tea_tasting.aggr.AggrCols,
     ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
         """Aggregate grouped table data.
 
         Args:
-            has_count: If `True`, calculate the sample size.
-            mean_cols: Column names for calculation of sample means.
-            var_cols: Column names for calculation of sample variances.
-            cov_cols: Pairs of column names for calculation of sample covariances.
+            aggr_cols: Columns to be aggregated.
 
         Returns:
             Aggregated statistics by group value.
         """
         return {
-            group_data[self.by]: _get_aggregates(
-                group_data,
-                has_count=has_count,
-                mean_cols=mean_cols,
-                var_cols=var_cols,
-                cov_cols=cov_cols,
-            )
+            group_data[self.by]: _get_aggregates(group_data, aggr_cols)
             for group_data in _read_aggr_narwhals(
                 data=self.narwhals_frame.data,
+                aggr_cols=aggr_cols,
                 group_col=self.by,
-                has_count=has_count,
-                mean_cols=mean_cols,
-                var_cols=var_cols,
-                cov_cols=cov_cols,
             )
         }
 
 
 def _read_aggr_narwhals(
     data: narwhals.typing.IntoFrame | narwhals.typing.Frame,
+    aggr_cols: tea_tasting.aggr.AggrCols,
     group_col: str | None,
-    *,
-    has_count: bool,
-    mean_cols: Sequence[str],
-    var_cols: Sequence[str],
-    cov_cols: Sequence[tuple[str, str]],
 ) -> list[dict[str, int | float]]:
     frame = nw.from_native(data)
     if not isinstance(frame, nw.LazyFrame):
         frame = frame.lazy()
 
+    var_cols = aggr_cols.var_cols
+    cov_cols = aggr_cols.cov_cols
     covar_cols = tuple({*var_cols, *itertools.chain(*cov_cols)})
     if len(covar_cols) > 0:
         frame = (
@@ -205,12 +174,12 @@ def _read_aggr_narwhals(
 
     count_expr = (
         {_COUNT: nw.len()}
-        if has_count or len(covar_cols) > 0
+        if aggr_cols.has_count or len(covar_cols) > 0
         else {}
     )
     mean_expr = {
         _MEAN.format(col): nw.col(col).mean()
-        for col in mean_cols
+        for col in aggr_cols.mean_cols
     }
     var_expr = {
         _VAR.format(col): nw.col(_VAR.format(col)).mean()

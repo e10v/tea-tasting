@@ -31,7 +31,7 @@ def data_aggr(data_arrow: pa.Table) -> dict[Hashable, tea_tasting.aggr.Aggregate
     )
     return tea_tasting.data.read_aggregates(
         data_arrow,
-        aggr_cols=tea_tasting.data.AggrCols(
+        aggr_cols=tea_tasting.aggr.AggrCols(
             has_count=True,
             mean_cols=cols,
             var_cols=cols,
@@ -60,7 +60,7 @@ def power_data_aggr(power_data_arrow: pa.Table) -> tea_tasting.aggr.Aggregates:
     )
     return tea_tasting.data.read_aggregates(
         power_data_arrow,
-        aggr_cols=tea_tasting.data.AggrCols(
+        aggr_cols=tea_tasting.aggr.AggrCols(
             has_count=True,
             mean_cols=cols,
             var_cols=cols,
@@ -153,7 +153,7 @@ def test_ratio_of_means_aggr_cols() -> None:
         numer_covariate="c",
     )
     aggr_cols = metric.aggr_cols
-    assert isinstance(aggr_cols, tea_tasting.data.AggrCols)
+    assert isinstance(aggr_cols, tea_tasting.aggr.AggrCols)
     assert aggr_cols.has_count is True
     assert set(aggr_cols.mean_cols) == {"a", "b", "c"}
     assert len(aggr_cols.mean_cols) == 3

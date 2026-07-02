@@ -22,7 +22,6 @@ First, let's import all the required modules and prepare the data:
 >>> import tea_tasting as tt
 >>> import tea_tasting.aggr
 >>> import tea_tasting.config
->>> import tea_tasting.data
 >>> import tea_tasting.metrics
 >>> import tea_tasting.utils
 
@@ -93,8 +92,8 @@ Let's define the metric and discuss each method in detail:
 ...         self.method = tea_tasting.utils.check_scalar(
 ...             method, "method", typ=str, in_={"g-test", "pearson"})
 ...     @property
-...     def aggr_cols(self) -> tea_tasting.data.AggrCols:
-...         return tea_tasting.data.AggrCols(
+...     def aggr_cols(self) -> tea_tasting.aggr.AggrCols:
+...         return tea_tasting.aggr.AggrCols(
 ...             has_count=True,
 ...             mean_cols=(self.column,),
 ...         )
@@ -127,7 +126,7 @@ Let's define the metric and discuss each method in detail:
 
 Method `__init__` saves metric parameters to be used in the analysis. You can use utility functions [`check_scalar`](api/utils/checks.md#tea_tasting.utils.checks.check_scalar) and [`auto_check`](api/utils/checks.md#tea_tasting.utils.checks.auto_check) to check parameter values.
 
-Property `aggr_cols` returns an instance of [`AggrCols`](api/data.md#tea_tasting.data.AggrCols). Analysis of proportion requires the number of rows (`has_count=True`) and the average value for the column of interest (`mean_cols=(self.column,)`) for each variant.
+Property `aggr_cols` returns an instance of [`AggrCols`](api/aggr.md#tea_tasting.aggr.AggrCols). Analysis of proportion requires the number of rows (`has_count=True`) and the average value for the column of interest (`mean_cols=(self.column,)`) for each variant.
 
 Method `analyze_aggregates` accepts two parameters: `control` and `treatment` data as instances of class [`Aggregates`](api/aggr.md#tea_tasting.aggr.Aggregates). They contain values for statistics and columns specified in `aggr_cols`.
 

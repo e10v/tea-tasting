@@ -376,7 +376,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
                     )
             return data, None
 
-        aggr_cols = tea_tasting.data.AggrCols()
+        aggr_cols = tea_tasting.aggr.AggrCols()
         gran_cols = set()
         for metric in self.metrics.values():
             if isinstance(metric, tea_tasting.metrics.MetricBaseAggregated):
@@ -478,7 +478,7 @@ class Experiment(tea_tasting.utils.ReprMixin):  # noqa: D101
             "parameter",
             in_={"power", "effect_size", "rel_effect_size", "n_obs"},
         )
-        aggr_cols = tea_tasting.data.AggrCols()
+        aggr_cols = tea_tasting.aggr.AggrCols()
         for metric in self.metrics.values():
             if isinstance(metric, tea_tasting.metrics.PowerBaseAggregated):
                 aggr_cols |= metric.aggr_cols
