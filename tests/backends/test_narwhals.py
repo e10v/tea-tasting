@@ -117,10 +117,12 @@ def test_narwhals_frame_aggregate(
     data_arrow: pa.Table,
 ) -> None:
     aggr = adapter.aggregate(
-        has_count=True,
-        mean_cols=("sessions", "orders"),
-        var_cols=("sessions", "orders"),
-        cov_cols=(("orders", "sessions"),),
+        tea_tasting.aggr.AggrCols(
+            has_count=True,
+            mean_cols=("sessions", "orders"),
+            var_cols=("sessions", "orders"),
+            cov_cols=(("orders", "sessions"),),
+        ),
     )
     _compare_aggrs(aggr, _expected_aggr(data_arrow))
 
@@ -129,10 +131,12 @@ def test_narwhals_frame_aggregate_no_count(
     adapter: tea_tasting.backends.narwhals.NarwhalsFrame,
 ) -> None:
     aggr = adapter.aggregate(
-        has_count=False,
-        mean_cols=("sessions",),
-        var_cols=(),
-        cov_cols=(),
+        tea_tasting.aggr.AggrCols(
+            has_count=False,
+            mean_cols=("sessions",),
+            var_cols=(),
+            cov_cols=(),
+        ),
     )
     assert aggr.count_ is None
     assert set(aggr.mean_) == {"sessions"}
@@ -155,10 +159,12 @@ def test_narwhals_frame_group_by_aggregate(
     data_arrow: pa.Table,
 ) -> None:
     aggrs = group_adapter.aggregate(
-        has_count=True,
-        mean_cols=("sessions", "orders"),
-        var_cols=("sessions", "orders"),
-        cov_cols=(("orders", "sessions"),),
+        tea_tasting.aggr.AggrCols(
+            has_count=True,
+            mean_cols=("sessions", "orders"),
+            var_cols=("sessions", "orders"),
+            cov_cols=(("orders", "sessions"),),
+        ),
     )
     expected = _expected_aggrs(data_arrow)
     assert set(aggrs) == {0, 1}

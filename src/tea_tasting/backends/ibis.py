@@ -108,19 +108,12 @@ class IbisTable(BaseTable):  # noqa: D101
 
     def aggregate(
         self,
-        *,
-        has_count: bool,
-        mean_cols: Sequence[str],
-        var_cols: Sequence[str],
-        cov_cols: Sequence[tuple[str, str]],
+        aggr_cols: tea_tasting.aggr.AggrCols,
     ) -> tea_tasting.aggr.Aggregates:
         """Aggregate table data.
 
         Args:
-            has_count: If `True`, calculate the sample size.
-            mean_cols: Column names for calculation of sample means.
-            var_cols: Column names for calculation of sample variances.
-            cov_cols: Pairs of column names for calculation of sample covariances.
+            aggr_cols: Columns to be aggregated.
 
         Returns:
             Aggregated statistics.
@@ -128,19 +121,13 @@ class IbisTable(BaseTable):  # noqa: D101
         return _get_aggregates(
             _aggregate(
                 data=self.data,
+                aggr_cols=aggr_cols,
                 group_col=None,
-                has_count=has_count,
-                mean_cols=mean_cols,
-                var_cols=var_cols,
-                cov_cols=cov_cols,
                 has_var=self.has_var,
                 has_cov=self.has_cov,
                 chunk_size=self.chunk_size,
             )[0],
-            has_count=has_count,
-            mean_cols=mean_cols,
-            var_cols=var_cols,
-            cov_cols=cov_cols,
+            aggr_cols,
         )
 
 
@@ -161,39 +148,23 @@ class IbisTableGroupBy(BaseTableGroupBy):  # noqa: D101
 
     def aggregate(
         self,
-        *,
-        has_count: bool,
-        mean_cols: Sequence[str],
-        var_cols: Sequence[str],
-        cov_cols: Sequence[tuple[str, str]],
+        aggr_cols: tea_tasting.aggr.AggrCols,
     ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
         """Aggregate grouped table data.
 
         Args:
-            has_count: If `True`, calculate the sample size.
-            mean_cols: Column names for calculation of sample means.
-            var_cols: Column names for calculation of sample variances.
-            cov_cols: Pairs of column names for calculation of sample covariances.
+            aggr_cols: Columns to be aggregated.
 
         Returns:
             Aggregated statistics by group value.
         """
         ibis_table = self.ibis_table
         return {
-            group_data[self.by]: _get_aggregates(
-                group_data,
-                has_count=has_count,
-                mean_cols=mean_cols,
-                var_cols=var_cols,
-                cov_cols=cov_cols,
-            )
+            group_data[self.by]: _get_aggregates(group_data, aggr_cols)
             for group_data in _aggregate(
                 data=ibis_table.data,
+                aggr_cols=aggr_cols,
                 group_col=self.by,
-                has_count=has_count,
-                mean_cols=mean_cols,
-                var_cols=var_cols,
-                cov_cols=cov_cols,
                 has_var=ibis_table.has_var,
                 has_cov=ibis_table.has_cov,
                 chunk_size=ibis_table.chunk_size,
@@ -201,18 +172,18 @@ class IbisTableGroupBy(BaseTableGroupBy):  # noqa: D101
         }
 
 
-def _aggregate(  # noqa: PLR0913
+def _aggregate(
     data: ibis.expr.types.Table,
+    aggr_cols: tea_tasting.aggr.AggrCols,
     group_col: str | None,
     *,
-    has_count: bool,
-    mean_cols: Sequence[str],
-    var_cols: Sequence[str],
-    cov_cols: Sequence[tuple[str, str]],
     has_var: bool,
     has_cov: bool,
     chunk_size: int | None,
 ) -> list[dict[str, int | float]]:
+    mean_cols = aggr_cols.mean_cols
+    var_cols = aggr_cols.var_cols
+    cov_cols = aggr_cols.cov_cols
     fallback_var_cols = () if has_var else var_cols
     fallback_cov_cols = () if has_cov else cov_cols
     if len(fallback_var_cols) > 0 or len(fallback_cov_cols) > 0:
@@ -231,7 +202,7 @@ def _aggregate(  # noqa: PLR0913
             cov_cols=fallback_cov_cols,
         )
 
-    count_expr = {_COUNT: data.count()} if has_count else {}
+    count_expr = {_COUNT: data.count()} if aggr_cols.has_count else {}
     mean_expr = {
         _MEAN.format(col): data[col].cast("float").mean()
         for col in mean_cols

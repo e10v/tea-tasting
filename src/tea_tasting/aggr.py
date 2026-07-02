@@ -2,7 +2,77 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import tea_tasting.utils
+
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+
+class AggrCols(tea_tasting.utils.ReprMixin):  # noqa: D101
+    has_count: bool
+    mean_cols: tuple[str, ...]
+    var_cols: tuple[str, ...]
+    cov_cols: tuple[tuple[str, str], ...]
+
+    def __init__(
+        self,
+        has_count: bool = False,  # noqa: FBT001, FBT002
+        mean_cols: Sequence[str] = (),
+        var_cols: Sequence[str] = (),
+        cov_cols: Sequence[tuple[str, str]] = (),
+    ) -> None:
+        """Columns to be aggregated for a metric analysis.
+
+        Args:
+            has_count: If `True`, include the sample size.
+            mean_cols: Column names for calculation of sample means.
+            var_cols: Column names for calculation of sample variances.
+            cov_cols: Pairs of column names for calculation of sample covariances.
+        """
+        self.has_count = tea_tasting.utils.check_scalar(
+            has_count,
+            "has_count",
+            typ=bool,
+        )
+        self.mean_cols, self.var_cols, self.cov_cols = _validate_aggr_cols(
+            mean_cols,
+            var_cols,
+            cov_cols,
+        )
+
+    def __or__(self, other: AggrCols) -> AggrCols:
+        """Merge two aggregation column specifications.
+
+        Args:
+            other: Second object.
+
+        Returns:
+            Merged column specifications.
+        """
+        return AggrCols(
+            has_count=self.has_count or other.has_count,
+            mean_cols=(*self.mean_cols, *other.mean_cols),
+            var_cols=(*self.var_cols, *other.var_cols),
+            cov_cols=(*self.cov_cols, *other.cov_cols),
+        )
+
+    def __len__(self) -> int:
+        """Total length of all object attributes.
+
+        If has_count is True then its value is 1, or 0 otherwise.
+
+        Returns:
+            Total length of all object attributes.
+        """
+        return (
+            int(self.has_count)
+            + len(self.mean_cols)
+            + len(self.var_cols)
+            + len(self.cov_cols)
+        )
 
 
 class Aggregates(tea_tasting.utils.ReprMixin):  # noqa: D101
@@ -206,6 +276,17 @@ def _add_cov(left: Aggregates, right: Aggregates, cols: tuple[str, str]) -> floa
         + right.cov(*cols) * (right_n - 1)
         + diff_of_means0 * diff_of_means1 * left_n * right_n / total_n
     ) / (total_n - 1)
+
+
+def _validate_aggr_cols(
+    mean_cols: Sequence[str],
+    var_cols: Sequence[str],
+    cov_cols: Sequence[tuple[str, str]],
+) -> tuple[tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...]]:
+    mean_cols = tuple({*mean_cols})
+    var_cols = tuple({*var_cols})
+    cov_cols = tuple({_sorted_tuple(left, right) for left, right in cov_cols})
+    return mean_cols, var_cols, cov_cols
 
 
 def _sorted_tuple(left: str, right: str) -> tuple[str, str]:

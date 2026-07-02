@@ -33,7 +33,7 @@ def data_arrow() -> pa.Table:
 def data_aggr(data_arrow: pa.Table) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
     return tea_tasting.data.read_aggregates(
         data_arrow,
-        aggr_cols=tea_tasting.data.AggrCols(
+        aggr_cols=tea_tasting.aggr.AggrCols(
             has_count=True,
             mean_cols=("has_order",),
         ),

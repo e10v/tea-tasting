@@ -61,7 +61,7 @@ class _Metric(
         if not isinstance(data, dict):
             data = tea_tasting.data.read_aggregates(
                 data,
-                aggr_cols=tea_tasting.data.AggrCols(mean_cols=(self.column,)),
+                aggr_cols=tea_tasting.aggr.AggrCols(mean_cols=(self.column,)),
                 variant=variant,
             )
         aggr: dict[Hashable, tea_tasting.aggr.Aggregates] = data  # ty: ignore[invalid-assignment]
@@ -93,8 +93,8 @@ class _MetricAggregated(
         self.column = column
 
     @property
-    def aggr_cols(self) -> tea_tasting.data.AggrCols:
-        return tea_tasting.data.AggrCols(mean_cols=(self.column,))
+    def aggr_cols(self) -> tea_tasting.aggr.AggrCols:
+        return tea_tasting.aggr.AggrCols(mean_cols=(self.column,))
 
     def analyze_aggregates(
         self,
@@ -239,7 +239,7 @@ def data_arrow_multi(data_arrow: pa.Table) -> pa.Table:
 def data_aggr(data_arrow: pa.Table) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
     return tea_tasting.data.read_aggregates(
         data_arrow,
-        aggr_cols=tea_tasting.data.AggrCols(mean_cols=("sessions", "orders")),
+        aggr_cols=tea_tasting.aggr.AggrCols(mean_cols=("sessions", "orders")),
         variant="variant",
     )
 
@@ -250,7 +250,7 @@ def data_aggr_multi(
 ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
     return tea_tasting.data.read_aggregates(
         data_arrow_multi,
-        aggr_cols=tea_tasting.data.AggrCols(mean_cols=("sessions", "orders")),
+        aggr_cols=tea_tasting.aggr.AggrCols(mean_cols=("sessions", "orders")),
         variant="variant",
     )
 
@@ -637,7 +637,7 @@ def test_experiment_simulate_callable_aggregated() -> None:
         table = tea_tasting.datasets.make_users_data(rng=rng, n_users=100)
         aggr = tea_tasting.data.read_aggregates(
             table,
-            aggr_cols=tea_tasting.data.AggrCols(mean_cols=("sessions", "orders")),
+            aggr_cols=tea_tasting.aggr.AggrCols(mean_cols=("sessions", "orders")),
             variant="variant",
         )
         aggrs.append(aggr)
@@ -656,7 +656,7 @@ def test_experiment_simulate_callable_aggregated_raises_for_ratio() -> None:
     ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
         return tea_tasting.data.read_aggregates(
             tea_tasting.datasets.make_users_data(rng=rng, n_users=100),
-            aggr_cols=tea_tasting.data.AggrCols(mean_cols=("sessions",)),
+            aggr_cols=tea_tasting.aggr.AggrCols(mean_cols=("sessions",)),
             variant="variant",
         )
     with pytest.raises(ValueError, match="ratio parameter"):
@@ -672,7 +672,7 @@ def test_experiment_simulate_callable_aggregated_raises_for_treat() -> None:
     ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
         return tea_tasting.data.read_aggregates(
             tea_tasting.datasets.make_users_data(rng=rng, n_users=100),
-            aggr_cols=tea_tasting.data.AggrCols(mean_cols=("sessions",)),
+            aggr_cols=tea_tasting.aggr.AggrCols(mean_cols=("sessions",)),
             variant="variant",
         )
 

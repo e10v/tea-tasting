@@ -10,7 +10,7 @@ import tea_tasting.aggr
 
 
 if TYPE_CHECKING:
-    from collections.abc import Hashable, Sequence
+    from collections.abc import Hashable
 
     import pyarrow as pa
 
@@ -61,19 +61,12 @@ class BaseTable(abc.ABC):
     @abc.abstractmethod
     def aggregate(
         self,
-        *,
-        has_count: bool,
-        mean_cols: Sequence[str],
-        var_cols: Sequence[str],
-        cov_cols: Sequence[tuple[str, str]],
+        aggr_cols: tea_tasting.aggr.AggrCols,
     ) -> tea_tasting.aggr.Aggregates:
         """Aggregate table data.
 
         Args:
-            has_count: If `True`, calculate the sample size.
-            mean_cols: Column names for calculation of sample means.
-            var_cols: Column names for calculation of sample variances.
-            cov_cols: Pairs of column names for calculation of sample covariances.
+            aggr_cols: Columns to be aggregated.
 
         Returns:
             Aggregated statistics.
@@ -86,19 +79,12 @@ class BaseTableGroupBy(abc.ABC):
     @abc.abstractmethod
     def aggregate(
         self,
-        *,
-        has_count: bool,
-        mean_cols: Sequence[str],
-        var_cols: Sequence[str],
-        cov_cols: Sequence[tuple[str, str]],
+        aggr_cols: tea_tasting.aggr.AggrCols,
     ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
         """Aggregate grouped table data.
 
         Args:
-            has_count: If `True`, calculate the sample size.
-            mean_cols: Column names for calculation of sample means.
-            var_cols: Column names for calculation of sample variances.
-            cov_cols: Pairs of column names for calculation of sample covariances.
+            aggr_cols: Columns to be aggregated.
 
         Returns:
             Aggregated statistics by group value.
@@ -107,17 +93,13 @@ class BaseTableGroupBy(abc.ABC):
 
 def _get_aggregates(
     data: dict[str, float | int],
-    *,
-    has_count: bool,
-    mean_cols: Sequence[str],
-    var_cols: Sequence[str],
-    cov_cols: Sequence[tuple[str, str]],
+    aggr_cols: tea_tasting.aggr.AggrCols,
 ) -> tea_tasting.aggr.Aggregates:
     return tea_tasting.aggr.Aggregates(
-        count_=int(data[_COUNT]) if has_count else None,
-        mean_={col: _float(data[_MEAN.format(col)]) for col in mean_cols},
-        var_={col: _float(data[_VAR.format(col)]) for col in var_cols},
-        cov_={cols: _float(data[_COV.format(*cols)]) for cols in cov_cols},
+        count_=int(data[_COUNT]) if aggr_cols.has_count else None,
+        mean_={col: _float(data[_MEAN.format(col)]) for col in aggr_cols.mean_cols},
+        var_={col: _float(data[_VAR.format(col)]) for col in aggr_cols.var_cols},
+        cov_={cols: _float(data[_COV.format(*cols)]) for cols in aggr_cols.cov_cols},
     )
 
 

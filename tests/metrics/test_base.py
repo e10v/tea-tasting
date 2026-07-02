@@ -20,8 +20,8 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture
-def aggr_cols() -> tea_tasting.data.AggrCols:
-    return tea_tasting.data.AggrCols(
+def aggr_cols() -> tea_tasting.aggr.AggrCols:
+    return tea_tasting.aggr.AggrCols(
         has_count=True,
         mean_cols=("sessions", "orders"),
         var_cols=("orders", "revenue"),
@@ -31,7 +31,7 @@ def aggr_cols() -> tea_tasting.data.AggrCols:
 @pytest.fixture
 def correct_aggrs(
     data_arrow: pa.Table,
-    aggr_cols: tea_tasting.data.AggrCols,
+    aggr_cols: tea_tasting.aggr.AggrCols,
 ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
     return tea_tasting.data.read_aggregates(
         data_arrow,
@@ -42,7 +42,7 @@ def correct_aggrs(
 @pytest.fixture
 def correct_aggr(
     data_arrow: pa.Table,
-    aggr_cols: tea_tasting.data.AggrCols,
+    aggr_cols: tea_tasting.aggr.AggrCols,
 ) -> tea_tasting.aggr.Aggregates:
     return tea_tasting.data.read_aggregates(
         data_arrow,
@@ -72,11 +72,11 @@ def correct_gran(
 
 @pytest.fixture
 def aggr_metric(
-    aggr_cols: tea_tasting.data.AggrCols,
+    aggr_cols: tea_tasting.aggr.AggrCols,
 ) -> tea_tasting.metrics.base.MetricBaseAggregated[dict[str, object]]:
     class AggrMetric(tea_tasting.metrics.base.MetricBaseAggregated[dict[str, object]]):
         @property
-        def aggr_cols(self) -> tea_tasting.data.AggrCols:
+        def aggr_cols(self) -> tea_tasting.aggr.AggrCols:
             return aggr_cols
 
         def analyze_aggregates(
@@ -90,7 +90,7 @@ def aggr_metric(
 
 @pytest.fixture
 def aggr_power(
-    aggr_cols: tea_tasting.data.AggrCols,
+    aggr_cols: tea_tasting.aggr.AggrCols,
 ) -> tea_tasting.metrics.base.PowerBaseAggregated[
     tea_tasting.metrics.base.MetricPowerResults[dict[str, object]]
 ]:
@@ -100,7 +100,7 @@ def aggr_power(
         ],
     ):
         @property
-        def aggr_cols(self) -> tea_tasting.data.AggrCols:
+        def aggr_cols(self) -> tea_tasting.aggr.AggrCols:
             return aggr_cols
 
         def solve_power_from_aggregates(
@@ -225,11 +225,11 @@ def test_power_base_aggregated_analyze_aggr(
 
 def test_metric_base_aggregated_requires_variant(
     data_arrow: pa.Table,
-    aggr_cols: tea_tasting.data.AggrCols,
+    aggr_cols: tea_tasting.aggr.AggrCols,
 ) -> None:
     class AggrMetric(tea_tasting.metrics.base.MetricBaseAggregated[dict[str, object]]):
         @property
-        def aggr_cols(self) -> tea_tasting.data.AggrCols:
+        def aggr_cols(self) -> tea_tasting.aggr.AggrCols:
             return aggr_cols
 
         def analyze_aggregates(

@@ -112,7 +112,7 @@ class PowerBase[MetricPowerResultsT: MetricPowerResults](
 class _HasAggrCols(abc.ABC):
     @property
     @abc.abstractmethod
-    def aggr_cols(self) -> tea_tasting.data.AggrCols:
+    def aggr_cols(self) -> tea_tasting.aggr.AggrCols:
         """Columns to be aggregated for an analysis."""
 
 

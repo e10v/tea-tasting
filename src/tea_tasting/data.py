@@ -11,7 +11,6 @@ import pyarrow.compute as pc
 
 import tea_tasting.aggr
 import tea_tasting.backends
-import tea_tasting.utils
 
 
 if TYPE_CHECKING:
@@ -29,74 +28,10 @@ type AggregatesByVariant = Mapping[Hashable, tea_tasting.aggr.Aggregates]
 type TablesByVariant = Mapping[Hashable, pa.Table]
 
 
-class AggrCols(tea_tasting.utils.ReprMixin):  # noqa: D101
-    has_count: bool
-    mean_cols: tuple[str, ...]
-    var_cols: tuple[str, ...]
-    cov_cols: tuple[tuple[str, str], ...]
-
-    def __init__(
-        self,
-        has_count: bool = False,  # noqa: FBT001, FBT002
-        mean_cols: Sequence[str] = (),
-        var_cols: Sequence[str] = (),
-        cov_cols: Sequence[tuple[str, str]] = (),
-    ) -> None:
-        """Columns to be aggregated for a metric analysis.
-
-        Args:
-            has_count: If `True`, include the sample size.
-            mean_cols: Column names for calculation of sample means.
-            var_cols: Column names for calculation of sample variances.
-            cov_cols: Pairs of column names for calculation of sample covariances.
-        """
-        self.has_count = tea_tasting.utils.check_scalar(
-            has_count,
-            "has_count",
-            typ=bool,
-        )
-        self.mean_cols, self.var_cols, self.cov_cols = _validate_aggr_cols(
-            mean_cols,
-            var_cols,
-            cov_cols,
-        )
-
-    def __or__(self, other: AggrCols) -> AggrCols:
-        """Merge two aggregation column specifications.
-
-        Args:
-            other: Second object.
-
-        Returns:
-            Merged column specifications.
-        """
-        return AggrCols(
-            has_count=self.has_count or other.has_count,
-            mean_cols=(*self.mean_cols, *other.mean_cols),
-            var_cols=(*self.var_cols, *other.var_cols),
-            cov_cols=(*self.cov_cols, *other.cov_cols),
-        )
-
-    def __len__(self) -> int:
-        """Total length of all object attributes.
-
-        If has_count is True then its value is 1, or 0 otherwise.
-
-        Returns:
-            Total length of all object attributes.
-        """
-        return (
-            int(self.has_count)
-            + len(self.mean_cols)
-            + len(self.var_cols)
-            + len(self.cov_cols)
-        )
-
-
 @overload
 def read_aggregates(
     data: AggregatesByVariant,
-    aggr_cols: AggrCols,
+    aggr_cols: tea_tasting.aggr.AggrCols,
     variant: str | None = None,
 ) -> AggregatesByVariant:
     ...
@@ -104,7 +39,7 @@ def read_aggregates(
 @overload
 def read_aggregates(
     data: Table | tea_tasting.aggr.Aggregates,
-    aggr_cols: AggrCols,
+    aggr_cols: tea_tasting.aggr.AggrCols,
     variant: None = None,
 ) -> tea_tasting.aggr.Aggregates:
     ...
@@ -112,7 +47,7 @@ def read_aggregates(
 @overload
 def read_aggregates(
     data: Table,
-    aggr_cols: AggrCols,
+    aggr_cols: tea_tasting.aggr.AggrCols,
     variant: str,
 ) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
     ...
@@ -121,7 +56,7 @@ def read_aggregates(
     data: Table
         | tea_tasting.aggr.Aggregates
         | AggregatesByVariant,
-    aggr_cols: AggrCols,
+    aggr_cols: tea_tasting.aggr.AggrCols,
     variant: str | None = None,
 ) -> tea_tasting.aggr.Aggregates | AggregatesByVariant:
     """Read aggregated statistics.
@@ -144,12 +79,7 @@ def read_aggregates(
     table = _table(data)  # ty: ignore[invalid-argument-type]
     if variant is not None:
         table = table.group_by(variant)
-    return table.aggregate(
-        has_count=aggr_cols.has_count,
-        mean_cols=aggr_cols.mean_cols,
-        var_cols=aggr_cols.var_cols,
-        cov_cols=aggr_cols.cov_cols,
-    )
+    return table.aggregate(aggr_cols)
 
 
 @overload
@@ -218,20 +148,6 @@ def read_variants(data: Table, variant: str) -> list[Hashable]:
         Unique variant values.
     """
     return _table(data).select_col_unique(variant)
-
-
-def _validate_aggr_cols(
-    mean_cols: Sequence[str],
-    var_cols: Sequence[str],
-    cov_cols: Sequence[tuple[str, str]],
-) -> tuple[tuple[str, ...], tuple[str, ...], tuple[tuple[str, str], ...]]:
-    mean_cols = tuple({*mean_cols})
-    var_cols = tuple({*var_cols})
-    cov_cols = tuple({
-        tea_tasting.aggr._sorted_tuple(left, right)
-        for left, right in cov_cols
-    })
-    return mean_cols, var_cols, cov_cols
 
 
 def _table(data: Table) -> tea_tasting.backends.BaseTable:
