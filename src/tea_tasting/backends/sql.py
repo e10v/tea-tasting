@@ -251,7 +251,7 @@ class SQLQuery(BaseTable):  # noqa: D101
         Returns:
             Aggregated statistics.
         """
-        return _get_aggregates(_aggregate(self, aggr_cols, None)[0], aggr_cols)
+        return _get_aggregates(_aggregate(self, aggr_cols, None), aggr_cols)
 
 
 class SQLQueryGroupBy(BaseTableGroupBy):  # noqa: D101
@@ -281,10 +281,11 @@ class SQLQueryGroupBy(BaseTableGroupBy):  # noqa: D101
         Returns:
             Aggregated statistics by group value.
         """
-        return {
-            group_data[self.by]: _get_aggregates(group_data, aggr_cols)
-            for group_data in _aggregate(self.sql_query, aggr_cols, self.by)
-        }
+        return _get_aggregates(
+            _aggregate(self.sql_query, aggr_cols, self.by),
+            aggr_cols,
+            self.by,
+        )
 
 
 def _infer_dialect(connection: object) -> Dialect:

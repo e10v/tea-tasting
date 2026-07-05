@@ -98,7 +98,7 @@ class NarwhalsFrame(BaseTable):  # noqa: D101
                 data=self.data,
                 aggr_cols=aggr_cols,
                 group_col=None,
-            )[0],
+            ),
             aggr_cols,
         )
 
@@ -130,14 +130,15 @@ class NarwhalsFrameGroupBy(BaseTableGroupBy):  # noqa: D101
         Returns:
             Aggregated statistics by group value.
         """
-        return {
-            group_data[self.by]: _get_aggregates(group_data, aggr_cols)
-            for group_data in _read_aggr_narwhals(
+        return _get_aggregates(
+            _read_aggr_narwhals(
                 data=self.narwhals_frame.data,
                 aggr_cols=aggr_cols,
                 group_col=self.by,
-            )
-        }
+            ),
+            aggr_cols,
+            self.by,
+        )
 
 
 def _read_aggr_narwhals(
