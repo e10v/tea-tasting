@@ -38,6 +38,8 @@ documentation = "https://tea-tasting.e10v.me/user-guide"
 source = "https://github.com/e10v/tea-tasting"
 "release notes" = "https://github.com/e10v/tea-tasting/releases"
 
+[project.optional-dependencies]
+sql = ["sqlglot>=25.5"]
 
 [dependency-groups]
 docs = ["mkdocs-material", "mkdocstrings[python]"]
@@ -51,7 +53,6 @@ test = [
     "polars>=1",
     "pytest>=9.0.3",
     "sqlframe[duckdb]>=3",
-    "sqlglot>=25.5,!=28.7.0",
     "tqdm>=4.66",
 ]
 

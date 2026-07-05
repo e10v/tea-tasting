@@ -11,7 +11,7 @@
 
 import marimo
 
-__generated_with = "0.23.9"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -32,6 +32,12 @@ def _(mo):
 
     ```bash
     pip install tea-tasting
+    ```
+
+    To use SQL queries with a DB-API connection or cursor, install the SQL extra:
+
+    ```bash
+    uv add 'tea-tasting[sql]'
     ```
 
     To use Ibis data backends, [install Ibis](https://ibis-project.org/install) with the extra for your backend, such as:
