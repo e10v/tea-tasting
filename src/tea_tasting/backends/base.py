@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import abc
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import tea_tasting.aggr
 
 
 if TYPE_CHECKING:
-    from collections.abc import Hashable
+    from collections.abc import Hashable, Mapping, Sequence
 
     import pyarrow as pa
 
@@ -91,15 +91,74 @@ class BaseTableGroupBy(abc.ABC):
         """
 
 
+@overload
 def _get_aggregates(
-    data: dict[str, float | int],
+    data: Sequence[Mapping[str, object]],
+    aggr_cols: tea_tasting.aggr.AggrCols,
+    group_col: None = None,
+) -> tea_tasting.aggr.Aggregates:
+    ...
+
+@overload
+def _get_aggregates(
+    data: Sequence[Mapping[str, object]],
+    aggr_cols: tea_tasting.aggr.AggrCols,
+    group_col: str,
+) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
+    ...
+
+def _get_aggregates(
+    data: Sequence[Mapping[str, object]],
+    aggr_cols: tea_tasting.aggr.AggrCols,
+    group_col: str | None = None,
+) -> tea_tasting.aggr.Aggregates | dict[Hashable, tea_tasting.aggr.Aggregates]:
+    if group_col is None:
+        return _get_row_aggregates(_ResultRow(data[0]), aggr_cols)
+
+    return {
+        row.get(group_col): _get_row_aggregates(row, aggr_cols)
+        for row in (_ResultRow(row_data) for row_data in data)
+    }
+
+
+class _ResultRow:
+    def __init__(self, data: Mapping[str, object]) -> None:
+        self.data = data
+        self.casefold_keys = _casefold_keys(data)
+
+    def get(self, key: str) -> object:
+        if key in self.data:
+            return self.data[key]
+
+        result_key = self.casefold_keys[key.casefold()]
+        if result_key is None:
+            raise KeyError(f"Ambiguous result column name: {key!r}")
+        return self.data[result_key]
+
+
+def _casefold_keys(data: Mapping[str, object]) -> dict[str, str | None]:
+    casefold_keys: dict[str, str | None] = {}
+    for key in data:
+        casefold_key = key.casefold()
+        if casefold_key in casefold_keys:
+            casefold_keys[casefold_key] = None
+        else:
+            casefold_keys[casefold_key] = key
+    return casefold_keys
+
+
+def _get_row_aggregates(
+    data: _ResultRow,
     aggr_cols: tea_tasting.aggr.AggrCols,
 ) -> tea_tasting.aggr.Aggregates:
     return tea_tasting.aggr.Aggregates(
-        count_=int(data[_COUNT]) if aggr_cols.has_count else None,
-        mean_={col: _float(data[_MEAN.format(col)]) for col in aggr_cols.mean_cols},
-        var_={col: _float(data[_VAR.format(col)]) for col in aggr_cols.var_cols},
-        cov_={cols: _float(data[_COV.format(*cols)]) for cols in aggr_cols.cov_cols},
+        count_=int(data.get(_COUNT)) if aggr_cols.has_count else None,  # ty:ignore[invalid-argument-type]
+        mean_={col: _float(data.get(_MEAN.format(col))) for col in aggr_cols.mean_cols},
+        var_={col: _float(data.get(_VAR.format(col))) for col in aggr_cols.var_cols},
+        cov_={
+            cols: _float(data.get(_COV.format(*cols)))
+            for cols in aggr_cols.cov_cols
+        },
     )
 
 

@@ -125,7 +125,7 @@ class IbisTable(BaseTable):  # noqa: D101
                 group_col=None,
                 has_var=self.has_var,
                 has_cov=self.has_cov,
-            )[0],
+            ),
             aggr_cols,
         )
 
@@ -158,16 +158,17 @@ class IbisTableGroupBy(BaseTableGroupBy):  # noqa: D101
             Aggregated statistics by group value.
         """
         ibis_table = self.ibis_table
-        return {
-            group_data[self.by]: _get_aggregates(group_data, aggr_cols)
-            for group_data in _aggregate(
+        return _get_aggregates(
+            _aggregate(
                 data=ibis_table.data,
                 aggr_cols=aggr_cols,
                 group_col=self.by,
                 has_var=ibis_table.has_var,
                 has_cov=ibis_table.has_cov,
-            )
-        }
+            ),
+            aggr_cols,
+            self.by,
+        )
 
 
 def _aggregate(
