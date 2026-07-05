@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sqlite3
 from typing import TYPE_CHECKING
 
 import duckdb
@@ -8,6 +9,8 @@ import polars as pl
 import pytest
 import sqlframe.duckdb
 
+import tea_tasting.backends.sql
+import tea_tasting.data
 import tea_tasting.datasets
 
 
@@ -59,8 +62,46 @@ def data_ibis_sqlite(data_arrow: pa.Table) -> ibis.Table:
     return ibis.connect("sqlite://").create_table("data", data_arrow)
 
 
+@pytest.fixture
+def data_sql_duckdb(data_arrow: pa.Table) -> tea_tasting.backends.sql.SQLQuery:
+    conn = duckdb.connect()
+    conn.register("data_arrow", data_arrow)
+    conn.execute("CREATE TABLE data AS SELECT * FROM data_arrow")
+    return tea_tasting.backends.sql.SQLQuery("SELECT * FROM data ORDER BY user", conn)
+
+
+@pytest.fixture
+def data_sql_sqlite(data_arrow: pa.Table) -> tea_tasting.backends.sql.SQLQuery:
+    conn = sqlite3.connect(":memory:")
+    conn.execute(
+        "CREATE TABLE data ("
+        "user INTEGER, variant INTEGER, sessions INTEGER, "
+        "orders INTEGER, revenue REAL"
+        ")",
+    )
+    conn.executemany(
+        "INSERT INTO data VALUES (?, ?, ?, ?, ?)",
+        (
+            (
+                row["user"],
+                row["variant"],
+                row["sessions"],
+                row["orders"],
+                row["revenue"],
+            )
+            for row in data_arrow.to_pylist()
+        ),
+    )
+    return tea_tasting.backends.sql.SQLQuery("SELECT * FROM data ORDER BY user", conn)
+
+
 @pytest.fixture(params=["data_ibis_duckdb", "data_ibis_sqlite"])
 def data_ibis(request: pytest.FixtureRequest) -> ibis.Table:
+    return request.getfixturevalue(request.param)
+
+
+@pytest.fixture(params=["data_sql_duckdb", "data_sql_sqlite"])
+def data_sql(request: pytest.FixtureRequest) -> tea_tasting.backends.sql.SQLQuery:
     return request.getfixturevalue(request.param)
 
 
@@ -78,6 +119,7 @@ def data_narwhals(request: pytest.FixtureRequest) -> narwhals.typing.IntoFrame:
     "data_polars", "data_polars_lazy",
     "data_sqlframe_duckdb",
     "data_ibis_duckdb", "data_ibis_sqlite",
+    "data_sql_duckdb", "data_sql_sqlite",
 ])
-def data(request: pytest.FixtureRequest) -> narwhals.typing.IntoFrame:
+def data(request: pytest.FixtureRequest) -> tea_tasting.data.Table:
     return request.getfixturevalue(request.param)

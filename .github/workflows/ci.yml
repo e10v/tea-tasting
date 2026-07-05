@@ -28,7 +28,7 @@ jobs:
           enable-cache: true
           python-version: "3.13"
       - name: install dependencies
-        run: uv sync --group test
+        run: uv sync --group test --all-extras
       - name: doctest
         run: |
           pytest \
@@ -51,7 +51,7 @@ jobs:
           enable-cache: true
           python-version: "3.12"
       - name: install dependencies
-        run: uv sync --group test --resolution lowest-direct
+        run: uv sync --group test --all-extras --resolution lowest-direct
       - name: test-lowest
         run: pytest
   test:
@@ -71,7 +71,7 @@ jobs:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
       - name: install dependencies
-        run: uv sync --group test
+        run: uv sync --group test --all-extras
       - name: test
         run: coverage run -m pytest
       - name: convert coverage report
@@ -98,7 +98,7 @@ jobs:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
       - name: install dependencies
-        run: uv sync --group lint --group test
+        run: uv sync --group lint --group test --all-extras
       - name: lint
         run: ruff check
       - name: check types
