@@ -116,7 +116,7 @@ def _get_aggregates(
         return _get_row_aggregates(_ResultRow(data[0]), aggr_cols)
 
     return {
-        row.get(group_col): _get_row_aggregates(row, aggr_cols)
+        row[group_col]: _get_row_aggregates(row, aggr_cols)
         for row in (_ResultRow(row_data) for row_data in data)
     }
 
@@ -126,7 +126,7 @@ class _ResultRow:
         self.data = data
         self.casefold_keys = _casefold_keys(data)
 
-    def get(self, key: str) -> object:
+    def __getitem__(self, key: str) -> object:
         if key in self.data:
             return self.data[key]
 
@@ -152,13 +152,10 @@ def _get_row_aggregates(
     aggr_cols: tea_tasting.aggr.AggrCols,
 ) -> tea_tasting.aggr.Aggregates:
     return tea_tasting.aggr.Aggregates(
-        count_=int(data.get(_COUNT)) if aggr_cols.has_count else None,  # ty:ignore[invalid-argument-type]
-        mean_={col: _float(data.get(_MEAN.format(col))) for col in aggr_cols.mean_cols},
-        var_={col: _float(data.get(_VAR.format(col))) for col in aggr_cols.var_cols},
-        cov_={
-            cols: _float(data.get(_COV.format(*cols)))
-            for cols in aggr_cols.cov_cols
-        },
+        count_=int(data[_COUNT]) if aggr_cols.has_count else None,  # ty:ignore[invalid-argument-type]
+        mean_={col: _float(data[_MEAN.format(col)]) for col in aggr_cols.mean_cols},
+        var_={col: _float(data[_VAR.format(col)]) for col in aggr_cols.var_cols},
+        cov_={cols: _float(data[_COV.format(*cols)]) for cols in aggr_cols.cov_cols},
     )
 
 
