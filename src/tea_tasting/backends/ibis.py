@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 from tea_tasting.backends.base import (
     _COUNT,
@@ -118,7 +118,7 @@ class IbisTable(BaseTable):  # noqa: D101
         Returns:
             Aggregated statistics.
         """
-        return _get_aggregates(_aggregate(self, aggr_cols, None), aggr_cols)
+        return _aggregate(self, aggr_cols)
 
 
 class IbisTableGroupBy(BaseTableGroupBy):  # noqa: D101
@@ -148,18 +148,30 @@ class IbisTableGroupBy(BaseTableGroupBy):  # noqa: D101
         Returns:
             Aggregated statistics by group value.
         """
-        return _get_aggregates(
-            _aggregate(self.ibis_table, aggr_cols, self.by),
-            aggr_cols,
-            self.by,
-        )
+        return _aggregate(self.ibis_table, aggr_cols, self.by)
 
+
+@overload
+def _aggregate(
+    ibis_table: IbisTable,
+    aggr_cols: tea_tasting.aggr.AggrCols,
+    group_col: None = None,
+) -> tea_tasting.aggr.Aggregates:
+    ...
+
+@overload
+def _aggregate(
+    ibis_table: IbisTable,
+    aggr_cols: tea_tasting.aggr.AggrCols,
+    group_col: str,
+) -> dict[Hashable, tea_tasting.aggr.Aggregates]:
+    ...
 
 def _aggregate(
     ibis_table: IbisTable,
     aggr_cols: tea_tasting.aggr.AggrCols,
-    group_col: str | None,
-) -> list[dict[str, int | float]]:
+    group_col: str | None = None,
+) -> tea_tasting.aggr.Aggregates | dict[Hashable, tea_tasting.aggr.Aggregates]:
     data = ibis_table.data
     fallback_var_cols = () if ibis_table.has_var else aggr_cols.var_cols
     fallback_cov_cols = () if ibis_table.has_cov else aggr_cols.cov_cols
@@ -179,7 +191,8 @@ def _aggregate(
         has_cov=ibis_table.has_cov,
     )
     grouped_data = data.group_by(group_col) if group_col is not None else data
-    return grouped_data.aggregate(**exprs).to_pyarrow().to_pylist()  # ty:ignore[invalid-argument-type]
+    result = grouped_data.aggregate(**exprs).to_pyarrow().to_pylist()  # ty:ignore[invalid-argument-type]
+    return _get_aggregates(result, aggr_cols, group_col)
 
 
 def _add_centered_cols(
