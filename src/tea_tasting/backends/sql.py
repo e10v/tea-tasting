@@ -319,7 +319,12 @@ def _aggregate(
             cov_cols=fallback_cov_cols,
         )
 
-    exprs = _aggr_exprs(sql_query, aggr_cols, group_col)
+    exprs = _aggr_exprs(
+        aggr_cols,
+        group_col,
+        var=sql_query.var,
+        cov=sql_query.cov,
+    )
     query = sqlglot.exp.select(*exprs).from_(query)
     if group_col is not None:
         query = query.group_by(_col(group_col))
@@ -377,9 +382,11 @@ def _add_centered_cols(
 
 
 def _aggr_exprs(
-    sql_query: SQLQuery,
     aggr_cols: tea_tasting.aggr.AggrCols,
     group_col: str | None,
+    *,
+    var: bool | str,
+    cov: bool | str,
 ) -> list[sqlglot.exp.Expression]:
     import sqlglot  # noqa: PLC0415
 
@@ -393,12 +400,12 @@ def _aggr_exprs(
         for col in aggr_cols.mean_cols
     )
     exprs.extend(
-        sqlglot.exp.alias_(_sample_var(col, var=sql_query.var), _VAR.format(col))
+        sqlglot.exp.alias_(_sample_var(col, var=var), _VAR.format(col))
         for col in aggr_cols.var_cols
     )
     exprs.extend(
         sqlglot.exp.alias_(
-            _sample_cov(left, right, cov=sql_query.cov),
+            _sample_cov(left, right, cov=cov),
             _COV.format(left, right),
         )
         for left, right in aggr_cols.cov_cols
