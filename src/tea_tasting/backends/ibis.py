@@ -17,7 +17,7 @@ import tea_tasting.utils
 
 
 if TYPE_CHECKING:
-    from collections.abc import Hashable, Sequence
+    from collections.abc import Hashable
 
     import ibis.expr.types
     import pyarrow as pa
@@ -118,16 +118,7 @@ class IbisTable(BaseTable):  # noqa: D101
         Returns:
             Aggregated statistics.
         """
-        return _get_aggregates(
-            _aggregate(
-                data=self.data,
-                aggr_cols=aggr_cols,
-                group_col=None,
-                has_var=self.has_var,
-                has_cov=self.has_cov,
-            ),
-            aggr_cols,
-        )
+        return _get_aggregates(_aggregate(self, aggr_cols, None), aggr_cols)
 
 
 class IbisTableGroupBy(BaseTableGroupBy):  # noqa: D101
@@ -157,99 +148,108 @@ class IbisTableGroupBy(BaseTableGroupBy):  # noqa: D101
         Returns:
             Aggregated statistics by group value.
         """
-        ibis_table = self.ibis_table
         return _get_aggregates(
-            _aggregate(
-                data=ibis_table.data,
-                aggr_cols=aggr_cols,
-                group_col=self.by,
-                has_var=ibis_table.has_var,
-                has_cov=ibis_table.has_cov,
-            ),
+            _aggregate(self.ibis_table, aggr_cols, self.by),
             aggr_cols,
             self.by,
         )
 
 
 def _aggregate(
-    data: ibis.expr.types.Table,
+    ibis_table: IbisTable,
     aggr_cols: tea_tasting.aggr.AggrCols,
     group_col: str | None,
-    *,
-    has_var: bool,
-    has_cov: bool,
 ) -> list[dict[str, int | float]]:
-    mean_cols = aggr_cols.mean_cols
-    var_cols = aggr_cols.var_cols
-    cov_cols = aggr_cols.cov_cols
-    fallback_var_cols = () if has_var else var_cols
-    fallback_cov_cols = () if has_cov else cov_cols
+    data = ibis_table.data
+    fallback_var_cols = () if ibis_table.has_var else aggr_cols.var_cols
+    fallback_cov_cols = () if ibis_table.has_cov else aggr_cols.cov_cols
     if len(fallback_var_cols) > 0 or len(fallback_cov_cols) > 0:
-        keep_cols = set(mean_cols)
-        if len(fallback_var_cols) == 0:
-            keep_cols.update(var_cols)
-        if len(fallback_cov_cols) == 0:
-            keep_cols.update(col for cols in cov_cols for col in cols)
-        if group_col is not None:
-            keep_cols.add(group_col)
         data = _add_centered_cols(
             data=data,
+            aggr_cols=aggr_cols,
             group_col=group_col,
-            keep_cols=keep_cols,
             var_cols=fallback_var_cols,
             cov_cols=fallback_cov_cols,
         )
 
-    count_expr = {_COUNT: data.count()} if aggr_cols.has_count else {}
-    mean_expr = {
-        _MEAN.format(col): data[col].cast("float").mean()
-        for col in mean_cols
-    }
-    var_expr = {
-        _VAR.format(col): _sample_var(data, col, has_var=has_var)
-        for col in var_cols
-    }
-    cov_expr = {
-        _COV.format(left, right): _sample_cov(data, left, right, has_cov=has_cov)
-        for left, right in cov_cols
-    }
-    all_expr = count_expr | mean_expr | var_expr | cov_expr
-
+    exprs = _aggr_exprs(
+        data,
+        aggr_cols,
+        has_var=ibis_table.has_var,
+        has_cov=ibis_table.has_cov,
+    )
     grouped_data = data.group_by(group_col) if group_col is not None else data
-    return grouped_data.aggregate(**all_expr).to_pyarrow().to_pylist()  # ty:ignore[invalid-argument-type]
+    return grouped_data.aggregate(**exprs).to_pyarrow().to_pylist()  # ty:ignore[invalid-argument-type]
 
 
 def _add_centered_cols(
     data: ibis.expr.types.Table,
+    aggr_cols: tea_tasting.aggr.AggrCols,
     group_col: str | None,
     *,
-    keep_cols: set[str],
-    var_cols: Sequence[str],
-    cov_cols: Sequence[tuple[str, str]],
+    var_cols: tuple[str, ...],
+    cov_cols: tuple[tuple[str, str], ...],
 ) -> ibis.expr.types.Table:
     import ibis  # noqa: PLC0415
 
     null = ibis.null()
+    keep_cols = set(aggr_cols.mean_cols)
+    if len(var_cols) == 0:
+        keep_cols.update(aggr_cols.var_cols)
+    if len(cov_cols) == 0:
+        keep_cols.update(col for cols in aggr_cols.cov_cols for col in cols)
+    if group_col is not None:
+        keep_cols.add(group_col)
 
     stats_expr = {}
     for col in var_cols:
         col_expr = data[col].cast("float")
-        stats_expr[_CENTERED.format(col)] = col_expr - _mean(data, col_expr, group_col)
+        stats_expr[_CENTERED.format(col)] = (
+            col_expr - _mean_over(data, col_expr, group_col)
+        )
 
     for left, right in cov_cols:
         valid = data[left].notnull() & data[right].notnull()
         left_expr = data[left].cast("float")
         right_expr = data[right].cast("float")
         stats_expr[_CENTERED_LEFT.format(left, right)] = (
-            left_expr - _mean(data, valid.ifelse(left_expr, null), group_col)
+            left_expr - _mean_over(data, valid.ifelse(left_expr, null), group_col)
         )
         stats_expr[_CENTERED_RIGHT.format(left, right)] = (
-            right_expr - _mean(data, valid.ifelse(right_expr, null), group_col)
+            right_expr - _mean_over(data, valid.ifelse(right_expr, null), group_col)
         )
     return data.select(*keep_cols, **stats_expr)
 
 
-def _mean(
+def _aggr_exprs(
+    data: ibis.expr.types.Table,
+    aggr_cols: tea_tasting.aggr.AggrCols,
+    *,
+    has_var: bool,
+    has_cov: bool,
+) -> dict[str, ibis.expr.types.Expr]:
+    count_expr = {_COUNT: data.count()} if aggr_cols.has_count else {}
+    mean_expr = {
+        _MEAN.format(col): data[col].cast("float").mean()
+        for col in aggr_cols.mean_cols
+    }
+    var_expr = {
+        _VAR.format(col): _sample_var(data, col, has_var=has_var)
+        for col in aggr_cols.var_cols
+    }
+    cov_expr = {
+        _COV.format(left, right): _sample_cov(
+            data,
+            left,
+            right,
+            has_cov=has_cov,
+        )
+        for left, right in aggr_cols.cov_cols
+    }
+    return count_expr | mean_expr | var_expr | cov_expr
+
+
+def _mean_over(
     data: ibis.expr.types.Table,
     expr: ibis.expr.types.NumericValue,
     group_col: str | None,
