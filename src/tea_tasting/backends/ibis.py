@@ -191,7 +191,7 @@ def _aggregate(
         has_cov=ibis_table.has_cov,
     )
     grouped_data = data.group_by(group_col) if group_col is not None else data
-    result = grouped_data.aggregate(**exprs).to_pyarrow().to_pylist()  # ty:ignore[invalid-argument-type]
+    result = grouped_data.aggregate(exprs).to_pyarrow().to_pylist()  # ty:ignore[invalid-argument-type]
     return _get_aggregates(result, aggr_cols, group_col)
 
 
@@ -214,24 +214,23 @@ def _add_centered_cols(
     if group_col is not None:
         keep_cols.add(group_col)
 
-    stats_expr = {}
+    exprs: list[ibis.expr.types.Value] = [data[col] for col in keep_cols]
     for col in var_cols:
         col_expr = data[col].cast("float")
-        stats_expr[_CENTERED.format(col)] = (
-            col_expr - _mean_over(data, col_expr, group_col)
-        )
+        centered_col_expr = col_expr - _mean_over(data, col_expr, group_col)
+        exprs.append(centered_col_expr.name(_CENTERED.format(col)))
 
     for left, right in cov_cols:
         valid = data[left].notnull() & data[right].notnull()
         left_expr = data[left].cast("float")
         right_expr = data[right].cast("float")
-        stats_expr[_CENTERED_LEFT.format(left, right)] = (
-            left_expr - _mean_over(data, valid.ifelse(left_expr, null), group_col)
-        )
-        stats_expr[_CENTERED_RIGHT.format(left, right)] = (
-            right_expr - _mean_over(data, valid.ifelse(right_expr, null), group_col)
-        )
-    return data.select(*keep_cols, **stats_expr)
+        exprs.extend((
+            (left_expr - _mean_over(data, valid.ifelse(left_expr, null), group_col))
+                .name(_CENTERED_LEFT.format(left, right)),
+            (right_expr - _mean_over(data, valid.ifelse(right_expr, null), group_col))
+                .name(_CENTERED_RIGHT.format(left, right)),
+        ))
+    return data.select(*exprs)
 
 
 def _aggr_exprs(
@@ -240,31 +239,28 @@ def _aggr_exprs(
     *,
     has_var: bool,
     has_cov: bool,
-) -> dict[str, ibis.expr.types.Expr]:
-    count_expr = {_COUNT: data.count()} if aggr_cols.has_count else {}
-    mean_expr = {
-        _MEAN.format(col): data[col].cast("float").mean()
+) -> list[ibis.expr.types.Value]:
+    exprs: list[ibis.expr.types.Value] = []
+    if aggr_cols.has_count:
+        exprs.append(data.count().name(_COUNT))
+    exprs.extend(
+        data[col].cast("float").mean().name(_MEAN.format(col))
         for col in aggr_cols.mean_cols
-    }
-    var_expr = {
-        _VAR.format(col): _sample_var(data, col, has_var=has_var)
+    )
+    exprs.extend(
+        _sample_var(data, col, has_var=has_var).name(_VAR.format(col))
         for col in aggr_cols.var_cols
-    }
-    cov_expr = {
-        _COV.format(left, right): _sample_cov(
-            data,
-            left,
-            right,
-            has_cov=has_cov,
-        )
+    )
+    exprs.extend(
+        _sample_cov(data, left, right, has_cov=has_cov).name(_COV.format(left, right))
         for left, right in aggr_cols.cov_cols
-    }
-    return count_expr | mean_expr | var_expr | cov_expr
+    )
+    return exprs
 
 
 def _mean_over(
     data: ibis.expr.types.Table,
-    expr: ibis.expr.types.NumericValue,
+    expr: ibis.expr.types.Value,
     group_col: str | None,
 ) -> ibis.expr.types.Value:
     import ibis  # noqa: PLC0415
