@@ -200,14 +200,14 @@ class SQLQuery(BaseTable):  # noqa: D101
         """
         import sqlglot  # noqa: PLC0415
 
-        exprs = [sqlglot.exp.Star()] if len(cols) == 0 else [_col(col) for col in cols]
-        query = (
-            sqlglot.exp.select(*exprs)
-            .from_(self.query.copy().subquery(_SUBQUERY))
-            .sql(dialect=self.dialect)
-        )
+        query = self.query.copy()
+        if len(cols) > 0:
+            exprs = (_col(col) for col in cols)
+            query = sqlglot.exp.select(*exprs).from_(query.subquery(_SUBQUERY))
         with tea_tasting.backends._executor.Executor(self.connection) as executor:
-            return executor.execute(query).to_arrow(self.chunk_size)
+            return executor.execute(
+                query.sql(dialect=self.dialect),
+            ).to_arrow(self.chunk_size)
 
     def select_col_unique(self, col: str) -> list[Hashable]:
         """Select unique column values.
@@ -220,13 +220,12 @@ class SQLQuery(BaseTable):  # noqa: D101
         """
         import sqlglot  # noqa: PLC0415
 
-        query = (
-            sqlglot.exp.select(sqlglot.exp.Distinct(expressions=[_col(col)]))
-            .from_(self.query.copy().subquery(_SUBQUERY))
-            .sql(dialect=self.dialect)
-        )
         with tea_tasting.backends._executor.Executor(self.connection) as executor:
-            return executor.execute(query).to_list()
+            return executor.execute(
+                 sqlglot.exp.select(sqlglot.exp.Distinct(expressions=[_col(col)]))
+                    .from_(self.query.copy().subquery(_SUBQUERY))
+                    .sql(dialect=self.dialect),
+            ).to_list()
 
     def group_by(self, by: str) -> SQLQueryGroupBy:
         """Group table by a column.
