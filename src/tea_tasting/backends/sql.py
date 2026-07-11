@@ -137,9 +137,8 @@ _DIALECTS = frozenset(
 ) | {"singlestore"}
 
 _SUBQUERY = "__subquery__"
-_CENTERED = "__centered__{}__"
-_CENTERED_LEFT = "__centered__left__{}__{}__"
-_CENTERED_RIGHT = "__centered_right__{}__{}__"
+_CENTERED_SQUARE = "__centered_square__{}__"
+_CENTERED_PRODUCT = "__centered_product__{}__{}__"
 
 
 class SQLQuery(BaseTable):  # noqa: D101
@@ -318,7 +317,7 @@ def _aggregate(
     fallback_var_cols = () if sql_query.var else aggr_cols.var_cols
     fallback_cov_cols = () if sql_query.cov else aggr_cols.cov_cols
     if len(fallback_var_cols) > 0 or len(fallback_cov_cols) > 0:
-        query = _add_centered_cols(
+        query = _add_centered_product_cols(
             query=query,
             aggr_cols=aggr_cols,
             group_col=group_col,
@@ -341,7 +340,7 @@ def _aggregate(
     return _get_aggregates(data, aggr_cols, group_col)
 
 
-def _add_centered_cols(
+def _add_centered_product_cols(
     query: sqlglot.exp.Subquery,
     aggr_cols: tea_tasting.aggr.AggrCols,
     group_col: str | None,
@@ -358,13 +357,14 @@ def _add_centered_cols(
         keep_cols.add(group_col)
 
     exprs: list[sqlglot.exp.Expression] = [_col(col) for col in keep_cols]
-    exprs.extend(
-        sqlglot.exp.alias_(
-            _float(col) - _mean_over(_float(col), group_col),
-            _CENTERED.format(col),
+    for col in var_cols:
+        centered = _float(col) - _mean_over(_float(col), group_col)
+        exprs.append(
+            sqlglot.exp.alias_(
+                centered * centered.copy(),
+                _CENTERED_SQUARE.format(col),
+            ),
         )
-        for col in var_cols
-    )
     for left, right in cov_cols:
         valid = (
             _col(left).is_(sqlglot.exp.Null()).not_() &
@@ -374,16 +374,14 @@ def _add_centered_cols(
         right_float = _float(right)
         left_valid = _if_valid(valid, left_float.copy())
         right_valid = _if_valid(valid, right_float.copy())
-        exprs.extend((
+        centered_left = left_float - _mean_over(left_valid, group_col)
+        centered_right = right_float - _mean_over(right_valid, group_col)
+        exprs.append(
             sqlglot.exp.alias_(
-                left_float - _mean_over(left_valid, group_col),
-                _CENTERED_LEFT.format(left, right),
+                centered_left * centered_right,
+                _CENTERED_PRODUCT.format(left, right),
             ),
-            sqlglot.exp.alias_(
-                right_float - _mean_over(right_valid, group_col),
-                _CENTERED_RIGHT.format(left, right),
-            ),
-        ))
+        )
     return sqlglot.exp.select(*exprs).from_(query).subquery(_SUBQUERY)
 
 
@@ -422,8 +420,7 @@ def _sample_var(col: str, *, var: bool | str) -> sqlglot.exp.Expression:
         return sqlglot.exp.Variance(this=_float(col))
     if isinstance(var, str):
         return sqlglot.exp.Anonymous(this=var, expressions=[_float(col)])
-    centered = _col(_CENTERED.format(col))
-    return _fallback_sample_aggr(centered * centered)
+    return _fallback_sample_aggr(_col(_CENTERED_SQUARE.format(col)))
 
 
 def _sample_cov(
@@ -439,20 +436,17 @@ def _sample_cov(
             this=cov,
             expressions=[_float(left), _float(right)],
         )
-    return _fallback_sample_aggr(
-        _col(_CENTERED_LEFT.format(left, right)) *
-        _col(_CENTERED_RIGHT.format(left, right)),
-    )
+    return _fallback_sample_aggr(_col(_CENTERED_PRODUCT.format(left, right)))
 
 
 def _fallback_sample_aggr(
-    centered_expr: sqlglot.exp.Expression,
+    product_expr: sqlglot.exp.Expression,
 ) -> sqlglot.exp.Expression:
-    count = sqlglot.exp.Count(this=centered_expr.copy())
+    count = sqlglot.exp.Count(this=product_expr.copy())
     one = sqlglot.exp.Literal.number(1)
     return sqlglot.exp.Case().when(
         count > one,
-        sqlglot.exp.Sum(this=centered_expr) / (count.copy() - one.copy()),
+        sqlglot.exp.Sum(this=product_expr) / (count.copy() - one.copy()),
     ).else_(sqlglot.exp.Null())
 
 

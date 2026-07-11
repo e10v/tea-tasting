@@ -25,9 +25,8 @@ if TYPE_CHECKING:
     import tea_tasting.aggr  # noqa: TC004
 
 
-_CENTERED = "__centered__{}__"
-_CENTERED_LEFT = "__centered__left__{}__{}__"
-_CENTERED_RIGHT = "__centered_right__{}__{}__"
+_CENTERED_SQUARE = "__centered_square__{}__"
+_CENTERED_PRODUCT = "__centered_product__{}__{}__"
 
 
 class IbisTable(BaseTable):  # noqa: D101
@@ -176,7 +175,7 @@ def _aggregate(
     fallback_var_cols = () if ibis_table.has_var else aggr_cols.var_cols
     fallback_cov_cols = () if ibis_table.has_cov else aggr_cols.cov_cols
     if len(fallback_var_cols) > 0 or len(fallback_cov_cols) > 0:
-        data = _add_centered_cols(
+        data = _add_centered_product_cols(
             data=data,
             aggr_cols=aggr_cols,
             group_col=group_col,
@@ -195,7 +194,7 @@ def _aggregate(
     return _get_aggregates(result, aggr_cols, group_col)
 
 
-def _add_centered_cols(
+def _add_centered_product_cols(
     data: ibis.expr.types.Table,
     aggr_cols: tea_tasting.aggr.AggrCols,
     group_col: str | None,
@@ -218,18 +217,25 @@ def _add_centered_cols(
     for col in var_cols:
         col_expr = data[col].cast("float")
         centered_col_expr = col_expr - _mean_over(data, col_expr, group_col)
-        exprs.append(centered_col_expr.name(_CENTERED.format(col)))
+        exprs.append(
+            (centered_col_expr * centered_col_expr)
+                .name(_CENTERED_SQUARE.format(col)),
+        )
 
     for left, right in cov_cols:
         valid = data[left].notnull() & data[right].notnull()
         left_expr = data[left].cast("float")
         right_expr = data[right].cast("float")
-        exprs.extend((
-            (left_expr - _mean_over(data, valid.ifelse(left_expr, null), group_col))
-                .name(_CENTERED_LEFT.format(left, right)),
-            (right_expr - _mean_over(data, valid.ifelse(right_expr, null), group_col))
-                .name(_CENTERED_RIGHT.format(left, right)),
-        ))
+        centered_left = (
+            left_expr - _mean_over(data, valid.ifelse(left_expr, null), group_col)
+        )
+        centered_right = (
+            right_expr - _mean_over(data, valid.ifelse(right_expr, null), group_col)
+        )
+        exprs.append(
+            (centered_left * centered_right)
+                .name(_CENTERED_PRODUCT.format(left, right)),
+        )
     return data.select(*exprs)
 
 
@@ -278,9 +284,7 @@ def _sample_var(
 ) -> ibis.expr.types.Value:
     if has_var:
         return data[col].cast("float").var(how="sample")
-    return _fallback_sample_aggr(
-        data[_CENTERED.format(col)] * data[_CENTERED.format(col)],
-    )
+    return _fallback_sample_aggr(data[_CENTERED_SQUARE.format(col)])
 
 
 def _sample_cov(
@@ -292,16 +296,13 @@ def _sample_cov(
 ) -> ibis.expr.types.Value:
     if has_cov:
         return data[left].cast("float").cov(data[right].cast("float"), how="sample")
-    return _fallback_sample_aggr(
-        data[_CENTERED_LEFT.format(left, right)] *
-        data[_CENTERED_RIGHT.format(left, right)],
-    )
+    return _fallback_sample_aggr(data[_CENTERED_PRODUCT.format(left, right)])
 
 
 def _fallback_sample_aggr(
-    centered_expr: ibis.expr.types.Column,
+    product_expr: ibis.expr.types.Column,
 ) -> ibis.expr.types.Value:
     import ibis  # noqa: PLC0415
 
-    count = centered_expr.count()
-    return (count > 1).ifelse(centered_expr.sum() / (count - 1), ibis.null())  # ty:ignore[unsupported-operator]
+    count = product_expr.count()
+    return (count > 1).ifelse(product_expr.sum() / (count - 1), ibis.null())  # ty:ignore[unsupported-operator]

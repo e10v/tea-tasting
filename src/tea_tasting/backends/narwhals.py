@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     type CovarianceSupport = Literal["full", "ungrouped_only", "none", "auto"]
 
 
-_CROSS_PRODUCT = "__cross_product__{}__{}__"
+_CENTERED_PRODUCT = "__centered_product__{}__{}__"
 _COV_COUNT = "__cov_count__{}__{}__"
 _COV_SUM = "__cov_sum__{}__{}__"
 
@@ -185,7 +185,7 @@ def _aggregate(
         narwhals_frame.cov == "ungrouped_only" and group_col is None
     )
     if not has_cov and len(aggr_cols.cov_cols) > 0:
-        frame = _add_cross_product_cols(frame, aggr_cols, group_col)
+        frame = _add_centered_product_cols(frame, aggr_cols, group_col)
 
     exprs = _aggr_exprs(aggr_cols, has_cov=has_cov)
     frame = (
@@ -200,7 +200,7 @@ def _aggregate(
     return _get_aggregates(rows, aggr_cols, group_col)
 
 
-def _add_cross_product_cols(
+def _add_centered_product_cols(
     frame: nw.LazyFrame,
     aggr_cols: tea_tasting.aggr.AggrCols,
     group_col: str | None,
@@ -221,7 +221,7 @@ def _add_cross_product_cols(
             centered_cols.append(valid_col - mean)
         exprs.append(
             (centered_cols[0] * centered_cols[1]).alias(
-                _CROSS_PRODUCT.format(left, right),
+                _CENTERED_PRODUCT.format(left, right),
             ),
         )
     return frame.select(*exprs)
@@ -248,10 +248,10 @@ def _aggr_exprs(
         )
     else:
         for left, right in aggr_cols.cov_cols:
-            cross_product = nw.col(_CROSS_PRODUCT.format(left, right))
+            centered_product = nw.col(_CENTERED_PRODUCT.format(left, right))
             exprs.extend((
-                cross_product.sum().alias(_COV_SUM.format(left, right)),
-                cross_product.count().alias(_COV_COUNT.format(left, right)),
+                centered_product.sum().alias(_COV_SUM.format(left, right)),
+                centered_product.count().alias(_COV_COUNT.format(left, right)),
             ))
     return exprs
 
