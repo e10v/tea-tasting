@@ -63,73 +63,73 @@ if TYPE_CHECKING:
     ]
 
 
-DIALECT_VAR: dict[Dialect, bool | str] = {
-    "athena": True,
-    "bigquery": True,
-    "clickhouse": True,
-    "databricks": True,
-    "doris": "VAR_SAMP",
-    "dremio": "VAR_SAMP",
-    "drill": True,
-    "druid": True,
-    "duckdb": True,
-    "dune": True,
-    "exasol": True,
-    "fabric": "VAR",
-    "hive": "VAR_SAMP",
-    "materialize": True,
-    "mysql": "VAR_SAMP",
-    "oracle": True,
-    "postgres": True,
-    "presto": True,
-    "prql": False,
-    "redshift": True,
-    "risingwave": True,
+DIALECT_VAR: dict[str, bool | str] = {
+    sqlglot.Dialects.ATHENA: True,
+    sqlglot.Dialects.BIGQUERY: True,
+    sqlglot.Dialects.CLICKHOUSE: True,
+    sqlglot.Dialects.DATABRICKS: True,
+    sqlglot.Dialects.DORIS: "VAR_SAMP",
+    sqlglot.Dialects.DREMIO: "VAR_SAMP",
+    sqlglot.Dialects.DRILL: True,
+    sqlglot.Dialects.DRUID: True,
+    sqlglot.Dialects.DUCKDB: True,
+    sqlglot.Dialects.DUNE: True,
+    sqlglot.Dialects.EXASOL: True,
+    sqlglot.Dialects.FABRIC: "VAR",
+    sqlglot.Dialects.HIVE: "VAR_SAMP",
+    sqlglot.Dialects.MATERIALIZE: True,
+    sqlglot.Dialects.MYSQL: "VAR_SAMP",
+    sqlglot.Dialects.ORACLE: True,
+    sqlglot.Dialects.POSTGRES: True,
+    sqlglot.Dialects.PRESTO: True,
+    sqlglot.Dialects.PRQL: False,
+    sqlglot.Dialects.REDSHIFT: True,
+    sqlglot.Dialects.RISINGWAVE: True,
     "singlestore": True,
-    "snowflake": True,
-    "solr": False,
-    "spark": True,
-    "spark2": True,
-    "sqlite": False,
-    "starrocks": "VAR_SAMP",
-    "tableau": "VAR",
-    "teradata": "VAR_SAMP",
-    "trino": True,
-    "tsql": "VAR",
+    sqlglot.Dialects.SNOWFLAKE: True,
+    sqlglot.Dialects.SOLR: False,
+    sqlglot.Dialects.SPARK: True,
+    sqlglot.Dialects.SPARK2: True,
+    sqlglot.Dialects.SQLITE: False,
+    sqlglot.Dialects.STARROCKS: "VAR_SAMP",
+    sqlglot.Dialects.TABLEAU: "VAR",
+    sqlglot.Dialects.TERADATA: "VAR_SAMP",
+    sqlglot.Dialects.TRINO: True,
+    sqlglot.Dialects.TSQL: "VAR",
 }
-DIALECT_COV: dict[Dialect, bool | str] = {
-    "athena": True,
-    "bigquery": True,
-    "clickhouse": "covarSamp",
-    "databricks": True,
-    "doris": True,
-    "dremio": True,
-    "drill": True,
-    "druid": False,
-    "duckdb": True,
-    "dune": True,
-    "exasol": True,
-    "fabric": False,
-    "hive": True,
-    "materialize": False,
-    "mysql": False,
-    "oracle": True,
-    "postgres": True,
-    "presto": True,
-    "prql": False,
-    "redshift": False,
-    "risingwave": False,
+DIALECT_COV: dict[str, bool | str] = {
+    sqlglot.Dialects.ATHENA: True,
+    sqlglot.Dialects.BIGQUERY: True,
+    sqlglot.Dialects.CLICKHOUSE: "covarSamp",
+    sqlglot.Dialects.DATABRICKS: True,
+    sqlglot.Dialects.DORIS: True,
+    sqlglot.Dialects.DREMIO: True,
+    sqlglot.Dialects.DRILL: True,
+    sqlglot.Dialects.DRUID: False,
+    sqlglot.Dialects.DUCKDB: True,
+    sqlglot.Dialects.DUNE: True,
+    sqlglot.Dialects.EXASOL: True,
+    sqlglot.Dialects.FABRIC: False,
+    sqlglot.Dialects.HIVE: True,
+    sqlglot.Dialects.MATERIALIZE: False,
+    sqlglot.Dialects.MYSQL: False,
+    sqlglot.Dialects.ORACLE: True,
+    sqlglot.Dialects.POSTGRES: True,
+    sqlglot.Dialects.PRESTO: True,
+    sqlglot.Dialects.PRQL: False,
+    sqlglot.Dialects.REDSHIFT: False,
+    sqlglot.Dialects.RISINGWAVE: False,
     "singlestore": False,
-    "snowflake": True,
-    "solr": False,
-    "spark": True,
-    "spark2": True,
-    "sqlite": False,
-    "starrocks": True,
-    "tableau": "COVAR",
-    "teradata": True,
-    "trino": True,
-    "tsql": False,
+    sqlglot.Dialects.SNOWFLAKE: True,
+    sqlglot.Dialects.SOLR: False,
+    sqlglot.Dialects.SPARK: True,
+    sqlglot.Dialects.SPARK2: True,
+    sqlglot.Dialects.SQLITE: False,
+    sqlglot.Dialects.STARROCKS: True,
+    sqlglot.Dialects.TABLEAU: "COVAR",
+    sqlglot.Dialects.TERADATA: True,
+    sqlglot.Dialects.TRINO: True,
+    sqlglot.Dialects.TSQL: False,
 }
 
 _SUBQUERY = "__subquery__"
@@ -157,8 +157,7 @@ class SQLQuery(BaseTable):  # noqa: D101
         Args:
             query: SQL query string or SQLGlot query expression.
             connection: PEP 249-compatible DB-API connection or cursor.
-            dialect: SQLGlot dialect string. If `None`, infer it from
-                `connection`.
+            dialect: SQLGlot dialect. If `None`, infer it from `connection`.
             var: Sample variance support. If `True`, use SQLGlot variance.
                 If `False`, use a fallback expression. If a string, call a
                 function with that name. If `None`, infer from `dialect`.
@@ -278,16 +277,16 @@ class SQLQueryGroupBy(BaseTableGroupBy):  # noqa: D101
         return _aggregate(self.sql_query, aggr_cols, self.by)
 
 
-def _infer_dialect(connection: object) -> Dialect:
+def _infer_dialect(connection: object) -> str:
     driver_name = connection.__class__.__module__.split(".", maxsplit=1)[0].lower()
     for dialect in sorted(DIALECT_VAR):
         if dialect in driver_name:
             return dialect
     if driver_name == "chdb":
-        return "clickhouse"
+        return sqlglot.Dialects.CLICKHOUSE
     if "mssql" in driver_name:
-        return "tsql"
-    return "postgres"
+        return sqlglot.Dialects.TSQL
+    return sqlglot.Dialects.POSTGRES
 
 
 @overload
