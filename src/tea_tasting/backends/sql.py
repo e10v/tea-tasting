@@ -132,6 +132,10 @@ DIALECT_COV: dict[str, bool | str] = {
     sqlglot.Dialects.TSQL: False,
 }
 
+_DIALECTS = frozenset(
+    dialect.value for dialect in sqlglot.Dialects if dialect.value
+) | {"singlestore"}
+
 _SUBQUERY = "__subquery__"
 _CENTERED = "__centered__{}__"
 _CENTERED_LEFT = "__centered__left__{}__{}__"
@@ -146,7 +150,7 @@ class SQLQuery(BaseTable):  # noqa: D101
             tea_tasting.backends._executor.Connection |
             tea_tasting.backends._executor.Cursor
         ),
-        dialect: Dialect | None = None,
+        dialect: Dialect | sqlglot.Dialects | None = None,
         *,
         var: bool | str | None = None,
         cov: bool | str | None = None,
@@ -177,7 +181,7 @@ class SQLQuery(BaseTable):  # noqa: D101
         self.connection = connection
         self.dialect = (
             _infer_dialect(connection) if dialect is None else
-            tea_tasting.utils.check_scalar(dialect, "dialect", typ=str, in_=DIALECT_VAR)
+            tea_tasting.utils.check_scalar(dialect, "dialect", typ=str, in_=_DIALECTS)
         )
         self.var = DIALECT_VAR.get(self.dialect, True) if var is None else var
         self.cov = DIALECT_COV.get(self.dialect, True) if cov is None else cov
