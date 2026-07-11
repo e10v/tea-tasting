@@ -10,7 +10,7 @@ dependencies = [
     "numpy>=2.1",
     "pyarrow>=17",
     "scipy>=1.15",
-    "sqlglot>=25.5",
+    "sqlglot>=27.18",
 ]
 requires-python = ">=3.12"
 readme = "README.md"
