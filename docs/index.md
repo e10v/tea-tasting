@@ -39,12 +39,6 @@ Or with pip:
 pip install tea-tasting
 ```
 
-To use SQL queries with a DB-API connection or cursor, install the SQL extra:
-
-```bash
-uv add 'tea-tasting[sql]'
-```
-
 To use Ibis data backends, [install Ibis](https://ibis-project.org/install) with the extra for your backend, such as:
 
 ```bash

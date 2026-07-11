@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal, overload
 
+import sqlglot
+
 import tea_tasting.backends._executor
 from tea_tasting.backends.base import (
     _COUNT,
@@ -21,7 +23,6 @@ if TYPE_CHECKING:
     from collections.abc import Hashable
 
     import pyarrow as pa
-    import sqlglot
 
     import tea_tasting.aggr  # noqa: TC004
 
@@ -168,8 +169,6 @@ class SQLQuery(BaseTable):  # noqa: D101
                 method when the cursor does not fetch Arrow directly. If `None`,
                 fetch all rows.
         """
-        import sqlglot  # noqa: PLC0415
-
         tea_tasting.utils.check_scalar(query, "query", typ=str | sqlglot.exp.Query)
         tea_tasting.utils.check_scalar(var, "var", typ=bool | str | None)
         tea_tasting.utils.check_scalar(cov, "cov", typ=bool | str | None)
@@ -198,8 +197,6 @@ class SQLQuery(BaseTable):  # noqa: D101
         Returns:
             Selected data.
         """
-        import sqlglot  # noqa: PLC0415
-
         query = self.query.copy()
         if len(cols) > 0:
             exprs = (_col(col) for col in cols)
@@ -218,8 +215,6 @@ class SQLQuery(BaseTable):  # noqa: D101
         Returns:
             Unique column values.
         """
-        import sqlglot  # noqa: PLC0415
-
         with tea_tasting.backends._executor.Executor(self.connection) as executor:
             return executor.execute(
                  sqlglot.exp.select(sqlglot.exp.Distinct(expressions=[_col(col)]))
@@ -316,8 +311,6 @@ def _aggregate(
     aggr_cols: tea_tasting.aggr.AggrCols,
     group_col: str | None = None,
 ) -> tea_tasting.aggr.Aggregates | dict[Hashable, tea_tasting.aggr.Aggregates]:
-    import sqlglot  # noqa: PLC0415
-
     query = sql_query.query.copy().subquery(_SUBQUERY)
     fallback_var_cols = () if sql_query.var else aggr_cols.var_cols
     fallback_cov_cols = () if sql_query.cov else aggr_cols.cov_cols
@@ -353,8 +346,6 @@ def _add_centered_cols(
     var_cols: tuple[str, ...],
     cov_cols: tuple[tuple[str, str], ...],
 ) -> sqlglot.exp.Subquery:
-    import sqlglot  # noqa: PLC0415
-
     keep_cols = set(aggr_cols.mean_cols)
     if len(var_cols) == 0:
         keep_cols.update(aggr_cols.var_cols)
@@ -400,8 +391,6 @@ def _aggr_exprs(
     var: bool | str,
     cov: bool | str,
 ) -> list[sqlglot.exp.Expression]:
-    import sqlglot  # noqa: PLC0415
-
     exprs = [_col(group_col)] if group_col is not None else []
     if aggr_cols.has_count:
         exprs.append(
@@ -426,8 +415,6 @@ def _aggr_exprs(
 
 
 def _sample_var(col: str, *, var: bool | str) -> sqlglot.exp.Expression:
-    import sqlglot  # noqa: PLC0415
-
     if var is True:
         return sqlglot.exp.Variance(this=_float(col))
     if isinstance(var, str):
@@ -442,8 +429,6 @@ def _sample_cov(
     *,
     cov: bool | str,
 ) -> sqlglot.exp.Expression:
-    import sqlglot  # noqa: PLC0415
-
     if cov is True:
         return sqlglot.exp.CovarSamp(this=_float(left), expression=_float(right))
     if isinstance(cov, str):
@@ -460,8 +445,6 @@ def _sample_cov(
 def _fallback_sample_aggr(
     centered_expr: sqlglot.exp.Expression,
 ) -> sqlglot.exp.Expression:
-    import sqlglot  # noqa: PLC0415
-
     count = sqlglot.exp.Count(this=centered_expr.copy())
     one = sqlglot.exp.Literal.number(1)
     return sqlglot.exp.Case().when(
@@ -474,8 +457,6 @@ def _if_valid(
     cond: sqlglot.exp.Expression,
     then: sqlglot.exp.Expression,
 ) -> sqlglot.exp.Expression:
-    import sqlglot  # noqa: PLC0415
-
     return sqlglot.exp.Case().when(cond, then).else_(sqlglot.exp.Null())
 
 
@@ -483,8 +464,6 @@ def _mean_over(
     expr: sqlglot.exp.Expression,
     group_col: str | None,
 ) -> sqlglot.exp.Expression:
-    import sqlglot  # noqa: PLC0415
-
     return sqlglot.exp.Window(
         this=sqlglot.exp.Avg(this=expr),
         partition_by=[_col(group_col)] if group_col is not None else None,
@@ -492,12 +471,8 @@ def _mean_over(
 
 
 def _float(col: str) -> sqlglot.exp.Expression:
-    import sqlglot  # noqa: PLC0415
-
     return sqlglot.exp.cast(_col(col), "DOUBLE")
 
 
 def _col(col: str) -> sqlglot.exp.Column:
-    import sqlglot  # noqa: PLC0415
-
     return sqlglot.exp.column(col)
