@@ -19,7 +19,6 @@ _COUNT = "__count__"
 _MEAN = "__mean__{}__"
 _VAR = "__var__{}__"
 _COV = "__cov__{}__{}__"
-_DEMEAN = "__demean__{}__"
 
 
 class BaseTable(abc.ABC):
