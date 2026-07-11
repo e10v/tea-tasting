@@ -10,6 +10,7 @@ dependencies = [
     "numpy>=2.1",
     "pyarrow>=17",
     "scipy>=1.15",
+    "sqlglot>=25.5",
 ]
 requires-python = ">=3.12"
 readme = "README.md"
@@ -37,9 +38,6 @@ homepage = "https://tea-tasting.e10v.me"
 documentation = "https://tea-tasting.e10v.me/user-guide"
 source = "https://github.com/e10v/tea-tasting"
 "release notes" = "https://github.com/e10v/tea-tasting/releases"
-
-[project.optional-dependencies]
-sql = ["sqlglot>=25.5"]
 
 [dependency-groups]
 docs = ["mkdocs-material", "mkdocstrings[python]"]

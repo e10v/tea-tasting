@@ -8,6 +8,7 @@ import numpy as np
 import pyarrow as pa
 import pyarrow.compute as pc
 import pytest
+import sqlglot
 
 import tea_tasting
 import tea_tasting.aggr
@@ -171,8 +172,6 @@ def test_sql_query_init(data_sql_duckdb: tea_tasting.backends.sql.SQLQuery) -> N
 
 
 def test_sql_query_init_sqlglot_query(data_arrow: pa.Table) -> None:
-    import sqlglot  # noqa: PLC0415
-
     conn = duckdb.connect()
     conn.register("data_arrow", data_arrow)
     conn.execute("CREATE TABLE data AS SELECT * FROM data_arrow")
