@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import math
 from typing import TYPE_CHECKING
 
+import narwhals as nw
+import narwhals.typing
 import numpy as np
 import pyarrow as pa
 import pyarrow.compute as pc
@@ -13,9 +16,6 @@ import tea_tasting.backends.narwhals
 
 if TYPE_CHECKING:
     from collections.abc import Hashable
-
-    import narwhals.typing
-
 
 pytest_plugins = ("tests.fixtures",)
 
@@ -80,7 +80,27 @@ def _compare_aggrs(
 
 def test_narwhals_frame_init(data_narwhals: narwhals.typing.IntoFrame) -> None:
     adapter = tea_tasting.backends.narwhals.NarwhalsFrame(data_narwhals)
-    assert adapter.data is data_narwhals
+    assert isinstance(adapter._frame, nw.LazyFrame)
+    assert adapter.cov == tea_tasting.backends.narwhals.IMPLEMENTATION_COV[
+        adapter._frame.implementation
+    ]
+
+
+@pytest.mark.parametrize("cov", ["full", "ungrouped_only", "none"])
+def test_narwhals_frame_init_cov(cov: str, data_arrow: pa.Table) -> None:
+    adapter = tea_tasting.backends.narwhals.NarwhalsFrame(
+        data_arrow,
+        cov=cov,  # ty: ignore[invalid-argument-type]
+    )
+    assert adapter.cov == cov
+
+
+def test_narwhals_frame_init_cov_invalid(data_arrow: pa.Table) -> None:
+    with pytest.raises(ValueError, match="cov"):
+        tea_tasting.backends.narwhals.NarwhalsFrame(
+            data_arrow,
+            cov="invalid",  # ty: ignore[invalid-argument-type]
+        )
 
 
 def test_narwhals_frame_select(
@@ -144,6 +164,57 @@ def test_narwhals_frame_aggregate_no_count(
     assert aggr.cov_ == {}
 
 
+@pytest.mark.parametrize("cov", ["none", "ungrouped_only"])
+def test_narwhals_frame_aggregate_nulls(cov: str) -> None:
+    data = pa.table({
+        "left": [1.0, 2.0, None, 4.0, 10.0, 20.0, 30.0, None],
+        "right": [2.0, 4.0, 100.0, None, 1.0, None, 3.0, 4.0],
+    })
+    adapter = tea_tasting.backends.narwhals.NarwhalsFrame(
+        data,
+        cov=cov,  # ty: ignore[invalid-argument-type]
+    )
+    aggr = adapter.aggregate(
+        tea_tasting.aggr.AggrCols(
+            has_count=True,
+            mean_cols=(),
+            var_cols=("left", "right"),
+            cov_cols=(("left", "right"),),
+        ),
+    )
+
+    valid_left = np.array([1.0, 2.0, 10.0, 30.0])
+    valid_right = np.array([2.0, 4.0, 1.0, 3.0])
+    assert aggr.count_ == 8
+    assert aggr.var_ == pytest.approx({
+        "left": np.var([1.0, 2.0, 4.0, 10.0, 20.0, 30.0], ddof=1),
+        "right": np.var([2.0, 4.0, 100.0, 1.0, 3.0, 4.0], ddof=1),
+    })
+    assert aggr.cov_ == pytest.approx({
+        ("left", "right"): np.cov(valid_left, valid_right, ddof=1)[0, 1],
+    })
+
+
+def test_narwhals_frame_aggregate_insufficient_covariance_data() -> None:
+    data = pa.table({
+        "left": [1.0, None],
+        "right": [2.0, 3.0],
+    })
+    aggr = tea_tasting.backends.narwhals.NarwhalsFrame(
+        data,
+        cov="none",
+    ).aggregate(
+        tea_tasting.aggr.AggrCols(
+            has_count=False,
+            mean_cols=(),
+            var_cols=(),
+            cov_cols=(("left", "right"),),
+        ),
+    )
+
+    assert math.isnan(aggr.cov_["left", "right"])
+
+
 def test_narwhals_frame_group_by_init(data_narwhals: narwhals.typing.IntoFrame) -> None:
     adapter = tea_tasting.backends.narwhals.NarwhalsFrame(data_narwhals)
     grouped = tea_tasting.backends.narwhals.NarwhalsFrameGroupBy(
@@ -170,3 +241,29 @@ def test_narwhals_frame_group_by_aggregate(
     assert set(aggrs) == {0, 1}
     for variant, expected_aggr in expected.items():
         _compare_aggrs(aggrs[variant], expected_aggr)
+
+
+@pytest.mark.parametrize("cov", ["none", "ungrouped_only"])
+def test_narwhals_frame_group_by_aggregate_nulls(cov: str) -> None:
+    data = pa.table({
+        "group": [0, 0, 0, 0, 1, 1, 1, 1],
+        "left": [1.0, 2.0, None, 4.0, 10.0, 20.0, 30.0, None],
+        "right": [2.0, 4.0, 100.0, None, 1.0, None, 3.0, 4.0],
+    })
+    adapter = tea_tasting.backends.narwhals.NarwhalsFrame(
+        data,
+        cov=cov,  # ty: ignore[invalid-argument-type]
+    )
+    aggrs = adapter.group_by("group").aggregate(
+        tea_tasting.aggr.AggrCols(
+            has_count=True,
+            mean_cols=(),
+            var_cols=(),
+            cov_cols=(("left", "right"),),
+        ),
+    )
+
+    assert aggrs[0].count_ == 4
+    assert aggrs[0].cov_ == pytest.approx({("left", "right"): 1.0})
+    assert aggrs[1].count_ == 4
+    assert aggrs[1].cov_ == pytest.approx({("left", "right"): 20.0})
